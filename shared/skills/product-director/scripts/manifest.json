@@ -14,11 +14,10 @@
       "allowed_output_roots": ["$TMPDIR", "/tmp"],
       "allowed_input_roots": [
         "docs",
-        "contracts/canonical",
         "shared/runtime",
         "tools/community"
       ],
-      "failure_state": "director canonical baseline gate blocks handoff until brief.json and phase-prd.json pass schema, lock, sign-off, ownership, and content-quality checks",
+      "failure_state": "director result baseline gate blocks completion until brief.json and phase-prd.json pass result-payload, ledger, and content-quality checks",
       "failure_message": "product-director completion gate failed",
       "exit_code_meanings": {
         "0": "hook decision emitted or help displayed; decision may be allow or block",

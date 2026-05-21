@@ -1,18 +1,4 @@
 {
-  "artifact_type": "phase-prd",
-  "artifact_id": "sample-feature.phase-1.prd",
-  "schema_version": "1.0.0",
-  "producer": "product",
-  "produced_at": "2026-04-14T00:00:00Z",
-  "chain_version": "standard-chain/v1",
-  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
-  "authority_scope": "phase",
-  "authoritative_fields": [
-    "$.phase_goal",
-    "$.entry_conditions",
-    "$.exit_conditions",
-    "$.director_confirmation"
-  ],
   "phase_goal": "deliver a merchant onboarding handoff baseline for operations specialists",
   "entry_conditions": [
     "operations owns approved merchant onboarding review before account configuration handoff",
@@ -23,24 +9,5 @@
     "operations can review every approved merchant application in one handoff queue before configuration work starts",
     "operations can see configuration ownership acknowledgement without checking spreadsheets or chat threads",
     "weekly readiness review can count missed onboarding handoffs from queue evidence"
-  ],
-  "unit_index": [],
-  "director_confirmation": {
-    "status": "passed",
-    "confirmed_at": "2026-04-14T02:30:00Z",
-    "locked_field_digest": "sha256:e9cfba986b11953f18fca6763e9c7560badadb2f48145dda4d4524de1bdd947a",
-    "locked_fields": {
-      "phase_goal": "deliver a merchant onboarding handoff baseline for operations specialists",
-      "entry_conditions": [
-        "operations owns approved merchant onboarding review before account configuration handoff",
-        "existing approval status remains available to operations",
-        "configuration ownership directory is available for handoff acknowledgement"
-      ],
-      "exit_conditions": [
-        "operations can review every approved merchant application in one handoff queue before configuration work starts",
-        "operations can see configuration ownership acknowledgement without checking spreadsheets or chat threads",
-        "weekly readiness review can count missed onboarding handoffs from queue evidence"
-      ]
-    }
-  }
+  ]
 }

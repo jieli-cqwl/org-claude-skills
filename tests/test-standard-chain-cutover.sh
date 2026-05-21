@@ -80,7 +80,8 @@ assert_absent '人类投影视图|projections/qa-report-template' "$ROOT/shared/
 assert_absent 'shared/skills/delivery-owner/templates/signoff-package.template.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'fix-result.json' "$ROOT/shared/skills/fix/SKILL.md"
 
-assert_present 'validate_canonical_schema.py' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+assert_present 'Director result gate' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+assert_absent 'validate_canonical_schema.py' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
 assert_absent 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/SKILL.md"
 assert_absent 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-manager/SKILL.md"

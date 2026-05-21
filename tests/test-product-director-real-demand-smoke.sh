@@ -26,28 +26,18 @@ FEATURE_DIR="$WORKSPACE/docs/$FEATURE"
 PHASE_DIR="$FEATURE_DIR/phase-1"
 mkdir -p "$PHASE_DIR"
 
-python3 - "$ROOT" "$WORKSPACE" "$FEATURE" <<'PY'
-import hashlib
+python3 - "$WORKSPACE" "$FEATURE" <<'PY'
 import json
 import sys
 from pathlib import Path
 
-root = Path(sys.argv[1])
-workspace = Path(sys.argv[2])
-feature = sys.argv[3]
+workspace = Path(sys.argv[1])
+feature = sys.argv[2]
 feature_dir = workspace / "docs" / feature
 phase_dir = feature_dir / "phase-1"
-catalog = json.loads((root / "shared/runtime/standard-chain-catalog.json").read_text(encoding="utf-8"))
-chain_digest = catalog["chain_registry_digest"]
 produced_at = "2026-05-20T12:00:00Z"
 
-
-def digest(snapshot: dict) -> str:
-    raw = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    return "sha256:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
-
-brief_locked = {
+brief = {
     "root_problem": (
         "Finance operations specialists reviewing overdue lease invoices each morning miss "
         "follow-ups because aging status is tracked in spreadsheets and chat threads, causing "
@@ -113,38 +103,7 @@ brief_locked = {
     ],
 }
 
-brief = {
-    "artifact_type": "brief",
-    "artifact_id": f"{feature}.brief",
-    "schema_version": "1.0.0",
-    "producer": "product",
-    "produced_at": produced_at,
-    "chain_version": "standard-chain/v1",
-    "chain_registry_digest": chain_digest,
-    "authority_scope": "artifact",
-    "authoritative_fields": [
-        "$.root_problem",
-        "$.user_profile",
-        "$.business_goals",
-        "$.appetite",
-        "$.scope_boundaries",
-        "$.non_goals",
-        "$.feasibility_constraints",
-        "$.risks_and_unknowns",
-        "$.decision_rationale",
-        "$.delivery_plan",
-        "$.director_confirmation",
-    ],
-    **brief_locked,
-    "director_confirmation": {
-        "status": "passed",
-        "confirmed_at": produced_at,
-        "locked_field_digest": digest(brief_locked),
-        "locked_fields": brief_locked,
-    },
-}
-
-phase_locked = {
+phase = {
     "phase_goal": "deliver a daily overdue invoice follow-up baseline for finance operations",
     "entry_conditions": [
         "finance operations owns the daily overdue lease invoice review before customer follow-up",
@@ -158,39 +117,14 @@ phase_locked = {
     ],
 }
 
-phase = {
-    "artifact_type": "phase-prd",
-    "artifact_id": f"{feature}.phase-1.prd",
-    "schema_version": "1.0.0",
-    "producer": "product",
-    "produced_at": produced_at,
-    "chain_version": "standard-chain/v1",
-    "chain_registry_digest": chain_digest,
-    "authority_scope": "phase",
-    "authoritative_fields": [
-        "$.phase_goal",
-        "$.entry_conditions",
-        "$.exit_conditions",
-        "$.director_confirmation",
-    ],
-    **phase_locked,
-    "unit_index": [],
-    "director_confirmation": {
-        "status": "passed",
-        "confirmed_at": produced_at,
-        "locked_field_digest": digest(phase_locked),
-        "locked_fields": phase_locked,
-    },
-}
-
 step_summaries = {
     "D-S2": "Root problem confirmed: finance operations misses overdue lease invoice follow-ups because status is split across spreadsheets and chat.",
-    "D-S3": "Success signal confirmed: missed overdue follow-ups move from 3-5 per week to zero reported misses in a 30-day observation window.",
+    "D-S3": "Success signal confirmed: missed overdue follow-ups move from 3-5 per week to zero in a 30-day observation window.",
     "D-S4": "Business semantics confirmed: overdue lease invoice comes from the daily billing export; owner acknowledgement means accepted follow-up responsibility.",
     "D-S5": "Scope confirmed: daily overdue queue and owner acknowledgement are in; invoice rule changes, customer messages, and analytics are out.",
     "D-S5.5": "Risk confirmed: daily billing export cadence supports Phase 1; export cadence drift returns to risk review before finalization.",
     "D-S6": "Phase confirmed: one 10-day value slice closes finance operations follow-up visibility before automation expansion.",
-    "D-G1": "Finalization confirmed: ledger, brief, phase-prd, locked fields, and digest are ready for Director handoff.",
+    "D-G1": "Finalization confirmed: ledger, brief, and phase-prd result payloads are ready for Director completion.",
 }
 confirmations = []
 for index, (step, summary) in enumerate(step_summaries.items(), start=1):
@@ -217,7 +151,7 @@ ledger = {
     "current_state": {
         "summary": "Director baseline finalized for a finance operations overdue invoice follow-up queue",
         "source_refs": [f"docs/{feature}/brief.json"],
-        "next_step": "handoff to product-manager and technical lead",
+        "next_step": "ready for product and technical detail work",
     },
     "latest_checkpoint_id": confirmations[-1]["checkpoint_id"],
     "confirmations": confirmations,
@@ -240,8 +174,6 @@ phase_dir.mkdir(parents=True, exist_ok=True)
 (feature_dir / "brief.json").write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 (phase_dir / "phase-prd.json").write_text(json.dumps(phase, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 (feature_dir / "product-director-ledger.json").write_text(json.dumps(ledger, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-(workspace / "brief.fixture.json").write_text(json.dumps({"artifacts": [brief]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-(workspace / "phase.fixture.json").write_text(json.dumps({"artifacts": [phase]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 
 python3 "$ROOT/tools/community/validate_co_creation_ledger.py" \
@@ -249,26 +181,27 @@ python3 "$ROOT/tools/community/validate_co_creation_ledger.py" \
   --producer product-director \
   --require-finalized
 
-python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$WORKSPACE/brief.fixture.json"
-python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$WORKSPACE/phase.fixture.json"
-python3 "$ROOT/tools/community/validate_product_closure.py" --artifact "$FEATURE_DIR/brief.json"
-python3 "$ROOT/tools/community/validate_product_closure.py" --artifact "$PHASE_DIR/phase-prd.json"
-
 jq -e '
-  (has("acceptance_criteria") | not)
-  and (has("design_decisions") | not)
-  and (has("non_functional_requirements") | not)
-  and (has("business_flows") | not)
-  and (has("user_paths") | not)
-  and (has("rule_mappings") | not)
+  (keys_unsorted | sort) == ([
+    "appetite",
+    "business_goals",
+    "decision_rationale",
+    "delivery_plan",
+    "feasibility_constraints",
+    "non_goals",
+    "risks_and_unknowns",
+    "root_problem",
+    "scope_boundaries",
+    "user_profile"
+  ] | sort)
 ' "$FEATURE_DIR/brief.json" >/dev/null
 
 jq -e '
-  (.unit_index == [])
-  and (has("unit_priority_order") | not)
-  and (has("business_flows") | not)
-  and (has("user_paths") | not)
-  and (has("rule_mappings") | not)
+  (keys_unsorted | sort) == ([
+    "entry_conditions",
+    "exit_conditions",
+    "phase_goal"
+  ] | sort)
 ' "$PHASE_DIR/phase-prd.json" >/dev/null
 
 QUALITY_OUT="$SMOKE_TMP_ROOT/content-quality.json"
@@ -373,58 +306,71 @@ assert_present 'ledger must preserve the success-standard checkpoint' "$LEDGER_G
 
 HOOK_OUT="$SMOKE_TMP_ROOT/hook.out"
 HOOK_ERR="$SMOKE_TMP_ROOT/hook.err"
-printf '{"cwd":"%s","session_id":"real-demand-smoke","transcript_path":"/dev/null","tool_input":{"file_path":"docs/%s/brief.json"}}\n' \
+if ! printf '{"cwd":"%s","session_id":"real-demand-smoke","transcript_path":"/dev/null","tool_input":{"file_path":"docs/%s/brief.json"}}\n' \
   "$WORKSPACE" "$FEATURE" \
-  | "$ROOT/shared/skills/product-director/scripts/completion_check.sh" >"$HOOK_OUT" 2>"$HOOK_ERR"
+  | "$ROOT/shared/skills/product-director/scripts/completion_check.sh" >"$HOOK_OUT" 2>"$HOOK_ERR"; then
+  cat "$HOOK_OUT" >&2
+  cat "$HOOK_ERR" >&2
+  fail "completion hook should accept valid Director result payloads"
+fi
 
 assert_present '"decision":"allow"' "$HOOK_OUT"
-assert_present 'director canonical baseline validated' "$HOOK_OUT"
+assert_present 'director result baseline validated' "$HOOK_OUT"
 
 REL_HOOK_OUT="$SMOKE_TMP_ROOT/relative-hook.out"
 REL_HOOK_ERR="$SMOKE_TMP_ROOT/relative-hook.err"
 (
   cd "$ROOT"
-  printf '{"cwd":"%s","session_id":"relative-real-demand-smoke","transcript_path":"/dev/null","tool_input":{"file_path":"docs/%s/brief.json"}}\n' \
+  if ! printf '{"cwd":"%s","session_id":"relative-real-demand-smoke","transcript_path":"/dev/null","tool_input":{"file_path":"docs/%s/brief.json"}}\n' \
     "$WORKSPACE" "$FEATURE" \
-    | shared/skills/product-director/scripts/completion_check.sh >"$REL_HOOK_OUT" 2>"$REL_HOOK_ERR"
+    | shared/skills/product-director/scripts/completion_check.sh >"$REL_HOOK_OUT" 2>"$REL_HOOK_ERR"; then
+    cat "$REL_HOOK_OUT" >&2
+    cat "$REL_HOOK_ERR" >&2
+    fail "relative completion hook should accept valid Director result payloads"
+  fi
 )
 assert_present '"decision":"allow"' "$REL_HOOK_OUT"
+
+RUNTIME_NOISE_WORKSPACE="$SMOKE_TMP_ROOT/runtime-noise-workspace"
+cp -R "$WORKSPACE" "$RUNTIME_NOISE_WORKSPACE"
+python3 - "$RUNTIME_NOISE_WORKSPACE/docs/$FEATURE/brief.json" "$RUNTIME_NOISE_WORKSPACE/docs/$FEATURE/phase-1/phase-prd.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+brief_path = Path(sys.argv[1])
+phase_path = Path(sys.argv[2])
+brief = json.loads(brief_path.read_text(encoding="utf-8"))
+phase = json.loads(phase_path.read_text(encoding="utf-8"))
+brief["artifact_type"] = "brief"
+brief["director_confirmation"] = {"status": "passed"}
+phase["unit_index"] = []
+brief_path.write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+phase_path.write_text(json.dumps(phase, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+RUNTIME_NOISE_HOOK_OUT="$SMOKE_TMP_ROOT/runtime-noise-hook.out"
+RUNTIME_NOISE_HOOK_ERR="$SMOKE_TMP_ROOT/runtime-noise-hook.err"
+if printf '{"cwd":"%s","session_id":"runtime-noise-real-demand-smoke","transcript_path":"/dev/null","tool_input":{"file_path":"docs/%s/brief.json"}}\n' \
+  "$RUNTIME_NOISE_WORKSPACE" "$FEATURE" \
+  | "$ROOT/shared/skills/product-director/scripts/completion_check.sh" >"$RUNTIME_NOISE_HOOK_OUT" 2>"$RUNTIME_NOISE_HOOK_ERR"; then
+  fail "completion hook should reject runtime envelope fields"
+fi
+assert_present '"decision":"block"' "$RUNTIME_NOISE_HOOK_OUT"
+assert_present 'contains runtime or downstream fields' "$RUNTIME_NOISE_HOOK_ERR"
 
 STUFFED_WORKSPACE="$SMOKE_TMP_ROOT/stuffed-workspace"
 cp -R "$WORKSPACE" "$STUFFED_WORKSPACE"
 python3 - "$STUFFED_WORKSPACE/docs/$FEATURE/brief.json" <<'PY'
-import hashlib
 import json
 import sys
 from pathlib import Path
 
 brief_path = Path(sys.argv[1])
 brief = json.loads(brief_path.read_text(encoding="utf-8"))
-
-
-def digest(snapshot: dict) -> str:
-    raw = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    return "sha256:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
-
 brief["root_problem"] = "finance operations specialist because because causing cost 999 day"
 brief["user_profile"][0]["current_workaround"] = "anything vague"
 brief["business_goals"] = ["reduce missed overdue invoice follow-ups from 999 per day to 1 in a 30-day window"]
-fields = [
-    "root_problem",
-    "user_profile",
-    "business_goals",
-    "appetite",
-    "scope_boundaries",
-    "non_goals",
-    "feasibility_constraints",
-    "risks_and_unknowns",
-    "decision_rationale",
-    "delivery_plan",
-]
-locked = {field: brief[field] for field in fields}
-brief["director_confirmation"]["locked_fields"] = locked
-brief["director_confirmation"]["locked_field_digest"] = digest(locked)
 brief_path.write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 
@@ -436,6 +382,6 @@ if printf '{"cwd":"%s","session_id":"stuffed-real-demand-smoke","transcript_path
   fail "completion hook should reject keyword-stuffed Director artifacts"
 fi
 assert_present '"decision":"block"' "$STUFFED_HOOK_OUT"
-assert_present 'product-director content quality validation failed' "$STUFFED_HOOK_OUT"
+assert_present 'product-director content quality validation failed' "$STUFFED_HOOK_ERR"
 
 echo "[PASS] product-director real demand smoke"

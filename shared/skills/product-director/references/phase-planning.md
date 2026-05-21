@@ -31,28 +31,13 @@ Phase 存在多种切法、timebox 压力或实现步骤伪装成阶段时，召
 - Phase 拆分依据：
 - 待验证关键事实：
 
-## 最终 JSON 映射
-
-`brief.json.delivery_plan[]` 每个 Phase 写：
-
-- `phase_id`
-- `phase_name`
-- `phase_goal`
-- `entry_conditions`
-- `exit_conditions`
-- `iteration_timebox_days`
-
-`phase-prd.json` 只写对应 Phase 的 `phase_goal / entry_conditions / exit_conditions / unit_index / director_confirmation`。
-
-价值边界、拆分理由和阶段外相邻价值保留在 Director 台账检查点；最终 JSON 只写 Phase 目标、入口条件、出口条件和 timebox，不新增模板外字段。
-
 ## 停止条件
 
 Phase 按实现步骤、页面、接口、数据表或 UNIT 数量分组时，重新按业务价值切分。
 
 任一 Phase 无法说明独立业务结果，或后续 Phase 依赖前一 Phase 未完成部分才能成立时，重新切分。
 
-任一 Phase 的 `iteration_timebox_days` 超过 14 天时，不得冻结；先缩范围或拆 Phase。
+任一 Phase 的 `iteration_timebox_days` 超过 14 天时，不得确认；先缩范围或拆 Phase。
 
 Phase 入口条件、出口条件或风险依赖未闭合事实时，停在对应事实验证。
 

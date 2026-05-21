@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Product Director canonical gate: validates Director-owned standard-chain artifacts only.
+# Product Director result gate: validates Director-owned result payloads only.
 set -euo pipefail
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     cat <<'USAGE'
-product-director/completion_check.sh — Director canonical baseline gate
+product-director/completion_check.sh — Director result baseline gate
 Execution: PostToolUse(Edit|Write) or skill-local Stop
 Input: stdin JSON (cwd, session_id, transcript_path, optional tool_input.file_path)
 Output: stdout JSON decision + stderr diagnostics
@@ -20,11 +20,11 @@ hook_init
 
 RUNTIME_ROOT="$(resolve_runtime_root "$SCRIPT_DIR")"
 
-# Resolve the feature root from canonical product artifact paths in the hook context.
-resolve_canonical_feature_dir() {
+# Resolve the feature root from Director result artifact paths in the hook context.
+resolve_director_feature_dir() {
     local pattern feature_count target_path
 
-    pattern='docs/[^/"[:space:]*{}]+/(brief\.json|phase-[0-9]+/(phase-prd\.json|units/UNIT-[0-9]+\.json))'
+    pattern='docs/[^/"[:space:]*{}]+/(brief\.json|phase-[0-9]+/phase-prd\.json)'
     resolve_feature_dir "docs/*/brief.json" "$pattern" "brief.json"
 
     feature_count=$(printf '%s\n' "$FEATURE_CANDIDATES" | sed '/^$/d' | wc -l | tr -d ' ')
@@ -39,71 +39,7 @@ resolve_canonical_feature_dir() {
     fi
 }
 
-# Validate one canonical artifact by wrapping it in the shared schema fixture format.
-validate_canonical_schema() {
-    local artifact_file="$1"
-    local label="$2"
-    local fixture_file schema_out
-
-    if [ ! -f "$artifact_file" ]; then
-        add_failure "canonical product artifact not found: $label"
-        return 0
-    fi
-
-    fixture_file="$(mktemp "${TMPDIR:-/tmp}/director-canonical.XXXXXX")"
-    schema_out="$(mktemp "${TMPDIR:-/tmp}/director-canonical-schema.XXXXXX")"
-    python3 - "$artifact_file" "$fixture_file" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-artifact_path = Path(sys.argv[1])
-fixture_path = Path(sys.argv[2])
-payload = json.loads(artifact_path.read_text(encoding="utf-8"))
-fixture_path.write_text(json.dumps({"artifacts": [payload]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-PY
-
-    if ! python3 "$RUNTIME_ROOT/tools/community/validate_canonical_schema.py" --fixture "$fixture_file" >"$schema_out" 2>&1; then
-        add_failure "$label canonical schema validation failed"
-        while IFS= read -r line; do
-            [ -n "$line" ] && add_failure "$line"
-        done < <(sed -n '1,3p' "$schema_out")
-    fi
-    rm -f "$fixture_file" "$schema_out"
-}
-
-# Director artifacts must carry explicit sign-off metadata before handoff.
-validate_director_confirmation() {
-    local artifact_file="$1"
-    local label="$2"
-
-    if ! jq -e '
-        (.director_confirmation | type == "object")
-        and (.director_confirmation.status == "passed")
-        and ((.director_confirmation.confirmed_at // "") | type == "string")
-        and ((.director_confirmation.confirmed_at // "") | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"))
-    ' "$artifact_file" >/dev/null 2>&1; then
-        add_failure "$label director_confirmation.status/confirmed_at is not closed"
-    fi
-}
-
-# Director baseline must contain a locked-field snapshot accepted by the product closure validator.
-validate_director_lock() {
-    local artifact_file="$1"
-    local label="$2"
-    local closure_out
-
-    closure_out="$(mktemp "${TMPDIR:-/tmp}/director-lock.XXXXXX")"
-    if ! python3 "$RUNTIME_ROOT/tools/community/validate_product_closure.py" --artifact "$artifact_file" >"$closure_out" 2>&1; then
-        add_failure "$label director locked_fields snapshot failed"
-        while IFS= read -r line; do
-            [ -n "$line" ] && add_failure "$line"
-        done < <(sed -n '1,3p' "$closure_out")
-    fi
-    rm -f "$closure_out"
-}
-
-# Director handoff is only valid after its co-creation ledger is finalized.
+# Director completion is valid only after its co-creation ledger is finalized.
 validate_director_ledger_finalized() {
     local ledger_file="$FEATURE_DIR/product-director-ledger.json"
     local ledger_out
@@ -121,67 +57,154 @@ validate_director_ledger_finalized() {
     rm -f "$ledger_out"
 }
 
-# Every Director artifact must be locked to the active standard-chain catalog.
-validate_chain_registry_digest() {
+# Result payload validation is the deterministic boundary for Director artifacts.
+validate_director_result_payload() {
     local artifact_file="$1"
     local label="$2"
-    local catalog_file="$RUNTIME_ROOT/shared/runtime/standard-chain-catalog.json"
-    local expected_digest actual_digest
+    local result_out
 
-    expected_digest=$(jq -r '.chain_registry_digest // empty' "$catalog_file" 2>/dev/null || true)
-    if [ -z "$expected_digest" ]; then
-        add_failure "shared/runtime/standard-chain-catalog.json missing chain_registry_digest"
+    if [ ! -f "$artifact_file" ]; then
+        add_failure "Director result artifact not found: $label"
         return 0
     fi
 
-    actual_digest=$(jq -r '.chain_registry_digest // empty' "$artifact_file" 2>/dev/null || true)
-    if [ "$actual_digest" != "$expected_digest" ]; then
-        add_failure "$label chain_registry_digest must match shared/runtime/standard-chain-catalog.json: expected=$expected_digest actual=${actual_digest:-<missing>}"
-    fi
+    result_out="$(mktemp "${TMPDIR:-/tmp}/director-result.XXXXXX")"
+    if ! python3 - "$artifact_file" "$label" >"$result_out" 2>&1 <<'PY'; then
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+path = Path(sys.argv[1])
+label = sys.argv[2]
+payload = json.loads(path.read_text(encoding="utf-8"))
+
+BRIEF_KEYS = {
+    "root_problem",
+    "user_profile",
+    "business_goals",
+    "appetite",
+    "scope_boundaries",
+    "non_goals",
+    "feasibility_constraints",
+    "risks_and_unknowns",
+    "decision_rationale",
+    "delivery_plan",
+}
+PHASE_KEYS = {"phase_goal", "entry_conditions", "exit_conditions"}
+RUNTIME_OR_DOWNSTREAM_FIELDS = {
+    "artifact_type",
+    "artifact_id",
+    "schema_version",
+    "producer",
+    "produced_at",
+    "chain_version",
+    "chain_registry_digest",
+    "authority_scope",
+    "authoritative_fields",
+    "director_confirmation",
+    "locked_fields",
+    "locked_field_digest",
+    "unit_index",
+    "unit_priority_order",
+    "acceptance_criteria",
+    "design_decisions",
+    "non_functional_requirements",
+    "business_flows",
+    "user_paths",
+    "rule_mappings",
+    "semantic_draft",
+    "business_semantics_draft",
+    "semantics_gaps",
+    "design_decision_candidates",
+    "review_conclusion",
+    "issue_ledger",
+    "delivery_confirmation",
 }
 
-# Director owns baseline framing only; downstream product-detail fields are rejected at this gate.
-validate_director_boundary() {
-    local artifact_file="$1"
-    local label="$2"
 
-    case "$label" in
-        brief.json)
-            if jq -e '
-                has("acceptance_criteria")
-                or has("design_decisions")
-                or has("non_functional_requirements")
-                or has("business_flows")
-                or has("user_paths")
-                or has("rule_mappings")
-                or has("semantic_draft")
-                or has("business_semantics_draft")
-                or has("semantics_gaps")
-                or has("review_conclusion")
-                or has("issue_ledger")
-                or has("delivery_confirmation")
-            ' "$artifact_file" >/dev/null 2>&1; then
-                add_failure "$label contains downstream product-detail fields"
-            fi
-            ;;
-        phase-prd.json)
-            if jq -e '
-                has("review_conclusion")
-                or has("issue_ledger")
-                or has("business_flows")
-                or has("user_paths")
-                or has("rule_mappings")
-                or has("unit_priority_order")
-                or has("semantic_draft")
-                or has("business_semantics_draft")
-                or has("semantics_gaps")
-                or has("design_decision_candidates")
-                or (((.unit_index // []) | length) > 0)
-            ' "$artifact_file" >/dev/null 2>&1; then
-                add_failure "$label contains downstream product-detail closure, business semantics, design decisions, or non-empty unit_index"
-            fi
-            ;;
-    esac
+def as_list(value: Any) -> list[Any]:
+    return value if isinstance(value, list) else []
+
+
+def require_non_empty_list(errors: list[str], key: str) -> None:
+    value = payload.get(key)
+    if not isinstance(value, list) or not value:
+        errors.append(f"{label}.{key} must be a non-empty array")
+
+
+errors: list[str] = []
+if not isinstance(payload, dict):
+    errors.append(f"{label} must be a JSON object")
+else:
+    required = BRIEF_KEYS if label == "brief.json" else PHASE_KEYS
+    actual = set(payload.keys())
+    missing = sorted(required - actual)
+    extra = sorted(actual - required)
+    polluted = sorted(actual & RUNTIME_OR_DOWNSTREAM_FIELDS)
+    if missing:
+        errors.append(f"{label} missing Director result fields: {', '.join(missing)}")
+    if extra:
+        errors.append(
+            f"{label} contains fields outside Director result payload: {', '.join(extra)}"
+        )
+    if polluted:
+        errors.append(
+            f"{label} contains runtime or downstream fields: {', '.join(polluted)}"
+        )
+
+    if label == "brief.json":
+        if not isinstance(payload.get("root_problem"), str) or not payload["root_problem"].strip():
+            errors.append("brief.json.root_problem must be a non-empty string")
+        if not isinstance(payload.get("appetite"), dict) or not payload["appetite"]:
+            errors.append("brief.json.appetite must be a non-empty object")
+        for key in (
+            "user_profile",
+            "business_goals",
+            "scope_boundaries",
+            "non_goals",
+            "feasibility_constraints",
+            "risks_and_unknowns",
+            "decision_rationale",
+            "delivery_plan",
+        ):
+            require_non_empty_list(errors, key)
+        for index, phase in enumerate(as_list(payload.get("delivery_plan")), start=1):
+            if not isinstance(phase, dict):
+                errors.append(f"brief.json.delivery_plan[{index}] must be an object")
+                continue
+            phase_keys = set(phase.keys())
+            expected_phase_keys = {"phase_id", "goal", "iteration_timebox_days"}
+            if phase_keys != expected_phase_keys:
+                errors.append(
+                    "brief.json.delivery_plan"
+                    f"[{index}] keys must be phase_id, goal, iteration_timebox_days"
+                )
+            days = phase.get("iteration_timebox_days")
+            if not isinstance(days, int) or days < 1 or days > 14:
+                errors.append(
+                    f"brief.json.delivery_plan[{index}].iteration_timebox_days must be 1-14"
+                )
+
+    if label == "phase-prd.json":
+        if not isinstance(payload.get("phase_goal"), str) or not payload["phase_goal"].strip():
+            errors.append("phase-prd.json.phase_goal must be a non-empty string")
+        for key in ("entry_conditions", "exit_conditions"):
+            require_non_empty_list(errors, key)
+            if any(not isinstance(item, str) or not item.strip() for item in as_list(payload.get(key))):
+                errors.append(f"phase-prd.json.{key} must contain non-empty strings")
+
+if errors:
+    for error in errors:
+        print(error)
+    sys.exit(1)
+PY
+        add_failure "$label Director result payload validation failed"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < "$result_out"
+    fi
+    rm -f "$result_out"
 }
 
 # Director gate also checks observable content quality signals, not only JSON shape.
@@ -205,30 +228,23 @@ validate_director_content_quality() {
     rm -f "$quality_out"
 }
 
-# Validate one Director-owned product artifact with schema, sign-off, lock, and ownership checks.
 validate_director_artifact() {
     local artifact_file="$1"
     local label="$2"
 
-    validate_canonical_schema "$artifact_file" "$label"
-    [ -f "$artifact_file" ] || return 0
-    validate_chain_registry_digest "$artifact_file" "$label"
-    validate_director_confirmation "$artifact_file" "$label"
-    validate_director_lock "$artifact_file" "$label"
-    validate_director_boundary "$artifact_file" "$label"
+    validate_director_result_payload "$artifact_file" "$label"
     if [ "$label" = "brief.json" ] && jq -e 'has("non_functional_req")' "$artifact_file" >/dev/null 2>&1; then
         add_failure "$label contains retired alias non_functional_req"
     fi
 }
 
-# Validate the complete Director handoff set for the current feature.
-run_canonical_director_gate() {
+run_director_result_gate() {
     local phase_files
 
-    resolve_canonical_feature_dir
+    resolve_director_feature_dir
     if [ -z "$FEATURE_DIR" ]; then
-        add_failure "canonical product feature root not found"
-        output_failures "Director canonical baseline gate failed" ""
+        add_failure "Director result feature root not found"
+        output_failures "Director result baseline gate failed" ""
     fi
 
     validate_director_ledger_finalized
@@ -236,7 +252,7 @@ run_canonical_director_gate() {
 
     phase_files=$(find "$FEATURE_DIR" -path "$FEATURE_DIR/phase-*/phase-prd.json" -type f | sort)
     if [ -z "$phase_files" ]; then
-        add_failure "canonical product artifact not found: phase-prd.json"
+        add_failure "Director result artifact not found: phase-prd.json"
     else
         while IFS= read -r phase_file; do
             if [ -n "$phase_file" ]; then
@@ -246,8 +262,8 @@ run_canonical_director_gate() {
         done <<< "$phase_files"
     fi
 
-    output_failures "Director canonical baseline gate failed" "$FEATURE_DIR"
-    emit_decision_json "allow" "director canonical baseline validated"
+    output_failures "Director result baseline gate failed" "$FEATURE_DIR"
+    emit_decision_json "allow" "director result baseline validated"
 }
 
-run_canonical_director_gate
+run_director_result_gate

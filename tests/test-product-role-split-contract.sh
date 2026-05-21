@@ -71,24 +71,30 @@ if [ -d "$PRODUCT_DIRECTOR_ROOT/references/templates" ]; then
 fi
 
 jq -e '
-  .director_confirmation.locked_fields
-  and .director_confirmation.locked_field_digest
-  and (.delivery_confirmation? | not)
-  and (.review_conclusion? | not)
-  and (.issue_ledger? | not)
-' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null || fail "director brief template must expose Director lock and exclude Manager closure"
+  (keys_unsorted | sort) == ([
+    "appetite",
+    "business_goals",
+    "decision_rationale",
+    "delivery_plan",
+    "feasibility_constraints",
+    "non_goals",
+    "risks_and_unknowns",
+    "root_problem",
+    "scope_boundaries",
+    "user_profile"
+  ] | sort)
+' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null || fail "director brief template must expose Director result payload only"
 
 jq -e '
-  .phase_goal
+  (keys_unsorted | sort) == ([
+    "entry_conditions",
+    "exit_conditions",
+    "phase_goal"
+  ] | sort)
+  and .phase_goal
   and .entry_conditions
   and .exit_conditions
-  and ((.unit_index // []) | type == "array" and length == 0)
-  and .director_confirmation.locked_fields
-  and .director_confirmation.locked_field_digest
-  and (.review_conclusion? | not)
-  and (.business_flows? | not)
-  and (.user_paths? | not)
-' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase template must expose locked phase skeleton only"
+' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase template must expose Director phase result payload only"
 
 jq -e '
   .director_confirmation.locked_fields

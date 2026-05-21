@@ -68,24 +68,31 @@ for file in "$DIRECTOR_BRIEF_JSON" "$DIRECTOR_PHASE_JSON" "$MANAGER_BRIEF_JSON" 
 done
 
 jq -e '
-  .director_confirmation.locked_fields
-  and all(.delivery_plan[]; .iteration_timebox_days == 14)
-  and all(.director_confirmation.locked_fields.delivery_plan[]; .iteration_timebox_days == 14)
-  and (.review_conclusion? | not)
-  and (.issue_ledger? | not)
-  and (.delivery_confirmation? | not)
-' "$DIRECTOR_BRIEF_JSON" >/dev/null || fail "director brief JSON template must stay Director-owned"
+  (keys_unsorted | sort) == ([
+    "appetite",
+    "business_goals",
+    "decision_rationale",
+    "delivery_plan",
+    "feasibility_constraints",
+    "non_goals",
+    "risks_and_unknowns",
+    "root_problem",
+    "scope_boundaries",
+    "user_profile"
+  ] | sort)
+  and all(.delivery_plan[]; ((keys_unsorted | sort) == (["goal", "iteration_timebox_days", "phase_id"] | sort)) and .iteration_timebox_days == 14)
+' "$DIRECTOR_BRIEF_JSON" >/dev/null || fail "director brief JSON template must only define Director result payload"
 jq -e '
   all(.delivery_plan[]; .iteration_timebox_days == 14)
   and all(.director_confirmation.locked_fields.delivery_plan[]; .iteration_timebox_days == 14)
 ' "$MANAGER_BRIEF_JSON" >/dev/null || fail "manager brief JSON template must carry Phase timeboxes"
 jq -e '
-  .director_confirmation.locked_fields
-  and ((.unit_index // []) | type == "array" and length == 0)
-  and (.review_conclusion? | not)
-  and (.business_flows? | not)
-  and (.user_paths? | not)
-' "$DIRECTOR_PHASE_JSON" >/dev/null || fail "director phase JSON template must stay a Director-owned skeleton"
+  (keys_unsorted | sort) == ([
+    "entry_conditions",
+    "exit_conditions",
+    "phase_goal"
+  ] | sort)
+' "$DIRECTOR_PHASE_JSON" >/dev/null || fail "director phase JSON template must only define Director phase result payload"
 
 assert_absent 'MVP|最小闭环 UNIT|前置约束执行映射|scope_item_id|test_ref|SCOPE-P1U1|确认备注' "$MANAGER_BRIEF"
 assert_absent 'UX-0[0-9]|以上为起始项|按产品实际情况增删|分页规范|敏感信息.*脱敏|前端控制|后端控制|页面功能[[:space:]]*\\|[[:space:]]*各模块入口|表单校验[[:space:]]*\\|[[:space:]]*必填项校验|安全控制[[:space:]]*\\|[[:space:]]*敏感字段|端：前端 / 后端 / 全栈' "$MANAGER_PHASE"

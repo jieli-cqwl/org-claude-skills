@@ -1,5 +1,5 @@
 # contracts/standard-chain.yaml
-# 标准流程 skill 输入输出声明（canonical-only）
+# 标准流程 skill 输入输出声明
 
 chain:
   - name: product-director
@@ -9,10 +9,10 @@ chain:
       optional: [constitution.md]
     outputs:
       - artifact: brief.json
-        key_fields: [root_problem, user_profile, business_goals, appetite, scope_boundaries, non_goals, feasibility_constraints, risks_and_unknowns, decision_rationale, delivery_plan, director_confirmation]
+        key_fields: [root_problem, user_profile, business_goals, appetite, scope_boundaries, non_goals, feasibility_constraints, risks_and_unknowns, decision_rationale, delivery_plan]
         consumers: [product-manager]
       - artifact: "phase-{N}/phase-prd.json"
-        key_fields: [phase_goal, entry_conditions, exit_conditions, unit_index, director_confirmation]
+        key_fields: [phase_goal, entry_conditions, exit_conditions]
         consumers: [product-manager]
 
   - name: product-manager

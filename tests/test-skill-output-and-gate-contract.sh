@@ -343,7 +343,7 @@ step_summaries = {
     "D-S5": "Scope confirmed: intake review, configuration handoff, and status visibility are in; CRM replacement, rule builders, and analytics are out.",
     "D-S5.5": "Risk confirmed: existing approval status supports Phase 1; status model drift returns to risk review before finalization.",
     "D-S6": "Phase confirmed: one 14-day value slice closes operations handoff visibility before automation expansion.",
-    "D-G1": "Finalization confirmed: ledger, brief, phase-prd, locked fields, and digest are ready for Director handoff.",
+    "D-G1": "Finalization confirmed: ledger, brief, and phase-prd result payloads are ready for Director completion.",
 }
 confirmations = []
 for index, (step, summary) in enumerate(step_summaries.items(), start=1):
@@ -369,9 +369,9 @@ payload = {
     "producer": "product-director",
     "scope_ref": f"docs/{feature_dir.name}",
     "current_state": {
-        "summary": "Director baseline finalized for handoff",
+        "summary": "Director baseline finalized for detail work",
         "source_refs": [f"docs/{feature_dir.name}/brief.json"],
-        "next_step": "handoff to product-manager",
+        "next_step": "ready for product and technical detail work",
     },
     "latest_checkpoint_id": confirmations[-1]["checkpoint_id"],
     "confirmations": confirmations,
@@ -408,91 +408,12 @@ prepare_git_trace_workspace() {
 
 prepare_director_workspace() {
   local workspace="$1"
-  prepare_workspace "$workspace"
-  mv "$workspace/docs/sample-feature" "$workspace/docs/director-feature"
+  mkdir -p "$workspace/docs/director-feature/phase-1"
+  cp "$ROOT/shared/skills/product-director/templates/brief.template.json" \
+    "$workspace/docs/director-feature/brief.json"
+  cp "$ROOT/shared/skills/product-director/templates/phase-prd.template.json" \
+    "$workspace/docs/director-feature/phase-1/phase-prd.json"
   write_product_director_ledger "$workspace/docs/director-feature"
-
-  jq '
-    del(.acceptance_criteria, .design_decisions, .non_functional_requirements, .review_conclusion, .issue_ledger, .delivery_confirmation)
-    | .authoritative_fields = ["$.root_problem", "$.user_profile", "$.business_goals", "$.appetite", "$.scope_boundaries", "$.non_goals", "$.feasibility_constraints", "$.risks_and_unknowns", "$.decision_rationale", "$.delivery_plan", "$.director_confirmation"]
-  ' "$workspace/docs/director-feature/brief.json" > "$workspace/docs/director-feature/brief.tmp.json"
-  mv "$workspace/docs/director-feature/brief.tmp.json" "$workspace/docs/director-feature/brief.json"
-
-  jq '
-    .unit_index = []
-    | del(.review_conclusion, .issue_ledger, .business_flows, .user_paths, .rule_mappings, .unit_priority_order, .semantic_draft, .business_semantics_draft, .semantics_gaps, .design_decision_candidates)
-    | .authoritative_fields = ["$.phase_goal", "$.entry_conditions", "$.exit_conditions", "$.director_confirmation"]
-  ' "$workspace/docs/director-feature/phase-1/phase-prd.json" > "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json"
-  mv "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json" "$workspace/docs/director-feature/phase-1/phase-prd.json"
-
-  python3 - "$workspace/docs/director-feature/brief.json" "$workspace/docs/director-feature/phase-1/phase-prd.json" <<'PY'
-import hashlib
-import json
-import sys
-from pathlib import Path
-
-brief_path = Path(sys.argv[1])
-phase_path = Path(sys.argv[2])
-
-
-def digest(payload: dict) -> str:
-    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    return "sha256:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
-
-brief = json.loads(brief_path.read_text(encoding="utf-8"))
-brief_updates = {
-    "root_problem": "Operations specialists miss merchant onboarding handoffs because checklist status is split across spreadsheets and account tools, causing delayed launch readiness and repeated configuration questions.",
-    "user_profile": [{
-        "who": "operations specialist",
-        "scenario": "reviewing approved merchant applications and handing off account configuration",
-        "current_workaround": "track checklist status in spreadsheets and copy configuration notes between tools",
-        "workaround_cost": "4 missed onboarding handoffs per month, delayed launch readiness, and repeated configuration questions",
-    }],
-    "business_goals": [
-        "reduce missed merchant onboarding handoffs from 4 per month to zero during the first 30-day observation window",
-        "make approved merchant setup status visible before operations starts account configuration handoff",
-    ],
-    "scope_boundaries": [
-        "identify approved merchant applications from the existing approval system",
-        "show one onboarding handoff queue for operations specialists",
-        "record whether configuration ownership has been accepted",
-    ],
-    "non_goals": [
-        "do not replace the merchant CRM in this phase",
-        "do not build self-service approval rule builders",
-        "do not build cross-merchant onboarding analytics",
-    ],
-}
-brief.update(brief_updates)
-brief_locked_fields = (
-    "root_problem", "user_profile", "business_goals", "appetite", "scope_boundaries",
-    "non_goals", "feasibility_constraints", "risks_and_unknowns", "decision_rationale", "delivery_plan",
-)
-brief_locked = {field: brief[field] for field in brief_locked_fields}
-brief["director_confirmation"]["locked_fields"] = brief_locked
-brief["director_confirmation"]["locked_field_digest"] = digest(brief_locked)
-brief_path.write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-phase = json.loads(phase_path.read_text(encoding="utf-8"))
-phase.update({
-    "phase_goal": "deliver a merchant onboarding handoff baseline for operations specialists",
-    "entry_conditions": [
-        "operations owns approved merchant onboarding review before account configuration handoff",
-        "existing approval status remains available to operations",
-        "configuration ownership directory is available for handoff acknowledgement",
-    ],
-    "exit_conditions": [
-        "operations can review every approved merchant application in one handoff queue before configuration work starts",
-        "operations can see configuration ownership acknowledgement without checking spreadsheets or chat threads",
-        "weekly readiness review can count missed onboarding handoffs from queue evidence",
-    ],
-})
-phase_locked = {field: phase[field] for field in ("phase_goal", "entry_conditions", "exit_conditions")}
-phase["director_confirmation"]["locked_fields"] = phase_locked
-phase["director_confirmation"]["locked_field_digest"] = digest(phase_locked)
-phase_path.write_text(json.dumps(phase, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-PY
 }
 
 prepare_director_pm_polluted_workspace() {
@@ -527,13 +448,20 @@ prepare_director_brief_pm_polluted_workspace() {
   mv "$workspace/docs/director-feature/brief.tmp.json" "$workspace/docs/director-feature/brief.json"
 }
 
-prepare_director_missing_artifact_type_workspace() {
+prepare_director_runtime_noise_workspace() {
   local workspace="$1"
   prepare_director_workspace "$workspace"
 
-  jq 'del(.artifact_type)' \
+  jq '
+    .artifact_type = "brief"
+    | .director_confirmation = {"status": "passed"}
+  ' \
     "$workspace/docs/director-feature/brief.json" > "$workspace/docs/director-feature/brief.tmp.json"
   mv "$workspace/docs/director-feature/brief.tmp.json" "$workspace/docs/director-feature/brief.json"
+
+  jq '.unit_index = []' \
+    "$workspace/docs/director-feature/phase-1/phase-prd.json" > "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json"
+  mv "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json" "$workspace/docs/director-feature/phase-1/phase-prd.json"
 }
 
 prepare_director_missing_ledger_workspace() {
@@ -546,15 +474,6 @@ prepare_director_unfinalized_ledger_workspace() {
   local workspace="$1"
   prepare_director_workspace "$workspace"
   write_product_director_ledger "$workspace/docs/director-feature" "draft"
-}
-
-prepare_director_digest_mismatch_workspace() {
-  local workspace="$1"
-  prepare_director_workspace "$workspace"
-
-  jq '.chain_registry_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"' \
-    "$workspace/docs/director-feature/brief.json" > "$workspace/docs/director-feature/brief.tmp.json"
-  mv "$workspace/docs/director-feature/brief.tmp.json" "$workspace/docs/director-feature/brief.json"
 }
 
 prepare_director_weak_content_workspace() {
@@ -573,46 +492,6 @@ prepare_director_weak_content_workspace() {
   ' "$workspace/docs/director-feature/phase-1/phase-prd.json" > "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json"
   mv "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json" "$workspace/docs/director-feature/phase-1/phase-prd.json"
 
-  python3 - "$workspace/docs/director-feature/brief.json" "$workspace/docs/director-feature/phase-1/phase-prd.json" <<'PY'
-import hashlib
-import json
-import sys
-from pathlib import Path
-
-brief_path = Path(sys.argv[1])
-phase_path = Path(sys.argv[2])
-
-
-def digest(payload: dict) -> str:
-    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    return "sha256:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
-
-def refresh_lock(path: Path, fields: tuple[str, ...]) -> None:
-    artifact = json.loads(path.read_text(encoding="utf-8"))
-    locked = {field: artifact[field] for field in fields}
-    artifact["director_confirmation"]["locked_fields"] = locked
-    artifact["director_confirmation"]["locked_field_digest"] = digest(locked)
-    path.write_text(json.dumps(artifact, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
-refresh_lock(
-    brief_path,
-    (
-        "root_problem",
-        "user_profile",
-        "business_goals",
-        "appetite",
-        "scope_boundaries",
-        "non_goals",
-        "feasibility_constraints",
-        "risks_and_unknowns",
-        "decision_rationale",
-        "delivery_plan",
-    ),
-)
-refresh_lock(phase_path, ("phase_goal", "entry_conditions", "exit_conditions"))
-PY
 }
 
 prepare_director_template_workspace() {
@@ -707,9 +586,8 @@ assert_canonical_runtime_artifacts() {
   assert_absent 'references/output\.md#' "$ROOT/shared/skills/product-director/SKILL.md"
   assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
   assert_present 'shared/skills/product-director/templates/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
-  assert_present 'artifact_type' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
-  assert_present 'chain_registry_digest' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
-  assert_present 'locked_field_digest' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+  assert_present '只按模板写结果 payload' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+  assert_absent 'artifact_type|chain_registry_digest|locked_field_digest|director_confirmation' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
   assert_absent '历史 product-artifact 兼容校验' "$ROOT/shared/skills/product-director/SKILL.md"
 }
 
@@ -725,7 +603,12 @@ assert_canonical_only_scripts() {
     "$ROOT/shared/skills/review/scripts/completion_check.sh" \
     "$ROOT/shared/skills/qa/scripts/completion_check.sh"; do
     bash -n "$script"
-    assert_present 'canonical' "$script"
+    if [ "$script" = "$ROOT/shared/skills/product-director/scripts/completion_check.sh" ]; then
+      assert_present 'Director result baseline gate' "$script"
+      assert_absent 'canonical' "$script"
+    else
+      assert_present 'canonical' "$script"
+    fi
     assert_absent 'ORG_ENABLE_LEGACY_MARKDOWN_HOOKS|legacy markdown|brief\.md|prd\.md|design\.md|plan\.md|test-cases\.md|developer-report-Task|qa-report\.md|code-review-report\.md|product-manager-review\.md' "$script"
     assert_absent 'first_matching_hook_path|grep -oE .*head -1|head -1 \|\| true' "$script"
   done
@@ -831,19 +714,19 @@ assert_planning_projection_context_contract() {
 }
 
 assert_canonical_hooks_pass() {
-  SKILL_OUTPUT_TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/skill-output-canonical.XXXXXX")"
+  SKILL_OUTPUT_TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/skill-output-gates.XXXXXX")"
   SKILL_OUTPUT_REPO_FEATURE="$(mktemp -d "$ROOT/docs/skill-output-developer.XXXXXX")"
   trap 'rm -rf "$SKILL_OUTPUT_TMP_ROOT" "$SKILL_OUTPUT_REPO_FEATURE"' EXIT
 
   prepare_director_workspace "$SKILL_OUTPUT_TMP_ROOT/director"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
-    "$SKILL_OUTPUT_TMP_ROOT/director" "director-canonical" \
+    "$SKILL_OUTPUT_TMP_ROOT/director" "director-result" \
     "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
-  assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/director" "product-director canonical gate"
+  assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/director" "product-director result gate"
 
   prepare_director_template_workspace "$SKILL_OUTPUT_TMP_ROOT/director-template"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
-    "$SKILL_OUTPUT_TMP_ROOT/director-template" "director-template-canonical" \
+    "$SKILL_OUTPUT_TMP_ROOT/director-template" "director-template-result" \
     "docs/director-template-feature/brief.json\ndocs/director-template-feature/phase-1/phase-prd.json\n"
   assert_hook_passed "$SKILL_OUTPUT_TMP_ROOT/director-template" "product-director advertised template gate"
 
@@ -868,16 +751,6 @@ assert_canonical_hooks_pass() {
   fi
   assert_present 'finalization_basis.status must be confirmed' "$SKILL_OUTPUT_TMP_ROOT/director-unfinalized-ledger/hook.stderr"
 
-  prepare_director_digest_mismatch_workspace "$SKILL_OUTPUT_TMP_ROOT/director-digest-mismatch"
-  run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
-    "$SKILL_OUTPUT_TMP_ROOT/director-digest-mismatch" "director-digest-mismatch" \
-    "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
-  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-digest-mismatch/hook.status")" = "0" ]; then
-    cat "$SKILL_OUTPUT_TMP_ROOT/director-digest-mismatch/hook.stdout" >&2
-    fail "product-director gate should reject stale chain_registry_digest"
-  fi
-  assert_present 'brief.json chain_registry_digest must match shared/runtime/standard-chain-catalog.json' "$SKILL_OUTPUT_TMP_ROOT/director-digest-mismatch/hook.stderr"
-
   prepare_director_weak_content_workspace "$SKILL_OUTPUT_TMP_ROOT/director-weak-content"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
     "$SKILL_OUTPUT_TMP_ROOT/director-weak-content" "director-weak-content" \
@@ -897,7 +770,7 @@ assert_canonical_hooks_pass() {
     cat "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stdout" >&2
     fail "product-director gate should reject downstream phase-prd fields"
   fi
-  assert_present 'contains downstream product-detail closure, business semantics, design decisions, or non-empty unit_index' "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stderr"
+  assert_present 'phase-prd.json contains runtime or downstream fields' "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stderr"
 
   prepare_director_brief_pm_polluted_workspace "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
@@ -907,17 +780,17 @@ assert_canonical_hooks_pass() {
     cat "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted/hook.stdout" >&2
     fail "product-director gate should reject downstream brief fields"
   fi
-  assert_present 'brief.json contains downstream product-detail fields' "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted/hook.stderr"
+  assert_present 'brief.json contains runtime or downstream fields' "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted/hook.stderr"
 
-  prepare_director_missing_artifact_type_workspace "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type"
+  prepare_director_runtime_noise_workspace "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
-    "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type" "director-missing-artifact-type" \
+    "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise" "director-runtime-noise" \
     "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
-  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type/hook.status")" = "0" ]; then
-    cat "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type/hook.stdout" >&2
-    fail "product-director gate should reject artifacts without canonical artifact_type"
+  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise/hook.status")" = "0" ]; then
+    cat "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise/hook.stdout" >&2
+    fail "product-director gate should reject runtime envelope fields"
   fi
-  assert_present 'missing required canonical field: artifact_type' "$SKILL_OUTPUT_TMP_ROOT/director-missing-artifact-type/hook.stderr"
+  assert_present 'contains runtime or downstream fields' "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise/hook.stderr"
 
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/manager"
   run_hook "$ROOT/shared/skills/product-manager/scripts/completion_check.sh" \

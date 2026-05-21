@@ -35,8 +35,8 @@ assert_absent() {
 
 assert_file "$CONTRACT"
 assert_present '^product_artifacts:' "$CONTRACT"
-assert_present 'brief_lock:' "$CONTRACT"
-assert_present 'prd_lock:' "$CONTRACT"
+assert_present 'brief_result:' "$CONTRACT"
+assert_present 'phase_result:' "$CONTRACT"
 assert_present 'product_manager_review_contract:' "$CONTRACT"
 assert_absent '^[[:space:]]*review_contract:' "$CONTRACT"
 assert_present '业务背景与根问题' "$CONTRACT"
@@ -44,14 +44,16 @@ assert_present '目标与成功标准' "$CONTRACT"
 assert_present '交付计划' "$CONTRACT"
 assert_present '阶段目标' "$CONTRACT"
 assert_present '入口与出口条件' "$CONTRACT"
+assert_absent '产品总监确认|功能需求（UNIT 索引）' "$CONTRACT"
 assert_present '最终结论' "$CONTRACT"
 assert_present '未决阻断' "$CONTRACT"
 
-assert_present 'validate_canonical_schema\.py' "$DIRECTOR_CHECK"
+assert_present 'Director result baseline gate' "$DIRECTOR_CHECK"
+assert_absent 'validate_canonical_schema\.py|validate_product_closure\.py' "$DIRECTOR_CHECK"
 assert_present 'validate_canonical_schema\.py' "$MANAGER_CHECK"
-assert_present 'producer.*`product`' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
+assert_present '只按模板写结果 payload' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
+assert_absent 'producer.*`product`|director_confirmation|locked_field_digest|chain_registry_digest' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_present 'producer.*`product`' "$MANAGER_OUTPUT_REFERENCE"
-assert_present 'validate_product_closure\.py' "$DIRECTOR_CHECK"
 assert_present 'validate_product_closure\.py' "$MANAGER_CHECK"
 assert_present 'validate_product_closure\.py' "$DESIGN_CHECK"
 assert_present 'require-delivery' "$DESIGN_CHECK"
@@ -122,12 +124,14 @@ def require_delivery_plan_timebox(schema: dict, template: dict, label: str) -> N
     timebox = delivery_item["properties"].get("iteration_timebox_days", {})
     require(timebox.get("type") == "integer", f"{label} iteration_timebox_days must be an integer")
     require(timebox.get("maximum") == 14, f"{label} iteration_timebox_days must cap each Phase at 14 days")
-    locked_item = schema["allOf"][1]["properties"]["director_confirmation"]["properties"]["locked_fields"]["properties"]["delivery_plan"]["items"]
-    require("iteration_timebox_days" in locked_item["required"], f"{label} locked delivery_plan must require iteration_timebox_days")
     for index, item in enumerate(template.get("delivery_plan", []), start=1):
         require(item.get("iteration_timebox_days") == 14, f"{label} template delivery_plan[{index}] must carry a 14-day timebox")
-    for index, item in enumerate(template["director_confirmation"]["locked_fields"].get("delivery_plan", []), start=1):
-        require(item.get("iteration_timebox_days") == 14, f"{label} locked delivery_plan[{index}] must carry a 14-day timebox")
+
+
+def require_exact_template_fields(template: dict, fields: list[str], label: str) -> None:
+    actual = set(template)
+    expected = set(fields)
+    require(actual == expected, f"{label} template fields drift: extra={sorted(actual - expected)} missing={sorted(expected - actual)}")
 
 
 director_brief_fields = [
@@ -148,6 +152,11 @@ phase_prd_manager_fields = [
     "rule_mappings",
     "design_decision_candidates",
 ]
+phase_prd_director_fields = [
+    "phase_goal",
+    "entry_conditions",
+    "exit_conditions",
+]
 unit_manager_fields = [
     "integration_context",
     "acceptance_criteria",
@@ -159,16 +168,14 @@ brief_schema = load_json("shared/skills/product-manager/contracts/brief.schema.j
 phase_schema = load_json("shared/skills/product-manager/contracts/phase-prd.schema.json")
 unit_schema = load_json("shared/skills/product-manager/contracts/unit-definition.schema.json")
 director_brief_template = load_json("shared/skills/product-director/templates/brief.template.json")
+director_phase_template = load_json("shared/skills/product-director/templates/phase-prd.template.json")
 manager_phase_template = load_json("shared/skills/product-manager/templates/phase-prd.template.json")
 unit_template = load_json("shared/skills/product-manager/templates/unit-definition.template.json")
 
 require_schema_fields(brief_schema, director_brief_fields, "brief")
-locked_props = brief_schema["allOf"][1]["properties"]["director_confirmation"]["properties"]["locked_fields"]
-missing_lock_required = sorted(set(director_brief_fields) - set(locked_props["required"]))
-require(not missing_lock_required, f"brief locked_fields missing required fields: {missing_lock_required}")
-require(set(director_brief_template["director_confirmation"]["locked_fields"]) == set(director_brief_fields), "director brief locked_fields must exactly cover Director fields")
-require_authoritative_fields(director_brief_template, director_brief_fields, "director brief")
+require_exact_template_fields(director_brief_template, director_brief_fields, "director brief")
 require_delivery_plan_timebox(brief_schema, director_brief_template, "director brief")
+require_exact_template_fields(director_phase_template, phase_prd_director_fields, "director phase-prd")
 
 require_schema_properties(phase_schema, phase_prd_manager_fields, "phase-prd")
 require_conditional_manager_phase_fields(phase_schema, phase_prd_manager_fields)
@@ -181,15 +188,11 @@ require(ac_items.get("type") == "object", "unit acceptance_criteria must be stru
 for field in ["ac_id", "description", "example_input", "expected_result", "boundary_case", "failure_mode"]:
     require(field in ac_items.get("required", []), f"unit acceptance_criteria item must require {field}")
 
-validator_source = (root / "tools/community/validate_product_closure.py").read_text(encoding="utf-8")
-match = re.search(r"DIRECTOR_LOCK_FIELDS\s*=\s*(\{.*?\n\})", validator_source, re.S)
-require(match is not None, "validate_product_closure.py must define DIRECTOR_LOCK_FIELDS")
-lock_fields = ast.literal_eval(match.group(1))
-require(tuple(director_brief_fields) == tuple(lock_fields["brief"]), "DIRECTOR_LOCK_FIELDS['brief'] must match Director field contract")
-
 standard_chain = (root / "contracts/standard-chain.yaml").read_text(encoding="utf-8")
 for field in director_brief_fields:
     require(field in standard_chain, f"standard-chain contract missing Director brief field: {field}")
+for field in phase_prd_director_fields:
+    require(field in standard_chain, f"standard-chain contract missing Director phase field: {field}")
 for field in phase_prd_manager_fields:
     require(field in standard_chain, f"standard-chain contract missing Manager phase field: {field}")
 for field in unit_manager_fields:

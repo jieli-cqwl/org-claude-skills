@@ -52,12 +52,9 @@ fi
 
 assert_present '^name: product-director$' "$SKILL"
 assert_present '^allowed-tools: .*Bash' "$SKILL"
-assert_present 'validate_director_confirmation' "$CHECK_SCRIPT"
-assert_present 'validate_director_lock' "$CHECK_SCRIPT"
-assert_present 'validate_director_boundary' "$CHECK_SCRIPT"
+assert_present 'validate_director_result_payload' "$CHECK_SCRIPT"
 assert_present 'evaluate_content_quality\.py' "$CHECK_SCRIPT"
-assert_present 'validate_canonical_schema\.py' "$CHECK_SCRIPT"
-assert_present 'validate_product_closure\.py' "$CHECK_SCRIPT"
+assert_absent 'validate_director_confirmation|validate_director_lock|validate_canonical_schema\.py|validate_product_closure\.py' "$CHECK_SCRIPT"
 
 jq -e '
   .schema_version == "1.0.0"
@@ -70,7 +67,7 @@ jq -e '
   and .scripts[0].output_root == "."
   and (.scripts[0].allowed_output_roots | index("$TMPDIR"))
   and (.scripts[0].allowed_input_roots | index("docs"))
-  and (.scripts[0].failure_state | test("blocks handoff"))
+  and (.scripts[0].failure_state | test("blocks completion"))
 ' "$SCRIPT_MANIFEST" >/dev/null || fail "product-director manifest completion-check contract drift"
 
 jq -e '
@@ -83,16 +80,24 @@ jq -e '
     and (.allowed_args | index("-h"))
     and .timeout_sec == 15
     and .output_root == "."
-    and (.failure_state | test("blocks handoff"))
+    and (.failure_state | test("blocks completion"))
     and .claude.supported == true
     and .codex.supported == true
 ' "$HOOK_REGISTRY" >/dev/null || fail "product-director hook registry contract drift"
 
 jq -e '
-  .artifact_type == "brief"
-  and .schema_version == "1.0.0"
-  and .director_confirmation.locked_fields
-  and .director_confirmation.locked_field_digest
+  (keys_unsorted | sort) == ([
+    "appetite",
+    "business_goals",
+    "decision_rationale",
+    "delivery_plan",
+    "feasibility_constraints",
+    "non_goals",
+    "risks_and_unknowns",
+    "root_problem",
+    "scope_boundaries",
+    "user_profile"
+  ] | sort)
   and .user_profile
   and .appetite
   and .non_goals
@@ -102,23 +107,18 @@ jq -e '
   and (.review_conclusion? | not)
   and (.issue_ledger? | not)
   and (.delivery_confirmation? | not)
-' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null || fail "director brief template must encode Director-only lock fields"
+' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null || fail "director brief template must encode Director result payload only"
 
 jq -e '
-  .artifact_type == "phase-prd"
-  and .schema_version == "1.0.0"
+  (keys_unsorted | sort) == ([
+    "entry_conditions",
+    "exit_conditions",
+    "phase_goal"
+  ] | sort)
   and .phase_goal
   and .entry_conditions
   and .exit_conditions
-  and ((.unit_index // []) | type == "array" and length == 0)
-  and .director_confirmation.locked_fields
-  and .director_confirmation.locked_field_digest
-  and (.review_conclusion? | not)
-  and (.business_flows? | not)
-  and (.user_paths? | not)
-  and (.rule_mappings? | not)
-  and (.design_decision_candidates? | not)
-' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase template must encode Director-only phase skeleton"
+' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase template must encode Director phase result payload only"
 
 python3 - "$ROOT" "$CHECK_SCRIPT" <<'PY'
 import json
@@ -149,7 +149,7 @@ try:
         "D-S5": "Scope confirmed: intake review, configuration handoff, and status visibility are in; CRM replacement, rule builders, and analytics are out.",
         "D-S5.5": "Risk confirmed: existing approval status supports Phase 1; status model drift returns to risk review before finalization.",
         "D-S6": "Phase confirmed: one 14-day value slice closes operations handoff visibility before automation expansion.",
-        "D-G1": "Finalization confirmed: ledger, brief, phase-prd, locked fields, and digest are ready for Director handoff.",
+        "D-G1": "Finalization confirmed: ledger, brief, and phase-prd result payloads are ready for Director completion.",
     }
     confirmations = [
         {
@@ -176,7 +176,7 @@ try:
                 "current_state": {
                     "summary": "Director baseline finalized for merchant onboarding handoff quality check",
                     "source_refs": [f"docs/{feature.name}/brief.json"],
-                    "next_step": "handoff to product-manager",
+                    "next_step": "ready for product and technical detail work",
                 },
                 "latest_checkpoint_id": confirmations[-1]["checkpoint_id"],
                 "confirmations": confirmations,

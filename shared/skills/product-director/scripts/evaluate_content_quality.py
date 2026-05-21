@@ -151,9 +151,9 @@ def risk_judgment_quality(brief: dict[str, Any]) -> dict[str, Any]:
     evidence: list[str] = []
     issues: list[str] = []
     if closed:
-        evidence.append("risks are resolved or bounded before handoff")
+        evidence.append("risks are resolved or bounded before finalization")
     else:
-        issues.append("risks must be resolved or explicitly bounded before handoff")
+        issues.append("risks must be resolved or explicitly bounded before finalization")
     if impact_is_bounded:
         evidence.append("risk impact is tied to phase, scope, or baseline")
     else:
@@ -190,7 +190,6 @@ def phase_value_slice_quality(
     timebox_ok = delivery_timebox_ok(brief)
     entry_is_business_fact = not has_any(entry_text, ENTRY_GATE_TERMS)
     exit_is_business_state = not has_any(exit_text, EXIT_PLANNING_TERMS)
-    unit_index_empty = as_list(phase.get("unit_index")) == []
     issues: list[str] = []
     evidence: list[str] = []
     if timebox_ok:
@@ -207,32 +206,16 @@ def phase_value_slice_quality(
         issues.append(
             "phase exit conditions must be business states, not planning constraints"
         )
-    if unit_index_empty:
-        evidence.append("Director phase-prd leaves unit_index empty")
-    else:
-        issues.append("Director phase-prd must leave unit_index empty")
     return dimension(
         "phase_value_slice_quality",
-        [timebox_ok, entry_is_business_fact, exit_is_business_state, unit_index_empty],
+        [timebox_ok, entry_is_business_fact, exit_is_business_state],
         evidence,
         issues,
-        must_fail=not entry_is_business_fact
-        or not exit_is_business_state
-        or not unit_index_empty,
+        must_fail=not entry_is_business_fact or not exit_is_business_state,
     )
 
 
-def locked_fields_match(artifact: dict[str, Any]) -> bool:
-    confirmation = artifact.get("director_confirmation")
-    if not isinstance(confirmation, dict):
-        return False
-    locked = confirmation.get("locked_fields")
-    if not isinstance(locked, dict):
-        return False
-    return all(artifact.get(key) == value for key, value in locked.items())
-
-
-def handoff_consumability_quality(
+def finalization_trace_quality(
     brief: dict[str, Any], phase: dict[str, Any], ledger: dict[str, Any]
 ) -> dict[str, Any]:
     refs = as_list(ledger.get("handoff_refs"))
@@ -244,27 +227,22 @@ def handoff_consumability_quality(
         str(ref).endswith("/phase-prd.json") for ref in refs
     )
     finalized = basis.get("status") == "confirmed" and bool(accepted)
-    locks_match = locked_fields_match(brief) and locked_fields_match(phase)
     checkpoints_covered = (
         len(accepted) == len(confirmations) and len(confirmations) >= 6
     )
     evidence: list[str] = []
     issues: list[str] = []
     if has_artifact_refs:
-        evidence.append("ledger handoff_refs include brief and phase-prd")
+        evidence.append("ledger refs include brief and phase-prd")
     else:
-        issues.append("ledger handoff_refs must include brief and phase-prd")
+        issues.append("ledger refs must include brief and phase-prd")
     if finalized and checkpoints_covered:
         evidence.append("ledger finalization covers all Director checkpoints")
     else:
         issues.append("ledger finalization must cover all Director checkpoints")
-    if locks_match:
-        evidence.append("director locked_fields match artifact fields")
-    else:
-        issues.append("director locked_fields must match artifact fields")
     return dimension(
-        "handoff_consumability_quality",
-        [has_artifact_refs, finalized and checkpoints_covered, locks_match],
+        "finalization_trace_quality",
+        [has_artifact_refs, finalized and checkpoints_covered],
         evidence,
         issues,
     )
@@ -331,7 +309,7 @@ def evaluate(
         scope_tradeoff_quality(brief),
         risk_judgment_quality(brief),
         phase_value_slice_quality(brief, phase),
-        handoff_consumability_quality(brief, phase, ledger),
+        finalization_trace_quality(brief, phase, ledger),
         language_and_noise_quality(brief, phase, ledger),
     ]
     score = sum(item["score"] for item in dimensions)
