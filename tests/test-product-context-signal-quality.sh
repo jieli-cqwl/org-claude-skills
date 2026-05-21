@@ -192,9 +192,9 @@ assert_absent '本契约定义' "$MANAGER_REVIEW" "manager review orchestration"
 assert_present 'Manager 阶段评审闭环只写入 `brief\.json\.review_conclusion / issue_ledger`' "$MANAGER_REVIEW" "manager review artifact definition"
 
 assert_absent '节点顺序：' "$DIRECTOR_SKILL" "director flow sequence noise"
-assert_section_present "$DIRECTOR_SKILL" "## 流程" '"风险与未知项已闭合？" -> "Phase 规划" \[label="是"\]' "director flow sequence"
-assert_section_present "$DIRECTOR_SKILL" "## 流程" '"风险与未知项已闭合？" -> "暂停：关键风险未闭合" \[label="否"\]' "director flow sequence"
-assert_section_present "$DIRECTOR_SKILL" "## 流程" '风险与未知项' "director flow diagram"
+assert_section_present "$DIRECTOR_SKILL" "## 流程" '"Explore demand context" -> "Ask one clarifying question"' "director flow sequence"
+assert_section_present "$DIRECTOR_SKILL" "## 流程" '"User approves baseline\?" -> "Present baseline sections" \[label="revise"\]' "director flow sequence"
+assert_section_present "$DIRECTOR_SKILL" "## 流程" 'Self-review and gates' "director flow diagram"
 assert_section_present "$DIRECTOR_SKILL" "## The Process（按步骤读取）" '风险与未知项' "director flow route"
 assert_absent '节点顺序：' "$MANAGER_SKILL" "manager flow sequence noise"
 assert_section_present "$MANAGER_SKILL" "## 流程" '"M-S5\.5 Verification Plan" -> "M-S6 结构化待设计决策"' "manager flow sequence"
@@ -211,20 +211,28 @@ assert_section_present "$DIRECTOR_SKILL" "## The Process（按步骤读取）" '
 assert_section_present "$DIRECTOR_SKILL" "## The Process（按步骤读取）" '每个业务判断阶段只读取当前步骤 reference；每轮只推进一个最会改变 Director 基线的事实' "director focused co-creation"
 assert_section_absent "$DIRECTOR_SKILL" "## The Process（按步骤读取）" '\| Step \| Read \| Advance when \| Stop when \|' "director process table noise"
 assert_section_absent "$DIRECTOR_SKILL" "## The Process（按步骤读取）" '下游理解' "director process downstream-audience noise"
-assert_absent '^## 触发边界$' "$DIRECTOR_SKILL" "director trigger-boundary noise"
 assert_absent 'references/conversation-guide\.md' "$DIRECTOR_SKILL" "director removed conversation guide"
-assert_section_present "$DIRECTOR_SKILL" "## HARD-GATE" '未闭合的事实不得写成 Director 基线' "director silent-scan freeze guard"
-assert_section_present "$DIRECTOR_SKILL" "## HARD-GATE" '现实代价、成功标准、投入边界和本期范围' "director technical-demand gate"
-assert_section_present "$DIRECTOR_SKILL" "## HARD-GATE" '只确认 WHY 层问题定性、业务/交付约束、风险和 Phase 影响' "director technical-demand gate"
-assert_section_present "$DIRECTOR_SKILL" "## HARD-GATE" '环境阻塞，停止报告，不创建或修复外部依赖文件' "director finalization dependency guard"
-assert_section_present "$DIRECTOR_SKILL" "## HARD-GATE" '收到基线变更请求时，回到首次闭合该事实的步骤重新确认' "director baseline-change request guard"
+python3 - "$DIRECTOR_SKILL" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+for forbidden in [
+    r"^## 触发边界$",
+    r"^## Handoff Contract",
+]:
+    if re.search(forbidden, text, re.M):
+        raise SystemExit(f"unexpected Director section: {forbidden}")
+PY
+assert_section_present "$DIRECTOR_SKILL" "## HARD-GATE" '在你向用户呈现 Director baseline 并收到明确 `产品总监确认` 之前，不要把它当成已确认基线。' "director confirmed-baseline guard"
+assert_section_absent "$DIRECTOR_SKILL" "## HARD-GATE" '技术债|schema|hook|runtime|contract|product-director-ledger|brief\.json|phase-prd\.json' "director hard-gate stays light"
 assert_section_absent "$DIRECTOR_SKILL" "## HARD-GATE" '下游不得直接修改' "director downstream-audience noise"
 assert_section_absent "$DIRECTOR_SKILL" "## HARD-GATE" 'director_confirmation|locked_field_digest' "director runtime-lock noise"
 assert_section_present "$DIRECTOR_SKILL" "## Role Boundary（角色边界）" '主动形成推荐判断并推进基线闭合；用户负责补充、确认或替换真实业务事实' "director co-creation owner boundary"
 assert_section_present "$DIRECTOR_SKILL" "## Role Boundary（角色边界）" '确认前只形成候选判断' "director pending-baseline wording"
 assert_section_absent "$DIRECTOR_SKILL" "## Role Boundary（角色边界）" '移交给设计、测试设计、技术负责人和交付角色' "director role-boundary downstream noise"
 assert_section_absent "$DIRECTOR_SKILL" "## Role Boundary（角色边界）" '不得反向改写' "director downstream-audience noise"
-assert_absent '^## Handoff Contract' "$DIRECTOR_SKILL" "director handoff section noise"
 assert_present 'schema、hook、runtime 或 contract 缺失属于环境阻塞' "$DIRECTOR_FINAL_GUIDE" "director finalization dependency guard"
 assert_present '为什么当前 Phase 能直接支撑成功标准' "$DIRECTOR_PHASE_GUIDE" "director phase recommendation reason"
 assert_present '问题澄清检查点必须包含事实状态表' "$DIRECTOR_PROBLEM_GUIDE" "director problem clarification fact table"

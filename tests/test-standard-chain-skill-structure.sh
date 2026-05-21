@@ -171,14 +171,24 @@ assert_present '先读取 `references/risks-unknowns\.md`，区分基线推翻�
 assert_present '^\*\*Phase 规划\*\*$' "$DIRECTOR"
 assert_present '先读取 `references/phase-planning\.md`，基于已闭合基线' "$DIRECTOR"
 assert_present '先读取 `references/final-artifacts\.md`，只有明确收到' "$DIRECTOR"
-assert_present '每个业务判断阶段只读取当前步骤 reference；每轮只推进一个最会改变 Director 基线的事实' "$DIRECTOR"
 assert_present '主动形成推荐判断并推进基线闭合；用户负责补充、确认或替换真实业务事实' "$DIRECTOR"
 assert_absent 'references/conversation-guide\.md' "$DIRECTOR"
-assert_absent '^## 触发边界$' "$DIRECTOR"
 assert_absent '只提取' "$DIRECTOR"
 assert_present '`references/final-artifacts\.md`' "$DIRECTOR"
 assert_absent 'references/output\.md#' "$DIRECTOR"
 assert_present 'Director result gate' "$DIRECTOR"
+python3 - "$DIRECTOR" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+required = "每个业务判断阶段只读取当前步骤 reference；每轮只推进一个最会改变 Director 基线的事实"
+if required not in text:
+    raise SystemExit("missing Director focused co-creation sentence")
+if re.search(r"^## 触发边界$", text, re.M):
+    raise SystemExit("unexpected Director trigger-boundary section")
+PY
 assert_present 'completion_check\.sh' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_absent 'validate_canonical_schema.py' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"

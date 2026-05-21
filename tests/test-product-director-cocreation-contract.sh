@@ -31,10 +31,7 @@ assert_json_ok() {
   jq empty "$file" >/dev/null 2>&1 || fail "invalid JSON: ${file#"$ROOT"/}"
 }
 
-assert_absent '^## 默认工作模式$' "$DIRECTOR"
 assert_absent 'Co-creation Mode|Finalization Mode' "$DIRECTOR"
-assert_absent '^## 暂停输出协议$' "$DIRECTOR"
-assert_absent '^## Key Principles$' "$DIRECTOR"
 assert_absent 'HARD-GATE 只阻断|Finalization Gate 不满足|不得只输出' "$DIRECTOR"
 
 python3 - "$DIRECTOR" <<'PY'
@@ -43,6 +40,13 @@ import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
+for forbidden_heading in [
+    "默认工作模式",
+    "暂停输出协议",
+    "Key Principles",
+]:
+    if re.search(rf"^## {re.escape(forbidden_heading)}$", text, re.M):
+        raise SystemExit(f"unexpected section: {forbidden_heading}")
 match = re.search(r"^## HARD-GATE\n\n(?P<body>.*?)(?=^## )", text, re.M | re.S)
 if not match:
     raise SystemExit("missing HARD-GATE section")
@@ -92,13 +96,17 @@ for forbidden in [
 edge_count = flow_body.count("->")
 if edge_count > 10:
     raise SystemExit(f"flow too long: {edge_count} edges")
-PY
 
-assert_present '^## Checklist$' "$DIRECTOR"
-assert_present '必须按顺序完成这些事项' "$DIRECTOR"
-assert_present 'Explore demand context' "$DIRECTOR"
-assert_present 'Propose 2-3 Director baseline options' "$DIRECTOR"
-assert_present 'Get user approval section by section' "$DIRECTOR"
+for required in [
+    "## Checklist",
+    "必须按顺序完成这些事项",
+    "Explore demand context",
+    "Propose 2-3 Director baseline options",
+    "Get user approval section by section",
+]:
+    if required not in text:
+        raise SystemExit(f"missing Checklist contract: {required}")
+PY
 
 assert_json_ok "$EVALS"
 python3 - "$EVALS" <<'PY'
