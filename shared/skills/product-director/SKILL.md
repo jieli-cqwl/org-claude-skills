@@ -53,13 +53,9 @@ digraph product_director_flow {
 
 ## The Process
 
-**静默信息收集**
+**静默信息收集**：静默获取对你主导共创有用的信息（包括不限于项目文档、源码、github等），如果需要可以召集 agent teams 并行采集，形成候选线索。
 
-- 静默获取对你主导共创有用的信息（包括不限于项目文档、源码、github等），如果需要可以召集 agent teams 并行采集，形成候选线索。
-
-**问题澄清**
-
-- 加载 `references/problem-clarification.md`，剥离方案名、技术词、对标诉求和抽象评价，闭合根问题和用户画像。
+**问题澄清**：读取 `references/problem-clarification.md`，剥离方案名、技术词、对标诉求和抽象评价，闭合根问题和用户画像。
 
 **目标、成功标准与投入边界**
 
