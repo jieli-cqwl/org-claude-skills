@@ -4,10 +4,9 @@
     {
       "id": "director-baseline-no-prd",
       "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 基线，不要直接写完整 PRD。",
-      "expected_output": "先复述操作对象和预期结果；执行静默信息收集；进入问题澄清时先剥离自动审核和配置开户工具这类方案线索，回到受影响角色、触发场景、当前处理方式、现实代价和直接原因，逐项标注事实状态，再给待验证根问题判断、推荐理由和会改变根问题判断的未闭合假设，验证一个具体业务假设并暂停；不得产出最终 PRD、UNIT 或 AC。",
+      "expected_output": "执行静默信息收集；进入问题澄清时先剥离自动审核和配置开户工具这类方案线索，回到受影响角色、触发场景、当前处理方式、现实代价和直接原因，逐项标注事实状态，再给待验证根问题判断、推荐理由和会改变根问题判断的未闭合假设，验证一个具体业务假设并暂停；不得产出最终 PRD、UNIT 或 AC。",
       "files": [],
       "expectations": [
-        "复述操作对象、边界和预期产物",
         "说明静默信息收集只收集线索且不冻结根问题",
         "进入问题澄清后先剥离方案线索，回到受影响角色、触发场景、当前处理方式、现实代价和直接原因",
         "逐项标注受影响角色、触发场景、当前处理方式、现实代价和直接原因的事实状态",
@@ -40,10 +39,9 @@
     {
       "id": "clear-goal-default-judgment",
       "prompt": "我们已经闭合根问题：内部审批事项分散在群消息、表格和审批系统里，业务负责人经常漏看待办，导致平均处理时长 2 天。目标是把内部审批平均处理时长从 2 天降到 4 小时，首期只做待办聚合、审批状态同步和逾期提醒，不改变审批规则。请用 product-director 收 Phase 1 基线，不要继续问一堆基础问题。",
-      "expected_output": "先复述已确认根问题、目标、范围和预期产物；接受已闭合的根问题事实，不机械重问基础问题；给出 Director 推荐基线草案，包括根问题判断、成功标准、范围、本期不做、Phase 1 交付切片和推荐理由；只验证一个会改变基线结论的具体业务假设并暂停；不得进入产品经理同事的 UNIT、AC 或设计实现。",
+      "expected_output": "接受已闭合的根问题事实，不机械重问基础问题；给出 Director 推荐基线草案，包括根问题判断、成功标准、范围、本期不做、Phase 1 交付切片和推荐理由；只验证一个会改变基线结论的具体业务假设并暂停；不得进入产品经理同事的 UNIT、AC 或设计实现。",
       "files": [],
       "expectations": [
-        "复述已确认根问题、目标、范围和预期产物",
         "不机械重问已闭合的基础事实",
         "给出 Director 推荐基线草案和推荐理由",
         "覆盖成功标准、范围、本期不做和 Phase 1 交付切片",
@@ -59,13 +57,13 @@
     {
       "id": "legacy-brief-blocks-handoff",
       "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 brief.json。这个需求能不能先交给产品经理同事拆 UNIT？",
-      "expected_output": "判定不能交给产品经理同事；说明产品经理同事只能消费已通过总监确认的 brief.json / phase-prd.json；必须先补齐 director_confirmation、locked_fields、locked_field_digest 和 phase-prd 骨架，并通过 Director schema gate。",
+      "expected_output": "判定不能移交；缺少总监确认、brief.json、locked_fields、locked_field_digest 或 phase-prd 骨架时，必须先回到 Director Finalization 补齐并通过 Director schema gate。",
       "files": [],
       "expectations": [
         "拒绝基于 legacy brief.md 直接移交",
-        "说明产品经理同事只能消费已通过总监确认的 brief.json / phase-prd.json",
+        "说明缺少总监确认、brief.json 或 phase-prd 骨架时不能移交",
         "要求补齐 director_confirmation、locked_fields 和 locked_field_digest",
-        "要求通过 Director schema gate 后再交给产品经理同事"
+        "要求通过 Director schema gate 后再移交"
       ],
       "expected_anchors": [
         "PA-5"
@@ -190,7 +188,7 @@
   "preference_anchors": [
     {
       "id": "PA-1",
-      "anchor": "先复述操作对象、边界和预期产物",
+      "anchor": "每轮只推进一个最会改变 Director 基线的事实；事实未闭合时暂停，不进入下游",
       "weight": 1
     },
     {

@@ -2,7 +2,7 @@
 
 ## 写入条件
 
-只有同时满足以下条件，才写最终 JSON 并移交下游；产品经理同事和技术负责人按场景消费锁定基线：
+只有同时满足以下条件，才写最终 JSON 并完成移交：
 
 - 问题澄清、目标/成功标准/投入边界、业务语义、范围/约束/决策理由、风险与未知项、Phase 规划均已闭合；仍会改变基线的事实未闭合时，停在对应环节。
 - 已收到明确 `产品总监确认`。
@@ -15,7 +15,7 @@
 
 | 产物 | 职责 | 模板 / 标准 |
 |------|------|-------------|
-| `docs/{feature}/product-director-ledger.json` | 记录已确认检查点、`supersedes` 和 `finalization_basis`；作为 Director 恢复与确认支撑，不作为下游控制输入 | `tools/community/validate_co_creation_ledger.py --producer product-director --require-finalized` |
+| `docs/{feature}/product-director-ledger.json` | 记录已确认检查点、`supersedes` 和 `finalization_basis`；作为 Director 恢复与确认支撑 | `tools/community/validate_co_creation_ledger.py --producer product-director --require-finalized` |
 | `docs/{feature}/brief.json` | 记录 Director 负责的根问题、目标、范围、约束事实、Phase 规划和确认门字段 | `shared/skills/product-director/templates/brief.template.json` |
 | `docs/{feature}/phase-{N}/phase-prd.json` | 记录阶段目标、入口/出口条件和空的 UNIT 索引骨架 | `shared/skills/product-director/templates/phase-prd.template.json` |
 

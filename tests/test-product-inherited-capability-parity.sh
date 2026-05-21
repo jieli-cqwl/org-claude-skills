@@ -5,7 +5,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
-DIRECTOR_CONVERSATION_GUIDE="$ROOT/shared/skills/product-director/references/conversation-guide.md"
 DIRECTOR_PROBLEM_GUIDE="$ROOT/shared/skills/product-director/references/problem-clarification.md"
 DIRECTOR_SUCCESS_GUIDE="$ROOT/shared/skills/product-director/references/success-investment-boundary.md"
 DIRECTOR_SCOPE_GUIDE="$ROOT/shared/skills/product-director/references/scope-constraints.md"
@@ -33,7 +32,6 @@ assert_absent() {
 }
 
 test -f "$DIRECTOR_SKILL" || fail "missing director skill: $DIRECTOR_SKILL"
-test -f "$DIRECTOR_CONVERSATION_GUIDE" || fail "missing director conversation guide: $DIRECTOR_CONVERSATION_GUIDE"
 test -f "$DIRECTOR_PROBLEM_GUIDE" || fail "missing director problem guide: $DIRECTOR_PROBLEM_GUIDE"
 test -f "$DIRECTOR_SUCCESS_GUIDE" || fail "missing director success/investment-boundary guide: $DIRECTOR_SUCCESS_GUIDE"
 test -f "$DIRECTOR_SCOPE_GUIDE" || fail "missing director scope/constraints guide: $DIRECTOR_SCOPE_GUIDE"
@@ -45,6 +43,7 @@ test -f "$MANAGER_REVIEW_TEMPLATE" || fail "missing manager review template: $MA
 # contracts, not runtime references to retired skills.
 assert_present 'references/success-investment-boundary\.md' "$DIRECTOR_SKILL"
 assert_present 'references/scope-constraints\.md' "$DIRECTOR_SKILL"
+assert_absent 'references/conversation-guide\.md' "$DIRECTOR_SKILL"
 assert_absent 'references/product-thinking-contract\.md' "$DIRECTOR_SKILL"
 assert_absent '旧 `/product`|旧 /product|retired product|已删除.*product|已验证实践' "$DIRECTOR_SKILL"
 
