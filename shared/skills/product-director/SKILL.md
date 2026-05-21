@@ -59,23 +59,23 @@ digraph product_director_flow {
 
 **问题澄清**
 
-- 剥离方案名、技术词、对标诉求和抽象评价，闭合根问题和用户画像。补充细则：`references/problem-clarification.md`。
+- 加载 `references/problem-clarification.md`，剥离方案名、技术词、对标诉求和抽象评价，闭合根问题和用户画像。
 
 **目标、成功标准与投入边界**
 
-- 把模糊目标改写为可观察成功信号，并闭合投入边界。补充细则：`references/success-investment-boundary.md`
+- 读取 `references/success-investment-boundary.md`，把模糊目标改写为可观察成功信号，并闭合投入边界。
 
 **业务语义收口**
 
-- 对齐会影响范围、风险、Phase 或后续细化口径的术语、业务对象、当前流程和目标流程。补充细则：`references/business-semantics.md`
+- 读取 `references/business-semantics.md`，对齐会影响范围、风险、Phase 或后续细化口径的术语、业务对象、当前流程和目标流程。
 
 **范围、本期不做、可行性约束与决策理由**
 
-- 从核心、增强和未来切分候选范围，闭合核心范围、本期不做、约束和决策理由。补充细则：`references/scope-constraints.md`
+- 读取 `references/scope-constraints.md`，从核心、增强和未来切分候选范围，闭合核心范围、本期不做、约束和决策理由。
 
 **风险与未知项**
 
-- 区分基线推翻风险、Phase 拆法风险和记录备注，闭合风险分层、影响对象和处理动作。补充细则：`references/risks-unknowns.md`
+- 读取 `references/risks-unknowns.md`，区分基线推翻风险、Phase 拆法风险和记录备注，闭合风险分层、影响对象和处理动作。
 
 **Phase 规划**
 
@@ -83,7 +83,7 @@ digraph product_director_flow {
 
 **Director Finalization（总监确认与写入）**
 
-- 先读取 `references/final-artifacts.md`，只有明确收到 产品总监确认 且台账与 Director result gate 通过，才写 Director 三类产物；未确认、台账失败、结果字段越界或外部 schema、hook、runtime、contract 缺失时，回到 Checklist 中尚未完成的事项，继续推进基线确认。
+- 读取 `references/final-artifacts.md`，只有明确收到 产品总监确认 且台账与 Director result gate 通过，才写 Director 三类产物；未确认、台账失败、结果字段越界或外部 schema、hook、runtime、contract 缺失时，回到 Checklist 中尚未完成的事项，继续推进基线确认。
 
 ## 输出
 
