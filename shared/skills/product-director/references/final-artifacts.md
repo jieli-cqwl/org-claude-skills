@@ -5,7 +5,7 @@
 只有同时满足以下条件，才写最终产物：
 
 - 问题澄清、目标/成功标准/投入边界、业务语义、范围/约束/决策理由、风险与未知项、Phase 规划均已闭合；仍会改变基线的事实未闭合时，停在对应环节。
-- 已收到明确 `产品总监确认`。
+- 已收到明确 产品总监确认。
 - `docs/{feature}/product-director-ledger.json` 已写入 `finalization_basis`，并通过 finalized 校验：
   `python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized`
 
@@ -13,7 +13,7 @@
 
 | 产物 | 职责 | 模板 / 验证 |
 |------|------|-------------|
-| `docs/{feature}/product-director-ledger.json` | 记录已确认检查点、`supersedes` 和 `finalization_basis` | `tools/community/validate_co_creation_ledger.py --producer product-director --require-finalized` |
+| `docs/{feature}/product-director-ledger.json` | 记录已确认基线、`supersedes` 和 `finalization_basis` | `tools/community/validate_co_creation_ledger.py --producer product-director --require-finalized` |
 | `docs/{feature}/brief.json` | 记录根问题、用户画像、业务目标、投入边界、范围、约束、风险、决策理由和 Phase 计划 | `shared/skills/product-director/templates/brief.template.json` |
 | `docs/{feature}/phase-{N}/phase-prd.json` | 记录对应 Phase 的目标、入口条件和出口条件 | `shared/skills/product-director/templates/phase-prd.template.json` |
 

@@ -162,15 +162,9 @@ DEVELOPER="$ROOT/shared/skills/developer/SKILL.md"
 assert_absent '^\*\*.*references/.*\*\*$' "$DIRECTOR"
 assert_absent '^读取：`references/' "$DIRECTOR"
 assert_present '^\*\*问题澄清\*\*$' "$DIRECTOR"
-assert_present '先读取 `references/problem-clarification\.md`，剥离方案名' "$DIRECTOR"
 assert_present '^\*\*目标、成功标准与投入边界\*\*$' "$DIRECTOR"
-assert_present '先读取 `references/success-investment-boundary\.md`，把模糊目标' "$DIRECTOR"
-assert_present '先读取 `references/business-semantics\.md`，对齐会影响范围' "$DIRECTOR"
-assert_present '先读取 `references/scope-constraints\.md`，从核心' "$DIRECTOR"
-assert_present '先读取 `references/risks-unknowns\.md`，区分基线推翻风险' "$DIRECTOR"
 assert_present '^\*\*Phase 规划\*\*$' "$DIRECTOR"
-assert_present '先读取 `references/phase-planning\.md`，基于已闭合基线' "$DIRECTOR"
-assert_present '先读取 `references/final-artifacts\.md`，只有明确收到' "$DIRECTOR"
+assert_present '先读取 `references/final-artifacts\.md`，只有明确收到 产品总监确认' "$DIRECTOR"
 assert_present '主动形成推荐判断并推进基线闭合；用户负责补充、确认或替换真实业务事实' "$DIRECTOR"
 assert_absent 'references/conversation-guide\.md' "$DIRECTOR"
 assert_absent '只提取' "$DIRECTOR"
@@ -183,9 +177,24 @@ import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
-required = "每个业务判断阶段只读取当前步骤 reference；每轮只推进一个最会改变 Director 基线的事实"
-if required not in text:
-    raise SystemExit("missing Director focused co-creation sentence")
+required_routes = {
+    "问题澄清": ["剥离方案名", "references/problem-clarification.md"],
+    "目标、成功标准与投入边界": ["可观察成功信号", "references/success-investment-boundary.md"],
+    "业务语义收口": ["影响范围", "references/business-semantics.md"],
+    "范围、本期不做、可行性约束与决策理由": ["核心、增强和未来", "references/scope-constraints.md"],
+    "风险与未知项": ["基线推翻风险", "references/risks-unknowns.md"],
+    "Phase 规划": ["iteration_timebox_days <= 14", "references/phase-planning.md"],
+}
+for label, tokens in required_routes.items():
+    for token in tokens:
+        if token not in text:
+            raise SystemExit(f"missing Director route token for {label}: {token}")
+for forbidden in [
+    "每个业务判断阶段只读取当前步骤 reference；每轮只推进一个最会改变 Director 基线的事实",
+    "只提取判断对象、检查点和停止条件",
+]:
+    if forbidden in text:
+        raise SystemExit(f"unexpected old Director wording: {forbidden}")
 if re.search(r"^## 触发边界$", text, re.M):
     raise SystemExit("unexpected Director trigger-boundary section")
 PY

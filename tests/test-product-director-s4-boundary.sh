@@ -4,19 +4,20 @@ set -euo pipefail
 
 # Business semantics boundary contract.
 #
-# "业务语义收口" 只在对话级闭合；输出只进入 Director 台账检查点，
+# "业务语义收口" 只在对话级闭合；输出只进入 Director 台账记录，
 # 后续由产品经理同事在自己的产物中细化 business_flows / user_paths / rule_mappings，
 # 不得持久化到 brief.json。
 #
 # 本测试从三层守住边界：
 #   1. schema 意图：brief.schema.json 明确禁止业务语义字段。
 #   2. 冻结产物：docs/feature--*/brief.json 不得包含禁用字段或未闭合 `[?]`。
-#   3. skill 承诺：删除 SKILL.md 边界说明时测试失败。
+#   3. reference 承诺：删除业务语义边界说明时测试失败。
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 BRIEF_SCHEMA="$ROOT/shared/skills/product-manager/contracts/brief.schema.json"
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
+DIRECTOR_BUSINESS_REFERENCE="$ROOT/shared/skills/product-director/references/business-semantics.md"
 
 fail() {
   echo "[FAIL] $*" >&2
@@ -34,6 +35,7 @@ assert_present() {
 
 assert_file "$BRIEF_SCHEMA"
 assert_file "$DIRECTOR_SKILL"
+assert_file "$DIRECTOR_BUSINESS_REFERENCE"
 
 # Layer 1: schema intent — these field names must be named in the not/anyOf
 # ban block, not merely absent from the properties map.
@@ -60,9 +62,9 @@ for sub in schema.get("allOf", []):
 sys.exit(1)
 PY
 
-# Layer 1b: SKILL.md must keep the business semantics boundary clause intact.
-assert_present '该步骤只写 Director 台账检查点，不持久化到 Director 最终 `brief.json / phase-prd.json`' "$DIRECTOR_SKILL"
-assert_present 'phase-prd.json' "$DIRECTOR_SKILL"
+# Layer 1b: business semantics reference must keep the final-artifact boundary clause intact.
+assert_present '该步骤只形成业务语义推荐口径和 Director 台账记录，不持久化到 Director 最终 `brief.json / phase-prd.json`。' "$DIRECTOR_BUSINESS_REFERENCE"
+assert_present 'phase-prd.json' "$DIRECTOR_BUSINESS_REFERENCE"
 
 # Layer 2: frozen artifacts — scan every brief.json under docs/ for banned
 # field names and unresolved `[?]` gap markers.

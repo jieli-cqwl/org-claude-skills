@@ -51,7 +51,7 @@ match = re.search(r"^## HARD-GATE\n\n(?P<body>.*?)(?=^## )", text, re.M | re.S)
 if not match:
     raise SystemExit("missing HARD-GATE section")
 body = match.group("body").strip()
-required = "在你向用户呈现 Director baseline 并收到明确 `产品总监确认` 之前，不要把它当成已确认基线。"
+required = "在你向用户呈现 Director baseline 并收到明确 产品总监确认 之前，不要把它当成已确认基线。"
 if required not in body:
     raise SystemExit("HARD-GATE missing minimal confirmed-baseline red line")
 for forbidden in [

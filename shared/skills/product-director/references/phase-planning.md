@@ -5,7 +5,7 @@
 - 每个 Phase 必须有入口条件、出口条件和 `iteration_timebox_days`。`iteration_timebox_days` 必须是 1-14 的整数；超过 14 天时，先缩小本 Phase 范围，仍无法闭合时拆出后续 Phase。
 - Phase 存在多种切法、timebox 压力或实现步骤伪装成阶段时，召集 agent teams 分别从业务价值、阶段依赖、阶段外相邻价值、反方质疑维度交叉审视 Phase 切法；只返回证据、冲突和建议验证事实。
 
-## 判断对象
+## 按业务价值切 Phase
 
 - 业务价值片段：用户或业务在本阶段结束后能观察到什么改变。
 - 入口条件：开始本 Phase 前必须已确认的业务事实、约束事实、依赖可用性或前序 Phase 出口。
@@ -15,7 +15,7 @@
 
 后续 Phase 只能扩展已闭合价值，不得依赖前一 Phase 的未完成部分才能成立。
 
-## 检查点
+## 每个 Phase 说明独立结果
 
 - Phase 列表：
   - Phase 名称：
@@ -28,10 +28,10 @@
 - Phase 拆分依据：
 - 待验证关键事实：
 
-## 停止条件
+## 超过 14 天或依赖未闭合就重切
 
 - Phase 按实现步骤、页面、接口、数据表或 UNIT 数量分组时，重新按业务价值切分。
 - 任一 Phase 无法说明独立业务结果，或后续 Phase 依赖前一 Phase 未完成部分才能成立时，重新切分。
 - 任一 Phase 的 `iteration_timebox_days` 超过 14 天时，不得确认；先缩范围或拆 Phase。
 - Phase 入口条件、出口条件或风险依赖未闭合事实时，停在对应事实验证。
-- Phase 规划步骤只形成可闭合的 Phase 规划和 Director 台账检查点。物理 `phase-{N}/` 目录、`brief.json` 和 `phase-{N}/phase-prd.json` 只能在收到明确 `产品总监确认` 且台账验证通过后写入。
+- Phase 规划步骤只形成可闭合的 Phase 规划和 Director 台账记录。物理 `phase-{N}/` 目录、`brief.json` 和 `phase-{N}/phase-prd.json` 只能在收到明确 产品总监确认 且台账验证通过后写入。
