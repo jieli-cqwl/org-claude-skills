@@ -118,13 +118,13 @@ phase = {
 }
 
 step_summaries = {
-    "D-S2": "Root problem confirmed: finance operations misses overdue lease invoice follow-ups because status is split across spreadsheets and chat.",
-    "D-S3": "Success signal confirmed: missed overdue follow-ups move from 3-5 per week to zero in a 30-day observation window.",
-    "D-S4": "Business semantics confirmed: overdue lease invoice comes from the daily billing export; owner acknowledgement means accepted follow-up responsibility.",
-    "D-S5": "Scope confirmed: daily overdue queue and owner acknowledgement are in; invoice rule changes, customer messages, and analytics are out.",
-    "D-S5.5": "Risk confirmed: daily billing export cadence supports Phase 1; export cadence drift returns to risk review before finalization.",
-    "D-S6": "Phase confirmed: one 10-day value slice closes finance operations follow-up visibility before automation expansion.",
-    "D-G1": "Finalization confirmed: ledger, brief, and phase-prd result payloads are ready for Director completion.",
+    "问题澄清": "Root problem confirmed: finance operations misses overdue lease invoice follow-ups because status is split across spreadsheets and chat.",
+    "目标、成功标准与投入边界": "Success signal confirmed: missed overdue follow-ups move from 3-5 per week to zero in a 30-day observation window.",
+    "业务语义收口": "Business semantics confirmed: overdue lease invoice comes from the daily billing export; owner acknowledgement means accepted follow-up responsibility.",
+    "范围、本期不做、可行性约束与决策理由": "Scope confirmed: daily overdue queue and owner acknowledgement are in; invoice rule changes, customer messages, and analytics are out.",
+    "风险与未知项": "Risk confirmed: daily billing export cadence supports Phase 1; export cadence drift returns to risk review before finalization.",
+    "Phase 规划": "Phase confirmed: one 10-day value slice closes finance operations follow-up visibility before automation expansion.",
+    "Director Finalization": "Finalization confirmed: ledger, brief, and phase-prd result payloads are ready for Director completion.",
 }
 confirmations = []
 for index, (step, summary) in enumerate(step_summaries.items(), start=1):
@@ -216,6 +216,45 @@ assert_present '"root_problem_quality"' "$QUALITY_OUT"
 assert_present '"success_standard_quality"' "$QUALITY_OUT"
 assert_present '"phase_value_slice_quality"' "$QUALITY_OUT"
 
+SEMANTIC_LEDGER_DIR="$SMOKE_TMP_ROOT/semantic-ledger"
+mkdir -p "$SEMANTIC_LEDGER_DIR/phase-1"
+cp "$FEATURE_DIR/brief.json" "$SEMANTIC_LEDGER_DIR/brief.json"
+cp "$PHASE_DIR/phase-prd.json" "$SEMANTIC_LEDGER_DIR/phase-1/phase-prd.json"
+cp "$FEATURE_DIR/product-director-ledger.json" "$SEMANTIC_LEDGER_DIR/product-director-ledger.json"
+python3 - "$SEMANTIC_LEDGER_DIR/product-director-ledger.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+ledger_path = Path(sys.argv[1])
+ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+steps = [
+    ("pd-problem", "问题澄清"),
+    ("pd-success", "目标、成功标准与投入边界"),
+    ("pd-semantics", "业务语义收口"),
+    ("pd-scope", "范围、本期不做、可行性约束与决策理由"),
+    ("pd-risk", "风险与未知项"),
+    ("pd-phase", "Phase 规划"),
+    ("pd-final", "Director Finalization"),
+]
+for item, (checkpoint_id, step) in zip(ledger["confirmations"], steps):
+    item["checkpoint_id"] = checkpoint_id
+    item["step"] = step
+ledger["latest_checkpoint_id"] = ledger["confirmations"][-1]["checkpoint_id"]
+ledger["finalization_basis"]["accepted_checkpoint_ids"] = [
+    item["checkpoint_id"] for item in ledger["confirmations"]
+]
+ledger_path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+
+SEMANTIC_QUALITY_OUT="$SMOKE_TMP_ROOT/semantic-ledger-quality.json"
+python3 "$ROOT/shared/skills/product-director/scripts/evaluate_content_quality.py" \
+  --brief "$SEMANTIC_LEDGER_DIR/brief.json" \
+  --phase-prd "$SEMANTIC_LEDGER_DIR/phase-1/phase-prd.json" \
+  --ledger "$SEMANTIC_LEDGER_DIR/product-director-ledger.json" \
+  --min-score 12 >"$SEMANTIC_QUALITY_OUT"
+assert_present '"verdict": "PASS"' "$SEMANTIC_QUALITY_OUT"
+
 WEAK_DIR="$SMOKE_TMP_ROOT/weak-content"
 mkdir -p "$WEAK_DIR/phase-1"
 cp "$FEATURE_DIR/brief.json" "$WEAK_DIR/brief.json"
@@ -289,7 +328,7 @@ from pathlib import Path
 ledger_path = Path(sys.argv[1])
 ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
 for item in ledger["confirmations"]:
-    if item.get("step") == "D-S3":
+    if item.get("step") == "目标、成功标准与投入边界":
         item["decision_summary"] = "Success standard reviewed without preserving its measurable checkpoint."
 ledger_path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY

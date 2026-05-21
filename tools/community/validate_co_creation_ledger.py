@@ -11,7 +11,15 @@ from typing import Any
 
 PRODUCERS = {"product-director", "product-manager", "design"}
 REQUIRED_STEPS = {
-    "product-director": ("D-S2", "D-S3", "D-S4", "D-S5", "D-S5.5", "D-S6", "D-G1"),
+    "product-director": (
+        "问题澄清",
+        "目标、成功标准与投入边界",
+        "业务语义收口",
+        "范围、本期不做、可行性约束与决策理由",
+        "风险与未知项",
+        "Phase 规划",
+        "Director Finalization",
+    ),
     "product-manager": (
         "M-S1",
         "M-S2",
@@ -26,6 +34,9 @@ REQUIRED_STEPS = {
         "M-S9",
     ),
     "design": ("S2", "S3", "S4", "S5", "S6", "S7", "S8", "S11"),
+}
+LEGACY_REQUIRED_STEPS = {
+    "product-director": ("D-S2", "D-S3", "D-S4", "D-S5", "D-S5.5", "D-S6", "D-G1"),
 }
 RESOLVED_SUPERSEDES = {
     "accepted",
@@ -133,9 +144,11 @@ def validate_confirmations(data: dict[str, Any], producer: str, require_finalize
         required_steps = set(REQUIRED_STEPS[producer])
         missing_steps = sorted(required_steps - steps)
         if missing_steps:
-            raise ValueError(
-                f"{producer} ledger confirmations missing required steps: {', '.join(missing_steps)}"
-            )
+            legacy_steps = set(LEGACY_REQUIRED_STEPS.get(producer, ()))
+            if not legacy_steps or legacy_steps - steps:
+                raise ValueError(
+                    f"{producer} ledger confirmations missing required steps: {', '.join(missing_steps)}"
+                )
     return set(checkpoint_ids)
 
 

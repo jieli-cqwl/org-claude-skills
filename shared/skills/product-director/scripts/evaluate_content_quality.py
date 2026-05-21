@@ -253,18 +253,18 @@ def language_and_noise_quality(
 ) -> dict[str, Any]:
     forbidden = [field for field in FORBIDDEN_BRIEF_FIELDS if field in brief]
     forbidden.extend(field for field in FORBIDDEN_PHASE_FIELDS if field in phase)
-    all_text = lower_text([brief, phase, ledger])
     summaries = [
         str(item.get("decision_summary", ""))
         for item in as_list(ledger.get("confirmations"))
         if isinstance(item, dict)
     ]
+    quality_text = lower_text([brief, phase, summaries])
     generic_summaries = [
         item for item in summaries if has_any(item.lower(), GENERIC_SUMMARY_TERMS)
     ]
     no_forbidden_fields = not forbidden
-    no_noise_terms = not has_any(all_text, NOISE_TERMS)
-    no_repeated_tokens = not REPEATED_TOKEN_RE.search(all_text)
+    no_noise_terms = not has_any(quality_text, NOISE_TERMS)
+    no_repeated_tokens = not REPEATED_TOKEN_RE.search(quality_text)
     substantive_ledger = not generic_summaries
     evidence: list[str] = []
     issues: list[str] = []

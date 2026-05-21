@@ -46,7 +46,15 @@ supersedes_status = sys.argv[6]
 omit_step = sys.argv[7]
 
 steps_by_producer = {
-    "product-director": ["D-S2", "D-S3", "D-S4", "D-S5", "D-S5.5", "D-S6", "D-G1"],
+    "product-director": [
+        "问题澄清",
+        "目标、成功标准与投入边界",
+        "业务语义收口",
+        "范围、本期不做、可行性约束与决策理由",
+        "风险与未知项",
+        "Phase 规划",
+        "Director Finalization",
+    ],
     "product-manager": [
         "M-S1",
         "M-S2",
