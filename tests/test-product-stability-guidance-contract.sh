@@ -56,7 +56,8 @@ fi
 
 assert_present '^name: product-director$' "$SKILL"
 assert_present '^allowed-tools: .*Bash' "$SKILL"
-assert_present '默认直接执行：`python3 shared/skills/product-director/scripts/render_projection\.py --feature-dir "docs/\{feature\}"`' "$SKILL"
+assert_present '^- 执行：`python3 shared/skills/product-director/scripts/render_projection\.py --feature-dir "docs/\{feature\}"`' "$SKILL"
+assert_absent '默认直接执行' "$SKILL"
 assert_absent '需要用户可读投影视图时运行' "$SKILL"
 assert_absent 'product-director\.projection\.md.*JSON Pointer|projection-manifest.*SKILL|projections/director-baseline-template\.md' "$SKILL"
 assert_present 'validate_director_result_payload' "$CHECK_SCRIPT"

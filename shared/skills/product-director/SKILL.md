@@ -72,7 +72,7 @@ digraph product_director_flow {
 ## 输出
 
 - 所有基线事实闭合且收到用户明确回复 `产品总监确认` 后，按 `references/final-artifacts.md` 写入或更新 `product-director-ledger.json`、`brief.json` 和每个 `phase-{N}/phase-prd.json`；交付前必须通过 finalized ledger、Director result、content-quality 和 hook gate。
-- 默认直接执行：`python3 shared/skills/product-director/scripts/render_projection.py --feature-dir "docs/{feature}"`
+- 执行：`python3 shared/skills/product-director/scripts/render_projection.py --feature-dir "docs/{feature}"`
 
 ## 完成校验
 
