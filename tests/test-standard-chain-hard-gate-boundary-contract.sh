@@ -39,6 +39,16 @@ hard_gate_block() {
   ' "$1"
 }
 
+assert_hard_gate_terms() {
+  local file="$1" label="$2" block term_pattern
+  shift 2
+  block="$(hard_gate_block "$file")"
+  test -n "$block" || fail "missing HARD-GATE block in ${file#"$ROOT"/}"
+  for term_pattern in "$@"; do
+    grep -Eq "$term_pattern" <<<"$block" || fail "HARD-GATE missing ${label}: $term_pattern"
+  done
+}
+
 assert_hard_gate_absent() {
   local needle="$1" file="$2" block
   block="$(hard_gate_block "$file")"
@@ -104,9 +114,9 @@ assert_hard_gate_absent 'task_packet_check.sh' "$DELIVERY_OWNER_SKILL"
 assert_hard_gate_absent 'current_gap / progress_signal' "$DELIVERY_OWNER_SKILL"
 assert_hard_gate_absent 'next_owner' "$DELIVERY_OWNER_SKILL"
 
-assert_present '用户确认检查点未闭合前，不得冻结基线' "$DIRECTOR_SKILL"
-assert_present '确认检查点未闭合不得 handoff' "$MANAGER_SKILL"
-assert_present '确认检查点未闭合不得冻结设计' "$DESIGN_SKILL"
+assert_hard_gate_terms "$DIRECTOR_SKILL" "confirmed-baseline gate" '产品总监确认' '已确认基线|冻结基线' '不要|不得'
+assert_hard_gate_terms "$MANAGER_SKILL" "PM handoff confirmation gate" 'director_confirmation\.status=passed|Director' '缺交付确认|delivery_confirmation' '停止'
+assert_hard_gate_terms "$DESIGN_SKILL" "design final confirmation gate" 'DES-HG-6' '用户确认|final_confirmation\.status=confirmed' '冻结|交给 `/test-design`'
 assert_present 'NO task handoff when the task lacks traceable goal' "$TECH_LEAD_SKILL"
 assert_present 'NO FAIL item without stable issue identity' "$QA_SKILL"
 assert_present 'valid `failure_class` and owner-level disposition' "$FIX_SKILL"

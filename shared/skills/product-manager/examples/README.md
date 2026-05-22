@@ -7,10 +7,10 @@
 ## feature--user-login-validation
 
 ### 背景
-真实跑通 M-S0 到 M-S9 的产出。故意在 baseline 和 UNIT 中植入了 3 个测试信号：
-- M-S0 语义歧义（risks_and_unknowns 中"会话过期策略"与 mitigation 不一致）
-- M-S4 高优依赖低优（UNIT-1/2 P0 依赖 UNIT-3 P1）
-- M-S7 术语不一致（UNIT-2 用 `token`/`认证状态`）
+真实跑通 Handoff gate 到 Delivery 的产出。故意在 baseline 和 UNIT 中植入了 3 个测试信号：
+- Handoff gate 语义歧义（risks_and_unknowns 中"会话过期策略"与 mitigation 不一致）
+- UNIT split 高优依赖低优（UNIT-1/2 P0 依赖 UNIT-3 P1）
+- Self-check 术语不一致（UNIT-2 用 `token`/`认证状态`）
 
 当前目录里的文件是 **已修正版**，优先级和术语均一致，可作为"正确答案"参照。
 
@@ -23,10 +23,10 @@ BRIEF=shared/skills/product-manager/examples/feature--user-login-validation/brie
 # Director handoff 检查
 bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"
 
-# M-S4 优先级校验
+# UNIT split 优先级校验
 python3 shared/skills/product-manager/scripts/check_priority_consistency.py --phase-dir "$PHASE_DIR"
 
-# M-S7 术语校验
+# Self-check 术语校验
 python3 shared/skills/product-manager/scripts/check_terminology_consistency.py --phase-dir "$PHASE_DIR"
 
 # PM handoff gate

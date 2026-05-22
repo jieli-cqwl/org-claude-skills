@@ -200,6 +200,22 @@
       "expected_anchors": [
         "PA-14"
       ]
+    },
+    {
+      "id": "finalization-renders-projection-view",
+      "prompt": "用户已经明确回复 `产品总监确认`，finalized ledger、Director result、content-quality 和 hook gate 都通过。product-director 写完 `brief.json` 和 `phase-1/phase-prd.json` 后还要做什么？",
+      "expected_output": "完成 Director Finalization 后继续执行投影渲染脚本；从 `brief.json` 和 `phase-*/phase-prd.json` 生成 `views/product-director.projection.md` 和 `views/product-director.projection-manifest.json`；说明 Markdown 只服务用户阅读，运行控制仍消费 JSON 和 gate 结果；不得把投影正文交给下游控制流。",
+      "files": [],
+      "expectations": [
+        "识别用户已给出 `产品总监确认` 且 finalization gates 已通过",
+        "写完 brief.json 和 phase-prd.json 后继续执行 render_projection.py",
+        "生成 views/product-director.projection.md",
+        "生成 views/product-director.projection-manifest.json",
+        "说明 Markdown 只服务用户阅读，不进入下游控制流"
+      ],
+      "expected_anchors": [
+        "PA-16"
+      ]
     }
   ],
   "eval_type": "encoded_preference",
@@ -267,6 +283,11 @@
     {
       "id": "PA-15",
       "anchor": "在完成 Director baseline 共创并收到用户明确回复 `产品总监确认` 之前，不写最终产物、声明已确认或交给下游；继续执行 Checklist 的下一步，给出推荐判断并提出一个推动用户确认 baseline 的澄清问题",
+      "weight": 1
+    },
+    {
+      "id": "PA-16",
+      "anchor": "Director Finalization 写入或更新 brief.json 和 phase-prd.json 且 gate 通过后，继续执行 render_projection.py，生成 views/product-director.projection.md 和 views/product-director.projection-manifest.json；Markdown 只服务用户阅读，不进入下游控制流",
       "weight": 1
     }
   ]

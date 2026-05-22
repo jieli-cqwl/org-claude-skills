@@ -83,7 +83,7 @@ if not preflight:
     raise SystemExit("manifest missing preflight-check")
 if preflight.get("path") != "scripts/preflight_check.sh":
     raise SystemExit("preflight-check path drift")
-for arg in ("--brief", "--phase-prd", "--phase-dir", "--help", "-h"):
+for arg in ("--brief", "--phase-prd", "--phase-dir", "--pre-unit", "--help", "-h"):
     if arg not in preflight.get("allowed_args", []):
         raise SystemExit(f"preflight-check missing allowed arg {arg}")
 PY
@@ -106,6 +106,28 @@ if bash "$PREFLIGHT" --phase-dir "$TMP_DIR/feature/phase-1" >"$PHASE_DIR_OUT"; t
   fail "preflight must block phase-dir mode before UNIT files exist"
 fi
 assert_failure_reason_contains "$PHASE_DIR_OUT" "units/UNIT-*.json"
+
+PRE_UNIT_OUT="$TMP_DIR/pre-unit-pass.json"
+bash "$PREFLIGHT" --phase-dir "$TMP_DIR/feature/phase-1" --pre-unit >"$PRE_UNIT_OUT"
+assert_json_status "$PRE_UNIT_OUT" "PASS"
+
+OPEN_RISK_DIR="$TMP_DIR/open-risk"
+copy_fixtures "$OPEN_RISK_DIR"
+python3 - "$OPEN_RISK_DIR/feature/phase-1/phase-prd.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["risk_ledger"][0]["status"] = "OPEN"
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+OPEN_RISK_OUT="$TMP_DIR/open-risk.json"
+if bash "$PREFLIGHT" --phase-dir "$OPEN_RISK_DIR/feature/phase-1" --pre-unit >"$OPEN_RISK_OUT"; then
+  fail "preflight --pre-unit must block OPEN risk_ledger status"
+fi
+assert_failure_reason_contains "$OPEN_RISK_OUT" "non-closed risk status"
 
 BAD_STATUS_DIR="$TMP_DIR/bad-status"
 copy_fixtures "$BAD_STATUS_DIR"

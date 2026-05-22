@@ -12,10 +12,10 @@
   "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "anchor_count": 13,
-    "eval_count": 12,
+    "anchor_count": 14,
+    "eval_count": 13,
     "fidelity": 1.0,
-    "next_run": "Run a broader effectiveness eval sample including technical-demand-framed-before-solution and PA-14 before retain or retire.",
+    "next_run": "Run a broader effectiveness eval sample including technical-demand-framed-before-solution, PA-14, and PA-16 before retain or retire.",
     "sample_size": 5,
     "anchor_passed": 13,
     "anchor_total": 13,

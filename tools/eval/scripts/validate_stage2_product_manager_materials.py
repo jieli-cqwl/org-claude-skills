@@ -86,10 +86,25 @@ def review_conclusion(reviewed_digest: str) -> dict[str, Any]:
 
 
 def product_manager_ledger() -> dict[str, Any]:
-    steps = ["M-S1", "M-S2", "M-S3", "M-S4", "M-S5", "M-S5.5", "M-S6", "M-S7", "M-S8", "M-G1", "M-S9"]
+    steps = [
+        "Handoff gate",
+        "Evidence and AS-IS",
+        "TO-BE product model",
+        "Feature inventory and risk",
+        "Pre-UNIT gate",
+        "UNIT split",
+        "AC",
+        "Verification Plan",
+        "Design handoff",
+        "Self-check",
+        "Review digest",
+        "Agent review",
+        "PM handoff gate",
+        "Delivery",
+    ]
     confirmations = []
     for index, step in enumerate(steps, start=1):
-        checkpoint_id = f"PM-CHK-{index:02d}"
+        checkpoint_id = "product-manager." + step.lower().replace(" ", "-").replace("/", "-")
         confirmations.append(
             {
                 "checkpoint_id": checkpoint_id,
@@ -198,6 +213,138 @@ def build_pm_package(confirmed_package: dict[str, Any]) -> dict[str, Any]:
     brief["non_functional_requirements"] = ["链路必须可观测，失败不能吞消息，响应处理必须可追溯"]
     phase_prd["unit_index"] = ["UNIT-1"]
     phase_prd["unit_priority_order"] = [{"unit_id": "UNIT-1", "priority": "P0", "priority_basis": "先证明消息闭环可被人工确认"}]
+    phase_prd["evidence_sources"] = [
+        {
+            "evidence_id": "EV-1",
+            "source_type": "director_baseline",
+            "source_ref": "brief.json#director_confirmation.locked_fields",
+            "status": "FACT",
+            "supports": ["ASIS-1", "TOBE-1", "FEAT-1", "RISK-1"],
+        }
+    ]
+    phase_prd["as_is_flows"] = [
+        {
+            "flow_id": "ASIS-1",
+            "evidence_refs": ["EV-1"],
+            "actors": ["客服运营"],
+            "trigger": "三方平台推送客户文本消息",
+            "steps": ["接收消息", "人工查看上下文", "人工回复客户"],
+            "observed_state": "消息、上下文和回复建议缺少统一闭环",
+            "pain_points": ["失败原因和人工接管状态不可追溯"],
+        }
+    ]
+    phase_prd["to_be_flows"] = [
+        {
+            "flow_id": "TOBE-1",
+            "goal_ref": "phase_goal",
+            "actors": ["客服运营"],
+            "trigger": "三方平台推送单渠道文本消息",
+            "steps": ["接收回调", "装配上下文", "调度 agent", "生成建议回复", "等待人工确认"],
+            "expected_outcome": "形成可人工确认的建议回复包且不自动外发",
+            "branch_coverage": ["正常建议回复", "缺上下文人工接管", "agent 调度失败保留失败原因"],
+        }
+    ]
+    phase_prd["business_process_graphs"] = [
+        {
+            "graph_id": "BPG-1",
+            "flow_ref": "TOBE-1",
+            "nodes": [
+                {"step_id": "S1", "label": "接收文本消息回调", "actor": "三方平台", "object_state": "message_received"},
+                {"step_id": "S2", "label": "装配上下文并调度 agent", "actor": "系统", "object_state": "agent_processing"},
+                {"step_id": "S3", "label": "生成建议回复并等待人工确认", "actor": "客服运营", "object_state": "human_confirmation_pending"},
+            ],
+            "edges": [
+                {
+                    "from_step": "S1",
+                    "to_step": "S2",
+                    "condition": "消息包含会话标识和租户标识",
+                    "actor": "系统",
+                    "object_state_change": "message_received -> agent_processing",
+                    "risk_refs": ["RISK-1"],
+                },
+                {
+                    "from_step": "S2",
+                    "to_step": "S3",
+                    "condition": "agent 返回建议或失败原因",
+                    "actor": "客服运营",
+                    "object_state_change": "agent_processing -> human_confirmation_pending",
+                    "risk_refs": ["RISK-1"],
+                },
+            ],
+        }
+    ]
+    phase_prd["feature_inventory"] = [
+        {
+            "feature_id": "FEAT-1",
+            "capability": "单渠道文本消息建议回复闭环",
+            "business_goal_ref": "phase_goal",
+            "actor_or_scenario": "客服运营处理三方文本消息",
+            "entry_or_trigger": "三方消息回调",
+            "core_behavior": "接收消息、装配上下文、调度 agent 并生成建议回复",
+            "observable_result": "建议回复包进入人工确认状态，不自动外发",
+            "scope_status": "IN_SCOPE",
+            "unit_refs": ["UNIT-1"],
+            "risk_refs": ["RISK-1"],
+        }
+    ]
+    phase_prd["module_capability_matrix"] = [
+        {
+            "module": "三方消息处理",
+            "capability": "回调接收、上下文装配、建议回复和人工确认",
+            "unit_refs": ["UNIT-1"],
+            "protected_behaviors": ["不自动外发客户消息", "失败必须可人工接管"],
+        }
+    ]
+    phase_prd["entry_scene_inventory"] = [
+        {
+            "entry_id": "ENTRY-1",
+            "entry_type": "api_callback",
+            "scenario": "三方平台推送单渠道文本消息",
+            "evidence_refs": ["EV-1"],
+            "unit_refs": ["UNIT-1"],
+        }
+    ]
+    phase_prd["business_objects"] = [
+        {
+            "object_name": "客户消息",
+            "definition": "三方平台推送并需要客服处理的文本消息",
+            "key_fields": ["会话标识", "租户标识", "消息正文", "上下文来源"],
+            "lifecycle_states": ["received", "processing", "human_confirmation_pending", "handoff_required"],
+        }
+    ]
+    phase_prd["state_transitions"] = [
+        {
+            "object_name": "客户消息",
+            "from": "received",
+            "trigger": "上下文装配和 agent 调度完成",
+            "to": "human_confirmation_pending",
+            "observable_result": "客服看到建议回复、上下文来源和人工确认状态",
+            "rule_refs": ["BR-1"],
+        }
+    ]
+    phase_prd["role_permission_matrix"] = [
+        {
+            "role": "客服运营",
+            "permissions": ["查看建议回复", "确认或接管客户消息"],
+            "constraints": ["未人工确认前不得外发客户消息"],
+            "unit_refs": ["UNIT-1"],
+        }
+    ]
+    phase_prd["risk_ledger"] = [
+        {
+            "risk_id": "RISK-1",
+            "source": "Director baseline and AS-IS evidence",
+            "risk_type": "handoff",
+            "trigger_condition": "上下文缺失或 agent 调度失败",
+            "affected_units": ["UNIT-1"],
+            "impact": "建议回复无法安全交给客服确认",
+            "pm_decision": "缺上下文或调度失败时进入人工接管，不自动外发",
+            "mitigation_or_owner": "PM 写入 AC 和 Verification Plan",
+            "verification_target": "UNIT-1.acceptance_criteria / UNIT-1.verification_plan",
+            "status": "MITIGATED",
+        }
+    ]
+    phase_prd["pre_review_issue_ledger"] = []
     phase_prd["business_flows"] = ["三方回调 -> 前置消息处理 -> 上下文装配 -> agent 调度 -> 建议响应 -> 人工确认"]
     phase_prd["user_paths"] = ["客服在人工确认入口查看建议回复、上下文来源、失败原因和接管状态"]
     phase_prd["rule_mappings"] = ["任何建议回复都不得自动外发；失败必须可接管；消息原文和上下文来源必须可追溯"]

@@ -1,6 +1,6 @@
 # Test Signal Inventory
 
-This report records test asset disposition for the test signal governance cleanup.
+This report records test asset disposition for the test assertion boundary cleanup.
 
 ## Decision rule
 

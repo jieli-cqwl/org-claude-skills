@@ -1,7 +1,7 @@
 {
   "skill_name": "product-manager",
   "eval_type": "encoded_preference",
-  "review_date": "2026-04-30",
+  "review_date": "2026-05-22",
   "decision": "retain",
   "decision_label": "保留",
   "evidence_refs": [
@@ -13,11 +13,11 @@
     "tools/eval/results/product-manager-live-20260430/without-skill/summary.json",
     "shared/skills/skill-refiner/references/quality-dimensions.md"
   ],
-  "next_action": "Retain current product-manager package and rerun live with/without plus dogfood checks when PM anchors, handoff contracts, or downstream design preflight requirements change.",
+  "next_action": "Rerun live with/without plus dogfood checks after the PM capability, schema, pre-unit gate, and risk-closure changes.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "anchor_count": 16,
-    "eval_count": 14,
+    "anchor_count": 21,
+    "eval_count": 18,
     "fidelity": 1.0,
     "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 5,
@@ -87,7 +87,7 @@
         "eval_id": "handoff-validation-first",
         "with_skill_ref": "tools/eval/results/product-manager-live-20260430/with-skill/product-manager/handoff-validation-first/with_skill/run-1/outputs/response.md",
         "without_skill_ref": "tools/eval/results/product-manager-live-20260430/without-skill/product-manager/handoff-validation-first/without_skill/run-1/outputs/response.md",
-        "finding": "with_skill explicitly blocks M-S0 until brief.json and phase-prd.json are provided and protects locked_field_digest; without_skill blocks output but omits locked_field_digest protection."
+        "finding": "with_skill explicitly blocks Handoff gate until brief.json and phase-prd.json are provided and protects locked_field_digest; without_skill blocks output but omits locked_field_digest protection."
       },
       {
         "eval_id": "canonical-review-required",

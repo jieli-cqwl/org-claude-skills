@@ -43,7 +43,7 @@ assert_line_count_at_most() {
 assert_rule_like_count_at_most() {
   local max="$1" file="$2"
   local actual
-  actual="$({ grep -En '必须|不得|禁止|仅在|只允许|不要|若|状态枚举|D-G1|M-G1|lock|冻结|通过后|authoritative' "$file" || true; } | wc -l | tr -d ' ')"
+  actual="$({ grep -En '必须|不得|禁止|仅在|只允许|不要|若|状态枚举|D-G1|lock|冻结|通过后|authoritative' "$file" || true; } | wc -l | tr -d ' ')"
   [ "$actual" -le "$max" ] || fail "$file has $actual rule-like lines; expected <= $max"
 }
 
@@ -66,6 +66,12 @@ fi
 for file in "$DIRECTOR_BRIEF_JSON" "$DIRECTOR_PHASE_JSON" "$MANAGER_BRIEF_JSON" "$MANAGER_PHASE_JSON" "$MANAGER_UNIT_JSON"; do
   assert_absent 'runtime control decisions|canonical-only runtime control|standard-chain operators|migrate standard-chain|cutover readiness|foundation registry|legacy phase migration|standard-chain canonical planning|downstream skills consume canonical JSON' "$file"
 done
+
+assert_absent '"review_conclusion"[[:space:]]*:' "$MANAGER_BRIEF_JSON"
+assert_absent '"delivery_confirmation"[[:space:]]*:' "$MANAGER_BRIEF_JSON"
+assert_absent '"review_conclusion"[[:space:]]*:' "$MANAGER_PHASE_JSON"
+assert_absent 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|agent-team://.*reviewer/R2|CONFIRMATION' "$MANAGER_BRIEF_JSON"
+assert_absent 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|agent-team://.*reviewer/R2|CONFIRMATION' "$MANAGER_PHASE_JSON"
 
 jq -e '
   (keys_unsorted | sort) == ([

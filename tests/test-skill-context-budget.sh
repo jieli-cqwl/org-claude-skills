@@ -98,6 +98,11 @@ for skill in "${CORE_SKILLS[@]}"; do
   # Count all files under references/
   if [ -d "$skill_dir/references" ]; then
     while IFS= read -r -d '' ref_file; do
+      case "$(basename "$ref_file")" in
+        *-reviewer-prompt.md)
+          continue
+          ;;
+      esac
       ref_lines="$(wc -l < "$ref_file" | tr -d ' ')"
       lines=$((lines + ref_lines))
     done < <(find "$skill_dir/references" -type f -print0)

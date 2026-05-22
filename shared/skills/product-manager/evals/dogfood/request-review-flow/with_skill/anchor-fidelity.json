@@ -1,6 +1,6 @@
 {
   "artifact_type": "product-manager-anchor-fidelity",
-  "eval_id": "request-review-flow-m0-m9",
+  "eval_id": "request-review-flow-pm-flow",
   "run_mode": "with_skill",
   "result_ref": "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/dogfood-result.json",
   "expected_anchor_count": 7,
@@ -10,7 +10,7 @@
     {
       "anchor_id": "PA-1",
       "passed": true,
-      "evidence": "M-S0 evidence includes brief and phase-prd director_confirmation and locked field validation."
+      "evidence": "Handoff gate evidence includes brief and phase-prd director_confirmation and locked field validation."
     },
     {
       "anchor_id": "PA-2",
@@ -40,7 +40,7 @@
     {
       "anchor_id": "PA-7",
       "passed": true,
-      "evidence": "dogfood records PM-led M-S0 to M-S9 step decisions, downstream handoff, and user confirmation boundary instead of open-ended prompts."
+      "evidence": "dogfood records PM-led Handoff gate to Delivery step decisions, downstream handoff, and user confirmation boundary instead of open-ended prompts."
     }
   ]
 }

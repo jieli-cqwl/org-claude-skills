@@ -33,6 +33,7 @@ CONTRACT_TOKENS = re.compile(
 
 ASSIGN_RE = re.compile(r"^(?:local\s+)?([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 ASSERT_RE = re.compile(r"^assert_(present|absent)\b")
+SECTION_ASSERT_RE = re.compile(r"^assert_section_(present|absent)\b")
 VAR_RE = re.compile(r"^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?$")
 
 
@@ -131,13 +132,20 @@ def resolve_target(raw: str, assignments: dict[str, str]) -> str:
 
 def assertion_call(line: str) -> AssertionCall | None:
     stripped = line.strip()
-    if not ASSERT_RE.match(stripped):
-        return None
     words = shell_words(stripped)
-    if not words or len(words) < 3:
+    if not words:
         return None
-    assertion = words[0].replace("assert_", "")
-    return AssertionCall(assertion=assertion, pattern=words[1], target=words[2])
+    match = ASSERT_RE.match(stripped)
+    if match:
+        if len(words) < 3:
+            return None
+        return AssertionCall(assertion=match.group(1), pattern=words[1], target=words[2])
+    match = SECTION_ASSERT_RE.match(stripped)
+    if match:
+        if len(words) < 4:
+            return None
+        return AssertionCall(assertion=match.group(1), pattern=words[3], target=words[1])
+    return None
 
 
 def is_markdown_prose_target(target: str) -> bool:
@@ -161,14 +169,48 @@ def has_contract_pattern_shape(pattern: str) -> bool:
     return bool(re.search(r"[|$\[\]{}()\\`/\"]", pattern))
 
 
-def low_signal_kind(pattern: str) -> str | None:
+def has_prose_regex_shape(pattern: str) -> bool:
+    return bool(re.search(r"\||\.\*|\[\[:[a-z]+:\]\]", pattern))
+
+
+def has_cjk_prose(text: str, minimum: int = 2) -> bool:
+    return len(re.findall(r"[一-鿿]", text)) >= minimum
+
+
+def has_prose_before_contract_token(pattern: str) -> bool:
+    match = CONTRACT_TOKENS.search(pattern)
+    if match is None:
+        return False
+    return has_cjk_prose(pattern[: match.start()])
+
+
+def low_signal_kind(assertion: str, pattern: str, target: str = "") -> str | None:
     normalized = normalized_pattern(pattern)
     if re.match(r"#{1,6}\s+", normalized):
         return "heading"
+    if CONTRACT_TOKENS.search(normalized) and has_prose_before_contract_token(normalized):
+        return "prose-wrapped-contract"
     if CONTRACT_TOKENS.search(normalized) and has_contract_pattern_shape(normalized):
         return None
     letter_count = len(re.findall(r"[A-Za-z一-鿿]", normalized))
     cjk_count = len(re.findall(r"[一-鿿]", normalized))
+    if assertion == "absent" and cjk_count >= 2:
+        return "short-absent-phrase"
+    if (
+        assertion == "present"
+        and "shared/skills/" in target.lower()
+        and cjk_count >= 4
+        and not CONTRACT_TOKENS.search(normalized)
+    ):
+        return "short-present-phrase"
+    if (
+        assertion == "present"
+        and "shared/skills/" in target.lower()
+        and has_cjk_prose(normalized, minimum=2)
+        and has_prose_regex_shape(normalized)
+        and not CONTRACT_TOKENS.search(normalized)
+    ):
+        return "short-prose-regex"
     has_sentence_shape = (
         normalized.count(" ") >= 6
         or cjk_count >= 18
@@ -200,7 +242,7 @@ def scan_file(path: Path, root: Path) -> list[Finding]:
         target = resolve_target(call.target, assignments)
         if not is_markdown_prose_target(target):
             continue
-        kind = low_signal_kind(call.pattern)
+        kind = low_signal_kind(call.assertion, call.pattern, target)
         if kind is None:
             continue
         findings.append(
@@ -260,7 +302,7 @@ def default_paths(args: argparse.Namespace) -> tuple[Path, Path, Path | None]:
     if baseline is None:
         baseline = (
             root
-            / "tests/fixtures/test-signal-governance/low-signal-prose-assertions.baseline"
+            / "tests/fixtures/test-assertion-boundary/low-signal-prose-assertions.baseline"
         )
     return root, tests_dir, baseline
 

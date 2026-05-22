@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHECKER="$ROOT/tools/community/check_test_signal_assertions.py"
+RULE_FILE="$ROOT/shared/rules/测试断言边界.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -15,8 +16,10 @@ assert_present() {
   grep -Eq "$pattern" "$file" || fail "missing pattern: $pattern"
 }
 
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test-signal-governance.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test-assertion-boundary.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
+
+test -f "$RULE_FILE" || fail "missing test assertion boundary rule: $RULE_FILE"
 
 mkdir -p "$TMP_DIR/bad" "$TMP_DIR/good"
 
@@ -29,6 +32,12 @@ assert_present 'The SKILL guide MUST preserve this complete prose sentence for A
 assert_present 'This assertion freezes owner_stage wording in a complete Markdown sentence and does not protect behavior.' "$ROOT/shared/skills/example/references/guide.md"
 assert_present 'The artifact-registry.json paragraph must keep this complete explanatory sentence exactly for readers.' "$ROOT/shared/skills/example/SKILL.md"
 assert_present 'The validate_canonical_schema.py sentence should remain exactly as written in this Markdown guide.' "$ROOT/shared/skills/example/SKILL.md"
+assert_absent '默认直接执行' "$ROOT/shared/skills/example/SKILL.md"
+assert_absent '需要用户可读投影视图时运行' "$ROOT/shared/skills/example/SKILL.md"
+assert_present '确认检查点未闭合不得 handoff' "$ROOT/shared/skills/example/SKILL.md"
+assert_section_present "$ROOT/shared/skills/example/SKILL.md" "## HARD-GATE" '用户确认检查点未闭合前，不得冻结基线' "example hard-gate prose"
+assert_present '^- 执行：`python3 shared/skills/example/scripts/render_projection\.py --feature-dir "docs/\{feature\}"`' "$ROOT/shared/skills/example/SKILL.md"
+assert_present 'Owner Self-Check|owner 自检|自检后.*送审' "$ROOT/shared/skills/example/SKILL.md"
 BAD
 
 cat >"$TMP_DIR/good/test-good-contract.sh" <<'GOOD'
@@ -38,6 +47,8 @@ assert_present 'validate_canonical_schema\.py' "$ROOT/shared/skills/example/SKIL
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/example/SKILL.md"
 assert_present 'owner_stage' "$ROOT/shared/skills/example/references/guide.md"
 assert_present 'sha256:[0-9a-f]{64}' "$ROOT/shared/skills/example/projections/template.md"
+assert_present 'render_projection\.py' "$ROOT/shared/skills/example/SKILL.md"
+assert_present '--feature-dir' "$ROOT/shared/skills/example/SKILL.md"
 assert_present 'agent teams.*三名只读 reviewer.*advisory 结论' "$ROOT/shared/agents/designer.md"
 GOOD
 
@@ -52,6 +63,12 @@ assert_present 'SKILL guide MUST preserve' "$TMP_DIR/bad.out"
 assert_present 'owner_stage wording' "$TMP_DIR/bad.out"
 assert_present 'artifact-registry.json paragraph' "$TMP_DIR/bad.out"
 assert_present 'validate_canonical_schema.py sentence' "$TMP_DIR/bad.out"
+assert_present '默认直接执行' "$TMP_DIR/bad.out"
+assert_present '需要用户可读投影视图时运行' "$TMP_DIR/bad.out"
+assert_present '确认检查点未闭合不得 handoff' "$TMP_DIR/bad.out"
+assert_present '用户确认检查点未闭合前' "$TMP_DIR/bad.out"
+assert_present 'render_projection' "$TMP_DIR/bad.out"
+assert_present 'Owner Self-Check' "$TMP_DIR/bad.out"
 
 python3 "$CHECKER" --tests-dir "$TMP_DIR/good" >/dev/null
 python3 "$CHECKER" --repo-root "$ROOT" >/dev/null
@@ -60,4 +77,4 @@ python3 "$CHECKER" --repo-root "$ROOT" >/dev/null
   python3 tools/community/check_test_signal_assertions.py >/dev/null
 )
 
-printf '[PASS] test signal governance contract\n'
+printf '[PASS] test assertion boundary contract\n'

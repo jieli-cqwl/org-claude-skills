@@ -5,7 +5,7 @@
       "id": "preflight-check",
       "path": "scripts/preflight_check.sh",
       "owner": "product-manager",
-      "allowed_args": ["--brief", "--phase-prd", "--phase-dir", "--help", "-h"],
+      "allowed_args": ["--brief", "--phase-prd", "--phase-dir", "--pre-unit", "--help", "-h"],
       "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
       "external_commands": [
         "bash",

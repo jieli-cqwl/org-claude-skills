@@ -11,6 +11,17 @@
     "$.phase_goal",
     "$.entry_conditions",
     "$.exit_conditions",
+    "$.evidence_sources",
+    "$.as_is_flows",
+    "$.to_be_flows",
+    "$.business_process_graphs",
+    "$.feature_inventory",
+    "$.module_capability_matrix",
+    "$.entry_scene_inventory",
+    "$.business_objects",
+    "$.state_transitions",
+    "$.role_permission_matrix",
+    "$.risk_ledger",
     "$.business_flows",
     "$.user_paths",
     "$.rule_mappings",
@@ -18,6 +29,7 @@
     "$.unit_priority_order",
     "$.design_decision_candidates",
     "$.director_confirmation",
+    "$.pre_review_issue_ledger",
     "$.review_conclusion",
     "$.issue_ledger"
   ],
@@ -27,6 +39,213 @@
   ],
   "exit_conditions": [
     "request submission, reviewer decision, requester status, and exclusions are confirmed"
+  ],
+  "evidence_sources": [
+    {
+      "evidence_id": "EV-1",
+      "source_type": "user_decision",
+      "source_ref": "brief.json#director_confirmation.locked_fields",
+      "status": "FACT",
+      "supports": [
+        "ASIS-1",
+        "TOBE-1",
+        "FEAT-1",
+        "RISK-1"
+      ]
+    }
+  ],
+  "as_is_flows": [
+    {
+      "flow_id": "ASIS-1",
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "actors": [
+        "business requester",
+        "assigned reviewer"
+      ],
+      "trigger": "requester needs a review decision",
+      "steps": [
+        "requester prepares required business information",
+        "reviewer evaluates the request",
+        "requester checks the decision outcome"
+      ],
+      "observed_state": "ownership, required information, and approval outcome are unclear",
+      "pain_points": [
+        "status coordination happens outside the product flow"
+      ]
+    }
+  ],
+  "to_be_flows": [
+    {
+      "flow_id": "TOBE-1",
+      "goal_ref": "phase_goal",
+      "actors": [
+        "business requester",
+        "assigned reviewer"
+      ],
+      "trigger": "requester submits a complete request",
+      "steps": [
+        "requester submits required information",
+        "authorized reviewer records a decision",
+        "requester sees final status and next action"
+      ],
+      "expected_outcome": "request submission, reviewer decision, requester status, and exclusions are confirmed",
+      "branch_coverage": [
+        "complete request approved",
+        "missing information stays pending",
+        "unauthorized reviewer cannot change status"
+      ]
+    }
+  ],
+  "business_process_graphs": [
+    {
+      "graph_id": "BPG-1",
+      "flow_ref": "TOBE-1",
+      "nodes": [
+        {
+          "step_id": "S1",
+          "label": "Director baseline confirmed and source request scenario selected",
+          "actor": "primary user",
+          "object_state": "submitted"
+        },
+        {
+          "step_id": "S2",
+          "label": "System applies the mapped business rule",
+          "actor": "delivery operator",
+          "object_state": "in_progress"
+        },
+        {
+          "step_id": "S3",
+          "label": "request submission, reviewer decision, requester status, and exclusions are confirmed",
+          "actor": "primary user",
+          "object_state": "approved"
+        }
+      ],
+      "edges": [
+        {
+          "from_step": "S1",
+          "to_step": "S2",
+          "condition": "Director baseline confirmed and source request scenario selected",
+          "actor": "delivery operator",
+          "object_state_change": "submitted -> in_progress",
+          "risk_refs": [
+            "RISK-1"
+          ]
+        },
+        {
+          "from_step": "S2",
+          "to_step": "S3",
+          "condition": "request submission, reviewer decision, requester status, and exclusions are confirmed",
+          "actor": "primary user",
+          "object_state_change": "in_progress -> approved",
+          "risk_refs": []
+        }
+      ]
+    }
+  ],
+  "feature_inventory": [
+    {
+      "feature_id": "FEAT-1",
+      "capability": "closed-loop request review",
+      "business_goal_ref": "business_goals[0]",
+      "actor_or_scenario": "requester submits a request and reviewer records a decision",
+      "entry_or_trigger": "complete request submission",
+      "core_behavior": "capture request details, record reviewer decision, and expose requester-visible status",
+      "observable_result": "requester sees approved, rejected, pending, or blocked status with next action",
+      "scope_status": "IN_SCOPE",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "risk_refs": [
+        "RISK-1"
+      ]
+    }
+  ],
+  "module_capability_matrix": [
+    {
+      "module": "request review",
+      "capability": "submit, decide, and expose request status",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "protected_behaviors": [
+        "Director-confirmed scope and business outcomes remain unchanged"
+      ]
+    }
+  ],
+  "entry_scene_inventory": [
+    {
+      "entry_id": "ENTRY-1",
+      "entry_type": "product_flow",
+      "scenario": "requester starts a confirmed request review flow",
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "business_objects": [
+    {
+      "object_name": "request",
+      "definition": "business item submitted by a requester and decided by a reviewer",
+      "key_fields": [
+        "required business details",
+        "reviewer decision",
+        "requester-visible status"
+      ],
+      "lifecycle_states": [
+        "draft",
+        "submitted",
+        "pending_review",
+        "approved",
+        "rejected"
+      ]
+    }
+  ],
+  "state_transitions": [
+    {
+      "object_name": "request",
+      "from": "submitted",
+      "trigger": "authorized reviewer approves complete request",
+      "to": "approved",
+      "observable_result": "requester sees approved status and next action",
+      "rule_refs": [
+        "RULE-1"
+      ]
+    }
+  ],
+  "role_permission_matrix": [
+    {
+      "role": "assigned reviewer",
+      "permissions": [
+        "record approval or rejection for assigned request"
+      ],
+      "constraints": [
+        "unauthorized reviewer cannot change status"
+      ],
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "risk_ledger": [
+    {
+      "risk_id": "RISK-1",
+      "source": "Director risk and AS-IS evidence",
+      "risk_type": "acceptance",
+      "trigger_condition": "approval edge cases are under-specified",
+      "affected_units": [
+        "UNIT-1"
+      ],
+      "impact": "UNIT boundaries and AC could miss important review outcomes",
+      "pm_decision": "cover normal, missing information, and unauthorized reviewer outcomes before delivery",
+      "mitigation_or_owner": "PM writes AC and Verification Plan examples for each outcome",
+      "verification_target": "UNIT-1.acceptance_criteria / UNIT-1.verification_plan",
+      "status": "MITIGATED"
+    }
   ],
   "unit_index": [
     "UNIT-1"
@@ -52,6 +271,7 @@
       ]
     }
   },
+  "pre_review_issue_ledger": [],
   "review_conclusion": {
     "verdict": "PASS",
     "summary": "phase PRD review is closed for downstream consumption",
@@ -80,7 +300,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:4dac0d5efefe97ad5d800909c756c0fd05fd7f271b063701fe0bd928fef61a5b"
+          "reviewed_bundle_digest": "sha256:12dcc9f2577d6d2379a9d743e45c42668e54e9ff2215e6ef154bdef6aa7ea238"
         },
         {
           "perspective": "architecture",
@@ -98,7 +318,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:4dac0d5efefe97ad5d800909c756c0fd05fd7f271b063701fe0bd928fef61a5b"
+          "reviewed_bundle_digest": "sha256:12dcc9f2577d6d2379a9d743e45c42668e54e9ff2215e6ef154bdef6aa7ea238"
         },
         {
           "perspective": "test",
@@ -116,7 +336,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:4dac0d5efefe97ad5d800909c756c0fd05fd7f271b063701fe0bd928fef61a5b"
+          "reviewed_bundle_digest": "sha256:12dcc9f2577d6d2379a9d743e45c42668e54e9ff2215e6ef154bdef6aa7ea238"
         }
       ],
       "convergence_evidence": [
@@ -129,7 +349,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:4dac0d5efefe97ad5d800909c756c0fd05fd7f271b063701fe0bd928fef61a5b"
+      "reviewed_bundle_digest": "sha256:12dcc9f2577d6d2379a9d743e45c42668e54e9ff2215e6ef154bdef6aa7ea238"
     }
   },
   "issue_ledger": [],

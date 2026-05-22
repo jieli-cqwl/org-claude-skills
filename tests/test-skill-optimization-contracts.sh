@@ -71,7 +71,7 @@ required_cases = {
     },
     "high-risk-review-on-demand": {
         "anchors": {"PA-8"},
-        "signals": ["高风险", "时才读取", "不额外加载"],
+        "signals": ["高风险", "High-Risk Signals", "不追加高风险检查"],
     },
 }
 

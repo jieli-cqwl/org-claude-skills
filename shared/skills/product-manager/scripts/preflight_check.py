@@ -27,6 +27,11 @@ FAILURE_OWNER = {
     "CANONICAL_RULES_FAILURE": "product-manager",
     "PRIORITY_INCONSISTENCY_FAILURE": "product-manager",
     "TERMINOLOGY_DRIFT_FAILURE": "product-manager",
+    "PM_PRE_UNIT_MODEL_FAILURE": "product-manager",
+    "PM_SCOPE_MAPPING_FAILURE": "product-manager",
+    "PM_RISK_CLOSURE_FAILURE": "product-manager",
+    "PM_PRE_REVIEW_ISSUE_FAILURE": "product-manager",
+    "PM_DESIGN_HANDOFF_FAILURE": "product-manager",
 }
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -44,6 +49,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--brief", type=Path)
     parser.add_argument("--phase-prd", type=Path)
     parser.add_argument("--phase-dir", type=Path)
+    parser.add_argument(
+        "--pre-unit",
+        action="store_true",
+        help="validate PM-owned evidence/model/risk fields before UNIT split",
+    )
     return parser.parse_args(argv)
 
 
@@ -223,7 +233,182 @@ def assert_units_present(phase_dir: Path) -> None:
         )
 
 
+PRE_UNIT_FIELDS = (
+    "evidence_sources",
+    "as_is_flows",
+    "to_be_flows",
+    "business_process_graphs",
+    "feature_inventory",
+    "module_capability_matrix",
+    "entry_scene_inventory",
+    "business_objects",
+    "state_transitions",
+    "role_permission_matrix",
+    "risk_ledger",
+)
+
+
+def require_non_empty_array(payload: dict[str, Any], field: str) -> list[Any]:
+    value = payload.get(field)
+    if not isinstance(value, list) or not value:
+        raise PreflightFailure(
+            "PM_PRE_UNIT_MODEL_FAILURE",
+            f"phase-prd missing non-empty PM model field: {field}",
+        )
+    return value
+
+
+def validate_evidence_sources(phase: dict[str, Any]) -> None:
+    for item in require_non_empty_array(phase, "evidence_sources"):
+        if not isinstance(item, dict):
+            raise PreflightFailure(
+                "PM_PRE_UNIT_MODEL_FAILURE",
+                "evidence_sources items must be objects",
+            )
+        status = item.get("status")
+        if status == "ASSUMPTION":
+            missing = [
+                field
+                for field in ("gap_reason", "required_evidence", "blocks_fields")
+                if not item.get(field)
+            ]
+            if missing:
+                raise PreflightFailure(
+                    "PM_PRE_UNIT_MODEL_FAILURE",
+                    "ASSUMPTION evidence must carry gap_reason, required_evidence, and blocks_fields",
+                )
+        if item.get("source_type") == "screenshot":
+            missing = [
+                field
+                for field in ("screenshot_ref", "captured_at", "entry_ref")
+                if not item.get(field)
+            ]
+            if missing:
+                raise PreflightFailure(
+                    "PM_PRE_UNIT_MODEL_FAILURE",
+                    "screenshot evidence must carry screenshot_ref, captured_at, and entry_ref",
+                )
+
+
+def validate_feature_inventory(phase: dict[str, Any]) -> None:
+    for item in require_non_empty_array(phase, "feature_inventory"):
+        if not isinstance(item, dict):
+            raise PreflightFailure(
+                "PM_SCOPE_MAPPING_FAILURE",
+                "feature_inventory items must be objects",
+            )
+        status = item.get("scope_status")
+        unit_refs = item.get("unit_refs")
+        if not isinstance(unit_refs, list):
+            raise PreflightFailure(
+                "PM_SCOPE_MAPPING_FAILURE",
+                "feature_inventory[].unit_refs must be an array",
+            )
+        if status == "IN_SCOPE" and not unit_refs:
+            raise PreflightFailure(
+                "PM_SCOPE_MAPPING_FAILURE",
+                "IN_SCOPE feature_inventory item must map at least one UNIT",
+            )
+        if status == "OUT_OF_SCOPE":
+            if unit_refs:
+                raise PreflightFailure(
+                    "PM_SCOPE_MAPPING_FAILURE",
+                    "OUT_OF_SCOPE feature_inventory item must not map UNITs",
+                )
+            if not item.get("boundary_ref"):
+                raise PreflightFailure(
+                    "PM_SCOPE_MAPPING_FAILURE",
+                    "OUT_OF_SCOPE feature_inventory item must carry boundary_ref",
+                )
+        if status == "NEEDS_DECISION":
+            if unit_refs:
+                raise PreflightFailure(
+                    "PM_SCOPE_MAPPING_FAILURE",
+                    "NEEDS_DECISION feature_inventory item must not map UNITs",
+                )
+            if not item.get("decision_needed"):
+                raise PreflightFailure(
+                    "PM_SCOPE_MAPPING_FAILURE",
+                    "NEEDS_DECISION feature_inventory item must carry decision_needed",
+                )
+
+
+def validate_risk_ledger(phase: dict[str, Any]) -> None:
+    for item in require_non_empty_array(phase, "risk_ledger"):
+        if not isinstance(item, dict):
+            raise PreflightFailure(
+                "PM_RISK_CLOSURE_FAILURE", "risk_ledger items must be objects"
+            )
+        status = item.get("status")
+        if status in {"OPEN", "BLOCKED"}:
+            raise PreflightFailure(
+                "PM_RISK_CLOSURE_FAILURE",
+                f"risk_ledger contains non-closed risk status: {item.get('risk_id', '<unknown>')}={status}",
+            )
+        if not item.get("verification_target"):
+            raise PreflightFailure(
+                "PM_RISK_CLOSURE_FAILURE",
+                f"risk_ledger item missing verification_target: {item.get('risk_id', '<unknown>')}",
+            )
+        if not item.get("mitigation_or_owner"):
+            raise PreflightFailure(
+                "PM_RISK_CLOSURE_FAILURE",
+                f"risk_ledger item missing mitigation_or_owner: {item.get('risk_id', '<unknown>')}",
+            )
+
+
+def validate_pre_review_issues(phase: dict[str, Any]) -> None:
+    issues = phase.get("pre_review_issue_ledger", [])
+    if issues is None:
+        return
+    if not isinstance(issues, list):
+        raise PreflightFailure(
+            "PM_PRE_REVIEW_ISSUE_FAILURE",
+            "pre_review_issue_ledger must be an array",
+        )
+    open_statuses = {"OPEN", "BLOCKED", "MISSING", "PARTIAL"}
+    for item in issues:
+        if not isinstance(item, dict):
+            raise PreflightFailure(
+                "PM_PRE_REVIEW_ISSUE_FAILURE",
+                "pre_review_issue_ledger items must be objects",
+            )
+        if item.get("status") in open_statuses:
+            raise PreflightFailure(
+                "PM_PRE_REVIEW_ISSUE_FAILURE",
+                f"pre_review_issue_ledger contains unresolved item: {item.get('issue_id', '<unknown>')}={item.get('status')}",
+            )
+
+
+def validate_design_handoff_aliases(phase: dict[str, Any]) -> None:
+    forbidden = {"decision", "affected_units", "handoff_target"}
+    for item in phase.get("design_decision_candidates", []):
+        if not isinstance(item, dict):
+            raise PreflightFailure(
+                "PM_DESIGN_HANDOFF_FAILURE",
+                "design_decision_candidates items must be objects",
+            )
+        present = sorted(forbidden.intersection(item))
+        if present:
+            raise PreflightFailure(
+                "PM_DESIGN_HANDOFF_FAILURE",
+                f"design_decision_candidates contains forbidden aliases: {', '.join(present)}",
+            )
+
+
+def validate_pm_model_fields(phase: dict[str, Any]) -> None:
+    for field in PRE_UNIT_FIELDS:
+        require_non_empty_array(phase, field)
+    validate_evidence_sources(phase)
+    validate_feature_inventory(phase)
+    validate_risk_ledger(phase)
+    validate_pre_review_issues(phase)
+    validate_design_handoff_aliases(phase)
+
+
 def validate(args: argparse.Namespace) -> dict[str, Any]:
+    if args.pre_unit and args.phase_dir is None:
+        raise PreflightFailure("MISSING_INPUT", "--pre-unit requires --phase-dir")
     brief_path, phase_prd_path, phase_id = resolve_paths(args)
     brief = load_json(brief_path)
     phase = load_json(phase_prd_path)
@@ -242,6 +427,16 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
     # cross-artifact rule) at the PM handoff, instead of leaking to /design.
     canonical_ran = False
     if args.phase_dir is not None:
+        validate_pm_model_fields(phase)
+        if args.pre_unit:
+            return {
+                "status": "PASS",
+                "brief": str(brief_path),
+                "phase_id": phase_id,
+                "phase_prd": str(phase_prd_path),
+                "canonical_validated": False,
+                "pm_pre_unit_validated": True,
+            }
         assert_units_present(args.phase_dir)
         run_canonical_validator(
             "validate_canonical_schema.py", "CANONICAL_SCHEMA_FAILURE", args.phase_dir
@@ -251,7 +446,7 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
         )
         # Cross-UNIT semantic checks: priority graph consistency + terminology
         # drift. These are PM-owned, not covered by canonical schema/rules, and
-        # the SKILL.md names them as M-S4/M-S7 mechanical gates.
+        # the SKILL.md names them as UNIT split/Self-check mechanical gates.
         run_pm_cross_unit_check(
             "check_priority_consistency.py",
             "PRIORITY_INCONSISTENCY_FAILURE",
@@ -270,6 +465,7 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
         "phase_id": phase_id,
         "phase_prd": str(phase_prd_path),
         "canonical_validated": canonical_ran,
+        "pm_pre_unit_validated": args.phase_dir is not None,
     }
 
 

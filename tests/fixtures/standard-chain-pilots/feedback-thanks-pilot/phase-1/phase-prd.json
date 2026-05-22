@@ -11,6 +11,17 @@
     "$.phase_goal",
     "$.entry_conditions",
     "$.exit_conditions",
+    "$.evidence_sources",
+    "$.as_is_flows",
+    "$.to_be_flows",
+    "$.business_process_graphs",
+    "$.feature_inventory",
+    "$.module_capability_matrix",
+    "$.entry_scene_inventory",
+    "$.business_objects",
+    "$.state_transitions",
+    "$.role_permission_matrix",
+    "$.risk_ledger",
     "$.business_flows",
     "$.user_paths",
     "$.rule_mappings",
@@ -18,6 +29,7 @@
     "$.unit_priority_order",
     "$.design_decision_candidates",
     "$.director_confirmation",
+    "$.pre_review_issue_ledger",
     "$.review_conclusion",
     "$.issue_ledger"
   ],
@@ -62,6 +74,212 @@
       ]
     }
   },
+  "evidence_sources": [
+    {
+      "evidence_id": "EV-1",
+      "source_type": "director_baseline",
+      "source_ref": "brief.json#director_confirmation.locked_fields",
+      "status": "FACT",
+      "supports": [
+        "ASIS-1",
+        "TOBE-1",
+        "FEAT-1",
+        "RISK-1"
+      ]
+    }
+  ],
+  "as_is_flows": [
+    {
+      "flow_id": "ASIS-1",
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "actors": [
+        "primary user",
+        "delivery operator"
+      ],
+      "trigger": "Clean isolated pilot worktree exists for validation.",
+      "steps": [
+        "primary user starts the confirmed phase journey",
+        "system or operator applies the current business rule",
+        "primary user observes whether the expected outcome is reachable"
+      ],
+      "observed_state": "Current path needs explicit PM closure for Implement and validate a feedback form plus thanks page journey through the full standard chain.",
+      "pain_points": [
+        "Without PM mapping, downstream design and test cannot prove the phase outcome"
+      ]
+    }
+  ],
+  "to_be_flows": [
+    {
+      "flow_id": "TOBE-1",
+      "goal_ref": "phase_goal",
+      "actors": [
+        "primary user",
+        "delivery operator"
+      ],
+      "trigger": "Clean isolated pilot worktree exists for validation.",
+      "steps": [
+        "primary user follows the scoped business path",
+        "system enforces the mapped business rule and state transition",
+        "delivery operator verifies the observable result against the exit condition"
+      ],
+      "expected_outcome": "Real HTTP tests pass for root redirect, form fields, blank validation, malformed negative Content-Length, oversized body, valid submission, escaped thanks page, missing feedback id, and invalid-submission access logs.",
+      "branch_coverage": [
+        "happy path reaches the exit condition",
+        "invalid or incomplete input is blocked with a visible outcome",
+        "protected Director scope remains unchanged"
+      ]
+    }
+  ],
+  "business_process_graphs": [
+    {
+      "graph_id": "BPG-1",
+      "flow_ref": "TOBE-1",
+      "nodes": [
+        {
+          "step_id": "S1",
+          "label": "Clean isolated pilot worktree exists for validation.",
+          "actor": "primary user",
+          "object_state": "requested"
+        },
+        {
+          "step_id": "S2",
+          "label": "System applies the mapped business rule",
+          "actor": "delivery operator",
+          "object_state": "in_progress"
+        },
+        {
+          "step_id": "S3",
+          "label": "Real HTTP tests pass for root redirect, form fields, blank validation, malformed negative Content-Length, oversized body, valid submission, escaped thanks page, missing feedback id, and invalid-submission access logs.",
+          "actor": "primary user",
+          "object_state": "verified"
+        }
+      ],
+      "edges": [
+        {
+          "from_step": "S1",
+          "to_step": "S2",
+          "condition": "Clean isolated pilot worktree exists for validation.",
+          "actor": "delivery operator",
+          "object_state_change": "requested -> in_progress",
+          "risk_refs": [
+            "RISK-1"
+          ]
+        },
+        {
+          "from_step": "S2",
+          "to_step": "S3",
+          "condition": "Real HTTP tests pass for root redirect, form fields, blank validation, malformed negative Content-Length, oversized body, valid submission, escaped thanks page, missing feedback id, and invalid-submission access logs.",
+          "actor": "primary user",
+          "object_state_change": "in_progress -> verified",
+          "risk_refs": []
+        }
+      ]
+    }
+  ],
+  "feature_inventory": [
+    {
+      "feature_id": "FEAT-1",
+      "capability": "Implement and validate a feedback form plus thanks page journey through the full standard chain.",
+      "business_goal_ref": "phase_goal",
+      "actor_or_scenario": "User confirms the phase handoff only after PM review closure.",
+      "entry_or_trigger": "Clean isolated pilot worktree exists for validation.",
+      "core_behavior": "Primary flow closes the phase goal through the listed UNIT artifacts.",
+      "observable_result": "Real HTTP tests pass for root redirect, form fields, blank validation, malformed negative Content-Length, oversized body, valid submission, escaped thanks page, missing feedback id, and invalid-submission access logs.",
+      "scope_status": "IN_SCOPE",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "risk_refs": [
+        "RISK-1"
+      ]
+    }
+  ],
+  "module_capability_matrix": [
+    {
+      "module": "feedback thanks pilot",
+      "capability": "Primary flow closes the phase goal through the listed UNIT artifacts.",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "protected_behaviors": [
+        "Director-owned fields remain locked; Manager-owned review closure gates downstream design."
+      ]
+    }
+  ],
+  "entry_scene_inventory": [
+    {
+      "entry_id": "ENTRY-1",
+      "entry_type": "product_flow",
+      "scenario": "User confirms the phase handoff only after PM review closure.",
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "business_objects": [
+    {
+      "object_name": "feedback thanks",
+      "definition": "Business object that carries Implement and validate a feedback form plus thanks page journey through the full standard chain. from request to verified outcome",
+      "key_fields": [
+        "entry condition",
+        "business rule result",
+        "observable exit condition"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "in_progress",
+        "blocked",
+        "verified"
+      ]
+    }
+  ],
+  "state_transitions": [
+    {
+      "object_name": "feedback thanks",
+      "from": "requested",
+      "trigger": "Clean isolated pilot worktree exists for validation.",
+      "to": "verified",
+      "observable_result": "Real HTTP tests pass for root redirect, form fields, blank validation, malformed negative Content-Length, oversized body, valid submission, escaped thanks page, missing feedback id, and invalid-submission access logs.",
+      "rule_refs": [
+        "RULE-1"
+      ]
+    }
+  ],
+  "role_permission_matrix": [
+    {
+      "role": "delivery operator",
+      "permissions": [
+        "verify the mapped phase outcome for the scoped UNIT set"
+      ],
+      "constraints": [
+        "Director-owned fields remain locked; Manager-owned review closure gates downstream design."
+      ],
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "risk_ledger": [
+    {
+      "risk_id": "RISK-1",
+      "source": "Director confirmation and PM phase mapping",
+      "risk_type": "acceptance",
+      "trigger_condition": "business flow or state transition is underspecified before downstream design",
+      "affected_units": [
+        "UNIT-1"
+      ],
+      "impact": "Downstream implementation could satisfy files while missing the user-visible phase outcome",
+      "pm_decision": "Keep flow, object, state, role, and risk mapping explicit in the phase PRD",
+      "mitigation_or_owner": "Product Manager owns closure before design and test consume the phase",
+      "verification_target": "phase-prd.exit_conditions and UNIT acceptance_criteria",
+      "status": "MITIGATED"
+    }
+  ],
   "review_conclusion": {
     "verdict": "PASS",
     "summary": "Phase PRD is bounded to one executable UNIT and maps every exit condition to downstream validation evidence.",
@@ -90,7 +308,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:4518934022cb068393df8c3a4609e718a67421fc4212dca531ece55e7b980fdd"
+          "reviewed_bundle_digest": "sha256:9ce75a5588e2cf75dd5bbffc599663550fbdcd5b3a0c18fca7c52c2cd5395fc4"
         },
         {
           "perspective": "architecture",
@@ -108,7 +326,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:4518934022cb068393df8c3a4609e718a67421fc4212dca531ece55e7b980fdd"
+          "reviewed_bundle_digest": "sha256:9ce75a5588e2cf75dd5bbffc599663550fbdcd5b3a0c18fca7c52c2cd5395fc4"
         },
         {
           "perspective": "test",
@@ -126,7 +344,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:4518934022cb068393df8c3a4609e718a67421fc4212dca531ece55e7b980fdd"
+          "reviewed_bundle_digest": "sha256:9ce75a5588e2cf75dd5bbffc599663550fbdcd5b3a0c18fca7c52c2cd5395fc4"
         }
       ],
       "convergence_evidence": [
@@ -139,7 +357,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:4518934022cb068393df8c3a4609e718a67421fc4212dca531ece55e7b980fdd"
+      "reviewed_bundle_digest": "sha256:9ce75a5588e2cf75dd5bbffc599663550fbdcd5b3a0c18fca7c52c2cd5395fc4"
     }
   },
   "issue_ledger": [],

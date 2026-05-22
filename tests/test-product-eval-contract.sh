@@ -141,6 +141,8 @@ assert_present '"id": "PA-10"' "$DIRECTOR_EVALS"
 assert_present '已闭合上游事实变化' "$DIRECTOR_EVALS"
 assert_present '"id": "technical-demand-framed-before-solution"' "$DIRECTOR_EVALS"
 assert_present '"id": "PA-14"' "$DIRECTOR_EVALS"
+assert_present '"id": "finalization-renders-projection-view"' "$DIRECTOR_EVALS"
+assert_present '"id": "PA-16"' "$DIRECTOR_EVALS"
 assert_absent '等待确认' "$DIRECTOR_EVALS"
 assert_absent '等待用户确认' "$DIRECTOR_EVALS"
 assert_absent '只确认 WHY' "$DIRECTOR_EVALS"
@@ -157,9 +159,31 @@ assert_absent '明确 产品总监确认' "$DIRECTOR_TEST_PROMPTS"
 assert_absent '进入产品总监确认' "$DIRECTOR_TEST_PROMPTS"
 assert_absent '要求先确认' "$DIRECTOR_TEST_PROMPTS"
 assert_absent '缺少总监确认' "$DIRECTOR_TEST_PROMPTS"
-assert_present '"id": "high-risk-review-on-demand"' "$PM_EVALS"
-assert_present '命中批量重放、外部依赖、失败重试或幂等风险时才读取 high-risk-launch-review' "$PM_EVALS"
-assert_present '没有高风险信号时不额外加载高风险补充审查' "$PM_EVALS"
+python3 - "$PM_EVALS" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+cases = {case.get("id"): case for case in data.get("evals", [])}
+case = cases.get("high-risk-review-on-demand")
+if not case:
+    raise SystemExit(f"{path}: missing eval high-risk-review-on-demand")
+anchors = set(case.get("expected_anchors", []))
+if "PA-8" not in anchors:
+    raise SystemExit(f"{path}: high-risk-review-on-demand must anchor PA-8")
+text = "\n".join(
+    [case.get("expected_output", "")]
+    + [item for item in case.get("expectations", []) if isinstance(item, str)]
+)
+required_signals = ["High-Risk Signals", "不追加高风险检查"]
+missing = [signal for signal in required_signals if signal not in text]
+if missing:
+    raise SystemExit(
+        f"{path}: high-risk-review-on-demand missing behavior signals {missing}"
+    )
+PY
 
 STATUS_OUT="$(mktemp "${TMPDIR:-/tmp}/product-eval-status.XXXXXX.out")"
 CHECK_OUT="$(mktemp "${TMPDIR:-/tmp}/product-eval-check.XXXXXX.out")"

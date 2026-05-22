@@ -674,7 +674,7 @@ except ValidationError:
 else:
     raise SystemExit("brief schema must reject pending director_confirmation")
 
-open_brief_issue = deepcopy(brief_template)
+open_brief_issue = deepcopy(load_json(GOLDEN_FIXTURES["brief"]))
 open_brief_issue["review_conclusion"]["verdict"] = "WARN"
 open_brief_issue["issue_ledger"] = [{"issue_id": "P-1", "status": "OPEN"}]
 try:
@@ -696,7 +696,7 @@ except ValidationError:
 else:
     raise SystemExit("phase-prd schema must require director_confirmation")
 
-missing_manager_phase_fields = deepcopy(phase_prd_template)
+missing_manager_phase_fields = deepcopy(load_json(GOLDEN_FIXTURES["phase-prd"]))
 for field_name in ("business_flows", "user_paths", "rule_mappings", "design_decision_candidates"):
     missing_manager_phase_fields.pop(field_name, None)
 try:

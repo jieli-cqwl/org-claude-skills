@@ -1,33 +1,55 @@
 # 评审编排
 
-## 评审写入字段
+PM owner 自检通过后读取本文。Digest 用来证明 reviewer 审的是同一份包；评审目标是产品质量。
 
-Manager 阶段评审闭环只写入 `brief.json.review_conclusion / issue_ledger` 以及相关 `phase-prd.json / UNIT-*.json` 字段。`review_conclusion.agent_team_review` 是 M-S8 是否真实发生的证据真源，必须记录 PM owner 自检后送审的 `reviewed_artifact_refs`、`reviewed_bundle_digest`、三视角 reviewer verdict、finding refs、evidence refs、只读承诺和确认轮。人类投影视图只能渲染这些字段，不能作为下游控制输入。
+## 输入
 
-M-S8 / M-G1 只消费当前 JSON 状态；口头结论不能替代 `review_conclusion / issue_ledger`。
+Manager 阶段评审闭环写入 `brief.json.review_conclusion / issue_ledger` 和最终 JSON 字段。Reviewer 输入限定为：
 
-M-S8 前置条件：PM owner 必须完成 M-S7.5 Owner Self-Check，并运行 `python3 shared/skills/product-manager/scripts/review_digest.py --phase-dir "$PHASE_DIR"` 取得 `reviewed_bundle_digest`。reviewer 只审该 digest 绑定的 PM review bundle，不审临时对话材料、对话摘要或人类投影视图。
+- `brief.json`
+- `phase-{N}/phase-prd.json`
+- `phase-{N}/units/UNIT-*.json`
+- `reviewed_bundle_digest`
 
-## 评审视角路由
+聊天记录、临时草稿、legacy markdown 和 projection-only 文本只作为背景。
 
-- 召集 agent teams，3 个 reviewer 分别从产品、架构、测试维度并行评审 PM owner 已自检并确认可送审的 `brief.json` + `phase-{N}/phase-prd.json` + `phase-{N}/units/UNIT-*.json`：
-  - 产品审查 prompt：`references/prd-reviewer-prompt.md`（覆盖 R1~R6 + R13 + R14 + PR-C1 + Director lock：根问题清晰度 / UNIT 闭环性 / 示例驱动 AC / 遗漏检测 / 一致性 / 结构化待设计决策 / 成功信号完整性 / AI 可执行性 / 共创可信度 / Director 锁定内容漂移；用于确认 PRD 是否完整回答用户问题，并形成可继续设计的需求基线）
-  - 架构审查 prompt：`references/architect-reviewer-prompt.md`（覆盖 R7~R9 + AR-C1：技术可行性 / 隐含依赖与影响范围 / 技术约束充分性 / Integration Context；用于确认需求在当前技术上下文中可落地，且关键依赖、业务影响范围和 design handoff 没有被漏掉）
-  - 测试审查 prompt：`references/tester-reviewer-prompt.md`（覆盖 R10~R13 + TR-C1：影响范围与回归风险 / AC 可测试性 / 异常边界覆盖度 / 成功信号可验证性 / Verification Plan；用于确认 AC 能被真实验证，并提前暴露回归、异常边界和验证计划风险）
-- 产品视角必须显式保留 `R13`、`PR-C1` 和 Director lock 一致性检查。
-- 三个视角都必须检查 JSON 中的示例输入、预期结果、边界情况、失败模式、Verification Plan、Integration Context、结构化待设计决策和 AI 可执行性；不得从人类投影视图补充 JSON 中没有的结论。
-- agent teams 必须在 `review_conclusion.agent_team_review` 留下三视角 reviewer 独立输出、`reviewed_artifact_refs`、`reviewed_bundle_digest`、verdict、finding refs、evidence refs、只读承诺和 CONFIRMATION 轮；每个 reviewer verdict 必须回显相同 `reviewed_bundle_digest`。无法形成可验证 agent teams 时阻断，不由 PM 自演三视角。
+评审状态必须写入 `review_conclusion.agent_team_review`：记录 `reviewed_artifact_refs`、`reviewed_bundle_digest`、三视角 verdict、finding/evidence refs、read_only 和 `convergence_evidence`。
 
-## 评审收敛循环
+## 判断
 
-- 评审编排为 `3 视角×max10轮`。
-- 如有 FAIL：复核问题证据、影响范围与承接位置 → 系统性修复 `brief.json` / `phase-{N}/phase-prd.json` / `phase-{N}/units/UNIT-*.json` / `review_conclusion` / `issue_ledger` → 仅对 FAIL 视角重新提交评审 → 循环。
-  - 若存在 FAIL，只重提 FAIL 视角，不重跑已 PASS 视角。
-  - 循环上限 10 次；达到上限仍有 FAIL 时标记 `BLOCKED`。
-  - 首轮全 PASS，仍要强制做一轮 `CONFIRMATION`；在 `review_conclusion / issue_ledger` 记录为 `R2 / CONFIRMATION`（防浅层通过）。
-  - 连续 2 轮 FAIL 数不减少：`ASK_USER`。
-  - 同一 issue 连续 3 轮未关闭：`BLOCKED`，停止自动修复。
-- WARN / FAIL / 收敛轮次 / 阻断事实补充统一写入 `review_conclusion / issue_ledger`，不能口头带过。
-- WARN 项在 `review_conclusion / issue_ledger` 中显式承接。
-- 每次写入最终 `review_conclusion` 后必须用 `review_digest.py --check-artifact` 校验 digest；除 `review_conclusion / issue_ledger / delivery_confirmation` 外，写入后不得改变 reviewer 已审的内容。
-- 人类投影视图只渲染已闭合的评审状态，不作为下游控制输入。
+三视角 reviewer 先回答这些问题：
+
+- PRD 是否回答 Director baseline，且没有漂移。
+- `/design` 是否能理解行为、约束、状态、风险和待决事项。
+- `/test-design` 是否能验证 AC、失败路径、边界和风险。
+- 下游是否无需补造业务事实就能行动。
+
+## Review Team
+
+召集 agent teams，三视角 reviewer 审同一份 digest：
+
+- Product：`references/prd-reviewer-prompt.md`，用于确认 PRD 是否完整回答用户问题。
+- Architecture：`references/architect-reviewer-prompt.md`，用于确认需求在当前技术上下文中可落地。
+- Test：`references/tester-reviewer-prompt.md`，用于确认 AC 能被真实验证。
+
+三视角 reviewer 审同一份 `reviewed_bundle_digest`；每个 reviewer verdict 必须回写 issue id、severity、evidence path、carryover target 和同一个 `reviewed_bundle_digest`。
+
+PM owner 将评审状态写入 `review_conclusion.agent_team_review`：`reviewed_artifact_refs`、`reviewed_bundle_digest`、reviewer verdicts、finding refs、evidence refs、read-only marker 和 `convergence_evidence`。
+
+## Loop
+
+- 执行 `3 视角×max10轮`。
+- 任一视角 FAIL：修 PM-owned JSON，只重提 FAIL 视角。
+- 首轮全 PASS：写 `convergence_evidence[].control_action=CONFIRMATION`，再跑一轮确认。
+- WARN 写入 `issue_ledger`，带 owner 和 handoff target。
+- 连续 2 轮 FAIL 数不减少：ASK_USER。
+- 同一 issue 连续 3 轮未关闭：BLOCKED。
+- 第 10 轮仍未关闭：BLOCKED。
+
+下游控制输入以 canonical JSON 为准；人类投影视图只渲染这些字段。
+
+## High-Risk Signals
+
+同一评审循环内检查上线、失败重试、回滚、批量重放、外部依赖、幂等、重复提交、权限升级和不可逆状态变化。
+
+高风险发现必须写回 AC、Verification Plan、`issue_ledger`、阻断项或下游 owner。

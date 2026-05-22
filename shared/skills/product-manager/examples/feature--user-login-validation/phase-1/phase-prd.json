@@ -11,8 +11,27 @@
     "$.phase_goal",
     "$.entry_conditions",
     "$.exit_conditions",
+    "$.evidence_sources",
+    "$.as_is_flows",
+    "$.to_be_flows",
+    "$.business_process_graphs",
+    "$.feature_inventory",
+    "$.module_capability_matrix",
+    "$.entry_scene_inventory",
+    "$.business_objects",
+    "$.state_transitions",
+    "$.role_permission_matrix",
+    "$.risk_ledger",
+    "$.business_flows",
+    "$.user_paths",
+    "$.rule_mappings",
+    "$.unit_index",
     "$.director_confirmation",
-    "$.unit_priority_order"
+    "$.unit_priority_order",
+    "$.design_decision_candidates",
+    "$.pre_review_issue_ledger",
+    "$.review_conclusion",
+    "$.issue_ledger"
   ],
   "phase_id": "phase-1",
   "phase_goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
@@ -26,6 +45,378 @@
     "用户可主动登出"
   ],
   "iteration_timebox_days": 14,
+  "evidence_sources": [
+    {
+      "evidence_id": "EV-1",
+      "source_type": "director_baseline",
+      "source_ref": "brief.json#director_confirmation.locked_fields",
+      "status": "FACT",
+      "supports": [
+        "ASIS-1",
+        "TOBE-1",
+        "FEAT-1",
+        "RISK-1"
+      ]
+    },
+    {
+      "evidence_id": "EV-2",
+      "source_type": "existing_json",
+      "source_ref": "phase-1/units/UNIT-*.json#integration_context",
+      "status": "FACT",
+      "supports": [
+        "FEAT-1",
+        "FEAT-2",
+        "FEAT-3",
+        "FEAT-4"
+      ]
+    }
+  ],
+  "as_is_flows": [
+    {
+      "flow_id": "ASIS-1",
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "actors": [
+        "企业管理员",
+        "普通员工"
+      ],
+      "trigger": "用户需要访问受保护系统",
+      "steps": [
+        "用户直接访问系统",
+        "系统缺少账号密码认证",
+        "用户身份和操作来源无法区分"
+      ],
+      "observed_state": "当前无认证机制，存在未授权访问和操作不可追溯风险",
+      "pain_points": [
+        "敏感数据可能被未授权访问",
+        "无法区分企业管理员和普通员工"
+      ]
+    }
+  ],
+  "to_be_flows": [
+    {
+      "flow_id": "TOBE-1",
+      "goal_ref": "phase_goal",
+      "actors": [
+        "企业管理员",
+        "普通员工"
+      ],
+      "trigger": "用户提交账号密码登录",
+      "steps": [
+        "用户填写账号和密码",
+        "系统校验账号密码",
+        "系统创建 30 分钟会话",
+        "用户在会话内访问受保护资源",
+        "用户主动登出或会话过期后重新登录"
+      ],
+      "expected_outcome": "用户可登录、保持会话并主动登出；错误账号或过期会话被阻断",
+      "branch_coverage": [
+        "正确账号密码登录成功",
+        "账号不存在或密码错误返回统一错误",
+        "会话过期后访问被拒绝",
+        "Redis 不可用时拒绝访问"
+      ]
+    }
+  ],
+  "business_process_graphs": [
+    {
+      "graph_id": "BPG-1",
+      "flow_ref": "TOBE-1",
+      "nodes": [
+        {
+          "step_id": "S1",
+          "label": "用户提交账号密码",
+          "actor": "用户",
+          "object_state": "credentials_submitted"
+        },
+        {
+          "step_id": "S2",
+          "label": "系统校验账号和密码",
+          "actor": "认证系统",
+          "object_state": "authenticating"
+        },
+        {
+          "step_id": "S3",
+          "label": "系统创建并验证会话",
+          "actor": "认证系统",
+          "object_state": "session_active"
+        },
+        {
+          "step_id": "S4",
+          "label": "用户登出或会话失效",
+          "actor": "用户",
+          "object_state": "session_invalid"
+        }
+      ],
+      "edges": [
+        {
+          "from_step": "S1",
+          "to_step": "S2",
+          "condition": "账号和密码均已填写",
+          "actor": "认证系统",
+          "object_state_change": "credentials_submitted -> authenticating",
+          "risk_refs": [
+            "RISK-1"
+          ]
+        },
+        {
+          "from_step": "S2",
+          "to_step": "S3",
+          "condition": "账号存在且密码匹配",
+          "actor": "认证系统",
+          "object_state_change": "authenticating -> session_active",
+          "risk_refs": [
+            "RISK-2"
+          ]
+        },
+        {
+          "from_step": "S3",
+          "to_step": "S4",
+          "condition": "用户主动登出或 30 分钟无操作",
+          "actor": "认证系统",
+          "object_state_change": "session_active -> session_invalid",
+          "risk_refs": [
+            "RISK-3"
+          ]
+        }
+      ]
+    }
+  ],
+  "feature_inventory": [
+    {
+      "feature_id": "FEAT-1",
+      "capability": "登录表单与输入校验",
+      "business_goal_ref": "business_goals[0]",
+      "actor_or_scenario": "用户提交账号密码",
+      "entry_or_trigger": "登录入口提交",
+      "core_behavior": "接收账号密码并阻断空输入",
+      "observable_result": "校验通过后进入认证；校验失败时显示错误且不提交",
+      "scope_status": "IN_SCOPE",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "risk_refs": [
+        "RISK-1"
+      ]
+    },
+    {
+      "feature_id": "FEAT-2",
+      "capability": "账号密码认证",
+      "business_goal_ref": "business_goals[0]",
+      "actor_or_scenario": "用户提交登录请求",
+      "entry_or_trigger": "账号密码进入后端认证",
+      "core_behavior": "验证账号存在性和密码匹配关系",
+      "observable_result": "认证成功返回会话标识；认证失败返回统一错误",
+      "scope_status": "IN_SCOPE",
+      "unit_refs": [
+        "UNIT-2"
+      ],
+      "risk_refs": [
+        "RISK-1"
+      ]
+    },
+    {
+      "feature_id": "FEAT-3",
+      "capability": "会话创建、验证和过期",
+      "business_goal_ref": "business_goals[0]",
+      "actor_or_scenario": "用户登录后访问受保护资源",
+      "entry_or_trigger": "认证成功或后续请求携带会话标识",
+      "core_behavior": "创建会话、验证有效性并刷新过期时间",
+      "observable_result": "有效会话放行；无效或过期会话被拒绝",
+      "scope_status": "IN_SCOPE",
+      "unit_refs": [
+        "UNIT-3"
+      ],
+      "risk_refs": [
+        "RISK-2"
+      ]
+    },
+    {
+      "feature_id": "FEAT-4",
+      "capability": "主动登出",
+      "business_goal_ref": "business_goals[0]",
+      "actor_or_scenario": "已登录用户主动退出",
+      "entry_or_trigger": "用户提交登出",
+      "core_behavior": "删除会话并让旧会话立即失效",
+      "observable_result": "用户回到登录态，旧会话无法继续访问",
+      "scope_status": "IN_SCOPE",
+      "unit_refs": [
+        "UNIT-4"
+      ],
+      "risk_refs": [
+        "RISK-3"
+      ]
+    }
+  ],
+  "module_capability_matrix": [
+    {
+      "module": "用户认证模块",
+      "capability": "登录表单、账号密码认证、会话保持和登出",
+      "unit_refs": [
+        "UNIT-1",
+        "UNIT-2",
+        "UNIT-3",
+        "UNIT-4"
+      ],
+      "protected_behaviors": [
+        "账号不存在和密码错误返回同一错误消息",
+        "会话 30 分钟无操作后失效",
+        "登出后旧会话立即失效"
+      ]
+    }
+  ],
+  "entry_scene_inventory": [
+    {
+      "entry_id": "ENTRY-1",
+      "entry_type": "product_flow",
+      "scenario": "用户通过账号密码登录系统",
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "unit_refs": [
+        "UNIT-1",
+        "UNIT-2",
+        "UNIT-3"
+      ]
+    },
+    {
+      "entry_id": "ENTRY-2",
+      "entry_type": "product_flow",
+      "scenario": "已登录用户主动登出",
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "unit_refs": [
+        "UNIT-4"
+      ]
+    }
+  ],
+  "business_objects": [
+    {
+      "object_name": "账号",
+      "definition": "可登录系统并访问受保护资源的用户身份",
+      "key_fields": [
+        "账号",
+        "密码哈希",
+        "角色"
+      ],
+      "lifecycle_states": [
+        "未认证",
+        "认证中",
+        "已认证"
+      ]
+    },
+    {
+      "object_name": "会话",
+      "definition": "用户认证成功后用于访问受保护资源的时效性凭证",
+      "key_fields": [
+        "会话标识",
+        "用户 ID",
+        "创建时间",
+        "最后活跃时间"
+      ],
+      "lifecycle_states": [
+        "active",
+        "expired",
+        "revoked"
+      ]
+    }
+  ],
+  "state_transitions": [
+    {
+      "object_name": "会话",
+      "from": "active",
+      "trigger": "30 分钟无操作或用户主动登出",
+      "to": "expired/revoked",
+      "observable_result": "旧会话标识无法访问受保护资源",
+      "rule_refs": [
+        "BR-2",
+        "BR-5"
+      ]
+    }
+  ],
+  "role_permission_matrix": [
+    {
+      "role": "企业管理员",
+      "permissions": [
+        "通过账号密码登录",
+        "在有效会话内访问受保护资源",
+        "主动登出"
+      ],
+      "constraints": [
+        "会话过期后必须重新登录"
+      ],
+      "unit_refs": [
+        "UNIT-1",
+        "UNIT-2",
+        "UNIT-3",
+        "UNIT-4"
+      ]
+    },
+    {
+      "role": "普通员工",
+      "permissions": [
+        "通过账号密码登录",
+        "在有效会话内访问受保护资源",
+        "主动登出"
+      ],
+      "constraints": [
+        "会话过期后必须重新登录"
+      ],
+      "unit_refs": [
+        "UNIT-1",
+        "UNIT-2",
+        "UNIT-3",
+        "UNIT-4"
+      ]
+    }
+  ],
+  "risk_ledger": [
+    {
+      "risk_id": "RISK-1",
+      "source": "brief.json#risks_and_unknowns",
+      "risk_type": "fact",
+      "trigger_condition": "用户表 password 字段影响范围未闭合",
+      "affected_units": [
+        "UNIT-1",
+        "UNIT-2"
+      ],
+      "impact": "账号密码认证无法判断是否可覆盖存量用户",
+      "pm_decision": "Phase 1 只覆盖新用户注册加登录，存量用户暂不处理",
+      "mitigation_or_owner": "PM 将存量用户排除项写入 UNIT exclusion",
+      "verification_target": "UNIT-2.acceptance_criteria / UNIT-2.exclusions",
+      "status": "MITIGATED"
+    },
+    {
+      "risk_id": "RISK-2",
+      "source": "brief.json#risks_and_unknowns",
+      "risk_type": "state",
+      "trigger_condition": "会话过期策略影响访问放行和失效判断",
+      "affected_units": [
+        "UNIT-3"
+      ],
+      "impact": "过期规则不清会导致会话保持和拒绝访问不可验收",
+      "pm_decision": "Phase 1 固定为 30 分钟无操作过期，记住我功能放 Phase 2",
+      "mitigation_or_owner": "PM 将 30 分钟过期写入 UNIT-3 AC 和 Verification Plan",
+      "verification_target": "UNIT-3.acceptance_criteria / UNIT-3.verification_plan",
+      "status": "MITIGATED"
+    },
+    {
+      "risk_id": "RISK-3",
+      "source": "phase-1/units/UNIT-4.json#closure_definition",
+      "risk_type": "flow",
+      "trigger_condition": "登出重复提交或会话不存在",
+      "affected_units": [
+        "UNIT-4"
+      ],
+      "impact": "登出结果不一致会影响用户退出闭环",
+      "pm_decision": "登出是幂等操作，会话不存在也返回成功",
+      "mitigation_or_owner": "PM 将幂等登出写入 UNIT-4 AC",
+      "verification_target": "UNIT-4.acceptance_criteria",
+      "status": "MITIGATED"
+    }
+  ],
   "business_flows": [
     "BF-1: 用户登录认证流程",
     "BF-2: 会话保持与验证流程",
@@ -79,6 +470,7 @@
     }
   ],
   "design_decision_candidates": [],
+  "pre_review_issue_ledger": [],
   "manager_confirmation": {
     "status": "confirmed",
     "confirmed_at": "2026-05-09T12:00:00Z"
@@ -117,7 +509,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+          "reviewed_bundle_digest": "sha256:5fdb9a8eebb74da9b7fb94f0be2c625510bad657db19e66d3c3c7fcb47116d8c"
         },
         {
           "perspective": "architecture",
@@ -138,7 +530,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+          "reviewed_bundle_digest": "sha256:5fdb9a8eebb74da9b7fb94f0be2c625510bad657db19e66d3c3c7fcb47116d8c"
         },
         {
           "perspective": "test",
@@ -159,7 +551,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+          "reviewed_bundle_digest": "sha256:5fdb9a8eebb74da9b7fb94f0be2c625510bad657db19e66d3c3c7fcb47116d8c"
         }
       ],
       "convergence_evidence": [
@@ -172,7 +564,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:10e8121a7e4376bc19af3bacf7d814800ce9767132fdda33333401c84cf5302f"
+      "reviewed_bundle_digest": "sha256:5fdb9a8eebb74da9b7fb94f0be2c625510bad657db19e66d3c3c7fcb47116d8c"
     }
   },
   "issue_ledger": [],

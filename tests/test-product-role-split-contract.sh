@@ -99,25 +99,28 @@ jq -e '
 jq -e '
   .director_confirmation.locked_fields
   and .director_confirmation.locked_field_digest
-  and .review_conclusion
   and (.issue_ledger | type == "array")
-  and .delivery_confirmation
+  and (.review_conclusion? | not)
+  and (.delivery_confirmation? | not)
+  and (.authoritative_fields | index("$.review_conclusion"))
+  and (.authoritative_fields | index("$.delivery_confirmation"))
   and .acceptance_criteria
   and .design_decisions
   and .non_functional_requirements
-' "$MANAGER_BRIEF_TEMPLATE" >/dev/null || fail "manager brief template must add PM-owned closure without losing Director lock"
+' "$MANAGER_BRIEF_TEMPLATE" >/dev/null || fail "manager brief template must expose PM-owned fields without fake review/delivery closure"
 
 jq -e '
   .director_confirmation.locked_fields
   and .director_confirmation.locked_field_digest
-  and .review_conclusion
   and (.issue_ledger | type == "array")
+  and (.review_conclusion? | not)
+  and (.authoritative_fields | index("$.review_conclusion"))
   and ((.unit_index // []) | type == "array" and length > 0)
   and .business_flows
   and .user_paths
   and .rule_mappings
   and .design_decision_candidates
-' "$MANAGER_PHASE_TEMPLATE" >/dev/null || fail "manager phase template must add PM-owned phase semantics and closure"
+' "$MANAGER_PHASE_TEMPLATE" >/dev/null || fail "manager phase template must expose PM-owned phase semantics without fake review closure"
 
 python3 - "$CHAIN_CONTRACT" <<'PY'
 import sys

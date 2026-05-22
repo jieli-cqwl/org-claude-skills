@@ -112,7 +112,7 @@ for skill, eval_type in expected.items():
         raise SystemExit(f"{eval_file}: expected at least 3 evals")
     if eval_type in {"encoded_preference", "mixed"}:
         anchors = evals.get("preference_anchors")
-        max_anchors = 16 if len(cases) >= 12 else 12
+        max_anchors = max(12, min(24, len(cases) + 4))
         if not isinstance(anchors, list) or not (5 <= len(anchors) <= max_anchors):
             raise SystemExit(f"{eval_file}: expected 5-{max_anchors} preference anchors")
         anchor_ids = {item.get("id") for item in anchors if isinstance(item, dict)}

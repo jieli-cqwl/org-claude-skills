@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check M-S4 priority consistency: detect high-priority UNITs depending on low-priority UNITs.
+"""Check UNIT split priority consistency: detect high-priority UNITs depending on low-priority UNITs.
 
 Reads phase-prd.json's unit_priority_order and scans units/UNIT-*.json's
 integration_context.cross_unit_dependencies. Reports any UNIT whose priority

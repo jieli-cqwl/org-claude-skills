@@ -675,6 +675,7 @@ PY
 assert_planning_projection_context_contract() {
   local pm_skill="$ROOT/shared/skills/product-manager/SKILL.md"
   local pm_review="$ROOT/shared/skills/product-manager/references/review-orchestration.md"
+  local pm_evals="$ROOT/shared/skills/product-manager/evals/evals.json"
   local design_skill="$ROOT/shared/skills/design/SKILL.md"
 
   for skill_dir in product-manager design; do
@@ -698,7 +699,8 @@ assert_planning_projection_context_contract() {
   assert_present '^allowed-tools: .*TeamCreate' "$pm_skill"
   assert_present '^allowed-tools: .*SendMessage' "$pm_skill"
   assert_present '^allowed-tools: .*TeamDelete' "$pm_skill"
-  assert_present 'Owner Self-Check|owner 自检|自检后.*送审' "$pm_skill"
+  assert_present '"id": "canonical-review-required"' "$pm_evals"
+  assert_present 'PM owner 自检通过后' "$pm_evals"
   assert_present 'reviewed_bundle_digest' "$pm_skill"
   assert_present '召集 agent teams' "$pm_review"
 

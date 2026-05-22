@@ -11,6 +11,7 @@ DIRECTOR_SCOPE_GUIDE="$ROOT/shared/skills/product-director/references/scope-cons
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
 MANAGER_REVIEW_ORCHESTRATION="$ROOT/shared/skills/product-manager/references/review-orchestration.md"
 MANAGER_REVIEW_TEMPLATE="$ROOT/shared/skills/product-manager/projections/product-manager-review-template.md"
+MANAGER_EVALS="$ROOT/shared/skills/product-manager/evals/evals.json"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -55,10 +56,11 @@ assert_present '召集 agent teams' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '^allowed-tools: .*TeamCreate' "$MANAGER_SKILL"
 assert_present '^allowed-tools: .*SendMessage' "$MANAGER_SKILL"
 assert_present '^allowed-tools: .*TeamDelete' "$MANAGER_SKILL"
-assert_present 'Owner Self-Check|owner 自检|自检后.*送审' "$MANAGER_SKILL"
+assert_present '"id": "canonical-review-required"' "$MANAGER_EVALS"
+assert_present 'PM owner 自检通过后' "$MANAGER_EVALS"
 assert_present 'reviewed_bundle_digest' "$MANAGER_SKILL"
 assert_present '3[[:space:]]*视角[×x]max10轮|循环上限 10 次|max10轮' "$MANAGER_REVIEW_ORCHESTRATION"
-assert_present '首轮全 PASS.*CONFIRMATION|首轮全 PASS.*确认轮' "$MANAGER_REVIEW_ORCHESTRATION"
+assert_present 'control_action=CONFIRMATION' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '连续 2 轮 FAIL 数不减少' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '同一 issue 连续 3 轮未关闭' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '仅对 FAIL 视角重新提交评审|只重提 FAIL 视角' "$MANAGER_REVIEW_ORCHESTRATION"

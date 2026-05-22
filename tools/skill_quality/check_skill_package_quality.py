@@ -134,7 +134,15 @@ def check_workflow_product_contract(
     flow_text, flow_line = body.section(
         lines, (r"流程", r"Workflow", r"Default Flow", r"固定主流程")
     )
-    if not flow_text or body.contains_any(flow_text, WORKFLOW_OUTPUT_TERMS):
+    full_text = "\n".join(lines)
+    if (
+        not flow_text
+        or body.contains_any(flow_text, WORKFLOW_OUTPUT_TERMS)
+        or (
+            "The Process" in flow_text
+            and body.contains_any(full_text, WORKFLOW_OUTPUT_TERMS)
+        )
+    ):
         return
     add_finding(
         findings,

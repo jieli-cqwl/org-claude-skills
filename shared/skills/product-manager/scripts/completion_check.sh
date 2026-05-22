@@ -127,6 +127,22 @@ validate_unit_semantics() {
     rm -f "$closure_out"
 }
 
+validate_phase_preflight() {
+    local phase_file="$1"
+    local label="$2"
+    local preflight_out phase_dir
+
+    phase_dir="$(dirname "$phase_file")"
+    preflight_out="$(mktemp "${TMPDIR:-/tmp}/manager-phase-preflight.XXXXXX")"
+    if ! bash "$SCRIPT_DIR/preflight_check.sh" --phase-dir "$phase_dir" >"$preflight_out" 2>&1; then
+        add_failure "$label PM preflight gate failed"
+        while IFS= read -r line; do
+            [ -n "$line" ] && add_failure "$line"
+        done < <(sed -n '1,3p' "$preflight_out")
+    fi
+    rm -f "$preflight_out"
+}
+
 # Validate canonical artifact shape and block retired aliases.
 validate_product_artifact() {
     local artifact_file="$1"
@@ -158,6 +174,7 @@ validate_phase_prds() {
         [ -n "$phase_file" ] || continue
         validate_product_artifact "$phase_file" "phase-prd.json"
         validate_manager_closure "$phase_file" "phase-prd.json"
+        validate_phase_preflight "$phase_file" "phase-prd.json"
     done <<< "$phase_files"
 }
 

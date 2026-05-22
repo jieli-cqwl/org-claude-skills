@@ -30,7 +30,7 @@ def terms(value: str) -> tuple[str, ...]:
 
 RESOURCE_CONTRACT_FIELDS = terms("Trigger|Read|Expect|Consume|Evidence|Sync")
 SOP_ROUTE_TERMS = terms("按需读取|用于|形成|检查|记录")
-RESOURCE_READ_TERMS = terms("读取|Read|read")
+RESOURCE_READ_TERMS = terms("读取|READ|Read|read|reads")
 RESOURCE_EXTRACT_TERMS = terms("只提取|only extract|extract only")
 RESOURCE_PURPOSE_TERMS = terms("for|用于|获取|形成|检查|记录|规则|方法|口径|生成")
 HARD_GATE_TERMS = terms("## HARD-GATE|## 停手边界|## 准入边界|## 边界")
@@ -195,6 +195,18 @@ def resource_route_contract_complete(path: Path, line: str) -> bool:
         return all(resource_is_repo_file(path, ref) for ref in refs)
     if "按需读取" in line and any(term in line for term in SOP_ROUTE_TERMS):
         return True
+    if re.search(r"\bM-(?:HG|S|G)[0-9.]*\b", line) and contains_any(
+        line, RESOURCE_READ_TERMS
+    ):
+        return all(resource_is_repo_file(path, ref) for ref in refs)
+    if re.match(r"^\s*-\s*[^:]{2,80}:\s*", line) and contains_any(
+        line, RESOURCE_READ_TERMS
+    ):
+        return all(resource_is_repo_file(path, ref) for ref in refs)
+    if re.match(r"^\s*-\s*`[^`]*(?:references|resources)/[^`]+`\s*[：:]", line) and contains_any(
+        line, RESOURCE_PURPOSE_TERMS
+    ):
+        return all(resource_is_repo_file(path, ref) for ref in refs)
     if contains_any(line, RESOURCE_READ_TERMS) and contains_any(
         line, RESOURCE_PURPOSE_TERMS
     ):

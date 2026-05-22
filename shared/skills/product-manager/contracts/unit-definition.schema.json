@@ -212,7 +212,7 @@
                 "description": "Goal that /design must decide; do not use handoff_target."
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         }
       },

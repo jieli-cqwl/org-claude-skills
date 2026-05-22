@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check M-S7 terminology consistency across all UNIT definitions.
+"""Check Self-check terminology consistency across all UNIT definitions.
 
 Detects terminology drift by scanning all text fields in units/UNIT-*.json
 for known synonym clusters. A synonym cluster is a set of terms that should

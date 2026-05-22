@@ -132,6 +132,815 @@
           },
           "additionalProperties": true
         },
+        "evidence_sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "evidence_id",
+              "source_type",
+              "source_ref",
+              "status",
+              "supports"
+            ],
+            "properties": {
+              "evidence_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_type": {
+                "type": "string",
+                "enum": [
+                  "director_baseline",
+                  "user_input",
+                  "user_decision",
+                  "screenshot",
+                  "flow_document",
+                  "log",
+                  "ops_material",
+                  "support_ticket",
+                  "existing_json",
+                  "page_description",
+                  "not_applicable",
+                  "other"
+                ]
+              },
+              "source_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "FACT",
+                  "ASSUMPTION",
+                  "USER_DECISION",
+                  "N_A"
+                ]
+              },
+              "supports": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "n_a_reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "gap_reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required_evidence": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "blocks_fields": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "verification_target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "screenshot_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "captured_at": {
+                "type": "string",
+                "minLength": 1
+              },
+              "entry_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "as_is_flows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "flow_id",
+              "evidence_refs",
+              "actors",
+              "trigger",
+              "steps",
+              "observed_state",
+              "pain_points"
+            ],
+            "properties": {
+              "flow_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "actors": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "trigger": {
+                "type": "string",
+                "minLength": 1
+              },
+              "steps": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "observed_state": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pain_points": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "to_be_flows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "flow_id",
+              "goal_ref",
+              "actors",
+              "trigger",
+              "steps",
+              "expected_outcome",
+              "branch_coverage"
+            ],
+            "properties": {
+              "flow_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "goal_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "actors": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "trigger": {
+                "type": "string",
+                "minLength": 1
+              },
+              "steps": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "expected_outcome": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch_coverage": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "business_process_graphs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "graph_id",
+              "flow_ref",
+              "nodes",
+              "edges"
+            ],
+            "properties": {
+              "graph_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "flow_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "nodes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "step_id",
+                    "label"
+                  ],
+                  "properties": {
+                    "step_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "actor": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "object_state": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "edges": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "from_step",
+                    "to_step",
+                    "condition"
+                  ],
+                  "properties": {
+                    "from_step": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "to_step": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "condition": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "actor": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "object_state_change": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "risk_refs": {
+                      "type": "array",
+                      "minItems": 0,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "feature_inventory": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "feature_id",
+              "capability",
+              "business_goal_ref",
+              "actor_or_scenario",
+              "entry_or_trigger",
+              "core_behavior",
+              "observable_result",
+              "scope_status",
+              "unit_refs",
+              "risk_refs"
+            ],
+            "properties": {
+              "feature_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "capability": {
+                "type": "string",
+                "minLength": 1
+              },
+              "business_goal_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "actor_or_scenario": {
+                "type": "string",
+                "minLength": 1
+              },
+              "entry_or_trigger": {
+                "type": "string",
+                "minLength": 1
+              },
+              "core_behavior": {
+                "type": "string",
+                "minLength": 1
+              },
+              "observable_result": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scope_status": {
+                "type": "string",
+                "enum": [
+                  "IN_SCOPE",
+                  "OUT_OF_SCOPE",
+                  "NEEDS_DECISION"
+                ]
+              },
+              "unit_refs": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "risk_refs": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "boundary_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "decision_needed": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "scope_status": {
+                      "const": "IN_SCOPE"
+                    }
+                  },
+                  "required": [
+                    "scope_status"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "unit_refs": {
+                      "minItems": 1
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "scope_status": {
+                      "const": "OUT_OF_SCOPE"
+                    }
+                  },
+                  "required": [
+                    "scope_status"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "boundary_ref"
+                  ],
+                  "properties": {
+                    "unit_refs": {
+                      "maxItems": 0
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "scope_status": {
+                      "const": "NEEDS_DECISION"
+                    }
+                  },
+                  "required": [
+                    "scope_status"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "decision_needed"
+                  ],
+                  "properties": {
+                    "unit_refs": {
+                      "maxItems": 0
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "module_capability_matrix": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "module",
+              "capability",
+              "unit_refs",
+              "protected_behaviors"
+            ],
+            "properties": {
+              "module": {
+                "type": "string",
+                "minLength": 1
+              },
+              "capability": {
+                "type": "string",
+                "minLength": 1
+              },
+              "unit_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "protected_behaviors": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "entry_scene_inventory": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "entry_id",
+              "entry_type",
+              "scenario",
+              "evidence_refs",
+              "unit_refs"
+            ],
+            "properties": {
+              "entry_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "entry_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scenario": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "unit_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "n_a_reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "business_objects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "object_name",
+              "definition",
+              "key_fields",
+              "lifecycle_states"
+            ],
+            "properties": {
+              "object_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "definition": {
+                "type": "string",
+                "minLength": 1
+              },
+              "key_fields": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "lifecycle_states": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "state_transitions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "object_name",
+              "from",
+              "trigger",
+              "to",
+              "observable_result",
+              "rule_refs"
+            ],
+            "properties": {
+              "object_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "from": {
+                "type": "string",
+                "minLength": 1
+              },
+              "trigger": {
+                "type": "string",
+                "minLength": 1
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1
+              },
+              "observable_result": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rule_refs": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "role_permission_matrix": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "role",
+              "permissions",
+              "constraints",
+              "unit_refs"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "permissions": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "constraints": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "unit_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "risk_ledger": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "risk_id",
+              "source",
+              "risk_type",
+              "trigger_condition",
+              "affected_units",
+              "impact",
+              "pm_decision",
+              "mitigation_or_owner",
+              "verification_target",
+              "status"
+            ],
+            "properties": {
+              "risk_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "risk_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "trigger_condition": {
+                "type": "string",
+                "minLength": 1
+              },
+              "affected_units": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "impact": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pm_decision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mitigation_or_owner": {
+                "type": "string",
+                "minLength": 1
+              },
+              "verification_target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "OPEN",
+                  "MITIGATED",
+                  "ACCEPTED",
+                  "BLOCKED",
+                  "TRANSFERRED"
+                ]
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "pre_review_issue_ledger": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "issue_id",
+              "status",
+              "dimension",
+              "finding",
+              "evidence",
+              "owner",
+              "resolution_target"
+            ],
+            "properties": {
+              "issue_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "OPEN",
+                  "BLOCKED",
+                  "MISSING",
+                  "PARTIAL",
+                  "RESOLVED",
+                  "WAIVED"
+                ]
+              },
+              "dimension": {
+                "type": "string",
+                "minLength": 1
+              },
+              "finding": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1
+              },
+              "owner": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resolution_target": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
         "review_conclusion": {
           "type": "object",
           "required": [
@@ -418,7 +1227,7 @@
                 "description": "Goal that /design must decide; do not use handoff_target."
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         }
       },
@@ -440,6 +1249,17 @@
       },
       "then": {
         "required": [
+          "evidence_sources",
+          "as_is_flows",
+          "to_be_flows",
+          "business_process_graphs",
+          "feature_inventory",
+          "module_capability_matrix",
+          "entry_scene_inventory",
+          "business_objects",
+          "state_transitions",
+          "role_permission_matrix",
+          "risk_ledger",
           "business_flows",
           "user_paths",
           "rule_mappings",

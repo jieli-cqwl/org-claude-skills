@@ -1,6 +1,6 @@
 {
   "artifact_type": "product-manager-dogfood-result",
-  "eval_id": "request-review-flow-m0-m9",
+  "eval_id": "request-review-flow-pm-flow",
   "run_mode": "with_skill",
   "skill_under_test": "shared/skills/product-manager",
   "target_output": "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow",
@@ -20,7 +20,7 @@
   "co_created_baseline": {
     "real_scenario": "用户要验证 product-manager 是否能把 Director baseline 细化成可交给 design 的 已冻结 Phase 需求。",
     "business_constraint": "使用代表性 fixture Phase，必须跑当前 preflight、completion gate、phase validator 和 design preflight，不能只写说明。",
-    "success_standard": "M-S0 到 M-S9 均有已冻结 JSON 字段证据；PM gate 允许交付；design preflight 能消费 brief/phase-prd/UNIT。",
+    "success_standard": "Handoff gate 到 Delivery 均有已冻结 JSON 字段证据；PM gate 允许交付；design preflight 能消费 brief/phase-prd/UNIT。",
     "known_pain": "过去只有静态合同和局部 eval，缺少完整 PM 工作流跑通证据。",
     "non_loss_capability": "保留 Director locked_fields、防止 PM 改写上游边界，并保持 WHAT 层需求输出。",
     "priority_ring": "Eval"
@@ -39,7 +39,7 @@
     "fixture_policy": "fixture-backed with-skill run using current frozen product-manager JSON output shape",
     "step_results": [
       {
-        "step_id": "M-S0",
+        "step_id": "Handoff gate",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/brief.json#director_confirmation",
@@ -47,28 +47,40 @@
         ]
       },
       {
-        "step_id": "M-S1",
+        "step_id": "Evidence and AS-IS",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/phase-1/phase-prd.json#business_flows"
         ]
       },
       {
-        "step_id": "M-S2",
+        "step_id": "TO-BE product model",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/phase-1/phase-prd.json#user_paths"
         ]
       },
       {
-        "step_id": "M-S3",
+        "step_id": "Feature inventory and risk",
         "status": "PASS",
         "evidence_refs": [
-          "outputs/docs/request-review-flow/phase-1/phase-prd.json#rule_mappings"
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#feature_inventory",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#risk_ledger"
         ]
       },
       {
-        "step_id": "M-S4",
+        "step_id": "Pre-UNIT gate",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#feature_inventory",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#business_objects",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#state_transitions",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#role_permission_matrix",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#risk_ledger"
+        ]
+      },
+      {
+        "step_id": "UNIT split",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/phase-1/phase-prd.json#unit_index",
@@ -76,21 +88,21 @@
         ]
       },
       {
-        "step_id": "M-S5",
+        "step_id": "AC",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/phase-1/units/UNIT-1.json#acceptance_criteria"
         ]
       },
       {
-        "step_id": "M-S5.5",
+        "step_id": "Verification Plan",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/phase-1/units/UNIT-1.json#verification_plan"
         ]
       },
       {
-        "step_id": "M-S6",
+        "step_id": "Design handoff",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/phase-1/phase-prd.json#design_decision_candidates",
@@ -98,7 +110,7 @@
         ]
       },
       {
-        "step_id": "M-S7",
+        "step_id": "Self-check",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/phase-1/phase-prd.json#review_conclusion",
@@ -106,7 +118,15 @@
         ]
       },
       {
-        "step_id": "M-S8",
+        "step_id": "Review digest",
+        "status": "PASS",
+        "evidence_refs": [
+          "outputs/docs/request-review-flow/brief.json#review_conclusion.agent_team_review.reviewed_bundle_digest",
+          "outputs/docs/request-review-flow/phase-1/phase-prd.json#review_conclusion.agent_team_review.reviewed_bundle_digest"
+        ]
+      },
+      {
+        "step_id": "Agent review",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/brief.json#review_conclusion.agent_team_review",
@@ -114,7 +134,7 @@
         ]
       },
       {
-        "step_id": "M-G1",
+        "step_id": "PM handoff gate",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/brief.json#issue_ledger",
@@ -122,7 +142,7 @@
         ]
       },
       {
-        "step_id": "M-S9",
+        "step_id": "Delivery",
         "status": "PASS",
         "evidence_refs": [
           "outputs/docs/request-review-flow/brief.json#delivery_confirmation"

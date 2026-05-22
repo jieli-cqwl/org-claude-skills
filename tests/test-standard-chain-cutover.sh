@@ -61,10 +61,10 @@ assert_absent 'brief.md|prd.md|qa-report.md|dev-report.md' "$ROOT/shared/protoco
 
 assert_present 'phase-prd.json' "$ROOT/shared/skills/product-director/references/phase-planning.md"
 assert_present 'phase-prd.json' "$ROOT/shared/skills/product-manager/SKILL.md"
-assert_present 'UNIT-\*\.json' "$ROOT/shared/skills/product-manager/references/output.md"
+assert_present 'UNIT-\*\.json' "$ROOT/shared/skills/product-manager/SKILL.md"
 
 assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
-assert_present 'shared/skills/product-manager/templates/brief.template.json' "$ROOT/shared/skills/product-manager/references/output.md"
+assert_present 'shared/skills/product-manager/templates/brief.template.json' "$ROOT/shared/skills/product-manager/SKILL.md"
 assert_present 'shared/skills/design/templates/design.template.json' "$ROOT/shared/skills/design/SKILL.md"
 assert_present 'shared/skills/test-design/templates/test-cases.template.json' "$ROOT/shared/skills/test-design/SKILL.md"
 assert_present 'shared/skills/tech-lead/templates/tasks.template.json' "$ROOT/shared/skills/tech-lead/SKILL.md"

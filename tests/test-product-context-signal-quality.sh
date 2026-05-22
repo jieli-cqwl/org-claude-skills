@@ -109,8 +109,8 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 requirements = {
     "handoff_gate": ["handoff", "阻断"],
-    "review_step": ["M-S8", "评审"],
-    "delivery_confirmation": ["M-S9", "交付确认"],
+    "review_step": ["Agent review", "评审"],
+    "delivery_confirmation": ["Delivery", "交付确认"],
 }
 missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
 if missing:
@@ -181,8 +181,8 @@ assert_section_absent "$MANAGER_SKILL" "## 输出" 'SKILL\.md 只保留|真源' 
 assert_absent '至少 10 轮|10 轮审计|审计结果进入任务证据|T7|T8' "$DESIGN_DOC" "design doc process noise"
 assert_absent '上游问题|上游阻断|上游审查|上游 review|上游.*review|review.*上游' "$MANAGER_SKILL" "manager review owner boundary"
 assert_manager_review_owner_boundary "$MANAGER_SKILL" "manager review owner boundary"
-assert_present 'M-S8 评审由 `/product-manager` 发起并收敛' "$MANAGER_SKILL" "manager review owner boundary"
-assert_section_present "$MANAGER_SKILL" "### M-S8 三方评审与 AI 可执行性复核" 'reviewed_bundle_digest' "manager review owner boundary"
+assert_section_present "$MANAGER_SKILL" "## The Process" '\*\*Agent review\*\*' "manager review owner boundary"
+assert_section_present "$MANAGER_SKILL" "## The Process" 'reviewed_bundle_digest' "manager review owner boundary"
 assert_present '三视角 reviewer.*同一份.*reviewed_bundle_digest|reviewed_bundle_digest.*每个 reviewer verdict' "$MANAGER_REVIEW" "manager review digest boundary"
 assert_present '只消费 `brief\.json / phase-prd\.json / UNIT-\*\.json` 与明确写入 `待设计决策` 的承接项；不读取产品评审过程明细或派生视图。' "$DESIGN_SKILL" "design downstream review-detail boundary"
 assert_present '你消费已确认的产品、架构和测试输入，设计可交付实施路径' "$TECH_LEAD_SKILL" "tech-lead downstream review-detail boundary"
@@ -197,11 +197,11 @@ assert_section_present "$DIRECTOR_SKILL" "## 流程" '"User approves baseline\?"
 assert_section_present "$DIRECTOR_SKILL" "## 流程" 'Self-review and gates' "director flow diagram"
 assert_section_present "$DIRECTOR_SKILL" "## The Process" '风险与未知项' "director flow route"
 assert_absent '节点顺序：' "$MANAGER_SKILL" "manager flow sequence noise"
-assert_section_present "$MANAGER_SKILL" "## 流程" '"M-S5\.5 Verification Plan" -> "M-S6 结构化待设计决策"' "manager flow sequence"
-assert_section_present "$MANAGER_SKILL" "## 流程" 'M-S5\.5 Verification Plan' "manager flow diagram"
-assert_section_present "$MANAGER_SKILL" "## 流程细节" 'M-S5\.5 Verification Plan' "manager flow details"
+assert_section_present "$MANAGER_SKILL" "## 流程" '"AC" -> "Verification Plan"' "manager flow sequence"
+assert_section_present "$MANAGER_SKILL" "## 流程" 'Verification Plan' "manager flow diagram"
+assert_section_present "$MANAGER_SKILL" "## The Process" '\*\*Verification Plan\*\*' "manager flow details"
 assert_section_present "$DIRECTOR_SKILL" "## The Process" '静默信息收集' "director flow route"
-assert_section_present "$MANAGER_SKILL" "## 流程细节" 'M-S0 内容完整性检查' "manager flow details"
+assert_section_present "$MANAGER_SKILL" "## The Process" '\*\*Handoff gate\*\*' "manager flow details"
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$DIRECTOR_SKILL" "director flow narrative noise"
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$MANAGER_SKILL" "manager flow narrative noise"
 assert_section_present "$DIRECTOR_SKILL" "## Checklist" '读取到的信息只作为待验证线索，未经用户确认不得作为已确认基线使用' "director explore candidate-baseline guard"
@@ -281,17 +281,17 @@ assert_present '只按模板写结果 payload' "$DIRECTOR_FINAL_GUIDE" "director
 
 assert_section_present "$PRD_REVIEWER" '### 输出格式' '^## 发现输出$' "PRD reviewer prompt"
 assert_section_present "$PRD_REVIEWER" '### 输出格式' '承接目标' "PRD reviewer prompt"
-assert_section_present "$PRD_REVIEWER" '### 输出格式' '^## 判定规则$' "PRD reviewer prompt"
+assert_section_present "$PRD_REVIEWER" '## 判定规则' 'Director 漂移.*FAIL' "PRD reviewer prompt"
 assert_absent '沿用标准' "$PRD_REVIEWER" "PRD reviewer prompt"
 
 assert_section_present "$ARCHITECT_REVIEWER" '### 输出格式' '^## 发现输出$' "architect reviewer prompt"
 assert_section_present "$ARCHITECT_REVIEWER" '### 输出格式' '承接目标' "architect reviewer prompt"
-assert_section_present "$ARCHITECT_REVIEWER" '### 输出格式' '^## 判定规则$' "architect reviewer prompt"
+assert_section_present "$ARCHITECT_REVIEWER" '## 判定规则' 'HOW 层答案.*FAIL' "architect reviewer prompt"
 assert_absent '沿用标准' "$ARCHITECT_REVIEWER" "architect reviewer prompt"
 
 assert_section_present "$TESTER_REVIEWER" '### 输出格式' '^## 发现输出$' "tester reviewer prompt"
 assert_section_present "$TESTER_REVIEWER" '### 输出格式' '承接目标' "tester reviewer prompt"
-assert_section_present "$TESTER_REVIEWER" '### 输出格式' '^## 判定规则$' "tester reviewer prompt"
+assert_section_present "$TESTER_REVIEWER" '## 判定规则' '核心行为无法从 PM 产物验证.*FAIL' "tester reviewer prompt"
 assert_absent '沿用标准' "$TESTER_REVIEWER" "tester reviewer prompt"
 
 assert_present '召集 agent teams' "$MANAGER_REVIEW" "review orchestration"

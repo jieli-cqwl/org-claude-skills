@@ -89,7 +89,7 @@ for artifact_name, artifact in (("dogfood", result), ("lifecycle", review)):
 
 if result.get("artifact_type") != "product-manager-dogfood-result":
     raise SystemExit("dogfood result artifact_type drift")
-if result.get("eval_id") != "request-review-flow-m0-m9":
+if result.get("eval_id") != "request-review-flow-pm-flow":
     raise SystemExit("dogfood eval_id drift")
 if result.get("run_mode") != "with_skill":
     raise SystemExit("dogfood run_mode must be with_skill")
@@ -116,18 +116,20 @@ for field in (
         raise SystemExit(f"dogfood baseline missing {field}")
 
 expected_steps = [
-    "M-S0",
-    "M-S1",
-    "M-S2",
-    "M-S3",
-    "M-S4",
-    "M-S5",
-    "M-S5.5",
-    "M-S6",
-    "M-S7",
-    "M-S8",
-    "M-G1",
-    "M-S9",
+    "Handoff gate",
+    "Evidence and AS-IS",
+    "TO-BE product model",
+    "Feature inventory and risk",
+    "Pre-UNIT gate",
+    "UNIT split",
+    "AC",
+    "Verification Plan",
+    "Design handoff",
+    "Self-check",
+    "Review digest",
+    "Agent review",
+    "PM handoff gate",
+    "Delivery",
 ]
 steps = result.get("dogfood_execution", {}).get("step_results", [])
 actual_steps = [step.get("step_id") for step in steps]

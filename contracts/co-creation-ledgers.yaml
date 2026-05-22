@@ -42,7 +42,7 @@ co_creation_ledgers:
       producer: product-manager
       path: docs/{feature}/phase-{N}/product-manager-ledger.json
       scope: phase
-      checkpoint_steps: [M-S1, M-S2, M-S3, M-S4, M-S5, M-S5.5, M-S6, M-S7, M-S8, M-G1, M-S9]
+      checkpoint_steps: [Handoff gate, Evidence and AS-IS, TO-BE product model, Feature inventory and risk, Pre-UNIT gate, UNIT split, AC, Verification Plan, Design handoff, Self-check, Review digest, Agent review, PM handoff gate, Delivery]
       canonical_outputs:
         - docs/{feature}/brief.json
         - docs/{feature}/phase-{N}/phase-prd.json

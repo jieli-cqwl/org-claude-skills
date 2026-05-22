@@ -6,7 +6,6 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
 DIRECTOR_FINAL_ARTIFACTS_REFERENCE="$ROOT/shared/skills/product-director/references/final-artifacts.md"
-MANAGER_OUTPUT_REFERENCE="$ROOT/shared/skills/product-manager/references/output.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -53,10 +52,8 @@ assert_output_section_routes_to_reference() {
 test -f "$DIRECTOR_SKILL" || fail "missing director skill: $DIRECTOR_SKILL"
 test -f "$MANAGER_SKILL" || fail "missing manager skill: $MANAGER_SKILL"
 test -f "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE" || fail "missing director final artifacts reference: $DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
-test -f "$MANAGER_OUTPUT_REFERENCE" || fail "missing manager output reference: $MANAGER_OUTPUT_REFERENCE"
 
 assert_output_section_routes_to_reference "$DIRECTOR_SKILL" '`references/final-artifacts\.md`'
-assert_output_section_routes_to_reference "$MANAGER_SKILL" '`references/output\.md`'
 
 assert_present 'docs/\{feature\}/brief\.json' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_present 'shared/skills/product-director/templates/brief\.template\.json' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
@@ -65,11 +62,14 @@ assert_present 'shared/skills/product-director/templates/phase-prd\.template\.js
 assert_absent 'brief\.lock\.json|prd\.lock\.json|contracts/product-artifacts\.yaml' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_absent 'UNIT-\*\.md|review\.md|交付确认' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 
-assert_present 'docs/\{feature\}/brief\.json' "$MANAGER_OUTPUT_REFERENCE"
-assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$MANAGER_OUTPUT_REFERENCE"
-assert_present 'docs/\{feature\}/phase-\{N\}/units/UNIT-\*\.json' "$MANAGER_OUTPUT_REFERENCE"
-assert_present 'shared/skills/product-manager/templates/unit-definition\.template\.json' "$MANAGER_OUTPUT_REFERENCE"
-assert_absent 'docs/\{feature\}/review\.md|docs/\{feature\}/product-manager-review\.md|contracts/product-artifacts\.yaml' "$MANAGER_OUTPUT_REFERENCE"
-assert_present '不得改写 Director 锁定字段' "$MANAGER_OUTPUT_REFERENCE"
+MANAGER_OUTPUT_SECTION="$(mktemp "${TMPDIR:-/tmp}/manager-output-section.XXXXXX")"
+extract_section "$MANAGER_SKILL" "## 输出" > "$MANAGER_OUTPUT_SECTION"
+assert_present 'docs/\{feature\}/brief\.json' "$MANAGER_OUTPUT_SECTION"
+assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$MANAGER_OUTPUT_SECTION"
+assert_present 'docs/\{feature\}/phase-\{N\}/units/UNIT-\*\.json' "$MANAGER_OUTPUT_SECTION"
+assert_present 'shared/skills/product-manager/templates/unit-definition\.template\.json' "$MANAGER_OUTPUT_SECTION"
+assert_present 'review_conclusion.*delivery_confirmation|delivery_confirmation.*review_conclusion' "$MANAGER_OUTPUT_SECTION"
+assert_absent 'references/output\.md|docs/\{feature\}/review\.md|docs/\{feature\}/product-manager-review\.md|contracts/product-artifacts\.yaml' "$MANAGER_OUTPUT_SECTION"
+rm -f "$MANAGER_OUTPUT_SECTION"
 
 echo "[PASS] product output reference"
