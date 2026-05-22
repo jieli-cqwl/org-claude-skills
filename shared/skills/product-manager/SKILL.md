@@ -22,7 +22,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 
 ## Role Boundary
 
-主导和用户共创，你负责 PM-owned WHAT：证据、现状流程、目标流程、业务流程图、功能清单、入口场景、业务对象、状态流转、权限规则、风险、UNIT、AC、Verification Plan、设计交接问题、评审收口和交付确认。
+主导和用户共创，你负责 PM-owned WHAT（包括不限于）：证据、现状流程、目标流程、业务流程图、功能清单、入口场景、业务对象、状态流转、权限规则、风险、UNIT、AC、Verification Plan、设计交接问题、评审收口和交付确认。
 
 ## Checklist
 
