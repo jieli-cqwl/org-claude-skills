@@ -2,7 +2,7 @@
 name: product-manager
 user-invocable: true
 disable-model-invocation: true
-description: "Use when a Director-confirmed Phase must become PM-owned WHAT artifacts: evidence-backed product model, feature inventory, UNITs, AC, verification plan, review closure, and delivery handoff. Do not use before Director confirmation or for HOW-level design, architecture, implementation, or test design."
+description: "Use when a Director-confirmed Phase must become PM-owned WHAT artifacts: evidence-backed product model, feature inventory, UNITs, AC, verification plan, review closure, and delivery handoff."
 eval-type: encoded_preference
 argument-hint: "[feature 或 handoff brief]"
 allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendMessage, TeamDelete
@@ -45,7 +45,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 
 ## 流程
 
-按图执行：每个节点读取上一步 JSON，执行 The Process 对应检查，写入目标 JSON 字段并输出 PM artifact 或阻断状态；下一节点只消费已验证的 canonical JSON，任一 gate 失败即停止。
+按图执行：每个节点读取上一步 JSON，执行 The Process 对应检查，写入目标 JSON 字段并输出 PM artifact 或阻断状态；下一节点消费已验证的 canonical JSON，任一 gate 失败即停止。
 
 ```dot
 digraph product_manager_flow {
@@ -78,13 +78,13 @@ digraph product_manager_flow {
 
 **TO-BE product model**：基于冻结 Phase 目标和已闭合 AS-IS 建 TO-BE。覆盖角色、入口、步骤、业务对象、状态变化、权限、规则、正常路径、异常路径、边界路径和可观察结果。流程改变 Director 范围、Phase 出口或业务规则时停止。
 
-**Feature inventory and risk**：把产品模型收敛成功能清单、模块能力、入口场景和风险台账。每个能力标为 `IN_SCOPE`、`OUT_OF_SCOPE` 或 `NEEDS_DECISION`；未裁决能力不得进入 UNIT。每个风险降解到 AC、Verification Plan、阻断项、下游 owner 或用户裁决。
+**Feature inventory and risk**：把产品模型收敛成功能清单、模块能力、入口场景和风险台账。每个能力标为 `IN_SCOPE`、`OUT_OF_SCOPE` 或 `NEEDS_DECISION`；`NEEDS_DECISION` 能力停在功能清单等待裁决。每个风险降解到 AC、Verification Plan、阻断项、下游 owner 或用户裁决。
 
 **Pre-UNIT gate**：拆 UNIT 前复核产品模型。若证据、流程、功能、入口、对象、状态、权限、规则或风险仍会改变 UNIT 边界，继续收口，不拆 UNIT。
 
 **UNIT split**：每个 UNIT 必须完成一个闭环：输入或触发 -> 核心行为 -> 可观察结果。写清优先级依据、依赖、排除项、Integration Context、功能追溯、流程追溯和风险追溯。Integration Context 必须写出业务模块、不可破坏行为、跨 UNIT 依赖和业务约束。一个 UNIT 出现多个独立触发、多个独立结果或不同交付价值时继续拆分。所有 UNIT 闭合后，复核优先级和依赖顺序；高优 UNIT 依赖低优 UNIT 时，必须写出业务理由或修正优先级/依赖。
 
-**AC**：AC 只写可观察业务行为。每条 AC 包含描述、示例输入、预期结果、边界情况和失败模式。正常、异常、边界路径至少有明确覆盖或业务 N/A 原因。
+**AC**：AC 写可观察业务行为。每条 AC 包含描述、示例输入、预期结果、边界情况和失败模式。正常、异常、边界路径至少有明确覆盖或业务 N/A 原因。
 
 **Verification Plan**：从业务视角说明如何证明 UNIT 完成。写验证类型、业务操作或场景、预期可观察结果和证据目标；映射 AC、成功信号、风险或设计交接项。
 
@@ -92,7 +92,7 @@ digraph product_manager_flow {
 
 **Self-check**：读取 `references/pm-quality-guide.md`。用产品经理视角复检证据、流程、功能、对象、状态、权限、规则、风险、UNIT、AC、验证计划、设计交接和 AI 可执行性。统一跨 UNIT 术语、状态名和规则口径；排除项、依赖和 Integration Context 互相矛盾时，先修 PM-owned 缺口或写入 issue ledger，再送审。
 
-**Review digest**：PM owner 确认 `brief.json`、`phase-prd.json` 和 `units/UNIT-*.json` 已可送审，生成同一份 review bundle 和 `reviewed_bundle_digest`。reviewer 输入限定为这份送审包；聊天记录、临时草稿和人类投影视图只作为背景。
+**Review digest**：PM owner 确认 `brief.json`、`phase-prd.json` 和 `units/UNIT-*.json` 已可送审，生成同一份 review bundle 和 `reviewed_bundle_digest`。reviewer 输入限定为这份送审包；聊天记录、临时草稿和人类投影视图作为背景。
 
 **Agent review**：读取 `references/review-orchestration.md`。召集 agent teams，让 product、architecture、test 三视角 reviewer 审同一份送审包。高风险上线、失败重试、回滚、批量重放、外部依赖、幂等或重复提交，在同一评审循环中显式检查。关闭 FAIL；WARN 写入 owner 和承接目标。
 
@@ -108,13 +108,13 @@ digraph product_manager_flow {
 - 用户一次给多个事实时，先处理会改变当前步骤的事实，其余登记到后续步骤。
 - 阻断时只返回：状态、owner、阻断事实、影响产物、推荐默认值、一个问题、恢复条件。
 
-## References
+## 按需读取
 
 - Self-check: 读取 `references/pm-quality-guide.md`；按指南复核产品判断，产物字段以 templates/contracts 为准。
 - Agent review: 读取 `references/review-orchestration.md`；按其中循环写入 review 状态、issue、digest 和收敛证据。
 - Reviewer prompts: 派发 reviewer 时读取对应 `references/prd-reviewer-prompt.md`、`references/architect-reviewer-prompt.md`、`references/tester-reviewer-prompt.md`；作为 reviewer prompt 输入。
 
-## 输出
+## 写入位置
 
 - `docs/{feature}/brief.json`：承载 PM issue、评审结论和交付确认；用户接受后写 `delivery_confirmation`。
 - `docs/{feature}/phase-{N}/phase-prd.json`：写 PM 产品模型、功能清单、风险、UNIT 索引、设计交接和评审字段。

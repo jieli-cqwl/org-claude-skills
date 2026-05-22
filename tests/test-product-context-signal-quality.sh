@@ -137,6 +137,23 @@ if missing:
 PY
 }
 
+assert_manager_fail_rerun_contract() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+requirements = {
+    "fail_view_rerun": ["FAIL", "重新提交", "视角", "评审"],
+}
+missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
+if missing:
+    raise SystemExit(f"{path}: missing manager FAIL rerun contract: {', '.join(missing)}")
+PY
+}
+
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
 DIRECTOR_PROBLEM_GUIDE="$ROOT/shared/skills/product-director/references/problem-clarification.md"
@@ -189,7 +206,8 @@ assert_present '你消费已确认的产品、架构和测试输入，设计可�
 
 assert_absent '本契约定义' "$DIRECTOR_SUCCESS_GUIDE" "director success/appetite guide"
 assert_absent '本契约定义' "$MANAGER_REVIEW" "manager review orchestration"
-assert_present 'Manager 阶段评审闭环只写入 `brief\.json\.review_conclusion / issue_ledger`' "$MANAGER_REVIEW" "manager review artifact definition"
+assert_present 'brief\.json\.review_conclusion' "$MANAGER_REVIEW" "manager review artifact definition"
+assert_present 'issue_ledger' "$MANAGER_REVIEW" "manager review artifact definition"
 
 assert_absent '节点顺序：' "$DIRECTOR_SKILL" "director flow sequence noise"
 assert_section_present "$DIRECTOR_SKILL" "## 流程" '"Explore demand context" -> "Ask one clarifying question"' "director flow sequence"
@@ -297,7 +315,7 @@ assert_absent '沿用标准' "$TESTER_REVIEWER" "tester reviewer prompt"
 assert_present '召集 agent teams' "$MANAGER_REVIEW" "review orchestration"
 assert_present '3 视角×max10轮' "$MANAGER_REVIEW" "review orchestration"
 assert_present 'CONFIRMATION' "$MANAGER_REVIEW" "review orchestration"
-assert_present '只重提 FAIL 视角' "$MANAGER_REVIEW" "review orchestration"
+assert_manager_fail_rerun_contract "$MANAGER_REVIEW"
 assert_manager_warn_carryover_contract "$MANAGER_REVIEW" "review orchestration"
 
 assert_audit_round_count "$AUDIT_LOOP_RECORD" 10

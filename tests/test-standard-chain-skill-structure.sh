@@ -66,7 +66,7 @@ anchor = role if role is not None else hard_gate
 if flow_lines and min(flow_lines) <= anchor:
     raise SystemExit(f"{path}: flow must come after role or HARD-GATE")
 
-output_lines = [headings[name] for name in ("## 输出", "## 输出格式") if name in headings]
+output_lines = [headings[name] for name in ("## 输出", "## 输出格式", "## 写入位置") if name in headings]
 if not output_lines:
     raise SystemExit(f"{path}: missing output section")
 if min(output_lines) >= completion:

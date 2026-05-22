@@ -63,7 +63,7 @@ assert_absent 'brief\.lock\.json|prd\.lock\.json|contracts/product-artifacts\.ya
 assert_absent 'UNIT-\*\.md|review\.md|交付确认' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 
 MANAGER_OUTPUT_SECTION="$(mktemp "${TMPDIR:-/tmp}/manager-output-section.XXXXXX")"
-extract_section "$MANAGER_SKILL" "## 输出" > "$MANAGER_OUTPUT_SECTION"
+extract_section "$MANAGER_SKILL" "## 写入位置" > "$MANAGER_OUTPUT_SECTION"
 assert_present 'docs/\{feature\}/brief\.json' "$MANAGER_OUTPUT_SECTION"
 assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$MANAGER_OUTPUT_SECTION"
 assert_present 'docs/\{feature\}/phase-\{N\}/units/UNIT-\*\.json' "$MANAGER_OUTPUT_SECTION"

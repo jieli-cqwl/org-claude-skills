@@ -59,7 +59,7 @@ case_by_id = {case.get("id"): case for case in data.get("evals", [])}
 required_cases = {
     "director-lock-drift-blocking": {
         "anchors": {"PA-5"},
-        "signals": ["禁止改写", "停止并报告用户", "用户裁决"],
+        "signals": ["Director 锁定字段漂移", "停止并报告用户", "用户裁决"],
     },
     "unit-context-and-ac-closure": {
         "anchors": {"PA-7"},
@@ -67,7 +67,7 @@ required_cases = {
     },
     "review-delivery-guided-confirmation": {
         "anchors": {"PA-4", "PA-6", "PA-7"},
-        "signals": ["收口建议", "issue_ledger", "delivery_confirmation", "不得问开放式"],
+        "signals": ["收口建议", "issue_ledger", "delivery_confirmation", "验证一个会改变交付确认结论的具体业务假设"],
     },
     "high-risk-review-on-demand": {
         "anchors": {"PA-8"},

@@ -11,7 +11,7 @@ Manager 阶段评审闭环写入 `brief.json.review_conclusion / issue_ledger` �
 - `phase-{N}/units/UNIT-*.json`
 - `reviewed_bundle_digest`
 
-聊天记录、临时草稿、legacy markdown 和 projection-only 文本只作为背景。
+聊天记录、临时草稿、legacy markdown 和 projection-only 文本作为背景。
 
 评审状态必须写入 `review_conclusion.agent_team_review`：记录 `reviewed_artifact_refs`、`reviewed_bundle_digest`、三视角 verdict、finding/evidence refs、read_only 和 `convergence_evidence`。
 
@@ -39,7 +39,7 @@ PM owner 将评审状态写入 `review_conclusion.agent_team_review`：`reviewed
 ## Loop
 
 - 执行 `3 视角×max10轮`。
-- 任一视角 FAIL：修 PM-owned JSON，只重提 FAIL 视角。
+- 任一视角 FAIL：修 PM-owned JSON，重新提交 FAIL 视角评审。
 - 首轮全 PASS：写 `convergence_evidence[].control_action=CONFIRMATION`，再跑一轮确认。
 - WARN 写入 `issue_ledger`，带 owner 和 handoff target。
 - 连续 2 轮 FAIL 数不减少：ASK_USER。

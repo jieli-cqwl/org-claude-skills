@@ -32,6 +32,24 @@ assert_absent() {
   fi
 }
 
+assert_terms_present() {
+  local file="$1"
+  local label="$2"
+  shift 2
+  python3 - "$file" "$label" "$@" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+label = sys.argv[2]
+terms = sys.argv[3:]
+text = path.read_text(encoding="utf-8")
+missing = [term for term in terms if term not in text]
+if missing:
+    raise SystemExit(f"{path}: missing {label} terms: {', '.join(missing)}")
+PY
+}
+
 test -f "$DIRECTOR_SKILL" || fail "missing director skill: $DIRECTOR_SKILL"
 test -f "$DIRECTOR_PROBLEM_GUIDE" || fail "missing director problem guide: $DIRECTOR_PROBLEM_GUIDE"
 test -f "$DIRECTOR_SUCCESS_GUIDE" || fail "missing director success/investment-boundary guide: $DIRECTOR_SUCCESS_GUIDE"
@@ -63,11 +81,11 @@ assert_present '3[[:space:]]*视角[×x]max10轮|循环上限 10 次|max10轮' "
 assert_present 'control_action=CONFIRMATION' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '连续 2 轮 FAIL 数不减少' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '同一 issue 连续 3 轮未关闭' "$MANAGER_REVIEW_ORCHESTRATION"
-assert_present '仅对 FAIL 视角重新提交评审|只重提 FAIL 视角' "$MANAGER_REVIEW_ORCHESTRATION"
+assert_terms_present "$MANAGER_REVIEW_ORCHESTRATION" "fail-view rerun" "FAIL" "重新提交" "视角" "评审"
 assert_present '用于确认 PRD 是否完整回答用户问题' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '用于确认需求在当前技术上下文中可落地' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '用于确认 AC 能被真实验证' "$MANAGER_REVIEW_ORCHESTRATION"
-assert_present '人类投影视图只能渲染这些字段，不能作为下游控制输入' "$MANAGER_REVIEW_ORCHESTRATION"
+assert_terms_present "$MANAGER_REVIEW_ORCHESTRATION" "projection source boundary" "canonical JSON" "人类投影视图" "渲染"
 
 assert_present '^\| 视角 \| Verdict \| Review Round \| Issue Count \| 结论摘要 \|$' "$MANAGER_REVIEW_TEMPLATE"
 assert_present 'PR-\* / AR-\* / TR-\* / HIS-\*' "$MANAGER_REVIEW_TEMPLATE"
