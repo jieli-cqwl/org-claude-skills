@@ -51,7 +51,7 @@ match = re.search(r"^## HARD-GATE\n\n(?P<body>.*?)(?=^## )", text, re.M | re.S)
 if not match:
     raise SystemExit("missing HARD-GATE section")
 body = match.group("body").strip()
-required = "在你向用户呈现 Director baseline 并收到明确 产品总监确认 之前，不要把它当成已确认基线。"
+required = "在你向用户呈现 Director baseline，并收到用户明确回复 `产品总监确认` 之前，不要把它当成已确认基线；用户确认检查点未闭合前，不得冻结基线。"
 if required not in body:
     raise SystemExit("HARD-GATE missing minimal confirmed-baseline red line")
 for forbidden in [
@@ -127,7 +127,7 @@ text = "\n".join(
 for phrase in [
     "Director baseline 共创",
     "继续执行 Checklist 的下一步",
-    "一个推动 baseline 确认的澄清问题",
+    "一个推动用户确认 baseline 的澄清问题",
     "PA-15",
 ]:
     if phrase not in text:
@@ -137,7 +137,7 @@ anchors = {item.get("id"): item.get("anchor", "") for item in data.get("preferen
 pa15 = anchors.get("PA-15", "")
 for phrase in [
     "完成 Director baseline 共创",
-    "收到明确确认",
+    "收到用户明确回复 `产品总监确认`",
     "继续执行 Checklist 的下一步",
 ]:
     if phrase not in pa15:

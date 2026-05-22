@@ -255,6 +255,42 @@ python3 "$ROOT/shared/skills/product-director/scripts/evaluate_content_quality.p
   --min-score 12 >"$SEMANTIC_QUALITY_OUT"
 assert_present '"verdict": "PASS"' "$SEMANTIC_QUALITY_OUT"
 
+PROJECTION_OUT="$SMOKE_TMP_ROOT/projection-render.json"
+python3 "$ROOT/shared/skills/product-director/scripts/render_projection.py" \
+  --feature-dir "$FEATURE_DIR" >"$PROJECTION_OUT"
+
+PROJECTION_FILE="$FEATURE_DIR/views/product-director.projection.md"
+PROJECTION_MANIFEST="$FEATURE_DIR/views/product-director.projection-manifest.json"
+test -f "$PROJECTION_FILE" || fail "product-director projection markdown should be generated"
+test -f "$PROJECTION_MANIFEST" || fail "product-director projection manifest should be generated"
+
+assert_present '"status": "PASS"' "$PROJECTION_OUT"
+assert_present '产品总监基线说明书' "$PROJECTION_FILE"
+assert_present '一句话结论' "$PROJECTION_FILE"
+assert_present '为什么现在要做' "$PROJECTION_FILE"
+assert_present '本期成功标准' "$PROJECTION_FILE"
+assert_present '本期范围' "$PROJECTION_FILE"
+assert_present '风险与未决项' "$PROJECTION_FILE"
+assert_present 'Phase 规划' "$PROJECTION_FILE"
+assert_present '决策理由' "$PROJECTION_FILE"
+assert_present 'JSON 是唯一真源' "$PROJECTION_FILE"
+assert_present 'finance operations specialist' "$PROJECTION_FILE"
+assert_present '3-5 per week' "$PROJECTION_FILE"
+assert_present 'zero reported misses' "$PROJECTION_FILE"
+assert_present 'daily overdue invoice follow-up baseline' "$PROJECTION_FILE"
+if rg -n '\$\.|JSON Pointer|Source: `' "$PROJECTION_FILE" >/dev/null 2>&1; then
+  fail "product-director projection markdown should be human-facing and keep JSON pointers in manifest"
+fi
+jq -e '
+  .source_artifact_refs == [
+    "brief.json",
+    "phase-1/phase-prd.json"
+  ]
+  and (.sections[] | select(.section_id == "one_line_conclusion") | .json_pointers | index("$.root_problem") != null)
+  and (.sections[] | select(.section_id == "phase_plan") | .json_pointers | index("$.delivery_plan") != null)
+  and (.sections[] | select(.section_id == "phase_plan") | .json_pointers | index("phase-1/phase-prd.json:$.entry_conditions") != null)
+' "$PROJECTION_MANIFEST" >/dev/null || fail "product-director projection manifest should point back to Director JSON"
+
 WEAK_DIR="$SMOKE_TMP_ROOT/weak-content"
 mkdir -p "$WEAK_DIR/phase-1"
 cp "$FEATURE_DIR/brief.json" "$WEAK_DIR/brief.json"

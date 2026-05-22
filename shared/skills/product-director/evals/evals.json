@@ -4,14 +4,14 @@
     {
       "id": "director-baseline-no-prd",
       "prompt": "用 product-director 帮我把「商家入驻流程太慢，想做一套自动审核和配置开户工具」先收成 Director 基线，不要直接写完整 PRD。",
-      "expected_output": "执行静默信息收集；进入问题澄清时先剥离自动审核和配置开户工具这类方案线索，回到受影响角色、触发场景、当前处理方式、现实代价和直接原因，逐项标注事实状态，再给推荐根问题判断、推荐理由和会改变根问题判断的待验证事实，提出一个具体业务事实等待确认；不得产出最终 PRD、UNIT 或 AC。",
+      "expected_output": "执行静默信息收集；进入问题澄清时先剥离自动审核和配置开户工具这类方案线索，回到受影响角色、触发场景、当前处理方式、现实代价和直接原因，逐项标注事实状态，再给推荐根问题判断、推荐理由和会改变根问题判断的待验证事实，提出一个具体业务事实并请求用户确认；不得产出最终 PRD、UNIT 或 AC。",
       "files": [],
       "expectations": [
         "说明静默信息收集只收集线索且不把候选线索写成已闭合事实",
         "进入问题澄清后先剥离方案线索，回到受影响角色、触发场景、当前处理方式、现实代价和直接原因",
         "逐项标注受影响角色、触发场景、当前处理方式、现实代价和直接原因的事实状态",
         "进入问题澄清后先给推荐根问题判断、推荐理由和会改变根问题判断的待验证事实",
-        "只提出一个会改变根问题判断的具体业务事实等待确认",
+        "只提出一个会改变根问题判断的具体业务事实并请求用户确认",
         "不输出最终 PRD、UNIT 清单或 AC"
       ],
       "expected_anchors": [
@@ -24,11 +24,11 @@
     {
       "id": "phase-boundary-drift-routes-back",
       "prompt": "产品经理同事细化会员积分项目时发现两个 Phase 可能应该合并，范围描述也要改。现在是让产品经理同事继续处理，还是回产品总监重新确认？",
-      "expected_output": "明确触及 Phase 边界、范围或 Director 基线时必须回产品总监重新确认；产品经理同事不能绕过产品总监改写结果 payload。",
+      "expected_output": "明确触及 Phase 边界、范围或 Director 基线时必须回到产品总监对应步骤，重新收口并请求用户确认更新后的基线；产品经理同事不能绕过产品总监改写结果 payload。",
       "files": [],
       "expectations": [
         "识别 Phase 边界和范围属于 Director 基线",
-        "要求回到对应步骤重新确认",
+        "要求回到产品总监对应步骤重新收口并请求用户确认",
         "禁止绕过产品总监改写结果 payload",
         "区分不改变基线口径的文字润色与基线变更"
       ],
@@ -39,13 +39,13 @@
     {
       "id": "clear-goal-default-judgment",
       "prompt": "我们已经闭合根问题：内部审批事项分散在群消息、表格和审批系统里，业务负责人经常漏看待办，导致平均处理时长 2 天。目标是把内部审批平均处理时长从 2 天降到 4 小时，首期只做待办聚合、审批状态同步和逾期提醒，不改变审批规则。请用 product-director 收 Phase 1 基线，不要继续问一堆基础问题。",
-      "expected_output": "接受已闭合的根问题事实，不机械重问基础问题；给出 Director 推荐基线，包括根问题判断、成功标准、范围、本期不做、Phase 1 交付切片和推荐理由；只提出一个会改变基线结论的具体业务事实等待确认；不得进入产品经理同事的 UNIT、AC 或设计实现。",
+      "expected_output": "接受已闭合的根问题事实，不机械重问基础问题；给出 Director 推荐基线，包括根问题判断、成功标准、范围、本期不做、Phase 1 交付切片和推荐理由；只提出一个会改变基线结论的具体业务事实并请求用户确认；不得进入产品经理同事的 UNIT、AC 或设计实现。",
       "files": [],
       "expectations": [
         "不机械重问已闭合的基础事实",
         "给出 Director 推荐基线和推荐理由",
         "覆盖成功标准、范围、本期不做和 Phase 1 交付切片",
-        "只提出一个会改变基线结论的具体业务事实等待确认",
+        "只提出一个会改变基线结论的具体业务事实并请求用户确认",
         "不输出产品经理同事的 UNIT、AC 或设计实现"
       ],
       "expected_anchors": [
@@ -57,11 +57,11 @@
     {
       "id": "legacy-brief-blocks-detailing",
       "prompt": "已有 legacy brief.md，但没有产品总监确认，也没有 brief.json。这个需求能不能先交给产品经理同事拆 UNIT？",
-      "expected_output": "判定不能进入细化；缺少产品总监确认、brief.json 或 phase-prd.json 结果 payload 时，必须先回到 Director Finalization 补齐并通过 Director result gate。",
+      "expected_output": "判定不能进入细化；缺少用户明确回复 `产品总监确认`、brief.json 或 phase-prd.json 结果 payload 时，必须先回到 Director Finalization 补齐并通过 Director result gate。",
       "files": [],
       "expectations": [
         "拒绝基于 legacy brief.md 直接进入细化",
-        "说明缺少总监确认、brief.json 或 phase-prd.json 结果 payload 时不能继续",
+        "说明缺少用户明确回复 `产品总监确认`、brief.json 或 phase-prd.json 结果 payload 时不能继续",
         "要求补齐 Director 结果产物",
         "要求通过 Director result gate 后再继续"
       ],
@@ -72,13 +72,13 @@
     {
       "id": "missing-finalization-deps-still-co-creates",
       "prompt": "我有一份 PRD 初稿，里面引用的冻结清单和校验脚本当前仓库还不存在。先用 product-director 帮我判断 Director 基线怎么收，不要直接写最终产物。",
-      "expected_output": "在完成 Director baseline 共创并收到明确确认前，不写最终产物；继续执行 Checklist 的下一步：给出当前推荐判断和推荐假设，提出一个推动 baseline 确认的澄清问题；冻结清单或脚本缺失只作为最终写入缺口记录。",
+      "expected_output": "在完成 Director baseline 共创并收到用户明确回复 `产品总监确认` 前，不写最终产物；继续执行 Checklist 的下一步：给出当前推荐判断和推荐假设，提出一个推动用户确认 baseline 的澄清问题；冻结清单或脚本缺失只作为最终写入缺口记录。",
       "files": [],
       "expectations": [
-        "说明完成 Director baseline 共创并收到明确确认前不写最终产物",
+        "说明完成 Director baseline 共创并收到用户明确回复 `产品总监确认` 前不写最终产物",
         "继续执行 Checklist 的下一步",
         "给出当前推荐判断和推荐假设",
-        "只问一个推动 baseline 确认的澄清问题",
+        "只问一个推动用户确认 baseline 的澄清问题",
         "把冻结清单或脚本缺失作为最终写入缺口记录"
       ],
       "expected_anchors": [
@@ -90,7 +90,7 @@
     {
       "id": "phase-timebox-enforced",
       "prompt": "一个 Phase 按当前范围估计至少要 3 周才能交付，但业务上想先确认给产品经理同事。产品总监这里应该怎么处理？",
-      "expected_output": "不能确认超过 2 周的 Phase；必须在 Phase 规划缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能进入总监确认。",
+      "expected_output": "Phase 超过 2 周时不得请求用户回复 `产品总监确认`；必须在 Phase 规划缩小范围、拆出后续 Phase，或后置非核心价值，并在 delivery_plan 中写入 iteration_timebox_days <= 14 后才能请求用户回复 `产品总监确认`。",
       "files": [],
       "expectations": [
         "识别单 Phase 超过 2 周违反 Director Phase 规划硬约束",
@@ -121,13 +121,13 @@
     {
       "id": "business-semantics-recommendation-with-gaps",
       "prompt": "问题澄清和目标、成功标准与投入边界已经闭合：根问题是新用户 7 日活跃率低，成功标准是上线后 30 天内，基于产品埋点观察，新用户 7 日活跃率从 18% 提到 30%，失败信号是活跃率没有提升或只由一次性活动拉动。继续用 product-director 进入业务语义收口，我们团队习惯用「活跃用户」但定义不统一。",
-      "expected_output": "进入业务语义收口，给出术语、业务对象、当前流程和目标流程的推荐口径；给出「活跃用户」的推荐定义、使用边界和不包含内容，用 `[?]` 标出会改变后续范围或 Phase 判断的未闭合事实并等待确认；不把业务语义过程内容、`business_flows`、`user_paths` 或 `rule_mappings` 写入 Director 结果 payload。",
+      "expected_output": "进入业务语义收口，给出术语、业务对象、当前流程和目标流程的推荐口径；给出「活跃用户」的推荐定义、使用边界和不包含内容，用 `[?]` 标出会改变后续范围或 Phase 判断的未闭合事实并请求用户确认；不把业务语义过程内容、`business_flows`、`user_paths` 或 `rule_mappings` 写入 Director 结果 payload。",
       "files": [],
       "expectations": [
         "进入业务语义收口给出术语、业务对象、当前流程和目标流程推荐口径",
         "给出「活跃用户」的推荐定义、使用边界和不包含内容",
         "用 `[?]` 标注会改变后续范围或 Phase 判断的未闭合事实",
-        "等待用户确认标注的事实",
+        "请求用户确认标注的事实",
         "不把业务语义过程内容、business_flows、user_paths 或 rule_mappings 写入 Director 结果 payload"
       ],
       "expected_anchors": [
@@ -153,7 +153,7 @@
     {
       "id": "scope-cutting-core-vs-future",
       "prompt": "根问题、成功标准和业务语义已经闭合：客服主管无法判断自动回复是否真正解决用户问题，成功标准是上线后 14 天内人工追问率从 35% 降到 20%。业务方想本期同时做多渠道接入、知识库治理、模型调度、人工接管和全量报表。用 product-director 做范围收口。",
-      "expected_output": "进入范围收口，先按核心、增强、未来切分候选范围；核心范围只保留支撑成功标准的最小业务闭环，平台化、多渠道、全量报表等相邻范围进入本期不做或未来项；给出推荐范围、本期不做、可行性约束和决策理由；提出一个会改变范围边界的待验证事实并等待确认；不得输出 UNIT、AC、字段或状态流转。",
+      "expected_output": "进入范围收口，先按核心、增强、未来切分候选范围；核心范围只保留支撑成功标准的最小业务闭环，平台化、多渠道、全量报表等相邻范围进入本期不做或未来项；给出推荐范围、本期不做、可行性约束和决策理由；提出一个会改变范围边界的待验证事实并请求用户确认；不得输出 UNIT、AC、字段或状态流转。",
       "files": [],
       "expectations": [
         "进入范围收口，不直接进入 Phase 规划",
@@ -161,7 +161,7 @@
         "核心范围只保留支撑成功标准的最小业务闭环",
         "把平台化、多渠道、全量报表等相邻范围放入本期不做或未来项",
         "给出推荐范围、本期不做、可行性约束和决策理由",
-        "只提出一个会改变范围边界的待验证事实并等待确认",
+        "只提出一个会改变范围边界的待验证事实并请求用户确认",
         "不输出 UNIT、AC、字段或状态流转"
       ],
       "expected_anchors": [
@@ -171,15 +171,15 @@
     {
       "id": "risk-layering-before-phase",
       "prompt": "范围和本期不做已经闭合：Phase 1 只做单渠道单 bot 自动回复可观察闭环，不做多渠道和平台化。现在发现两个未知：三方回调权限可能下月才开放；设计同事还不知道人工接管按钮放哪。product-director 风险环节怎么处理？",
-      "expected_output": "进入风险与未知项，区分会改变 Director 基线或 Phase 拆法的风险和记录备注；三方回调权限会影响本期闭环或 Phase 入口条件，必须先验证或调整范围/Phase；按钮位置只作为记录备注，不写入结果 payload，不扩大 Director 范围；给出风险分层推荐判断，并提出一个会改变 Phase 或范围的待验证事实等待确认。",
+      "expected_output": "进入风险与未知项，区分会改变 Director 基线或 Phase 拆法的风险和记录备注；三方回调权限会影响本期闭环或 Phase 入口条件，必须先验证或调整范围/Phase；按钮位置只作为记录备注，不写入结果 payload，不扩大 Director 范围；给出风险分层推荐判断，并提出一个会改变 Phase 或范围的待验证事实并请求用户确认。",
       "files": [],
       "expectations": [
         "进入风险与未知项，不直接进入 Phase 规划",
         "区分基线推翻风险、Phase 拆法风险和记录备注",
         "识别三方回调权限会影响本期闭环或 Phase 入口条件",
-        "要求先确认会改变范围或 Phase 的关键事实",
+        "要求先请求用户确认会改变范围或 Phase 的关键事实",
         "识别按钮位置属于记录备注，不写入结果 payload",
-        "给出风险分层推荐判断并等待确认"
+        "给出风险分层推荐判断并请求用户确认"
       ],
       "expected_anchors": [
         "PA-13"
@@ -188,13 +188,13 @@
     {
       "id": "technical-demand-framed-before-solution",
       "prompt": "技术同事说支付模块必须重构，否则每次改结算规则都很慢、回归风险也高。用 product-director 先判断这类技术诉求怎么进入基线，不要直接给架构方案。",
-      "expected_output": "进入技术诉求定性：把“重构支付模块”还原为业务影响、交付约束、风险或效率问题；追问或草拟结算规则变更慢、回归风险高对应的现实代价、成功标准、投入边界和本期范围；只确认 WHY 层结论、约束和 Phase 影响，不输出架构、接口、模块拆分或实现计划。",
+      "expected_output": "进入技术诉求定性：把“重构支付模块”还原为业务影响、交付约束、风险或效率问题；追问或草拟结算规则变更慢、回归风险高对应的现实代价、成功标准、投入边界和本期范围；只请求用户确认 WHY 层结论、约束和 Phase 影响，不输出架构、接口、模块拆分或实现计划。",
       "files": [],
       "expectations": [
         "识别“重构支付模块”是技术诉求而不是 Director 目标",
         "将诉求定性为业务影响、交付约束、风险或效率问题",
         "要求闭合现实代价、成功标准、投入边界和本期范围",
-        "只确认 WHY 层结论、约束和 Phase 影响",
+        "只请求用户确认 WHY 层结论、约束和 Phase 影响",
         "不输出架构、接口、模块拆分、代码组织或实现计划"
       ],
       "expected_anchors": [
@@ -206,7 +206,7 @@
   "preference_anchors": [
     {
       "id": "PA-1",
-      "anchor": "每轮只围绕一个会改变 Director baseline 的待验证事实推进；事实未闭合时继续共创确认，不进入最终写入",
+      "anchor": "每轮只围绕一个会改变 Director baseline 的待验证事实推进；事实未闭合时继续共创并请求用户确认一个待验证事实，不进入最终写入",
       "weight": 1
     },
     {
@@ -221,12 +221,12 @@
     },
     {
       "id": "PA-4",
-      "anchor": "Phase、范围、Director 基线或已闭合上游事实变化时，必须回到产品总监对应步骤重新确认",
+      "anchor": "Phase、范围、Director 基线或已闭合上游事实变化时，必须回到产品总监对应步骤重新收口并请求用户确认",
       "weight": 1
     },
     {
       "id": "PA-5",
-      "anchor": "brief.json 和 phase-prd.json 必须先收到产品总监确认，并通过 Director result gate",
+      "anchor": "brief.json 和 phase-prd.json 必须先收到用户明确回复 `产品总监确认`，并通过 Director result gate",
       "weight": 1
     },
     {
@@ -241,7 +241,7 @@
     },
     {
       "id": "PA-9",
-      "anchor": "业务语义收口必须给出术语、业务对象、当前流程和目标流程推荐口径；术语必须给出推荐定义、使用边界和不包含内容；会改变范围、风险或 Phase 拆分的未闭合事实用 `[?]` 标注并等待确认；不把业务语义过程内容、business_flows、user_paths 或 rule_mappings 写入 Director 结果 payload",
+      "anchor": "业务语义收口必须给出术语、业务对象、当前流程和目标流程推荐口径；术语必须给出推荐定义、使用边界和不包含内容；会改变范围、风险或 Phase 拆分的未闭合事实用 `[?]` 标注并请求用户确认；不把业务语义过程内容、business_flows、user_paths 或 rule_mappings 写入 Director 结果 payload",
       "weight": 1
     },
     {
@@ -261,12 +261,12 @@
     },
     {
       "id": "PA-14",
-      "anchor": "技术债、性能、稳定性、平台化、研发效率等技术诉求必须先定性为业务影响、交付约束、风险或效率问题；Director 只确认 WHY 层结论、约束和 Phase 影响，不输出架构、接口、模块拆分、代码组织或实现计划",
+      "anchor": "技术债、性能、稳定性、平台化、研发效率等技术诉求必须先定性为业务影响、交付约束、风险或效率问题；Director 只请求用户确认 WHY 层结论、约束和 Phase 影响，不输出架构、接口、模块拆分、代码组织或实现计划",
       "weight": 1
     },
     {
       "id": "PA-15",
-      "anchor": "在完成 Director baseline 共创并收到明确确认之前，不写最终产物、声明已确认或交给下游；继续执行 Checklist 的下一步，给出推荐判断并提出一个推动 baseline 确认的澄清问题",
+      "anchor": "在完成 Director baseline 共创并收到用户明确回复 `产品总监确认` 之前，不写最终产物、声明已确认或交给下游；继续执行 Checklist 的下一步，给出推荐判断并提出一个推动用户确认 baseline 的澄清问题",
       "weight": 1
     }
   ]

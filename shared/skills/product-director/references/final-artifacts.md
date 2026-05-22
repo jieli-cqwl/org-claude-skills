@@ -5,7 +5,7 @@
 只有同时满足以下条件，才写最终产物：
 
 - 问题澄清、目标/成功标准/投入边界、业务语义、范围/约束/决策理由、风险与未知项、Phase 规划均已闭合；仍会改变基线的事实未闭合时，停在对应环节。
-- 已收到明确 产品总监确认。
+- 已收到用户明确回复 `产品总监确认`。
 - `docs/{feature}/product-director-ledger.json` 已写入 `finalization_basis`，并通过 finalized 校验：
   `python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized`
 
@@ -21,7 +21,7 @@
 
 ## 验证
 
-总监确认后，对每个 Phase 运行：
+收到用户明确回复 `产品总监确认` 后，对每个 Phase 运行：
 
 - 内容质量评估：
   `python3 shared/skills/product-director/scripts/evaluate_content_quality.py --brief "docs/{feature}/brief.json" --phase-prd "docs/{feature}/phase-{N}/phase-prd.json" --ledger "docs/{feature}/product-director-ledger.json" --min-score 12`

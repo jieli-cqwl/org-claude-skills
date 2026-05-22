@@ -27,18 +27,22 @@ assert_present() {
 
 SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 CHECK_SCRIPT="$ROOT/shared/skills/product-director/scripts/completion_check.sh"
+RENDER_SCRIPT="$ROOT/shared/skills/product-director/scripts/render_projection.py"
 SCRIPT_MANIFEST="$ROOT/shared/skills/product-director/scripts/manifest.json"
 HOOK_REGISTRY="$ROOT/shared/hooks/registry.json"
 DIRECTOR_BRIEF_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/brief.template.json"
 DIRECTOR_PHASE_JSON_TEMPLATE="$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
+DIRECTOR_PROJECTION_TEMPLATE="$ROOT/shared/skills/product-director/projections/director-baseline-template.md"
 
 for path in \
   "$SKILL" \
   "$CHECK_SCRIPT" \
+  "$RENDER_SCRIPT" \
   "$SCRIPT_MANIFEST" \
   "$HOOK_REGISTRY" \
   "$DIRECTOR_BRIEF_JSON_TEMPLATE" \
-  "$DIRECTOR_PHASE_JSON_TEMPLATE"
+  "$DIRECTOR_PHASE_JSON_TEMPLATE" \
+  "$DIRECTOR_PROJECTION_TEMPLATE"
 do
   test -f "$path" || fail "missing product-director contract file: $path"
 done
@@ -52,23 +56,49 @@ fi
 
 assert_present '^name: product-director$' "$SKILL"
 assert_present '^allowed-tools: .*Bash' "$SKILL"
+assert_present 'render_projection\.py --feature-dir "docs/\{feature\}"' "$SKILL"
+assert_absent 'product-director\.projection\.md.*JSON Pointer|projection-manifest.*SKILL|projections/director-baseline-template\.md' "$SKILL"
 assert_present 'validate_director_result_payload' "$CHECK_SCRIPT"
 assert_present 'evaluate_content_quality\.py' "$CHECK_SCRIPT"
 assert_absent 'validate_director_confirmation|validate_director_lock|validate_canonical_schema\.py|validate_product_closure\.py' "$CHECK_SCRIPT"
 
 jq -e '
   .schema_version == "1.0.0"
-  and (.scripts | length == 1)
-  and .scripts[0].id == "completion-check"
-  and .scripts[0].path == "scripts/completion_check.sh"
-  and .scripts[0].owner == "product-director"
-  and (.scripts[0].allowed_args | index("hook payload via stdin only"))
-  and .scripts[0].timeout_seconds == 15
-  and .scripts[0].output_root == "."
-  and (.scripts[0].allowed_output_roots | index("$TMPDIR"))
-  and (.scripts[0].allowed_input_roots | index("docs"))
-  and (.scripts[0].failure_state | test("blocks completion"))
+  and (.scripts | length == 2)
+  and (
+    .scripts[]
+    | select(.id == "completion-check")
+    | .path == "scripts/completion_check.sh"
+      and .owner == "product-director"
+      and (.allowed_args | index("hook payload via stdin only"))
+      and .timeout_seconds == 15
+      and .output_root == "."
+      and (.allowed_output_roots | index("$TMPDIR"))
+      and (.allowed_input_roots | index("docs"))
+      and (.failure_state | test("blocks completion"))
+  )
+  and (
+    .scripts[]
+    | select(.id == "projection-render")
+    | .path == "scripts/render_projection.py"
+      and .owner == "product-director"
+      and (.allowed_args | index("--feature-dir"))
+      and (.allowed_args | index("--output"))
+      and (.allowed_args | index("--help"))
+      and (.allowed_args | index("-h"))
+      and .timeout_seconds == 5
+      and .output_root == "."
+      and (.allowed_output_roots | index("docs"))
+      and (.allowed_output_roots | index("$TMPDIR"))
+      and (.allowed_input_roots | index("docs"))
+      and .failure_state == "PRODUCT_DIRECTOR_PROJECTION_RENDER_FAILED"
+  )
 ' "$SCRIPT_MANIFEST" >/dev/null || fail "product-director manifest completion-check contract drift"
+
+assert_present '产品总监基线说明书' "$DIRECTOR_PROJECTION_TEMPLATE"
+assert_present '一句话结论|为什么现在要做|本期成功标准|本期范围|风险与未决项|Phase 规划|决策理由' "$DIRECTOR_PROJECTION_TEMPLATE"
+assert_present 'JSON 是唯一真源|不得作为下游控制输入|不得反向作为 runtime 真源' "$DIRECTOR_PROJECTION_TEMPLATE"
+assert_absent '^\| JSON Pointer \||Trigger:|Read:|Expect:|Consume:|Evidence:|Sync:' "$DIRECTOR_PROJECTION_TEMPLATE"
 
 jq -e '
   .skill_completion_gates[]

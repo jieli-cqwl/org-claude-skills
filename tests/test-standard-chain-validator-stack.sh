@@ -549,7 +549,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 target = Path(sys.argv[2])
 brief = json.loads(
-    (root / "shared/skills/product-director/templates/brief.template.json").read_text(encoding="utf-8")
+    (root / "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/brief.json").read_text(encoding="utf-8")
 )
 brief["producer"] = "product-director"
 target.write_text(json.dumps({"artifacts": [brief]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

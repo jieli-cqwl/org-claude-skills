@@ -1,7 +1,7 @@
 # Director Eval Scenario 2
 
 - 场景 ID：`product-director-p2-solution-anchoring`
-- 目标：验证 Director 遇到方案先行型输入时，先回到根问题并等待确认。
+- 目标：验证 Director 遇到方案先行型输入时，先回到根问题并请求用户确认。
 
 ## 输入提示
 
@@ -13,7 +13,7 @@
 - 回到受影响角色、触发场景、当前处理方式、现实代价和直接原因。
 - 给出推荐根问题判断和推荐理由。
 - 只提出一个会改变根问题判断的待验证事实。
-- 未收到明确 产品总监确认 前，不写 `brief.json` 或 `phase-{N}/phase-prd.json`。
+- 未收到用户明确回复 `产品总监确认` 前，不写 `brief.json` 或 `phase-{N}/phase-prd.json`。
 
 ## Grading
 

@@ -18,6 +18,15 @@ assert_present() {
   rg -n "$pattern" "$file" >/dev/null 2>&1 || fail "missing pattern in $file: $pattern"
 }
 
+assert_absent() {
+  local pattern="$1"
+  local file="$2"
+  if rg -n "$pattern" "$file" >/tmp/product_eval_absent.out 2>&1; then
+    cat /tmp/product_eval_absent.out >&2
+    fail "unexpected pattern in $file: $pattern"
+  fi
+}
+
 RUNNER="$ROOT/tools/eval/run_skill_eval.sh"
 BENCHMARK_ROOT="$ROOT/tools/eval/results/product-split-benchmark-20260415/iteration-1"
 GRADER_DIRECTOR="$ROOT/tools/eval/graders/product-director-thinking-grader.md"
@@ -105,9 +114,12 @@ assert_present 'grading-product-manager-unit-quality\.json' "$SCENARIO_MANAGER_P
 assert_present 'grading-product-manager-unit-quality\.json' "$SCENARIO_MANAGER_P2"
 assert_present 'grading-product-manager-unit-quality\.json' "$SCENARIO_MANAGER_P3"
 
-assert_present '未收到明确 产品总监确认 前，不写 `brief\.json` 或 `phase-\{N\}/phase-prd\.json`' "$SCENARIO_DIRECTOR_P1"
-assert_present '未收到明确 产品总监确认 前，不写 `brief\.json` 或 `phase-\{N\}/phase-prd\.json`' "$SCENARIO_DIRECTOR_P2"
-assert_present '未收到明确 产品总监确认 前，不写 `brief\.json` 或 `phase-\{N\}/phase-prd\.json`' "$SCENARIO_DIRECTOR_P3"
+assert_present '未收到用户明确回复 `产品总监确认` 前，不写 `brief\.json` 或 `phase-\{N\}/phase-prd\.json`' "$SCENARIO_DIRECTOR_P1"
+assert_present '未收到用户明确回复 `产品总监确认` 前，不写 `brief\.json` 或 `phase-\{N\}/phase-prd\.json`' "$SCENARIO_DIRECTOR_P2"
+assert_present '未收到用户明确回复 `产品总监确认` 前，不写 `brief\.json` 或 `phase-\{N\}/phase-prd\.json`' "$SCENARIO_DIRECTOR_P3"
+assert_absent '等待确认|明确 产品总监确认' "$SCENARIO_DIRECTOR_P1"
+assert_absent '等待确认|明确 产品总监确认' "$SCENARIO_DIRECTOR_P2"
+assert_absent '等待确认|明确 产品总监确认' "$SCENARIO_DIRECTOR_P3"
 assert_present '只提出一个会改变基线的待验证事实' "$SCENARIO_DIRECTOR_P1"
 assert_present '方案线索' "$SCENARIO_DIRECTOR_P2"
 assert_present '按业务价值提出 Phase 切分推荐' "$SCENARIO_DIRECTOR_P3"
@@ -129,6 +141,22 @@ assert_present '"id": "PA-10"' "$DIRECTOR_EVALS"
 assert_present '已闭合上游事实变化' "$DIRECTOR_EVALS"
 assert_present '"id": "technical-demand-framed-before-solution"' "$DIRECTOR_EVALS"
 assert_present '"id": "PA-14"' "$DIRECTOR_EVALS"
+assert_absent '等待确认' "$DIRECTOR_EVALS"
+assert_absent '等待用户确认' "$DIRECTOR_EVALS"
+assert_absent '只确认 WHY' "$DIRECTOR_EVALS"
+assert_absent '收到明确确认' "$DIRECTOR_EVALS"
+assert_absent '明确 产品总监确认' "$DIRECTOR_EVALS"
+assert_absent '进入产品总监确认' "$DIRECTOR_EVALS"
+assert_absent '要求先确认' "$DIRECTOR_EVALS"
+assert_absent '缺少总监确认' "$DIRECTOR_EVALS"
+assert_absent '等待确认' "$DIRECTOR_TEST_PROMPTS"
+assert_absent '等待用户确认' "$DIRECTOR_TEST_PROMPTS"
+assert_absent '只确认 WHY' "$DIRECTOR_TEST_PROMPTS"
+assert_absent '收到明确确认' "$DIRECTOR_TEST_PROMPTS"
+assert_absent '明确 产品总监确认' "$DIRECTOR_TEST_PROMPTS"
+assert_absent '进入产品总监确认' "$DIRECTOR_TEST_PROMPTS"
+assert_absent '要求先确认' "$DIRECTOR_TEST_PROMPTS"
+assert_absent '缺少总监确认' "$DIRECTOR_TEST_PROMPTS"
 assert_present '"id": "high-risk-review-on-demand"' "$PM_EVALS"
 assert_present '命中批量重放、外部依赖、失败重试或幂等风险时才读取 high-risk-launch-review' "$PM_EVALS"
 assert_present '没有高风险信号时不额外加载高风险补充审查' "$PM_EVALS"

@@ -104,7 +104,7 @@ assert_hard_gate_absent 'task_packet_check.sh' "$DELIVERY_OWNER_SKILL"
 assert_hard_gate_absent 'current_gap / progress_signal' "$DELIVERY_OWNER_SKILL"
 assert_hard_gate_absent 'next_owner' "$DELIVERY_OWNER_SKILL"
 
-assert_present '确认检查点未闭合不得冻结' "$DIRECTOR_SKILL"
+assert_present '用户确认检查点未闭合前，不得冻结基线' "$DIRECTOR_SKILL"
 assert_present '确认检查点未闭合不得 handoff' "$MANAGER_SKILL"
 assert_present '确认检查点未闭合不得冻结设计' "$DESIGN_SKILL"
 assert_present 'NO task handoff when the task lacks traceable goal' "$TECH_LEAD_SKILL"

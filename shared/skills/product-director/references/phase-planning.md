@@ -8,7 +8,7 @@
 ## 按业务价值切 Phase
 
 - 业务价值片段：用户或业务在本阶段结束后能观察到什么改变。
-- 入口条件：开始本 Phase 前必须已确认的业务事实、约束事实、依赖可用性或前序 Phase 出口。
+- 入口条件：开始本 Phase 前必须具备用户已确认的业务事实、约束事实、依赖可用性或前序 Phase 出口。
 - 出口条件：本 Phase 完成后可观察、可判断的业务结果。
 - 阶段外相邻价值：有价值但不进入本 Phase 的内容。
 - 推荐理由：为什么当前 Phase 能直接支撑成功标准，为什么相邻价值不进入本期。
@@ -32,6 +32,6 @@
 
 - Phase 按实现步骤、页面、接口、数据表或 UNIT 数量分组时，重新按业务价值切分。
 - 任一 Phase 无法说明独立业务结果，或后续 Phase 依赖前一 Phase 未完成部分才能成立时，重新切分。
-- 任一 Phase 的 `iteration_timebox_days` 超过 14 天时，不得确认；先缩范围或拆 Phase。
+- 任一 Phase 的 `iteration_timebox_days` 超过 14 天时，不得请求用户回复 `产品总监确认`；先缩范围或拆 Phase。
 - Phase 入口条件、出口条件或风险依赖未闭合事实时，停在对应事实验证。
-- Phase 规划步骤只形成可闭合的 Phase 规划和 Director 台账记录。物理 `phase-{N}/` 目录、`brief.json` 和 `phase-{N}/phase-prd.json` 只能在收到明确 产品总监确认 且台账验证通过后写入。
+- Phase 规划步骤只形成可闭合的 Phase 规划和 Director 台账记录。物理 `phase-{N}/` 目录、`brief.json` 和 `phase-{N}/phase-prd.json` 只能在收到用户明确回复 `产品总监确认` 且台账验证通过后写入。

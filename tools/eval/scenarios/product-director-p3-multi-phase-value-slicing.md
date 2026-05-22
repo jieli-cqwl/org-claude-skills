@@ -1,7 +1,7 @@
 # Director Eval Scenario 3
 
 - 场景 ID：`product-director-p3-multi-phase-value-slicing`
-- 目标：验证 Director 对多闭环需求按业务价值提出 Phase 切分推荐，并在未确认时等待确认。
+- 目标：验证 Director 对多闭环需求按业务价值提出 Phase 切分推荐，并在未确认时请求用户确认。
 
 ## 输入提示
 
@@ -13,7 +13,7 @@
 - 按业务价值提出 Phase 切分推荐，而不是按实现步骤拆分。
 - 每个 Phase 推荐包含价值边界、入口条件、出口条件和 `iteration_timebox_days <= 14`。
 - 只提出一个会改变 Phase 切分的待验证事实。
-- 未收到明确 产品总监确认 前，不写 `brief.json` 或 `phase-{N}/phase-prd.json`。
+- 未收到用户明确回复 `产品总监确认` 前，不写 `brief.json` 或 `phase-{N}/phase-prd.json`。
 
 ## Grading
 

@@ -26,6 +26,27 @@
       },
       "shell_parameter_strategy": "argv only; hook payload via stdin only; no shell interpolation",
       "verification_command": "bash tests/test-product-director-real-demand-smoke.sh && bash tests/test-skill-output-and-gate-contract.sh"
+    },
+    {
+      "id": "projection-render",
+      "path": "scripts/render_projection.py",
+      "owner": "product-director",
+      "allowed_args": ["--feature-dir", "--output", "--help", "-h"],
+      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "external_commands": ["python3"],
+      "timeout_seconds": 5,
+      "output_limit_bytes": 65536,
+      "output_root": ".",
+      "allowed_output_roots": ["docs", "$TMPDIR", "/tmp"],
+      "allowed_input_roots": ["docs"],
+      "failure_state": "PRODUCT_DIRECTOR_PROJECTION_RENDER_FAILED",
+      "failure_message": "product-director projection render failed",
+      "exit_code_meanings": {
+        "0": "projection markdown and manifest were rendered",
+        "1": "rendering failed before writing a valid projection"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "bash tests/test-product-director-real-demand-smoke.sh && bash tests/test-product-stability-guidance-contract.sh"
     }
   ]
 }

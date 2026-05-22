@@ -164,7 +164,7 @@ assert_absent '^读取：`references/' "$DIRECTOR"
 assert_present '^\*\*问题澄清\*\*：读取 `references/problem-clarification\.md`' "$DIRECTOR"
 assert_present '^\*\*目标、成功标准与投入边界\*\*：读取 `references/success-investment-boundary\.md`' "$DIRECTOR"
 assert_present '^\*\*Phase 规划\*\*：读取 `references/phase-planning\.md`' "$DIRECTOR"
-assert_present '^\*\*Director Finalization（总监确认与写入）\*\*：读取 `references/final-artifacts\.md`，只有明确收到 产品总监确认' "$DIRECTOR"
+assert_present '^\*\*Director Finalization（总监确认与写入）\*\*' "$DIRECTOR"
 assert_present '主动形成推荐判断并推进基线闭合；用户负责补充、确认或替换真实业务事实' "$DIRECTOR"
 assert_absent 'references/conversation-guide\.md' "$DIRECTOR"
 assert_absent '只提取' "$DIRECTOR"
@@ -184,6 +184,11 @@ required_routes = {
     "范围、本期不做、可行性约束与决策理由": ["核心、增强和未来", "references/scope-constraints.md"],
     "风险与未知项": ["基线推翻风险", "references/risks-unknowns.md"],
     "Phase 规划": ["iteration_timebox_days <= 14", "references/phase-planning.md"],
+    "Director Finalization（总监确认与写入）": [
+        "references/final-artifacts.md",
+        "产品总监确认",
+        "Director result gate",
+    ],
 }
 for label, tokens in required_routes.items():
     for token in tokens:
