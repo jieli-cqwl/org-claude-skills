@@ -236,7 +236,6 @@ tests/test-standard-chain-skill-structure.sh	absent	short-absent-phrase	^读取�
 tests/test-standard-chain-skill-structure.sh	absent	short-absent-phrase	^运行边界：$	$ROOT/shared/skills/product-manager/SKILL.md
 tests/test-standard-chain-skill-structure.sh	absent	short-absent-phrase	只提取	$ROOT/shared/skills/product-director/SKILL.md
 tests/test-standard-chain-skill-structure.sh	absent	short-absent-phrase	只提取	$ROOT/shared/skills/product-manager/SKILL.md
-tests/test-standard-chain-skill-structure.sh	present	short-present-phrase	Self-check.*references/pm-quality-guide\.md|references/pm-quality-guide\.md.*产品模型	$ROOT/shared/skills/product-manager/SKILL.md
 tests/test-standard-chain-skill-structure.sh	present	short-present-phrase	^\*\*Director Finalization（总监确认与写入）\*\*	$ROOT/shared/skills/product-director/SKILL.md
 tests/test-standard-chain-skill-structure.sh	present	short-present-phrase	^\*\*Phase 规划\*\*：读取 `references/phase-planning\.md`	$ROOT/shared/skills/product-director/SKILL.md
 tests/test-standard-chain-skill-structure.sh	present	short-present-phrase	^\*\*目标、成功标准与投入边界\*\*：读取 `references/success-investment-boundary\.md`	$ROOT/shared/skills/product-director/SKILL.md

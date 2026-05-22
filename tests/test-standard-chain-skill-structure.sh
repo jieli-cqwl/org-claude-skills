@@ -211,10 +211,18 @@ assert_absent '^运行边界：$' "$MANAGER"
 assert_present 'Handoff gate.*preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"|preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON".*Handoff gate' "$MANAGER"
 assert_absent 'references/conversation-guide\.md' "$MANAGER"
 assert_absent '只提取' "$MANAGER"
-assert_present 'references/pm-quality-guide\.md' "$MANAGER"
+assert_present 'references/self-check\.md' "$MANAGER"
+assert_absent 'references/pm-quality-guide\.md' "$MANAGER"
+[[ -f "$ROOT/shared/skills/product-manager/references/self-check.md" ]] || {
+    echo "[FAIL] missing product-manager self-check reference" >&2
+    exit 1
+}
+[[ ! -e "$ROOT/shared/skills/product-manager/references/pm-quality-guide.md" ]] || {
+    echo "[FAIL] retired product-manager pm-quality-guide reference still exists" >&2
+    exit 1
+}
 assert_present '\*\*Verification Plan\*\*' "$MANAGER"
 assert_present '\*\*Design handoff\*\*|design handoff' "$MANAGER"
-assert_present 'Self-check.*references/pm-quality-guide\.md|references/pm-quality-guide\.md.*产品模型' "$MANAGER"
 assert_present 'Agent review.*references/review-orchestration\.md|references/review-orchestration\.md.*Agent review' "$MANAGER"
 assert_absent 'references/output\.md' "$MANAGER"
 assert_absent 'references/(review-orchestration|output)\.md#|references/[^`[:space:]]+-contract\.md' "$MANAGER"

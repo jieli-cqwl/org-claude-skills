@@ -22,12 +22,12 @@
   {
     "id": 5,
     "prompt": "Phase 1 拆了 4 个 UNIT，其中 UNIT-3（P2）被 UNIT-1（P0）依赖。UNIT split 逐 UNIT 闭合后，PM 应该怎么处理这个优先级排序问题？",
-    "expected": "PM 在 UNIT split 收尾的整体优先级排序中识别矛盾：UNIT-1 是 P0 但依赖 P2 的 UNIT-3，高优依赖低优不合理——要么 UNIT-3 的优先级提升为 P0，要么 UNIT-1 的依赖关系重新审视；PM 暂停并修正这个矛盾后再进入 AC。"
+    "expected": "PM 在 UNIT split 收尾的整体优先级排序中识别矛盾：UNIT-1 是 P0 但依赖 P2 的 UNIT-3，违反“高优 UNIT 不依赖低优 UNIT，除非写出业务理由”的口径；要么 UNIT-3 的优先级提升为 P0，要么 UNIT-1 的依赖关系重新审视；PM 暂停并修正这个矛盾后再进入 AC。"
   },
   {
     "id": 6,
     "prompt": "Self-check 扫描发现 UNIT-1 写「订单状态变为已完成」，UNIT-2 写「订单状态变为已结束」，但两处指同一个业务状态。PM 应该怎么处理？",
-    "expected": "PM 在 Self-check 标记跨 UNIT 术语不一致：「已完成」和「已结束」指同一业务状态，统一为一个术语并同步修正两个 UNIT 的 AC、闭环定义和所有状态引用；不一致项在 Self-check 修正或记入 issue_ledger，术语一致后再进入 Agent review。"
+    "expected": "PM 在 Self-check 标记跨 UNIT 术语不一致：「已完成」和「已结束」指同一业务状态，返回 return_to=UNIT split 或 AC；回对应 The Process 环节统一术语，并同步修正两个 UNIT 的 AC、闭环定义和所有状态引用；仍需承接时写入既有 issue/review 字段，术语一致后再进入 Agent review。"
   },
   {
     "id": 7,

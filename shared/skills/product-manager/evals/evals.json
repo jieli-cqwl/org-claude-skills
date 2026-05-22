@@ -80,7 +80,7 @@
     {
       "id": "review-delivery-guided-confirmation",
       "prompt": "Self-check 扫描发现 AC 缺一个边界案例，Agent review 的 tester 给 WARN、reviewer 无 FAIL；请继续推进到 Delivery 交付确认，并说明怎么交给 /design。",
-      "expected_output": "先给 PM 收口建议：补齐 Self-check 缺失边界案例，说明 Agent review 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为结构化评审结论后，在 Delivery 验证一个会改变 delivery_confirmation 结论的具体业务假设；提供给 /design 消费已冻结 JSON 产物和下游需消费字段。",
+      "expected_output": "先给 PM 收口建议：Self-check 标记 AC 缺边界案例后返回 return_to=AC，回 AC 补齐缺失边界案例；说明 Agent review 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为结构化评审结论后，在 Delivery 验证一个会改变 delivery_confirmation 结论的具体业务假设；提供给 /design 消费已冻结 JSON 产物和下游需消费字段。",
       "files": [],
       "expectations": [
         "覆盖 Self-check、Agent review、Delivery 的连续引导",
@@ -135,7 +135,7 @@
     {
       "id": "priority-ordering-synthesis",
       "prompt": "Phase 1 拆了 5 个 UNIT：UNIT-1 商品录入（P0）、UNIT-2 库存管理（P1）、UNIT-3 商品审核（P0）、UNIT-4 商品上架（P1，依赖 UNIT-1 和 UNIT-3）、UNIT-5 商品搜索（P2，依赖 UNIT-4）。所有 UNIT 都已逐个闭合。请在 UNIT split 收尾时验证整体优先级排序并给出推荐执行顺序。",
-      "expected_output": "验证优先级排序一致性：UNIT-4 是 P1 但被 P2 的 UNIT-5 依赖，合理；UNIT-1 和 UNIT-3 是 P0 被 P1 的 UNIT-4 依赖，合理（高优先完成才能解锁低优）；UNIT-2 独立且 P1，可与 UNIT-4 并行。推荐执行顺序：第一批 UNIT-1 + UNIT-3（P0，无依赖），第二批 UNIT-2 + UNIT-4（P1，UNIT-4 等 UNIT-1/UNIT-3 完成），第三批 UNIT-5（P2，等 UNIT-4）。如果存在高优依赖低优的矛盾应标记并暂停修正。",
+      "expected_output": "验证优先级排序一致性：UNIT-4 是 P1，被 P2 的 UNIT-5 依赖，依赖方向成立；UNIT-1 和 UNIT-3 是 P0，被 P1 的 UNIT-4 依赖，依赖方向成立（高优先完成才能解锁低优）；UNIT-2 独立且 P1，可与 UNIT-4 并行。推荐执行顺序：第一批 UNIT-1 + UNIT-3（P0，无依赖），第二批 UNIT-2 + UNIT-4（P1，UNIT-4 等 UNIT-1/UNIT-3 完成），第三批 UNIT-5（P2，等 UNIT-4）。如果存在高优依赖低优的矛盾应标记并暂停修正。",
       "files": [],
       "expectations": [
         "验证高优 UNIT 不依赖低优 UNIT（或有明确业务理由）",
@@ -151,14 +151,14 @@
     {
       "id": "cross-unit-semantic-consistency",
       "prompt": "Self-check 扫描时发现：UNIT-1 的 AC 写「状态变为已发布」，UNIT-3 的 AC 写「状态变为上线中」，但两处指同一个业务状态；UNIT-2 的排除项写「不含退货流程」，UNIT-4 的 Integration Context 写「支持退货触发的库存回滚」。PM 在 Self-check 应该怎么处理？",
-      "expected_output": "PM 在 Self-check 标记两类问题：1）术语不一致——「已发布」和「上线中」指同一业务状态，统一为一个术语并同步修正所有 UNIT 的 AC、闭环定义和状态引用；2）规则矛盾——UNIT-2 排除退货但 UNIT-4 假设退货存在，确认退货流程是否在 Phase 范围内；在范围内则修正 UNIT-2 排除项，范围外则修正 UNIT-4 的 Integration Context。两类问题在 Self-check 修正或记入 issue_ledger，闭合后进入 Agent review。",
+      "expected_output": "PM 在 Self-check 标记两类问题并返回 owning step：1）术语不一致——「已发布」和「上线中」指同一业务状态，return_to=UNIT split 或 AC，回对应环节统一术语并同步修正所有 UNIT 的 AC、闭环定义和状态引用；2）规则矛盾——UNIT-2 排除退货但 UNIT-4 假设退货存在，return_to=Feature inventory and risk 或 UNIT split，确认退货流程是否在 Phase 范围内；在范围内则回 UNIT split 修正 UNIT-2 排除项，范围外则回 UNIT split 修正 UNIT-4 的 Integration Context。仍需承接时写入既有 issue/review 字段，闭合后进入 Agent review。",
       "files": [],
       "expectations": [
         "识别跨 UNIT 术语不一致（同一状态不同名称）",
         "识别跨 UNIT 规则矛盾（排除项与依赖假设冲突）",
         "要求统一术语并同步修正所有引用",
         "要求确认规则冲突的范围归属后修正",
-        "不一致项在 Self-check 修正或记入 issue_ledger"
+        "Self-check 标记不一致项并返回 owning step 修正；仍需承接时写入既有 issue/review 字段"
       ],
       "expected_anchors": [
         "PA-11"
@@ -381,7 +381,7 @@
     },
     {
       "id": "PA-11",
-      "anchor": "Self-check 检查跨 UNIT 语义一致性：同一业务概念使用相同术语和状态名、不同 UNIT 规则和排除项不矛盾，不一致项必须修正或记入 issue_ledger",
+      "anchor": "Self-check 检查跨 UNIT 语义一致性：同一业务概念使用相同术语和状态名、不同 UNIT 规则和排除项不矛盾；不一致项必须返回 owning step 修正，仍需承接时写入既有 issue/review 字段",
       "weight": 1
     },
     {
