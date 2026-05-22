@@ -26,7 +26,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 
 ## Checklist
 
-按这个顺序推进；当前步骤未闭合，不进入下一步。
+按这个顺序推进；当前步骤闭合后进入下一步。
 
 - **Handoff gate** -- 验 Director handoff，分清 PM 可收口缺口、必须回 Director 或用户裁决的问题。
 - **Evidence and AS-IS** -- 先拿入口、截图、页面、日志、文档或用户裁决证据，再写现状。
@@ -41,7 +41,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 - **Review digest** -- 固定同一份送审包和 digest。
 - **Agent review** -- 三视角 reviewer 审同一份 digest，关闭 FAIL。
 - **PM handoff gate** -- 复核评审、风险、issue、digest 和最终 JSON 一致。
-- **Delivery** -- 用户接受后写交付确认，只交付最终 JSON。
+- **Delivery** -- 用户接受后写交付确认，交付最终 JSON。
 
 ## 流程
 
@@ -80,7 +80,7 @@ digraph product_manager_flow {
 
 **Feature inventory and risk**：把产品模型收敛成功能清单、模块能力、入口场景和风险台账。每个能力标为 `IN_SCOPE`、`OUT_OF_SCOPE` 或 `NEEDS_DECISION`；`NEEDS_DECISION` 能力停在功能清单等待裁决。每个风险降解到 AC、Verification Plan、阻断项、下游 owner 或用户裁决。
 
-**Pre-UNIT gate**：拆 UNIT 前复核产品模型。若证据、流程、功能、入口、对象、状态、权限、规则或风险仍会改变 UNIT 边界，继续收口，不拆 UNIT。
+**Pre-UNIT gate**：拆 UNIT 前复核产品模型。若证据、流程、功能、入口、对象、状态、权限、规则或风险仍会改变 UNIT 边界，继续收口并暂停 UNIT 拆分。
 
 **UNIT split**：每个 UNIT 必须完成一个闭环：输入或触发 -> 核心行为 -> 可观察结果。写清优先级依据、依赖、排除项、Integration Context、功能追溯、流程追溯和风险追溯。Integration Context 必须写出业务模块、不可破坏行为、跨 UNIT 依赖和业务约束。一个 UNIT 出现多个独立触发、多个独立结果或不同交付价值时继续拆分。所有 UNIT 闭合后，复核优先级和依赖顺序；高优 UNIT 依赖低优 UNIT 时，必须写出业务理由或修正优先级/依赖。
 
@@ -102,11 +102,11 @@ digraph product_manager_flow {
 
 ## 用户协作
 
-- 先给出 PM 推荐结论、依据和会改变结论的业务事实；只向用户确认会改变边界、优先级、依赖、排除项或交付确认的事实。
-- 先给出 PM 推荐拆分和依据；用户只补充业务事实、约束和裁决。
+- 先给出 PM 推荐结论、依据和会改变结论的业务事实；向用户确认会改变边界、优先级、依赖、排除项或交付确认的事实。
+- 先给出 PM 推荐拆分和依据；用户补充业务事实、约束和裁决。
 - 把用户的方案词改写成业务行为、可观察结果、风险或设计交接。
 - 用户一次给多个事实时，先处理会改变当前步骤的事实，其余登记到后续步骤。
-- 阻断时只返回：状态、owner、阻断事实、影响产物、推荐默认值、一个问题、恢复条件。
+- 阻断时返回：状态、owner、阻断事实、影响产物、推荐默认值、一个问题、恢复条件。
 
 ## 按需读取
 
@@ -126,11 +126,11 @@ digraph product_manager_flow {
 
 - [ ] Director handoff 通过，Director-owned 字段未改变。
 - [ ] 证据、AS-IS、TO-BE、业务流程图、功能清单、入口场景、业务对象、状态、权限、规则和风险已闭合或明确 N/A。
-- [ ] 无 `NEEDS_DECISION`、开放风险或预评审阻断进入 UNIT 拆分。
+- [ ] `NEEDS_DECISION`、开放风险和预评审阻断均已关闭，再进入 UNIT 拆分。
 - [ ] 每个 UNIT 有闭环、优先级依据、Integration Context、依赖、排除项和功能/流程/风险追溯。
 - [ ] 每条 AC 有示例输入、预期结果、边界情况和失败模式。
 - [ ] 每条 Verification Plan 映射 AC、成功信号、风险或设计交接。
-- [ ] 设计交接只包含 PM 无法关闭的 WHAT 层决策。
+- [ ] 设计交接包含 PM 已定义业务边界、且需要 `/design` 选择的决策。
 - [ ] Owner self-check 与 review digest 当前有效。
 - [ ] 三视角 reviewer 使用同一份 digest；无 open FAIL；WARN 有 owner 和承接目标。
 - [ ] `brief.json.delivery_confirmation.status=confirmed`。
