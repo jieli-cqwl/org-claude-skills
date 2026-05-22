@@ -12,7 +12,7 @@
   {
     "id": 3,
     "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-    "expected": "判定当前停在 Handoff gate；PM 准入消费 brief.json / phase-prd.json / UNIT-*.json；缺失 handoff 工件时按 preflight_check.sh 的 BLOCKED / failure_code / owner / reason 口径报告缺口和建议入口，是否进入 product-director 补齐确认门由用户裁决；评审结论在当前闭环写入 review_conclusion / issue_ledger。"
+    "expected": "判定当前停在 Handoff gate；PM 初始准入只消费 brief.json / phase-prd.json，legacy markdown 只作背景，UNIT-*.json 是后续 UNIT split 与 Review digest 的输入；缺失 handoff 工件时按 preflight_check.sh 的 BLOCKED / failure_code / owner / reason 口径报告缺口和建议入口，是否进入 product-director 补齐确认门由用户裁决；Handoff 通过后把 phase-prd.json 作为工作草稿逐环节写入，评审结论在当前闭环写入 review_conclusion / issue_ledger。"
   },
   {
     "id": 4,
@@ -32,7 +32,7 @@
   {
     "id": 7,
     "prompt": "Handoff gate 已通过。Director baseline 确认了「商品库存管理」Phase 1。请在 Evidence and AS-IS 阶段细化端到端业务流程。",
-    "expected": "先给 PM 推荐业务流程草案，覆盖端到端过程、关键业务对象状态变化和关键分支；标注会改变流程结论的未闭合业务假设；不在本步拆 UNIT 或写 AC；不超出 Director 冻结范围。"
+    "expected": "先给 PM 推荐业务流程草案，并写入 phase-prd 工作草稿中本环节负责字段；覆盖端到端过程、关键业务对象状态变化和关键分支；标注会改变流程结论的未闭合业务假设；不在本步拆 UNIT 或写 AC；不超出 Director 冻结范围。"
   },
   {
     "id": 8,

@@ -63,7 +63,7 @@
     "scan": {"mode": "manual", "owner": "first-party", "reason": "Whole-repository health scans are high-cost and should be explicit."},
     "security": {"mode": "manual", "owner": "first-party", "reason": "Security reviews are high-impact scans and should be explicitly invoked."},
     "self-improving-agent": {"mode": "manual", "owner": "community", "reason": "Self-improvement memory workflows should be explicit."},
-    "skill-creator": {"mode": "auto", "owner": "community", "auto_class": "high_frequency", "reason": "Skill creation or editing requests should route automatically.", "description": "Use when creating, editing, evaluating, or optimizing a Skill or trigger description."},
+    "skill-creator": {"mode": "auto", "owner": "community", "auto_class": "high_frequency", "reason": "Skill creation or editing requests should route automatically; Claude uses the vendored Anthropic skill and Codex uses its bundled system skill.", "description": "Use when creating, editing, evaluating, or optimizing a Skill or trigger description."},
     "skill-pull": {"mode": "manual", "owner": "first-party", "reason": "External Skill source updates should be explicit."},
     "skill-refiner": {"mode": "manual", "owner": "first-party", "reason": "Skill refinement architecture work should be explicitly invoked."},
     "slack-gif-creator": {"mode": "manual", "owner": "community", "reason": "Slack GIF creation is specialized and explicit."},

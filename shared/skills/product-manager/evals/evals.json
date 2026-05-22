@@ -37,11 +37,12 @@
     {
       "id": "canonical-review-required",
       "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-      "expected_output": "判定当前停在 Handoff gate；先收到并校验 brief.json / phase-prd.json / UNIT-*.json；PM owner 自检通过后计算 reviewed_bundle_digest，再让三视角 reviewer 审同一份 digest 绑定的 PM review bundle，评审结论写入 review_conclusion / issue_ledger。",
+      "expected_output": "判定当前停在 Handoff gate；先收到并校验 brief.json / phase-prd.json，legacy markdown 只作背景，初始准入不要求 UNIT-*.json；Handoff 通过后把 phase-prd.json 作为工作草稿逐环节写入。review 不能后补：UNIT 产出后，PM owner 自检通过再计算 reviewed_bundle_digest，让三视角 reviewer 审同一份 digest 绑定的 PM review bundle，评审结论写入 review_conclusion / issue_ledger。",
       "files": [],
       "expectations": [
         "legacy markdown 作为背景，准入工件以 JSON 产物为准",
-        "阻断到收到并校验 brief.json / phase-prd.json / UNIT-*.json",
+        "阻断到收到并校验 brief.json / phase-prd.json；初始 Handoff gate 不要求 UNIT-*.json",
+        "Handoff 通过后把 phase-prd.json 作为工作草稿逐环节写入",
         "要求 PM owner 自检通过后再送审",
         "要求计算并记录 reviewed_bundle_digest",
         "要求 reviewer 审同一份 digest 绑定的 PM review bundle",
@@ -167,10 +168,10 @@
     {
       "id": "business-flow-refinement",
       "prompt": "Handoff gate 已通过且语义扫描无阻断项。Director baseline 确认了「商品库存管理」Phase 1，目标是让仓库管理员能实时掌握库存并完成调整。请在 Evidence and AS-IS 阶段细化端到端业务流程。",
-      "expected_output": "先给 PM 推荐业务流程草案，覆盖端到端过程（入库→库存查询→库存调整→调整审批→记录归档）、关键业务对象状态变化（调整单状态：草稿→待审→已批准/已驳回→已执行）和关键分支（审批通过/驳回/超量预警）；标注会改变流程结论的未闭合业务假设（如是否需要多级审批、是否区分手动和系统自动调整）；本步产出流程和假设，UNIT 与 AC 进入后续步骤；保持 Director 冻结范围。",
+      "expected_output": "先给 PM 推荐业务流程草案，并写入 phase-prd 工作草稿中本环节负责字段：evidence_sources / as_is_flows，覆盖端到端过程（入库→库存查询→库存调整→调整审批→记录归档）、关键业务对象状态变化（调整单状态：草稿→待审→已批准/已驳回→已执行）和关键分支（审批通过/驳回/超量预警）；标注会改变流程结论的未闭合业务假设（如是否需要多级审批、是否区分手动和系统自动调整）；本步不拆 UNIT、不写 AC；保持 Director 冻结范围。",
       "files": [],
       "expectations": [
-        "产出端到端业务流程，功能列表进入后续 Feature inventory",
+        "产出端到端业务流程并写入当前工作草稿字段，功能列表进入后续 Feature inventory",
         "包含关键业务对象的状态变化",
         "识别关键分支（正常/异常/边界）",
         "标注未闭合业务假设",

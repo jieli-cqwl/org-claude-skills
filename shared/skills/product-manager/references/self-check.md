@@ -1,10 +1,11 @@
 # Self-check
 
-Self-check 阶段读取本文；只做送审前过程对齐、交付成功标准验收、反馈和回流。不新增产物字段，字段以 templates/contracts 为准。
+Self-check 阶段读取本文和当前 JSON 工作草稿；只做送审前过程对齐、交付成功标准验收、反馈和回流。不新增产物字段，字段以 templates/contracts 为准。
 
 ## 过程对齐
 
 - Handoff gate：Director baseline 已通过；Director-owned 字段未漂移；PM 可关闭缺口、用户裁决缺口和 Director 回流缺口已分清。
+- 工作草稿：每个步骤只读取前序已写入字段；未由拥有步骤写入的字段不得作为后续判断依据。
 - Evidence and AS-IS：每个会影响判断的入口、流程、状态、日志、文档或裁决都有证据、明确 N/A 或阻断记录；`source_type` 写真实来源，`supports` 指向具体判断，`required_evidence` 和 `blocks_fields` 写清缺什么、阻断什么。
 - TO-BE product model：目标流程只改变达成 Phase 目标所需的业务行为；正常、边界、失败路径和可观察结果已闭合；未改变 Phase 出口、范围、非目标或可行性。
 - Feature inventory and risk：功能清单来自已闭合流程；每项能力是 `IN_SCOPE`、`OUT_OF_SCOPE` 或 `NEEDS_DECISION`；模块能力、入口场景、业务对象、状态、权限、规则和风险能支撑 UNIT。

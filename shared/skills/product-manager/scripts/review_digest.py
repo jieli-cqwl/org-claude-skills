@@ -5,10 +5,30 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+def resolve_runtime_root(script_path: Path) -> Path:
+    resolved = script_path.resolve()
+    candidates = []
+    candidates.extend(parent for parent in resolved.parents[:5])
+    for value in (
+        os.environ.get("CODEX_HOME"),
+        os.environ.get("CLAUDE_HOME"),
+        str(Path.home() / ".codex"),
+        str(Path.home() / ".claude"),
+    ):
+        if value:
+            candidates.append(Path(value))
+
+    for candidate in candidates:
+        if (candidate / "tools" / "community" / "review_digest_common.py").is_file():
+            return candidate
+    return resolved.parents[4]
+
+
+ROOT = resolve_runtime_root(Path(__file__))
 sys.path.insert(0, str(ROOT / "tools" / "community"))
 
 from normalize_canonical_artifact import load_json  # noqa: E402

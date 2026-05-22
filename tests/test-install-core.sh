@@ -52,7 +52,7 @@ install_test_create_baseline_home core-baseline >/dev/null
 baseline_home="$INSTALL_TEST_BASELINE_HOME"
 install_test_assert_control_plane_runtime_files "$baseline_home/.claude" "claude baseline runtime"
 install_test_assert_control_plane_runtime_files "$baseline_home/.codex" "codex baseline runtime"
-install_test_assert_path_absent "$baseline_home/.agents/skills/skill-creator/agents/openai.yaml" "Codex runtime should use Anthropic skill-creator without local adapter metadata"
+install_test_assert_path_absent "$baseline_home/.agents/skills/skill-creator" "Codex user runtime should defer skill-creator to the bundled Codex system skill"
 install_test_case_pass "core: create baseline for installed-runtime repair cases"
 
 install_test_case_start "core: same-version install is idempotent and repairs dependencies"

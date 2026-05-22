@@ -47,7 +47,7 @@
 - `evals/`、`test-prompts.json` 和 tests 中是否仍验证旧噪音。
 - installer、catalog、hook、README 和有效性记录中的旧 Skill 引用。
 
-跨文件契约一致性扫描：SKILL HARD-GATE / 输出段 ↔ schema；SKILL 术语 ↔ completion_check；fixture ↔ 最新约束枚举；references ↔ SKILL；runtime 自动加载内容是否被二次挂载。
+跨文件契约一致性扫描：SKILL HARD-GATE / 输出段 ↔ schema；SKILL 术语 ↔ completion_check；fixture ↔ 最新约束枚举；references ↔ SKILL；runtime 入口强制内容是否被重复挂载，reference 触发读取是否被写成背景假设。
 
 ## 编译降噪审查
 

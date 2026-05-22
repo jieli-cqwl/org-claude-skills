@@ -1147,6 +1147,7 @@ build_staging_codex() {
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
   copy_selected_anthropic_skills "$staging/skills"
+  rm -rf "$staging/skills/skill-creator"
   copy_selected_vercel_skills "$staging/skills"
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
@@ -1686,34 +1687,6 @@ codex_legacy_skill_root_clean() {
   [ ! -d "$legacy_dir" ] || [ -z "$(find "$legacy_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) ! -name '.*' -print -quit 2>/dev/null || true)" ]
 }
 
-codex_system_skill_creator_duplicate_path() {
-  printf '%s/skills/.system/skill-creator\n' "$CODEX_DIR"
-}
-
-codex_system_skill_creator_absent() {
-  local duplicate
-  duplicate="$(codex_system_skill_creator_duplicate_path)"
-
-  [ ! -e "$duplicate" ] && [ ! -L "$duplicate" ]
-}
-
-audit_codex_system_skill_creator_duplicate() {
-  local duplicate
-  duplicate="$(codex_system_skill_creator_duplicate_path)"
-
-  [ -e "$duplicate" ] || [ -L "$duplicate" ] || return 0
-
-  RUNTIME_AUDIT_DIRTY=1
-  if [ "$DRY_RUN" -eq 1 ]; then
-    log "[dry-run] codex 将删除重复系统 skill-creator: $duplicate"
-    return 0
-  fi
-
-  rm -rf "$duplicate"
-  remove_if_empty "$(dirname "$duplicate")" "$CODEX_DIR/skills"
-  log "codex 已删除重复系统 skill-creator: $duplicate"
-}
-
 runtime_probe_skills_absent() {
   local skills_dir="$1"
 
@@ -2239,7 +2212,6 @@ runtime_target_complete() {
     codex_agent_config_inherits_defaults "$target_dir/config.toml" || return 1
     codex_agent_files_match_contract "$target_dir" || return 1
     codex_legacy_skill_root_clean || return 1
-    codex_system_skill_creator_absent || return 1
     runtime_superpowers_clean "$codex_skills_dir" "$allow_local_edits" || return 1
     [ -f "$codex_skills_dir/product-director/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || return 1
@@ -2251,8 +2223,7 @@ runtime_target_complete() {
     runtime_probe_skills_absent "$codex_skills_dir" || return 1
     runtime_internal_skill_roots_absent "$codex_skills_dir" || return 1
     codex_runtime_surface_applied "$codex_skills_dir" || return 1
-    [ -f "$codex_skills_dir/skill-creator/SKILL.md" ] || return 1
-    [ ! -e "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || return 1
+    [ ! -e "$codex_skills_dir/skill-creator" ] || return 1
     [ -f "$codex_skills_dir/$skill_pull_skill/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || return 1
@@ -2347,7 +2318,6 @@ install_to_target() {
 
   if [ "$name" = "codex" ]; then
     audit_codex_runtime_rules "$target_dir" "$state_dir"
-    audit_codex_system_skill_creator_duplicate
   fi
   audit_retired_runtime_skills "$name" "$target_dir" "$state_dir"
   audit_runtime_probe_skills "$name" "$target_dir" "$state_dir"
@@ -2728,7 +2698,6 @@ quick_check() {
     local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
     codex_legacy_skill_root_clean || fail "Quick Check 失败: ~/.codex/skills 不应残留非隐藏 skill；Codex skill 统一安装到 ~/.agents/skills"
-    codex_system_skill_creator_absent || fail "Quick Check 失败: ~/.codex/skills/.system/skill-creator 不应存在；Anthropic skill-creator 是唯一真源"
     quick_check_superpowers_clean "$codex_skills_dir" "$HOME/.agents/skills" "$CODEX_ALLOW_LOCAL_RUNTIME_EDITS"
     [ -f "$codex_skills_dir/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-director/SKILL.md 不存在"
     [ -f "$codex_skills_dir/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/product-manager/SKILL.md 不存在"
@@ -2738,8 +2707,7 @@ quick_check() {
     [ ! -e "$codex_skills_dir/review-fix-loop" ] || fail "Quick Check 失败: ~/.agents/skills/review-fix-loop 不应存在"
     [ ! -e "$codex_skills_dir/codex-doc-review" ] || fail "Quick Check 失败: ~/.agents/skills/codex-doc-review 不应存在"
     codex_runtime_surface_applied "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 未满足 contracts/skill-runtime-surface.json"
-    [ -f "$codex_skills_dir/skill-creator/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator/SKILL.md 不存在"
-    [ ! -e "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator/agents/openai.yaml 不应存在"
+    [ ! -e "$codex_skills_dir/skill-creator" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator 不应存在；Codex 使用内置系统 skill-creator"
     [ -f "$codex_skills_dir/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/find-skills/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/agent-reach/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/agents/openai.yaml 不存在"
