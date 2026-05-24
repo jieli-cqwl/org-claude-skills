@@ -1,0 +1,48 @@
+{
+  "schema_version": "0.1.0",
+  "chain_version": "standard-chain/v1",
+  "episode_id": "developer:T1:attempt-1",
+  "role": "developer",
+  "task_spec_refs": [
+    "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1"
+  ],
+  "context_refs_read": [
+    "artifact://design/sample-feature.phase-1.design@v1#root",
+    "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
+  ],
+  "tool_events": [
+    {
+      "event_id": "tool-1",
+      "tool": "shell",
+      "summary": "ran focused standard-chain foundation registry test",
+      "evidence_ref": "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#red"
+    }
+  ],
+  "state_before_refs": [
+    "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
+  ],
+  "state_after_refs": [
+    "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+  ],
+  "failure_attribution": {
+    "status": "none",
+    "category": "none",
+    "evidence_refs": []
+  },
+  "verification": {
+    "default_fail": true,
+    "proving_commands": [
+      {
+        "command": "bash tests/test-standard-chain-foundation-registry.sh",
+        "current_output_ref": "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#green",
+        "result": "pass"
+      }
+    ],
+    "result": "pass",
+    "evidence_refs": [
+      "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#green"
+    ]
+  },
+  "human_interventions": [],
+  "residual_risks": []
+}

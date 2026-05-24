@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/contracts/episode-package.schema.json",
+  "description": "Run-level harness evidence package for standard-chain episodes. It indexes canonical artifacts and execution evidence without becoming a second source of artifact facts.",
+  "$defs": {
+    "refArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "nonEmptyRefArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "toolEvent": {
+      "type": "object",
+      "required": [
+        "event_id",
+        "tool",
+        "summary"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tool": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "provingCommand": {
+      "type": "object",
+      "required": [
+        "command",
+        "current_output_ref",
+        "result"
+      ],
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "current_output_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "blocked"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "required": [
+    "schema_version",
+    "chain_version",
+    "episode_id",
+    "role",
+    "task_spec_refs",
+    "context_refs_read",
+    "tool_events",
+    "state_before_refs",
+    "state_after_refs",
+    "failure_attribution",
+    "verification",
+    "human_interventions",
+    "residual_risks"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "chain_version": {
+      "const": "standard-chain/v1"
+    },
+    "episode_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "developer",
+        "skill-refiner"
+      ]
+    },
+    "task_spec_refs": {
+      "$ref": "#/$defs/nonEmptyRefArray"
+    },
+    "context_refs_read": {
+      "$ref": "#/$defs/refArray"
+    },
+    "tool_events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/toolEvent"
+      }
+    },
+    "state_before_refs": {
+      "$ref": "#/$defs/refArray"
+    },
+    "state_after_refs": {
+      "$ref": "#/$defs/nonEmptyRefArray"
+    },
+    "failure_attribution": {
+      "type": "object",
+      "required": [
+        "status",
+        "category",
+        "evidence_refs"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "none",
+            "observed",
+            "blocked"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "none",
+            "input_gap",
+            "test_failure",
+            "tool_failure",
+            "scope_drift",
+            "verification_gap",
+            "unknown"
+          ]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/refArray"
+        }
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "required": [
+        "default_fail",
+        "proving_commands",
+        "result",
+        "evidence_refs"
+      ],
+      "properties": {
+        "default_fail": {
+          "const": true
+        },
+        "proving_commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/provingCommand"
+          }
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "blocked"
+          ]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/nonEmptyRefArray"
+        }
+      },
+      "additionalProperties": false
+    },
+    "human_interventions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "summary",
+          "evidence_ref"
+        ],
+        "properties": {
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "residual_risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "summary",
+          "owner",
+          "next_action"
+        ],
+        "properties": {
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "next_action": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
