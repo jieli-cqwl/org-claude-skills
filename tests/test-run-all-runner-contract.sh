@@ -105,6 +105,7 @@ assert_not_contains "test-install-systematic.sh" "$full_plan" "full plan"
 assert_not_contains "test-install-runtime-audit.sh" "$full_plan" "full plan"
 
 assert_contains "bash $ROOT/tools/validate-contracts.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-entry-doc-source-contract.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-developer-effectiveness-review-evals.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-developer-runtime-proof-contract.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-developer-runtime-failure-matrix.sh" "$quick_plan" "quick plan"

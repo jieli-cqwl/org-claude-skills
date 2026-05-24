@@ -25,10 +25,10 @@ Goal: 为项目根目录入口文档建立或审计团队共享入口。Completi
 
 ## 入口文档真源
 
-- 主入口文档固定为项目根目录 `CLAUDE.md`
-- 镜像入口文档固定为项目根目录 `AGENTS.md`
+- `AGENTS.md` 是共享项目指令真源
+- `CLAUDE.md` 是 Claude Code 加载入口；默认只写 `@AGENTS.md` import，避免双源漂移
 - `init` / `audit` 只允许读取或写入这两个文件；禁止把 `README.md`、`docs/**/*.md`、skill 文档或其他 Markdown 当作入口文档
-- 用户选择只生成一个时，只允许保留 `CLAUDE.md` 或 `AGENTS.md` 其中一个，必须在写入前明确指定
+- 用户选择只生成一个时，只允许保留 `CLAUDE.md` 或 `AGENTS.md` 其中一个，必须在写入前明确载体和缺失影响
 
 ## 流程
 
@@ -59,22 +59,22 @@ Goal: 为项目根目录入口文档建立或审计团队共享入口。Completi
    - 架构组（Architecture + Code Style + Workflow）— "怎么组织的"
    - 质量组（Testing + Gotchas）— "怎么不出问题"
    - 每组：展示基于扫描填充的草稿 → 1-2 个共创提问 → 用户修正确认
-4. **总结写入** — 展示完整预览；默认同时写入 `CLAUDE.md` 与 `AGENTS.md`（标题行分别为 `# CLAUDE.md` / `# AGENTS.md`，正文完全一致）；用户可选只生成其中一个
+4. **总结写入** — 展示完整预览；默认同时写入：`AGENTS.md` 保存完整项目指令草稿，`CLAUDE.md` 只保存标题和 `@AGENTS.md` import；用户可选只生成其中一个
 
 ### audit 模式
 
 1. **扫描当前状态** — 只读取项目根目录 `CLAUDE.md` / `AGENTS.md`；若都不存在提示 init；禁止把其他 Markdown 识别为入口文档；扫描项目结构用于对比
-2. **执行 3 项检查** — Trigger: audit 模式且入口文档存在；Read: `references/audit-checklist.md`；Expect: 过时检测（ERROR）、完整性检测（WARN）、一致性检测（ERROR）；Consume: 终端健康报告；Evidence: 文件路径、章节覆盖、差异和项目结构对比；Sync: 更新 audit checklist、输出格式和 fixture。
+2. **执行 3 项检查** — Trigger: audit 模式且入口文档存在；Read: `references/audit-checklist.md`；Expect: 过时检测（ERROR）、完整性检测（WARN）、真源检测（ERROR/WARN）；Consume: 终端健康报告；Evidence: 文件路径、章节覆盖、import 状态和项目结构对比；Sync: 更新 audit checklist、输出格式和 fixture。
 3. **终端输出** — 按 ERROR → WARN → OK 排序，每项附修复建议；不修改任何文件
 
 ## 输出
 
-Artifact contract: path 为项目根目录 `CLAUDE.md` 和/或 `AGENTS.md`，format 为 Markdown；required field 包含 Commands、Architecture、Code Style、Environment、Testing、Gotchas、Workflow 7 个章节；consumer 为项目成员、后续 agent 和用户健康审计；validation 通过章节计数、两文件正文 diff、audit 汇总行和只读 `git diff` replay。
+Artifact contract: path 为项目根目录 `AGENTS.md` 和/或 `CLAUDE.md`，format 为 Markdown；`AGENTS.md` required field 包含 Commands、Architecture、Code Style、Environment、Testing、Gotchas、Workflow 7 个章节；`CLAUDE.md` 默认只 import `@AGENTS.md`；consumer 为项目成员、后续 agent 和用户健康审计；validation 通过 `AGENTS.md` 章节计数、`CLAUDE.md` import、audit 汇总行和只读 `git diff` replay。
 
-**init 模式** — 产出项目根目录入口文档对（`CLAUDE.md` + `AGENTS.md`）：
+**init 模式** — 默认产出项目根目录入口文档对（`AGENTS.md` + `CLAUDE.md`）：
 
 ```markdown
-# {ENTRY_FILE}
+# AGENTS.md
 
 ## Commands
 | 命令 | 用途 |
@@ -88,7 +88,13 @@ Artifact contract: path 为项目根目录 `CLAUDE.md` 和/或 `AGENTS.md`，for
 ## Workflow
 ```
 
-每章节 3-10 行。`AGENTS.md` 仅首行标题替换为 `# AGENTS.md`，其余内容保持一致。
+```markdown
+# CLAUDE.md
+
+@AGENTS.md
+```
+
+`AGENTS.md` 每章节 3-10 行。只有用户明确选择单文件 `CLAUDE.md` 时，才把完整项目指令写入 `CLAUDE.md`。
 
 **audit 模式** — 终端格式化输出：
 
@@ -103,8 +109,8 @@ Artifact contract: path 为项目根目录 `CLAUDE.md` 和/或 `AGENTS.md`，for
 ## 完成校验
 
 - [ ] init：`CLAUDE.md` 与 `AGENTS.md` 已按用户选择写入项目根目录
-- [ ] init：若同时生成两文件，`diff <(tail -n+2 CLAUDE.md) <(tail -n+2 AGENTS.md)` 无输出
-- [ ] init：每个已生成文件都包含 7 个章节标题（`grep -c '^## ' CLAUDE.md` = 7；`AGENTS.md` 同理）
+- [ ] init：若同时生成两文件，`CLAUDE.md` 只包含标题和 `@AGENTS.md` import
+- [ ] init：`AGENTS.md` 包含 7 个章节标题（`grep -c '^## ' AGENTS.md` = 7）
 - [ ] audit：终端输出包含汇总行（`[OK]` 开头，含错误/警告计数）
 - [ ] audit：未修改任何文件（`git diff` 无变更）
-- [ ] Proof evidence 已记录：init 的用户确认、写入路径、章节计数和正文 diff；audit 的只读 `git diff` 与汇总行
+- [ ] Proof evidence 已记录：init 的用户确认、写入路径、`AGENTS.md` 章节计数和 `CLAUDE.md` import；audit 的只读 `git diff` 与汇总行

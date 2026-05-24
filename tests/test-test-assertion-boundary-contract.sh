@@ -6,7 +6,7 @@ CHECKER="$ROOT/tools/community/check_test_signal_assertions.py"
 CLAUDE_ENTRY="$ROOT/CLAUDE.md"
 AGENTS_ENTRY="$ROOT/AGENTS.md"
 GLOBAL_RULE_FILE="$ROOT/shared/rules/测试断言边界.md"
-MAX_ENTRY_LINES=36
+MAX_AGENTS_LINES=36
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -25,17 +25,12 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 test -f "$CLAUDE_ENTRY" || fail "missing repo entry document: $CLAUDE_ENTRY"
 test -f "$AGENTS_ENTRY" || fail "missing repo entry document: $AGENTS_ENTRY"
 test ! -e "$GLOBAL_RULE_FILE" || fail "repo-local assertion boundary must not be distributed from shared/rules"
-diff <(tail -n +2 "$CLAUDE_ENTRY") <(tail -n +2 "$AGENTS_ENTRY") >/dev/null \
-  || fail "CLAUDE.md and AGENTS.md bodies should stay identical"
-for entry in "$CLAUDE_ENTRY" "$AGENTS_ENTRY"; do
-  line_count="$(wc -l <"$entry" | tr -d ' ')"
-  [ "$line_count" -le "$MAX_ENTRY_LINES" ] \
-    || fail "$(basename "$entry") should stay concise: $line_count lines > $MAX_ENTRY_LINES"
-done
-assert_present '^## Testing$' "$CLAUDE_ENTRY"
-assert_present '测试断言边界' "$CLAUDE_ENTRY"
-assert_present 'tools/community/check_test_signal_assertions\.py' "$CLAUDE_ENTRY"
-assert_present 'tests/fixtures/test-assertion-boundary/low-signal-prose-assertions\.baseline' "$CLAUDE_ENTRY"
+line_count="$(wc -l <"$AGENTS_ENTRY" | tr -d ' ')"
+[ "$line_count" -le "$MAX_AGENTS_LINES" ] \
+  || fail "AGENTS.md should stay concise: $line_count lines > $MAX_AGENTS_LINES"
+assert_present '测试断言边界' "$AGENTS_ENTRY"
+assert_present 'tools/community/check_test_signal_assertions\.py' "$AGENTS_ENTRY"
+assert_present 'tests/fixtures/test-assertion-boundary/low-signal-prose-assertions\.baseline' "$AGENTS_ENTRY"
 
 mkdir -p "$TMP_DIR/bad" "$TMP_DIR/good"
 

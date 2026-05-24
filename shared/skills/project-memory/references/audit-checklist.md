@@ -41,7 +41,7 @@ audit 模式的 3 项检查逻辑定义在此文件。
 
 ## 检查 2: 完整性检测（WARN）
 
-扫描文档中的二级标题（`## ` 开头的行），与 7 个建议章节对比：
+扫描共享项目指令正文中的二级标题（`## ` 开头的行），与 7 个建议章节对比。默认检查 `AGENTS.md`；只有用户选择单文件 `CLAUDE.md` 且它不是 `@AGENTS.md` import 时，才检查 `CLAUDE.md` 的章节。
 
 1. Commands
 2. Architecture
@@ -57,23 +57,27 @@ audit 模式的 3 项检查逻辑定义在此文件。
 
 ---
 
-## 检查 3: 一致性检测（ERROR / WARN）
+## 检查 3: 真源检测（ERROR / WARN）
 
 入口文档真源固定为项目根目录 `CLAUDE.md` 和 `AGENTS.md`。审计时只检查这两个文件，禁止把其他 Markdown 文件识别为入口文档。
 
 ### 两文件都存在
 
-排除第一行（标题行）后，做逐行文本比较：
+检查 `CLAUDE.md` 是否只通过 import 载入共享项目指令：
 
 ```bash
-diff <(tail -n+2 CLAUDE.md) <(tail -n+2 AGENTS.md)
+grep -Fx '@AGENTS.md' CLAUDE.md
 ```
 
-有差异 → 报 ERROR，显示差异行数，建议从一个文件同步到另一个（保留各自标题行）。
+缺失 `@AGENTS.md` import，或 `CLAUDE.md` 复制了共享项目指令正文 → 报 ERROR，建议把共享指令迁回 `AGENTS.md`，让 `CLAUDE.md` 只保留 import。
 
-### 只有一个文件存在
+### 只有 `AGENTS.md` 存在
 
-报 WARN，建议从已有文件复制正文并替换标题行来生成缺失的文件。
+报 WARN，建议新增 `CLAUDE.md` 并写入 `@AGENTS.md`，让 Claude Code 读取同一套项目指令。
+
+### 只有 `CLAUDE.md` 存在
+
+报 WARN。若 `CLAUDE.md` 已引用缺失的 `AGENTS.md`，升级为 ERROR；否则建议抽出共享项目指令到 `AGENTS.md`，再让 `CLAUDE.md` import。
 
 ### 两文件都不存在
 

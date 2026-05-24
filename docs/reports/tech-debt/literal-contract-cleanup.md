@@ -96,7 +96,7 @@
 
 ### 阶段 3：文档化新规则（1 次 PR）
 
-已在根目录 `CLAUDE.md` / `AGENTS.md` 的 Testing 章节落地：
+已在根目录 `AGENTS.md` 的 Testing 章节落地；`CLAUDE.md` 通过 `@AGENTS.md` 载入同一规则：
 
 > **skill 质量守护规则**
 >
