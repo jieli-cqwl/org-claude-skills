@@ -96,7 +96,7 @@
 
 ### 阶段 3：文档化新规则（1 次 PR）
 
-已在 `shared/rules/测试断言边界.md` 落地：
+已在根目录 `CLAUDE.md` / `AGENTS.md` 的 Testing 章节落地：
 
 > **skill 质量守护规则**
 >

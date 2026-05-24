@@ -3,7 +3,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHECKER="$ROOT/tools/community/check_test_signal_assertions.py"
-RULE_FILE="$ROOT/shared/rules/测试断言边界.md"
+CLAUDE_ENTRY="$ROOT/CLAUDE.md"
+AGENTS_ENTRY="$ROOT/AGENTS.md"
+GLOBAL_RULE_FILE="$ROOT/shared/rules/测试断言边界.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -19,7 +21,15 @@ assert_present() {
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test-assertion-boundary.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-test -f "$RULE_FILE" || fail "missing test assertion boundary rule: $RULE_FILE"
+test -f "$CLAUDE_ENTRY" || fail "missing repo entry document: $CLAUDE_ENTRY"
+test -f "$AGENTS_ENTRY" || fail "missing repo entry document: $AGENTS_ENTRY"
+test ! -e "$GLOBAL_RULE_FILE" || fail "repo-local assertion boundary must not be distributed from shared/rules"
+diff <(tail -n +2 "$CLAUDE_ENTRY") <(tail -n +2 "$AGENTS_ENTRY") >/dev/null \
+  || fail "CLAUDE.md and AGENTS.md bodies should stay identical"
+assert_present '^## Testing$' "$CLAUDE_ENTRY"
+assert_present '测试断言边界' "$CLAUDE_ENTRY"
+assert_present 'tools/community/check_test_signal_assertions\.py' "$CLAUDE_ENTRY"
+assert_present 'tests/fixtures/test-assertion-boundary/low-signal-prose-assertions\.baseline' "$CLAUDE_ENTRY"
 
 mkdir -p "$TMP_DIR/bad" "$TMP_DIR/good"
 

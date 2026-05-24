@@ -29,6 +29,7 @@
 
 ## 当前真源
 
+- 项目入口：根目录 `CLAUDE.md` / `AGENTS.md`，只约束开发本仓库
 - 入口合同：`shared/assistant.md`
 - 来源锁定：`community/SOURCES.yaml`
 - Superpowers 边界：`contracts/superpowers-boundary.yaml`
@@ -116,6 +117,7 @@ standard-chain 的接手恢复顺序固定为：
 
 所有改动使用同一套完成前验证规则：
 
+- 遵守根目录 `CLAUDE.md` / `AGENTS.md` 的本仓项目约束
 - 遵守 `shared/rules/*.md` 的硬约束
 - 先做影响范围判断，再控制改动边界
 - 先明确本次变更对应的成功标准，再运行能直接证明这些标准的 fresh proving command
