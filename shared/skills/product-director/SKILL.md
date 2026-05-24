@@ -2,7 +2,7 @@
 name: product-director
 user-invocable: true
 disable-model-invocation: true
-description: "Use when a business, tech-debt, stability, efficiency, compliance, scope-change, or Phase-change request needs a Director baseline co-created and confirmed before detail work continues."
+description: "Use when a business, tech-debt, stability, efficiency, compliance, scope, or Phase-change request needs a Director baseline co-created and confirmed before detail work continues."
 eval-type: encoded_preference
 argument-hint: "[需求描述]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, TeamCreate, SendMessage, TeamDelete

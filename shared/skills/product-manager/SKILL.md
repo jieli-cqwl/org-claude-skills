@@ -2,7 +2,7 @@
 name: product-manager
 user-invocable: true
 disable-model-invocation: true
-description: "Use when a Director-confirmed Phase must become PM-owned WHAT artifacts: evidence-backed product model, feature inventory, UNITs, AC, verification plan, review closure, and delivery handoff."
+description: "Use when a Director-confirmed Phase must become PM-owned WHAT artifacts: product model, feature inventory, UNITs, AC, verification plan, review closure, and delivery handoff."
 eval-type: encoded_preference
 argument-hint: "[feature 或 handoff brief]"
 allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendMessage, TeamDelete

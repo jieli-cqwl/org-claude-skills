@@ -88,11 +88,7 @@ Artifact contract: path 为项目根目录 `AGENTS.md` 和/或 `CLAUDE.md`，for
 ## Workflow
 ```
 
-```markdown
-# CLAUDE.md
-
-@AGENTS.md
-```
+`CLAUDE.md` 内容为一级标题 `# CLAUDE.md`，空行，随后一行 `@AGENTS.md`。
 
 `AGENTS.md` 每章节 3-10 行。只有用户明确选择单文件 `CLAUDE.md` 时，才把完整项目指令写入 `CLAUDE.md`。
 
