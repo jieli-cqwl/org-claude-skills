@@ -13,7 +13,7 @@ Self-check 读取本文件和当前 JSON 工作草稿，输出送审前阻断反
 - Feature inventory and risk：模块能力、入口场景、覆盖矩阵、技术证据输入、发布口径、业务对象、状态、权限、规则和风险能支撑 UNIT；高风险技术域逐项写合法 `domain`、`REQUIRED`、`N_A` 或 `BLOCKED`，没有合并成泛化证明。
 - Pre-UNIT gate：没有会改变 UNIT 边界的证据、流程、功能、入口、对象、状态、权限、规则、覆盖矩阵、技术证据输入、发布口径或风险缺口。
 - UNIT split：每个 UNIT 的 `trigger`、`core_behavior` 和 `observable_result` 完成闭环；优先级、依赖、排除项、Integration Context、功能追溯、流程追溯、风险追溯和规则追溯一致。
-- Cross-UNIT consistency：同一对象、状态和规则使用同一名称与口径；排除项、依赖和 Integration Context 不冲突。
+- Cross-UNIT consistency：同一对象、状态和规则使用同一名称与口径；排除项、依赖和 Integration Context 不冲突；`integration_context.cross_unit_dependencies[]` 只引用已存在的 `UNIT-*` id。
 - AC：每条 AC 都能用业务操作和可观察结果证明行为，且包含示例输入、预期结果、边界情况和失败模式；正常、失败、边界、并发/幂等、绕过调用和异步/离线消费者路径有覆盖或业务 N/A。
 - Verification Plan：每条计划说明要证明哪个业务结果，写清业务操作、预期观察、证据目标和 `evidence_types`，并用 `covers_refs` 映射 AC、成功信号、风险、覆盖矩阵、技术证据输入或设计交接项。
 - Verification Plan：页面/界面、接口请求响应、数据前后值、审计/日志/测试记录中的适用证据类型已覆盖；绕过调用、并发/幂等、异步/离线消费者和多端独立声明有验证计划或业务 N/A。

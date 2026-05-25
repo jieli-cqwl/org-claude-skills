@@ -159,7 +159,7 @@ digraph product_manager_flow {
 - 每个 UNIT 完成一个闭环：输入或触发 -> 核心行为 -> 可观察结果。
 - 拆分闭合后，按 `unit-definition.template.json` 创建或更新 `units/UNIT-*.json`，并同步 `phase-prd.json.unit_index` 与 `unit_priority_order`。
 - 每个 UNIT 写 `trigger`、`core_behavior`、`observable_result`、`feature_refs`、`flow_refs`、`risk_refs`、`rule_refs`、优先级依据、依赖、排除项和 Integration Context。
-- Integration Context 写业务模块、不可破坏行为、跨 UNIT 依赖和业务约束。
+- Integration Context 写业务模块、不可破坏行为、跨 UNIT 依赖和业务约束；`cross_unit_dependencies` 只写依赖的 `UNIT-*` id，依赖理由写入 `dependencies`、`priority_basis`、`protected_behaviors` 或 `business_constraints`。
 - 所有 UNIT 闭合后复核优先级和依赖顺序。
 - 高优 UNIT 依赖低优 UNIT 时，写出业务理由或修正优先级/依赖。
 

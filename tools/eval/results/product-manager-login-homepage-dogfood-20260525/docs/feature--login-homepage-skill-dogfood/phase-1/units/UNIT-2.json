@@ -84,7 +84,7 @@
       "logout removes ability to view homepage through old state"
     ],
     "cross_unit_dependencies": [
-      "UNIT-1 supplies valid authenticated state for this homepage loop"
+      "UNIT-1"
     ],
     "business_constraints": [
       "design can choose presentation; PM-owned access and invalidation behavior stays fixed"

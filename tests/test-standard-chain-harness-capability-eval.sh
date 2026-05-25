@@ -2,6 +2,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 CASES="$ROOT/tests/fixtures/standard-chain-harness/capability-eval/cases.json"
 SPEC="$ROOT/docs/reports/standard-chain-harness-p2-capability-eval-2026-05-25.md"
 MATRIX="$ROOT/docs/reports/standard-chain-harness-capability-matrix-2026-05-24.md"
