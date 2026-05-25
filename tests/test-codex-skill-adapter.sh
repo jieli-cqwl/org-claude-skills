@@ -94,6 +94,7 @@ manual_policy github-repo-radar || fail "github-repo-radar should disable Codex 
 manual_policy refactor || fail "refactor should disable Codex implicit invocation"
 manual_policy security || fail "security should disable Codex implicit invocation"
 manual_policy bb-browser || fail "bb-browser should install with implicit invocation disabled"
+manual_policy architecture || fail "architecture should install with implicit invocation disabled"
 manual_policy baoyu-markdown-to-html || fail "baoyu-markdown-to-html should install with implicit invocation disabled"
 manual_policy code-to-prd || fail "code-to-prd should install with implicit invocation disabled"
 manual_policy graphify || fail "graphify should install with implicit invocation disabled"

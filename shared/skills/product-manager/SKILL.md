@@ -22,13 +22,13 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 - UNIT 前置稳定：证据、AS-IS、TO-BE、流程图、功能清单、入口场景、业务对象、状态、权限、规则和风险足以拆 UNIT。
 - 恢复状态稳定：如果已有 PM 工作草稿、`product-manager-ledger.json` 过程账本或 `delivery_confirmation`，先处理未关闭 FAIL、未承接 WARN、过期 digest、未解决 supersedes、历史 open question 或已确认交付后的漂移。
 
-任一不成立：记录 owner、阻断事实、影响产物、回流节点和恢复条件。用户要求 HOW 层方案时，先改写为 WHAT 层约束；仍无法落到 WHAT 时记录下游 owner。
+任一不成立：记录 owner、阻断事实、影响产物、回流节点和恢复条件。用户要求 HOW 层方案时，先改写为 WHAT 层约束；仍无法落到 WHAT 时写入 `product-manager-ledger.json.open_questions`，标明需要的下游角色和裁决事实，不写 PM 产品结论。
 
 ## 正确产出
 
 PM 的正确产出是结构化业务事实和产品判断包；JSON 承载下游需要的业务事实，聊天记录只作背景。
 
-- `phase-prd.json` 写 Phase 产品模型：现状、目标、入口、出口、角色在何条件下可触发/执行/审批/查看/撤销、对象状态变化、范围边界、业务态/端/路径覆盖、风险落点、技术证据输入、设计决策候选和发布口径。
+- `phase-prd.json` 写 Phase 产品模型：现状、目标、入口、出口、角色在何条件下可触发/执行/审批/查看/撤销、对象状态变化、用户可见状态、范围边界、业务态/端/路径覆盖、风险落点、技术证据输入、设计决策候选和发布口径。
 - `units/UNIT-*.json` 回答交付切片：每个 UNIT 的触发、核心行为、可观察结果、优先级依据、依赖、排除项、Integration Context、AC、Verification Plan 和功能/流程/风险/规则追溯。
 - `brief.json` 写交付闭合：PM issue、review digest、review conclusion 和 delivery confirmation 是否已经关闭。
 - `product-manager-ledger.json` 记录过程控制：checkpoint、open question、supersedes 和 finalization；不写产品事实，不作为下游需求来源。
@@ -82,7 +82,9 @@ digraph product_manager_flow {
 
 ## The Process
 
-执行规则：读取 `templates/*.template.json` 创建目标 JSON；用 `contracts/*.schema.json` 限定合法字段；用 scripts/gates 判定完成。后续节点发现缺字段时，回到字段拥有节点补齐。
+执行规则：读取 `templates/*.template.json` 创建目标 JSON；模板只提供结构起点，复制后立即替换所有样例业务值，目标 JSON 残留 `sample-feature`、`request review`、`Requester` 或 `Reviewer` 等样例文本即失败；用 `contracts/*.schema.json` 限定合法字段；用 scripts/gates 判定完成。后续节点发现缺字段时，回到字段拥有节点补齐。
+
+过程账本：`product-manager-ledger.json` 按 `contracts/co-creation-ledgers.yaml` 的 product-manager 合同写；每次 checkpoint confirmation 写 `step`、`subject_ref`、`decision_summary`、`source_refs` 和 `output_refs`。ledger 只记录协作确认、问题和漂移，不写产品事实。
 
 **Handoff gate**：读取 `brief.json`、当前 `phase-prd.json` 和既有 `product-manager-ledger.json`（如存在）；运行 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`。
 - 确认 Director baseline 已通过、Phase 边界一致、时间盒未超过 14 天、锁定字段未漂移。
@@ -107,7 +109,7 @@ digraph product_manager_flow {
 
 **TO-BE product model**：读取 `phase-prd.json.evidence_sources[]`、`phase-prd.json.as_is_flows[]` 和冻结 Phase 目标。
 - 建立只改变 Phase 目标所需业务行为的 TO-BE。
-- 覆盖角色、入口、步骤、业务对象、状态变化、权限、规则、正常路径、边界路径、失败路径和可观察结果。
+- 覆盖角色、入口、步骤、业务对象、状态变化、权限、规则、正常路径、边界路径、失败路径、用户可见状态、提示和可观察结果。
 - 路径闭合后，更新 `phase-prd.json.to_be_flows[]`、`business_process_graphs[]`、`business_objects[]`、`state_transitions[]` 和 `role_permission_matrix[]`。
 - 同步 `business_flows[]`、`user_paths[]` 和 `rule_mappings[]`。
 
@@ -116,7 +118,7 @@ digraph product_manager_flow {
 - 对象写业务含义与生命周期。
 - 状态写 from -> trigger -> to -> observable result。
 - 权限写 role -> allowed action -> constraint。
-- 规则写校验、审批、可见性、顺序、可逆性或高风险操作。
+- 规则写校验、审批、可见性、顺序、可逆性、高风险操作或决策表优先级。
 - `business_flows[]` 写端到端业务链路；`user_paths[]` 写角色可观察路径；`rule_mappings[]` 写业务规则到流程、UNIT、AC 或风险的映射。
 - 正常路径写什么算成功。
 - 边界路径写空态、无权限、额度、重复、超时或阈值。
@@ -125,24 +127,24 @@ digraph product_manager_flow {
 - 任一路径改变 Director 已锁定或用户已裁决的业务规则，或改变 Phase 出口、范围、非目标或可行性时停止，并回到用户或 Director；范围内规则细化继续在 Feature inventory and risk 收口。
 
 **Feature inventory and risk**：读取 `phase-prd.json.to_be_flows[]`、`business_process_graphs[]`、对象、状态、权限和规则字段。
-- 先判定每项能力的业务价值、入口触发、核心行为、可观察结果和范围状态。
+- 先做能力源扫描：逐条读取 Director 目标、成功标准、范围、非目标、风险、Phase 入口/出口和用户输入中的表格、清单、验收项；每条源项必须映射到 `feature_inventory`、`coverage_matrix`、`risk_ledger`、`technical_evidence_requirements`、UNIT、AC、Verification Plan 或明确 N/A/边界。
+- 再判定每项能力的业务价值、入口触发、核心行为、可观察结果和范围状态。
 - 再收敛模块能力、入口场景、业务语义、覆盖矩阵、技术证据输入、发布口径和风险。
 - 能力与风险闭合后，更新 `phase-prd.json.feature_inventory[]`、`module_capability_matrix[]`、`entry_scene_inventory[]` 和 `coverage_matrix[]`。
 - 同步 `technical_evidence_requirements[]`、`release_readiness` 和 `risk_ledger[]`。
 
-- `IN_SCOPE`：本 Phase 必需，能追溯到 UNIT。
-- `OUT_OF_SCOPE`：被 Director 或用户排除，能追溯边界。
-- `NEEDS_DECISION`：业务事实未裁决，停在功能清单等待裁决。
-- `IN_SCOPE` 先分配候选 `unit_refs`；UNIT split 必须创建对应 `UNIT-*.json` 并回填一致。
-- `OUT_OF_SCOPE` 必须写 `boundary_ref`；`NEEDS_DECISION` 必须写 `decision_needed`，且不能进入 UNIT。
+- `IN_SCOPE`：本 Phase 必需，写非空候选 `unit_refs`，并在 UNIT split 后回填真实 UNIT。
+- `OUT_OF_SCOPE`：被 Director 或用户排除，写 `unit_refs=[]` 和 `boundary_ref`，不生成 UNIT 或 AC。
+- `NEEDS_DECISION`：业务事实未裁决，写 `unit_refs=[]` 和 `decision_needed`，停在功能清单等待裁决。
 - 模块能力回答：哪个业务区域改变，新增什么能力，哪些既有行为需要保护。
 - 入口场景回答：工作从哪里开始，谁触发，证据是什么，哪个 UNIT 负责。
-- 覆盖矩阵回答：每个业务态、端、入口动作或路径是否支持；支持项写 `unit_refs`、`ac_refs`、`evidence_refs` 和 `evidence_targets`；暂不支持项写边界或裁决来源，发布时不声明支持。
-- 技术证据输入回答：下游技术方案必须证明哪些业务不变量；把 API 契约、数据模型/状态机、业务态差异、事务边界、幂等并发、权限审计、租户/身份、异步离线任务、灰度回滚写成 `business_invariant` 和 `required_downstream_proof`，不写接口字段、表字段或实现方案。
-- 发布口径回答：哪些端或业务态可声明支持，哪些需独立验证后声明，哪些暂不声明支持；残余风险写 owner、处理时点和关闭状态。
+- 覆盖矩阵回答：每个业务态、端、入口动作、绕过调用、异步/离线消费者或路径是否支持；支持项写 `unit_refs`、`ac_refs`、`evidence_refs` 和 `evidence_targets`；暂不支持项写边界或裁决来源，发布时不声明支持。
+- 技术证据输入回答：下游技术方案必须证明哪些业务不变量；把 API 契约、数据模型/状态机、业务态差异、事务边界、幂等并发、绕过前端调用拒绝、权限与数据范围审计、租户/身份、异步/离线消费者过滤、补偿重试、灰度回滚写成 `business_invariant` 和 `required_downstream_proof`，不写接口字段、表字段或实现方案。
+- 技术证据输入按适用域逐项写 `REQUIRED`、`N_A` 或 `BLOCKED`；高风险域不得合并成一句泛化证明。日期/占用区间、账款/财务流水、补偿/重试等无专用 domain 时，用 `domain=other` 写清业务不变量。
+- 发布口径回答：哪些端或业务态可声明支持，哪些需独立验证后声明，哪些暂不声明支持；P0 主路径和失败路径必须映射到 `coverage_matrix` 或 Verification Plan；残余风险写 owner、处理时点和关闭状态。
 - 数据库字段、API 参数、组件属性、代码类型和测试实现留给下游角色；PM 只写业务不变量和证据目标。
 - 每个实质风险写入 `risk_ledger[]`：`source`、`risk_type`、`trigger_condition`、`affected_units`、`impact`、`pm_decision`、`mitigation_or_owner`、`verification_target` 和 `status`。
-- 每个风险必须落到 AC、Verification Plan、阻断项、下游 owner 或用户裁决。
+- 每个风险必须落到 AC、Verification Plan、`pre_review_issue_ledger`、`issue_ledger`、`risk_ledger`、`release_readiness.residual_risks` 或用户裁决。
 - `OPEN` 或 `BLOCKED` 风险阻断 Delivery；风险关闭写清团队观察什么、阻止什么、验证什么、由谁承接。
 
 **Pre-UNIT gate**：拆 UNIT 前运行 `bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR" --pre-unit`。
@@ -166,7 +168,7 @@ digraph product_manager_flow {
 - 结果有不同风险、权限或验证方式时继续拆。
 - 拆开会破坏用户可观察结果时保持在同一 UNIT。
 
-**AC**：读取 `UNIT-*.json` 的闭环、Integration Context、风险追溯和业务路径。先把 UNIT 闭环转成可观察业务行为，再写入 `UNIT-*.json.acceptance_criteria[]`；每条 AC 包含描述、示例输入、预期结果、边界情况和失败模式。正常、异常、边界路径至少有明确覆盖或业务 N/A 原因。
+**AC**：读取 `UNIT-*.json` 的闭环、Integration Context、风险追溯和业务路径。先把 UNIT 闭环转成可观察业务行为，再写入 `UNIT-*.json.acceptance_criteria[]`；每条 AC 包含描述、示例输入、预期结果、边界情况和失败模式。正常、失败、边界、并发/幂等、绕过调用和异步/离线消费者路径至少有明确覆盖或业务 N/A 原因。
 
 - 反例：`系统校验库存。`
 - 可用：`库存调整数量大于当前可用库存时，提交被阻止，库存不变化，操作者看到超量原因。`
@@ -175,6 +177,8 @@ digraph product_manager_flow {
 - 判断 `/test-design` 需要证明哪个业务结果。
 - 写入 `UNIT-*.json.verification_plan[]`：验证类型、业务操作或场景、预期可观察结果、证据目标、`evidence_types` 和 `covers_refs`。
 - 每条计划映射 AC、成功信号、风险、覆盖矩阵、技术证据输入或设计交接项。
+- 每个实质路径写页面/界面证据、接口请求响应、数据前后值、审计/日志/测试记录中的适用证据类型；缺失类型写业务 N/A 原因。
+- 绕过调用、并发/幂等、异步/离线消费者和多端独立声明必须有验证计划或业务 N/A。
 - 命令、测试框架、mock、fixture、selector 和代码由下游定义。
 
 **Design handoff**：读取已闭合产品模型、UNIT 边界和风险。
@@ -235,11 +239,13 @@ digraph product_manager_flow {
 ## 完成校验
 
 - [ ] Director handoff 通过，Director-owned 字段未改变。
+- [ ] 目标 JSON 无模板样例业务文本，`product-manager-ledger.json` 只记录协作过程，不承载产品事实。
 - [ ] 证据、AS-IS、TO-BE、业务流程图、功能清单、入口场景、业务对象、状态、权限、规则、覆盖矩阵、技术证据输入、发布口径和风险已闭合或明确 N/A。
+- [ ] Director 目标、成功标准、范围、非目标、风险、Phase 入口/出口和输入表格/清单/验收项已逐条映射或明确 N/A/边界。
 - [ ] `NEEDS_DECISION`、开放风险和预评审阻断均已关闭，再进入 UNIT 拆分。
 - [ ] 每个 UNIT 有 `trigger`、`core_behavior`、`observable_result`、优先级依据、Integration Context、依赖、排除项和功能/流程/风险/规则追溯。
 - [ ] 每条 AC 有示例输入、预期结果、边界情况和失败模式。
-- [ ] 每条 Verification Plan 写 `evidence_types`，并用 `covers_refs` 映射 AC、成功信号、风险、覆盖矩阵、技术证据输入或设计交接。
+- [ ] 每条 Verification Plan 写 `evidence_types`，并用 `covers_refs` 映射 AC、成功信号、风险、覆盖矩阵、技术证据输入或设计交接；绕过调用、并发/幂等、异步/离线消费者和多端独立声明均已覆盖或明确 N/A。
 - [ ] 支持/条件支持/暂不支持的端、业务态和路径已进入 `release_readiness`；开放残余风险均有 owner、处理时点和承接状态。
 - [ ] 设计交接包含 PM 已定义业务边界、且需要 `/design` 选择的决策。
 - [ ] Owner self-check 与 review digest 当前有效。

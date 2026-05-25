@@ -35,6 +35,7 @@ MANAGED_SOURCE_NAMES = (
     "skills_sh_bb_browser",
     "skills_sh_github_prd",
     "skills_sh_graphify",
+    "skills_sh_markdown_viewer_architecture",
     "skills_sh_humanizer_zh",
     "skills_sh_mattpocock_to_prd",
     "skills_sh_notebooklm",

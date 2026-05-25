@@ -24,6 +24,17 @@ DEST_SKILLS = SKILLS_SH_ROOT / "skills"
 DEST_CODEX_SKILLS = SKILLS_SH_ROOT / "codex" / "skills"
 
 SKILL_SOURCES = {
+    "architecture": {
+        "source_name": "skills_sh_markdown_viewer_architecture",
+        "repo_dir_name": "markdown-viewer-skills",
+        "relative_path": Path("architecture"),
+        "display_name": "Architecture",
+        "short_description": "Manual layered system architecture diagrams using HTML and CSS templates",
+        "default_prompt": "Use $architecture to manually create layered system architecture diagrams.",
+        "local_arg": "architecture_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": False,
+    },
     "bb-browser": {
         "source_name": "skills_sh_bb_browser",
         "repo_dir_name": "bb-browser",

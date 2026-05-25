@@ -47,6 +47,10 @@ sources:
     repo: https://github.com/safishamsi/graphify
     ref: sss999
     captured_at: 2026-05-12
+  skills_sh_markdown_viewer_architecture:
+    repo: https://github.com/markdown-viewer/skills
+    ref: www333
+    captured_at: 2026-05-25
   skills_sh_humanizer_zh:
     repo: https://github.com/op7418/Humanizer-zh
     ref: mmm333

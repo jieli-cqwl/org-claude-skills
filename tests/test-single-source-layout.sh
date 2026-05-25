@@ -71,12 +71,13 @@ test -f "$ROOT/community/panniantong/skills/agent-reach/SKILL.md" || fail "missi
 test -f "$ROOT/community/panniantong/codex/skills/agent-reach/agents/openai.yaml" || fail "missing Panniantong agent-reach Codex adapter"
 test -d "$ROOT/community/skills-sh/skills" || fail "missing community/skills-sh/skills directory"
 test -d "$ROOT/community/skills-sh/codex/skills" || fail "missing community/skills-sh/codex/skills directory"
-for skill in baoyu-markdown-to-html bb-browser code-to-prd graphify humanizer-zh mermaid-diagrams notebooklm planning-with-files prd self-improving-agent to-prd; do
+for skill in architecture baoyu-markdown-to-html bb-browser code-to-prd graphify humanizer-zh mermaid-diagrams notebooklm planning-with-files prd self-improving-agent to-prd; do
   test -f "$ROOT/community/skills-sh/skills/$skill/SKILL.md" || fail "missing skills.sh skill source: $skill"
 done
 for skill in bb-browser humanizer-zh notebooklm; do
   test -f "$ROOT/community/skills-sh/codex/skills/$skill/agents/openai.yaml" || fail "missing skills.sh Codex adapter: $skill"
 done
+test ! -e "$ROOT/community/skills-sh/codex/skills/architecture/agents/openai.yaml" || fail "architecture should not expose a Codex adapter"
 test ! -e "$ROOT/community/skills-sh/codex/skills/mermaid-diagrams/agents/openai.yaml" || fail "mermaid-diagrams should not expose a Codex adapter"
 test ! -e "$ROOT/community/skills-sh/codex/skills/self-improving-agent/agents/openai.yaml" || fail "self-improving-agent should not expose a Codex adapter"
 test ! -e "$ROOT/community/skills-sh/codex/skills/code-to-prd/agents/openai.yaml" || fail "code-to-prd should not expose a Codex adapter"

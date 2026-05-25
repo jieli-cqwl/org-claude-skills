@@ -28,6 +28,7 @@ EXPECTED_REPOS = {
     "skills_sh_bb_browser": "https://github.com/epiral/bb-browser",
     "skills_sh_github_prd": "https://github.com/github/awesome-copilot",
     "skills_sh_graphify": "https://github.com/safishamsi/graphify",
+    "skills_sh_markdown_viewer_architecture": "https://github.com/markdown-viewer/skills",
     "skills_sh_softaworks_mermaid_diagrams": "https://github.com/softaworks/agent-toolkit",
     "skills_sh_humanizer_zh": "https://github.com/op7418/Humanizer-zh",
     "skills_sh_mattpocock_to_prd": "https://github.com/mattpocock/skills",

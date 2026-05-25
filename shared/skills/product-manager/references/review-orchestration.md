@@ -54,4 +54,4 @@ Reviewer 只读取 digest 绑定的送审包：
 
 同一评审循环内检查上线、失败重试、回滚、批量重放、外部依赖、幂等、重复提交、权限升级和不可逆状态变化。
 
-高风险发现必须写回 AC、Verification Plan、`issue_ledger`、阻断项或下游 owner。
+高风险发现必须写回合法路径：Review digest 前写 `pre_review_issue_ledger`；Review digest 后写 `issue_ledger`；产品风险写 `risk_ledger` 或 `release_readiness.residual_risks`；行为缺口同步 AC 或 Verification Plan。

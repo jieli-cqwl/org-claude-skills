@@ -8,12 +8,15 @@ Self-check 读取本文件和当前 JSON 工作草稿，输出送审前阻断反
 - 工作草稿：每个步骤只读取前序已写入字段；未由拥有步骤写入的字段不得作为后续判断依据。
 - Evidence and AS-IS：每个会影响判断的入口、流程、状态、页面、接口、数据、审计、测试记录、文档或裁决都有证据、明确 N/A 或阻断记录；`source_type` 写真实来源，`supports` 指向具体判断，`required_evidence` 和 `blocks_fields` 写清缺什么、阻断什么。
 - TO-BE product model：目标流程只改变达成 Phase 目标所需的业务行为；正常、边界、失败路径和可观察结果已闭合；未改变 Phase 出口、范围、非目标或可行性。
-- Feature inventory and risk：功能清单来自已闭合流程；每项能力是 `IN_SCOPE`、`OUT_OF_SCOPE` 或 `NEEDS_DECISION`；模块能力、入口场景、覆盖矩阵、技术证据输入、发布口径、业务对象、状态、权限、规则和风险能支撑 UNIT。
+- Feature inventory and risk：Director 目标、成功标准、范围、非目标、风险、Phase 入口/出口和输入表格/清单/验收项已逐条映射到功能、覆盖、风险、技术证据、UNIT、AC、Verification Plan 或明确 N/A/边界。
+- Feature inventory and risk：每项能力是 `IN_SCOPE`、`OUT_OF_SCOPE` 或 `NEEDS_DECISION`；`IN_SCOPE` 有候选或真实 `unit_refs`，`OUT_OF_SCOPE` 有 `boundary_ref`，`NEEDS_DECISION` 有 `decision_needed` 且未进入 UNIT。
+- Feature inventory and risk：模块能力、入口场景、覆盖矩阵、技术证据输入、发布口径、业务对象、状态、权限、规则和风险能支撑 UNIT；高风险技术域逐项写 `REQUIRED`、`N_A` 或 `BLOCKED`，没有合并成泛化证明。
 - Pre-UNIT gate：没有会改变 UNIT 边界的证据、流程、功能、入口、对象、状态、权限、规则、覆盖矩阵、技术证据输入、发布口径或风险缺口。
 - UNIT split：每个 UNIT 的 `trigger`、`core_behavior` 和 `observable_result` 完成闭环；优先级、依赖、排除项、Integration Context、功能追溯、流程追溯、风险追溯和规则追溯一致。
 - Cross-UNIT consistency：同一对象、状态和规则使用同一名称与口径；排除项、依赖和 Integration Context 不冲突。
-- AC：每条 AC 都能用业务操作和可观察结果证明行为，且包含示例输入、预期结果、边界情况和失败模式。
+- AC：每条 AC 都能用业务操作和可观察结果证明行为，且包含示例输入、预期结果、边界情况和失败模式；正常、失败、边界、并发/幂等、绕过调用和异步/离线消费者路径有覆盖或业务 N/A。
 - Verification Plan：每条计划说明要证明哪个业务结果，写清业务操作、预期观察、证据目标和 `evidence_types`，并用 `covers_refs` 映射 AC、成功信号、风险、覆盖矩阵、技术证据输入或设计交接项。
+- Verification Plan：页面/界面、接口请求响应、数据前后值、审计/日志/测试记录中的适用证据类型已覆盖；绕过调用、并发/幂等、异步/离线消费者和多端独立声明有验证计划或业务 N/A。
 - Design handoff：只交接 PM 已定义业务边界、且需要 `/design` 选择的决策；PM 能基于业务事实直接判断的问题已在 PM 产物内关闭。
 
 ## 交付成功标准
@@ -27,11 +30,13 @@ Self-check 读取本文件和当前 JSON 工作草稿，输出送审前阻断反
 - 哪个对象如何变更状态。
 - 什么在范围内或范围外。
 - 风险还剩什么，由谁承接。
-- 业务态、端、入口动作和路径如何覆盖；暂不支持的范围是否明确不声明支持。
+- 业务态、端、入口动作、绕过调用、异步/离线消费者和路径如何覆盖；暂不支持的范围是否明确不声明支持。
 - 技术方案必须证明哪些业务不变量，证据目标是什么。
+- 日期/占用、账款/财务、权限/数据范围、租户/身份、绕过前端调用、并发/幂等、异步/离线消费者、补偿/重试和灰度/回滚等高风险域是否已逐项处理或明确 N/A。
 - 每个 UNIT 完成什么闭环。
 - AC 如何被观察。
 - Verification Plan 要证明什么业务结果。
+- P0 主路径、失败路径和发布声明是否有证据目标。
 - `/design` 必须决策什么。
 - 发布前仍有残余风险时，owner 和处理时点是什么。
 

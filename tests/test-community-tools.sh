@@ -54,9 +54,12 @@ assert callable(skills_sh.main)
 assert callable(persona.main)
 assert "planning-with-files" in skills_sh.SKILL_SOURCES
 assert skills_sh.SKILL_SOURCES["planning-with-files"]["codex_adapter"] is False
+assert "architecture" in skills_sh.SKILL_SOURCES
+assert skills_sh.SKILL_SOURCES["architecture"]["codex_adapter"] is False
 assert "mermaid-diagrams" in skills_sh.SKILL_SOURCES
 assert skills_sh.SKILL_SOURCES["mermaid-diagrams"]["codex_adapter"] is False
 locks = skills_sh.load_lock()
+assert "skills_sh_markdown_viewer_architecture" in locks
 assert "skills_sh_othmanadi_planning_with_files" in locks
 assert "skills_sh_softaworks_mermaid_diagrams" in locks
 PY

@@ -17,6 +17,11 @@
       "owner": "community",
       "reason": "Authenticated web/social workflows should be explicit."
     },
+    "architecture": {
+      "mode": "manual",
+      "owner": "community",
+      "reason": "HTML/CSS architecture diagram generation is a specialized document workflow and must be explicitly invoked."
+    },
     "algorithmic-art": {
       "mode": "manual",
       "owner": "community",

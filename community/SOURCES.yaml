@@ -124,6 +124,17 @@ sources:
       - Vendor upstream `graphify/skill-codex.md` as `graphify/SKILL.md`，正文保持 upstream 原文并复制 root LICENSE。
       - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会扫描目录、写入 `graphify-out/` 并可调用/安装 Python `graphifyy`。
       - Upstream root LICENSE declares MIT.
+  skills_sh_markdown_viewer_architecture:
+    repo: https://github.com/markdown-viewer/skills
+    ref: c9c64d1fe2bcf630c5534a6e32f201fc3c2be0f9
+    captured_at: 2026-05-25
+    scope:
+      - community/skills-sh/skills/architecture
+    notes:
+      - Vendor upstream `architecture` as `architecture`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 manual-only 可见性，必须手动触发。
+      - 不生成 Codex source adapter；Codex runtime 由 runtime surface 工具生成 manual policy。
+      - GitHub API license 字段为空且根目录未提供 LICENSE 文件；纳入时保留该授权缺口记录。
   skills_sh_softaworks_mermaid_diagrams:
     repo: https://github.com/softaworks/agent-toolkit
     ref: 3027f20f3181758385a1bb8c022d4041dfb4de84

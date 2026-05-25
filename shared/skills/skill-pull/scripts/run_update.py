@@ -57,6 +57,10 @@ SYNC_COMMANDS = {
         "python3",
         "tools/community/sync_skills_sh_skills_from_upstream.py",
     ],
+    "skills_sh_markdown_viewer_architecture": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
     "skills_sh_humanizer_zh": [
         "python3",
         "tools/community/sync_skills_sh_skills_from_upstream.py",

@@ -65,6 +65,9 @@ class CandidateLookupTests(TempDirTest):
         self.assertIn("skills_sh_bb_browser", self.lib.MANAGED_SOURCE_NAMES)
         self.assertIn("skills_sh_graphify", self.lib.MANAGED_SOURCE_NAMES)
         self.assertIn(
+            "skills_sh_markdown_viewer_architecture", self.lib.MANAGED_SOURCE_NAMES
+        )
+        self.assertIn(
             "skills_sh_othmanadi_planning_with_files", self.lib.MANAGED_SOURCE_NAMES
         )
         self.assertIn("skills_sh_self_improving_agent", self.lib.MANAGED_SOURCE_NAMES)

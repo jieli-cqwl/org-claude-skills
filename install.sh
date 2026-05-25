@@ -731,6 +731,7 @@ community_panniantong_selected() {
 
 community_skills_sh_selected() {
   printf '%s\n' \
+    "architecture" \
     "baoyu-markdown-to-html" \
     "bb-browser" \
     "code-to-prd" \
@@ -2176,6 +2177,7 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/baoyu-markdown-to-html/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/code-to-prd/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/graphify/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/architecture/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/mermaid-diagrams/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/bb-browser/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/humanizer-zh/SKILL.md" ] || return 1
@@ -2245,6 +2247,8 @@ runtime_target_complete() {
     [ -f "$codex_skills_dir/code-to-prd/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/graphify/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/graphify/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/architecture/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/architecture/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/mermaid-diagrams/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/mermaid-diagrams/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/humanizer-zh/SKILL.md" ] || return 1
@@ -2692,6 +2696,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/skill-creator/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/skill-creator/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/feishu-docs/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/deep-research/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/deep-research/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/architecture/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/architecture/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/mermaid-diagrams/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mermaid-diagrams/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/skill-auditor" ] || fail "Quick Check 失败: ~/.claude/skills/skill-auditor 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/new-skills" ] || fail "Quick Check 失败: ~/.claude/skills/new-skills 不应存在"
@@ -2755,6 +2760,8 @@ quick_check() {
     [ -f "$codex_skills_dir/agent-reach/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/SKILL.md 不存在"
     [ -f "$codex_skills_dir/bb-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/bb-browser/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/humanizer-zh/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/humanizer-zh/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/architecture/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/architecture/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/architecture/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/architecture/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/mermaid-diagrams/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/mermaid-diagrams/SKILL.md 不存在"
     [ -f "$codex_skills_dir/mermaid-diagrams/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/mermaid-diagrams/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/notebooklm/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/notebooklm/agents/openai.yaml 不存在"
