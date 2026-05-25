@@ -8,37 +8,37 @@
   "fidelity": 1.0,
   "anchors": [
     {
-      "anchor_id": "PA-1",
+      "anchor_id": "handoff-director-baseline",
       "passed": true,
       "evidence": "Handoff gate evidence includes brief and phase-prd director_confirmation and locked field validation."
     },
     {
-      "anchor_id": "PA-2",
+      "anchor_id": "unit-closed-loop",
       "passed": true,
       "evidence": "UNIT-1 carries closure_definition, integration_context, input-like example, core review behavior, and observable status result."
     },
     {
-      "anchor_id": "PA-3",
+      "anchor_id": "ac-traceable",
       "passed": true,
       "evidence": "UNIT-1 acceptance_criteria and verification_plan contain example input, expected result, boundary case, failure mode, and evidence target."
     },
     {
-      "anchor_id": "PA-4",
+      "anchor_id": "review-fail-warn-closure",
       "passed": true,
       "evidence": "review_conclusion.agent_team_review and issue_ledger are present on brief and phase-prd; PASS requires three read-only reviewer verdicts, shared artifact refs, evidence refs, CONFIRMATION, and an empty issue ledger."
     },
     {
-      "anchor_id": "PA-5",
+      "anchor_id": "director-lock-no-drift",
       "passed": true,
       "evidence": "preflight and completion proof commands validate locked_fields and locked_field_digest before PM handoff."
     },
     {
-      "anchor_id": "PA-6",
+      "anchor_id": "delivery-confirmation",
       "passed": true,
       "evidence": "brief.json contains delivery_confirmation.status=confirmed and design preflight consumes it."
     },
     {
-      "anchor_id": "PA-7",
+      "anchor_id": "pm-recommendation-first",
       "passed": true,
       "evidence": "dogfood records PM-led Handoff gate to Delivery step decisions, downstream handoff, and user confirmation boundary instead of open-ended prompts."
     }

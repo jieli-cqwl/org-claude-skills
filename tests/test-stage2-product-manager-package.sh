@@ -173,6 +173,13 @@ unit = {
     "authoritative_fields": [
         "$.unit_id",
         "$.closure_definition",
+        "$.trigger",
+        "$.core_behavior",
+        "$.observable_result",
+        "$.feature_refs",
+        "$.flow_refs",
+        "$.risk_refs",
+        "$.rule_refs",
         "$.integration_context",
         "$.acceptance_criteria",
         "$.verification_plan",
@@ -184,6 +191,13 @@ unit = {
     ],
     "unit_id": "UNIT-1",
     "closure_definition": "三方消息回调进入前置处理、上下文装配、agent 调度、建议响应生成，并以人工确认作为可观察闭环",
+    "trigger": "三方平台推送单渠道文本消息",
+    "core_behavior": "接收消息、装配上下文、调度 agent 并生成建议回复",
+    "observable_result": "建议回复包进入人工确认状态，客服可查看上下文来源和失败原因，系统不自动外发",
+    "feature_refs": ["FEAT-1"],
+    "flow_refs": ["TOBE-1", "BPG-1"],
+    "risk_refs": ["RISK-1"],
+    "rule_refs": ["BR-1"],
     "acceptance_criteria": [
         {
             "ac_id": "AC-U1-01",
@@ -210,6 +224,8 @@ unit = {
             "business_operation": "输入一条真实结构的文本消息回调并观察建议回复包",
             "expected_observation": "建议回复包含上下文来源、调度结果和人工确认状态",
             "evidence_target": "AC-U1-01 and Stage 2 success metrics",
+            "evidence_types": ["api_request_response", "data_before_after", "test_record"],
+            "covers_refs": ["AC-U1-01", "RISK-1", "BR-1"],
         }
     ],
     "design_decision_candidates": [
@@ -365,6 +381,37 @@ phase_prd["risk_ledger"] = [
         "status": "MITIGATED",
     }
 ]
+phase_prd["coverage_matrix"] = [
+    {
+        "coverage_id": "COV-1",
+        "scenario_ref": "TOBE-1",
+        "business_type": "单渠道文本消息",
+        "platform": "三方消息回调",
+        "action_or_path": "消息回调 -> 建议回复 -> 人工确认",
+        "support_status": "SUPPORTED",
+        "unit_refs": ["UNIT-1"],
+        "ac_refs": ["AC-U1-01"],
+        "evidence_refs": ["EV-1"],
+        "evidence_targets": ["接口请求 / 响应", "数据前后值", "测试执行记录"],
+    }
+]
+phase_prd["technical_evidence_requirements"] = [
+    {
+        "requirement_id": "TECH-1",
+        "domain": "api_contract",
+        "business_invariant": "建议回复进入人工确认状态且不自动外发",
+        "required_downstream_proof": "接口、状态数据和测试记录证明失败可接管且不会自动外发",
+        "unit_refs": ["UNIT-1"],
+        "risk_refs": ["RISK-1"],
+        "status": "REQUIRED",
+    }
+]
+phase_prd["release_readiness"] = {
+    "supported_platforms": ["三方消息回调"],
+    "conditional_platforms": [],
+    "unsupported_platforms": [],
+    "residual_risks": [],
+}
 phase_prd["pre_review_issue_ledger"] = []
 phase_prd["business_flows"] = ["三方回调 -> 前置消息处理 -> 上下文装配 -> agent 调度 -> 建议响应 -> 人工确认"]
 phase_prd["user_paths"] = ["客服在人工确认入口查看建议回复、上下文来源、失败原因和接管状态"]
@@ -397,6 +444,9 @@ package = {
             "unit_decomposition",
             "acceptance_criteria_definition",
             "verification_plan_definition",
+            "coverage_matrix_definition",
+            "technical_evidence_requirement_definition",
+            "release_readiness_definition",
             "design_handoff_preparation",
             "pm_owner_self_check",
             "agent_team_review",

@@ -10,6 +10,13 @@
   "authoritative_fields": [
     "$.unit_id",
     "$.closure_definition",
+    "$.trigger",
+    "$.core_behavior",
+    "$.observable_result",
+    "$.feature_refs",
+    "$.flow_refs",
+    "$.risk_refs",
+    "$.rule_refs",
     "$.integration_context",
     "$.acceptance_criteria",
     "$.verification_plan",
@@ -21,6 +28,22 @@
   ],
   "unit_id": "UNIT-1",
   "closure_definition": "a request can be submitted, reviewed, and observed through a clear final status",
+  "trigger": "requester submits a complete request",
+  "core_behavior": "capture required request details, route the request to an authorized reviewer, and record the reviewer decision",
+  "observable_result": "requester sees a clear final status and next action without excluded behaviors changing",
+  "feature_refs": [
+    "FEAT-1"
+  ],
+  "flow_refs": [
+    "TOBE-1",
+    "BPG-1"
+  ],
+  "risk_refs": [
+    "RISK-1"
+  ],
+  "rule_refs": [
+    "RULE-1"
+  ],
   "acceptance_criteria": [
     {
       "ac_id": "AC-U1-01",
@@ -56,7 +79,16 @@
       "verification_type": "functional",
       "business_operation": "submit a complete request, record an approval decision, and inspect requester-visible status",
       "expected_observation": "approved status and next action are visible without changing excluded behavior",
-      "evidence_target": "acceptance_criteria"
+      "evidence_target": "acceptance_criteria",
+      "covers_refs": [
+        "AC-U1-01",
+        "RISK-1"
+      ],
+      "evidence_types": [
+        "page_description",
+        "data_before_after",
+        "test_record"
+      ]
     }
   ],
   "design_decision_candidates": []

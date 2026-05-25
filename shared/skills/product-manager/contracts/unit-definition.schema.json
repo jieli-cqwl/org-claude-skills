@@ -20,6 +20,53 @@
           "type": "string",
           "minLength": 1
         },
+        "trigger": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Business input or event that starts this UNIT."
+        },
+        "core_behavior": {
+          "type": "string",
+          "minLength": 1,
+          "description": "PM-owned WHAT behavior completed by this UNIT."
+        },
+        "observable_result": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Business-visible result that proves the UNIT closed."
+        },
+        "feature_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "flow_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "risk_refs": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rule_refs": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
         "acceptance_criteria": {
           "type": "array",
           "minItems": 1,
@@ -143,7 +190,9 @@
               "verification_type",
               "business_operation",
               "expected_observation",
-              "evidence_target"
+              "evidence_target",
+              "evidence_types",
+              "covers_refs"
             ],
             "properties": {
               "verification_type": {
@@ -161,6 +210,42 @@
               "evidence_target": {
                 "type": "string",
                 "minLength": 1
+              },
+              "covers_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "AC, risk, success signal, rule, flow, or design decision refs this plan proves."
+              },
+              "evidence_types": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "api_request_response",
+                    "audit_log",
+                    "data_before_after",
+                    "director_baseline",
+                    "existing_json",
+                    "flow_document",
+                    "log",
+                    "not_applicable",
+                    "ops_material",
+                    "other",
+                    "page_description",
+                    "screen_recording",
+                    "screenshot",
+                    "support_ticket",
+                    "test_record",
+                    "user_decision",
+                    "user_input"
+                  ]
+                },
+                "description": "Evidence source types expected from downstream verification."
               }
             },
             "additionalProperties": true
@@ -220,6 +305,13 @@
         "artifact_type",
         "unit_id",
         "closure_definition",
+        "trigger",
+        "core_behavior",
+        "observable_result",
+        "feature_refs",
+        "flow_refs",
+        "risk_refs",
+        "rule_refs",
         "integration_context",
         "acceptance_criteria",
         "verification_plan",

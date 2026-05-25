@@ -36,6 +36,9 @@ PM_ALLOWED_ACTIONS = [
     "unit_decomposition",
     "acceptance_criteria_definition",
     "verification_plan_definition",
+    "coverage_matrix_definition",
+    "technical_evidence_requirement_definition",
+    "release_readiness_definition",
     "design_handoff_preparation",
     "pm_owner_self_check",
     "agent_team_review",
@@ -142,10 +145,27 @@ def check_director_lock_preservation(package: dict[str, Any]) -> dict[str, Any]:
 def check_phase_prd_fields(phase_prd: dict[str, Any], unit_ids: set[str], failures: list[str]) -> None:
     if phase_prd.get("artifact_type") != "phase-prd":
         add_failure(failures, "phase_prd.artifact_type", "must be phase-prd")
-    for field in ["business_flows", "user_paths", "rule_mappings"]:
+    for field in [
+        "coverage_matrix",
+        "technical_evidence_requirements",
+        "business_flows",
+        "user_paths",
+        "rule_mappings",
+    ]:
         values = phase_prd.get(field)
-        if not isinstance(values, list) or not values or not all(is_substantive_string(item) for item in values):
-            add_failure(failures, f"phase_prd.{field}", "must be non-empty string array")
+        if not isinstance(values, list) or not values:
+            add_failure(failures, f"phase_prd.{field}", "must be non-empty array")
+        elif field in {"business_flows", "user_paths", "rule_mappings"} and not all(
+            is_substantive_string(item) for item in values
+        ):
+            add_failure(failures, f"phase_prd.{field}", "must contain substantive strings")
+    release = phase_prd.get("release_readiness")
+    if not isinstance(release, dict):
+        add_failure(failures, "phase_prd.release_readiness", "must be object")
+    else:
+        for field in ["supported_platforms", "conditional_platforms", "unsupported_platforms", "residual_risks"]:
+            if not isinstance(release.get(field), list):
+                add_failure(failures, f"phase_prd.release_readiness.{field}", "must be array")
     if not isinstance(phase_prd.get("design_decision_candidates"), list):
         add_failure(failures, "phase_prd.design_decision_candidates", "must be array")
     unit_index = phase_prd.get("unit_index")

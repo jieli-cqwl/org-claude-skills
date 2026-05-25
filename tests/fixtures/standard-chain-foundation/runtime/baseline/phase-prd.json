@@ -9,7 +9,10 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.phase_goal",
-    "$.unit_priority_order"
+    "$.unit_priority_order",
+    "$.coverage_matrix",
+    "$.technical_evidence_requirements",
+    "$.release_readiness"
   ],
   "phase_goal": "exercise runtime state transitions",
   "entry_conditions": [
@@ -27,5 +30,50 @@
       "priority": "P1",
       "priority_basis": "Default PM ordering follows the closed-loop UNIT index until a stronger business dependency is confirmed."
     }
-  ]
+  ],
+  "coverage_matrix": [
+    {
+      "coverage_id": "COV-1",
+      "scenario_ref": "TOBE-1",
+      "business_type": "primary business type",
+      "platform": "primary surface",
+      "action_or_path": "primary business path",
+      "support_status": "SUPPORTED",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "ac_refs": [
+        "AC-U1-01"
+      ],
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "evidence_targets": [
+        "page or flow evidence",
+        "data before/after evidence",
+        "test execution record"
+      ]
+    }
+  ],
+  "technical_evidence_requirements": [
+    {
+      "requirement_id": "TECH-1",
+      "domain": "api_contract",
+      "business_invariant": "The linked business result must be proven at service, data, and audit boundaries without changing excluded behavior.",
+      "required_downstream_proof": "Downstream design and test evidence must prove the linked AC and risk with interface, data, audit, or execution records.",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "risk_refs": [],
+      "status": "REQUIRED"
+    }
+  ],
+  "release_readiness": {
+    "supported_platforms": [
+      "primary surface"
+    ],
+    "conditional_platforms": [],
+    "unsupported_platforms": [],
+    "residual_risks": []
+  }
 }

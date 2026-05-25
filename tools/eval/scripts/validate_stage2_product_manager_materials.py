@@ -153,6 +153,13 @@ def build_unit(brief: dict[str, Any]) -> dict[str, Any]:
         "authoritative_fields": [
             "$.unit_id",
             "$.closure_definition",
+            "$.trigger",
+            "$.core_behavior",
+            "$.observable_result",
+            "$.feature_refs",
+            "$.flow_refs",
+            "$.risk_refs",
+            "$.rule_refs",
             "$.integration_context",
             "$.acceptance_criteria",
             "$.verification_plan",
@@ -164,6 +171,13 @@ def build_unit(brief: dict[str, Any]) -> dict[str, Any]:
         ],
         "unit_id": "UNIT-1",
         "closure_definition": "三方消息回调进入前置处理、上下文装配、agent 调度、建议响应生成，并以人工确认作为可观察闭环",
+        "trigger": "三方平台推送单渠道文本消息",
+        "core_behavior": "接收消息、装配上下文、调度 agent 并生成建议回复",
+        "observable_result": "建议回复包进入人工确认状态，客服可查看上下文来源和失败原因，系统不自动外发",
+        "feature_refs": ["FEAT-1"],
+        "flow_refs": ["TOBE-1", "BPG-1"],
+        "risk_refs": ["RISK-1"],
+        "rule_refs": ["BR-1"],
         "acceptance_criteria": [
             {
                 "ac_id": "AC-U1-01",
@@ -190,6 +204,8 @@ def build_unit(brief: dict[str, Any]) -> dict[str, Any]:
                 "business_operation": "输入一条真实结构的文本消息回调并观察建议回复包",
                 "expected_observation": "建议回复包含上下文来源、调度结果和人工确认状态",
                 "evidence_target": "AC-U1-01 and Stage 2 success metrics",
+                "covers_refs": ["AC-U1-01", "RISK-1", "BR-1"],
+                "evidence_types": ["log", "test_record"],
             }
         ],
         "design_decision_candidates": [
@@ -344,6 +360,46 @@ def build_pm_package(confirmed_package: dict[str, Any]) -> dict[str, Any]:
             "status": "MITIGATED",
         }
     ]
+    phase_prd["coverage_matrix"] = [
+        {
+            "coverage_id": "COV-1",
+            "scenario_ref": "TOBE-1",
+            "business_type": "single_channel_text_message",
+            "platform": "third_party_callback",
+            "action_or_path": "receive callback -> assemble context -> dispatch agent -> generate suggested reply -> wait for human confirmation",
+            "support_status": "SUPPORTED",
+            "unit_refs": ["UNIT-1"],
+            "ac_refs": ["AC-U1-01"],
+            "evidence_refs": ["EV-1"],
+            "evidence_targets": ["log", "test_record"],
+            "decision_or_boundary_ref": "brief.json#design_decisions",
+        }
+    ]
+    phase_prd["technical_evidence_requirements"] = [
+        {
+            "requirement_id": "TER-1",
+            "domain": "api_contract",
+            "business_invariant": "三方消息回调必须保留租户、会话、消息正文、上下文来源、trace 和人工确认状态；未确认前不得自动外发。",
+            "required_downstream_proof": "design/test-design 需证明成功、上下文缺失、agent 调度失败三类路径都有可追踪记录和人工接管状态。",
+            "unit_refs": ["UNIT-1"],
+            "risk_refs": ["RISK-1"],
+            "status": "REQUIRED",
+        }
+    ]
+    phase_prd["release_readiness"] = {
+        "supported_platforms": ["third_party_callback"],
+        "conditional_platforms": [],
+        "unsupported_platforms": ["multi_channel_unified_entry", "auto_send"],
+        "residual_risks": [
+            {
+                "risk_id": "RISK-1",
+                "description": "上下文缺失或 agent 调度失败时，建议回复不能进入自动外发路径。",
+                "owner": "design",
+                "target_resolution": "test-design handoff before implementation planning",
+                "status": "CLOSED",
+            }
+        ],
+    }
     phase_prd["pre_review_issue_ledger"] = []
     phase_prd["business_flows"] = ["三方回调 -> 前置消息处理 -> 上下文装配 -> agent 调度 -> 建议响应 -> 人工确认"]
     phase_prd["user_paths"] = ["客服在人工确认入口查看建议回复、上下文来源、失败原因和接管状态"]
@@ -372,6 +428,9 @@ def build_pm_package(confirmed_package: dict[str, Any]) -> dict[str, Any]:
                 "unit_decomposition",
                 "acceptance_criteria_definition",
                 "verification_plan_definition",
+                "coverage_matrix_definition",
+                "technical_evidence_requirement_definition",
+                "release_readiness_definition",
                 "design_handoff_preparation",
                 "pm_owner_self_check",
                 "agent_team_review",

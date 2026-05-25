@@ -129,6 +129,114 @@ if bash "$PREFLIGHT" --phase-dir "$OPEN_RISK_DIR/feature/phase-1" --pre-unit >"$
 fi
 assert_failure_reason_contains "$OPEN_RISK_OUT" "non-closed risk status"
 
+FULL_PM_MODEL_DIR="$TMP_DIR/full-pm-model"
+copy_fixtures "$FULL_PM_MODEL_DIR"
+python3 - "$FULL_PM_MODEL_DIR/feature/phase-1/phase-prd.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["coverage_matrix"] = [
+    {
+        "coverage_id": "COV-1",
+        "scenario_ref": "TOBE-1",
+        "business_type": "standard",
+        "platform": "PC",
+        "action_or_path": "submit request and view approved status",
+        "support_status": "SUPPORTED",
+        "unit_refs": ["UNIT-1"],
+        "ac_refs": ["AC-U1-01"],
+        "evidence_refs": ["EV-1"],
+        "evidence_targets": ["page screenshot", "data before/after"],
+    }
+]
+payload["technical_evidence_requirements"] = [
+    {
+        "requirement_id": "TECH-1",
+        "domain": "api_contract",
+        "business_invariant": "unauthorized reviewer cannot change request status",
+        "required_downstream_proof": "service rejection evidence linked to AC-U1-01",
+        "unit_refs": ["UNIT-1"],
+        "risk_refs": ["RISK-1"],
+        "status": "REQUIRED",
+    }
+]
+payload["release_readiness"] = {
+    "supported_platforms": ["PC"],
+    "conditional_platforms": [],
+    "unsupported_platforms": [],
+    "residual_risks": [
+        {
+            "risk_id": "RR-1",
+            "description": "no residual PM release risk",
+            "owner": "product-manager",
+            "target_resolution": "before delivery",
+            "status": "CLOSED",
+        }
+    ],
+}
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+FULL_PM_MODEL_OUT="$TMP_DIR/full-pm-model.json"
+bash "$PREFLIGHT" --phase-dir "$FULL_PM_MODEL_DIR/feature/phase-1" --pre-unit >"$FULL_PM_MODEL_OUT"
+assert_json_status "$FULL_PM_MODEL_OUT" "PASS"
+
+MISSING_COVERAGE_DIR="$TMP_DIR/missing-coverage"
+cp -R "$FULL_PM_MODEL_DIR" "$MISSING_COVERAGE_DIR"
+python3 - "$MISSING_COVERAGE_DIR/feature/phase-1/phase-prd.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["coverage_matrix"] = []
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+MISSING_COVERAGE_OUT="$TMP_DIR/missing-coverage.json"
+if bash "$PREFLIGHT" --phase-dir "$MISSING_COVERAGE_DIR/feature/phase-1" --pre-unit >"$MISSING_COVERAGE_OUT"; then
+  fail "preflight --pre-unit must block missing coverage_matrix"
+fi
+assert_failure_reason_contains "$MISSING_COVERAGE_OUT" "coverage_matrix"
+
+MISSING_TECH_DIR="$TMP_DIR/missing-technical-evidence"
+cp -R "$FULL_PM_MODEL_DIR" "$MISSING_TECH_DIR"
+python3 - "$MISSING_TECH_DIR/feature/phase-1/phase-prd.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["technical_evidence_requirements"] = []
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+MISSING_TECH_OUT="$TMP_DIR/missing-technical-evidence.json"
+if bash "$PREFLIGHT" --phase-dir "$MISSING_TECH_DIR/feature/phase-1" --pre-unit >"$MISSING_TECH_OUT"; then
+  fail "preflight --pre-unit must block missing technical_evidence_requirements"
+fi
+assert_failure_reason_contains "$MISSING_TECH_OUT" "technical_evidence_requirements"
+
+OPEN_RELEASE_RISK_DIR="$TMP_DIR/open-release-risk"
+cp -R "$FULL_PM_MODEL_DIR" "$OPEN_RELEASE_RISK_DIR"
+python3 - "$OPEN_RELEASE_RISK_DIR/feature/phase-1/phase-prd.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["release_readiness"]["residual_risks"][0]["status"] = "OPEN"
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+OPEN_RELEASE_RISK_OUT="$TMP_DIR/open-release-risk.json"
+if bash "$PREFLIGHT" --phase-dir "$OPEN_RELEASE_RISK_DIR/feature/phase-1" --pre-unit >"$OPEN_RELEASE_RISK_OUT"; then
+  fail "preflight --pre-unit must block open release_readiness residual risk"
+fi
+assert_failure_reason_contains "$OPEN_RELEASE_RISK_OUT" "release_readiness"
+
 BAD_STATUS_DIR="$TMP_DIR/bad-status"
 copy_fixtures "$BAD_STATUS_DIR"
 python3 - "$BAD_STATUS_DIR/feature/phase-1/phase-prd.json" <<'PY'

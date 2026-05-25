@@ -10,6 +10,13 @@
   "authoritative_fields": [
     "$.unit_id",
     "$.closure_definition",
+    "$.trigger",
+    "$.core_behavior",
+    "$.observable_result",
+    "$.feature_refs",
+    "$.flow_refs",
+    "$.risk_refs",
+    "$.rule_refs",
     "$.integration_context",
     "$.acceptance_criteria",
     "$.verification_plan",
@@ -64,8 +71,35 @@
       "verification_type": "functional",
       "business_operation": "execute the UNIT closed-loop behavior described in closure_definition",
       "expected_observation": "the observable result satisfies the linked acceptance criteria",
-      "evidence_target": "acceptance_criteria"
+      "evidence_target": "acceptance_criteria",
+      "covers_refs": [
+        "AC-T1-1",
+        "AC-T2-1",
+        "RISK-1",
+        "FEAT-1"
+      ],
+      "evidence_types": [
+        "page_description",
+        "data_before_after",
+        "test_record"
+      ]
     }
   ],
-  "design_decision_candidates": []
+  "design_decision_candidates": [],
+  "trigger": "representative business operation for this acceptance criterion",
+  "core_behavior": "A configured user can complete the login, homepage, and logout journey through a real HTTP server.",
+  "observable_result": "anonymous access and login error paths behave as specified.",
+  "feature_refs": [
+    "FEAT-1"
+  ],
+  "flow_refs": [
+    "TOBE-1",
+    "BPG-1"
+  ],
+  "risk_refs": [
+    "RISK-1"
+  ],
+  "rule_refs": [
+    "RULE-1"
+  ]
 }

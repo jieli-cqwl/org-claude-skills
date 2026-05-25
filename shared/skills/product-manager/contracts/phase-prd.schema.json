@@ -152,18 +152,23 @@
               "source_type": {
                 "type": "string",
                 "enum": [
+                  "api_request_response",
+                  "audit_log",
+                  "data_before_after",
                   "director_baseline",
-                  "user_input",
-                  "user_decision",
-                  "screenshot",
+                  "existing_json",
                   "flow_document",
                   "log",
-                  "ops_material",
-                  "support_ticket",
-                  "existing_json",
-                  "page_description",
                   "not_applicable",
-                  "other"
+                  "ops_material",
+                  "other",
+                  "page_description",
+                  "screen_recording",
+                  "screenshot",
+                  "support_ticket",
+                  "test_record",
+                  "user_decision",
+                  "user_input"
                 ]
               },
               "source_ref": {
@@ -380,7 +385,9 @@
                   "type": "object",
                   "required": [
                     "step_id",
-                    "label"
+                    "label",
+                    "actor",
+                    "object_state"
                   ],
                   "properties": {
                     "step_id": {
@@ -411,7 +418,9 @@
                   "required": [
                     "from_step",
                     "to_step",
-                    "condition"
+                    "condition",
+                    "object_state_change",
+                    "risk_refs"
                   ],
                   "properties": {
                     "from_step": {
@@ -1229,6 +1238,244 @@
             },
             "additionalProperties": false
           }
+        },
+        "coverage_matrix": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "coverage_id",
+              "scenario_ref",
+              "business_type",
+              "platform",
+              "action_or_path",
+              "support_status",
+              "unit_refs",
+              "ac_refs",
+              "evidence_refs",
+              "evidence_targets"
+            ],
+            "properties": {
+              "coverage_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scenario_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "business_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "platform": {
+                "type": "string",
+                "minLength": 1
+              },
+              "action_or_path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "support_status": {
+                "type": "string",
+                "enum": [
+                  "SUPPORTED",
+                  "CONDITIONAL",
+                  "UNSUPPORTED",
+                  "N_A"
+                ]
+              },
+              "unit_refs": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "ac_refs": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "evidence_refs": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "evidence_targets": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "decision_or_boundary_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "technical_evidence_requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "requirement_id",
+              "domain",
+              "business_invariant",
+              "required_downstream_proof",
+              "unit_refs",
+              "risk_refs",
+              "status"
+            ],
+            "properties": {
+              "requirement_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "domain": {
+                "type": "string",
+                "enum": [
+                  "api_contract",
+                  "data_model_state_machine",
+                  "business_type_difference",
+                  "transaction_boundary",
+                  "idempotency_concurrency",
+                  "permission_audit",
+                  "tenant_identity",
+                  "async_offline_task",
+                  "release_rollback",
+                  "other"
+                ]
+              },
+              "business_invariant": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required_downstream_proof": {
+                "type": "string",
+                "minLength": 1
+              },
+              "unit_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "risk_refs": {
+                "type": "array",
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "REQUIRED",
+                  "TRANSFERRED",
+                  "CLOSED",
+                  "N_A",
+                  "BLOCKED"
+                ]
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "release_readiness": {
+          "type": "object",
+          "required": [
+            "supported_platforms",
+            "conditional_platforms",
+            "unsupported_platforms",
+            "residual_risks"
+          ],
+          "properties": {
+            "supported_platforms": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "conditional_platforms": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "unsupported_platforms": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "residual_risks": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "type": "object",
+                "required": [
+                  "risk_id",
+                  "description",
+                  "owner",
+                  "target_resolution",
+                  "status"
+                ],
+                "properties": {
+                  "risk_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "owner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "target_resolution": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "CLOSED",
+                      "TRANSFERRED",
+                      "ACCEPTED",
+                      "OPEN",
+                      "BLOCKED"
+                    ]
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          "additionalProperties": true
         }
       },
       "required": [
@@ -1260,6 +1507,9 @@
           "state_transitions",
           "role_permission_matrix",
           "risk_ledger",
+          "coverage_matrix",
+          "technical_evidence_requirements",
+          "release_readiness",
           "business_flows",
           "user_paths",
           "rule_mappings",

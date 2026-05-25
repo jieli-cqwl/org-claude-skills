@@ -100,11 +100,12 @@ def require_schema_properties(schema: dict, fields: list[str], label: str) -> No
 
 
 def require_conditional_manager_phase_fields(schema: dict, fields: list[str]) -> None:
+    body_required = set(schema["allOf"][1].get("required", []))
     for rule in schema.get("allOf", []):
         if set(rule.get("if", {}).get("required", [])) != {"review_conclusion"}:
             continue
         required = set(rule.get("then", {}).get("required", []))
-        missing = sorted(set(fields) - required)
+        missing = sorted(set(fields) - required - body_required)
         require(not missing, f"phase-prd schema missing Manager-finalized required fields: {missing}")
         unit_index = rule.get("then", {}).get("properties", {}).get("unit_index", {})
         require(unit_index.get("minItems") == 1, "phase-prd schema must require non-empty unit_index after Manager review")
@@ -147,9 +148,25 @@ director_brief_fields = [
     "delivery_plan",
 ]
 phase_prd_manager_fields = [
+    "evidence_sources",
+    "as_is_flows",
+    "to_be_flows",
+    "business_process_graphs",
+    "feature_inventory",
+    "module_capability_matrix",
+    "entry_scene_inventory",
+    "business_objects",
+    "state_transitions",
+    "role_permission_matrix",
+    "risk_ledger",
+    "coverage_matrix",
+    "technical_evidence_requirements",
+    "release_readiness",
     "business_flows",
     "user_paths",
     "rule_mappings",
+    "unit_index",
+    "unit_priority_order",
     "design_decision_candidates",
 ]
 phase_prd_director_fields = [
@@ -158,6 +175,13 @@ phase_prd_director_fields = [
     "exit_conditions",
 ]
 unit_manager_fields = [
+    "trigger",
+    "core_behavior",
+    "observable_result",
+    "feature_refs",
+    "flow_refs",
+    "risk_refs",
+    "rule_refs",
     "integration_context",
     "acceptance_criteria",
     "verification_plan",
@@ -187,6 +211,17 @@ ac_items = unit_schema["allOf"][1]["properties"]["acceptance_criteria"]["items"]
 require(ac_items.get("type") == "object", "unit acceptance_criteria must be structured objects")
 for field in ["ac_id", "description", "example_input", "expected_result", "boundary_case", "failure_mode"]:
     require(field in ac_items.get("required", []), f"unit acceptance_criteria item must require {field}")
+evidence_types = set(
+    phase_schema["allOf"][1]["properties"]["evidence_sources"]["items"]["properties"]["source_type"]["enum"]
+)
+for source_type in ["screen_recording", "api_request_response", "data_before_after", "audit_log", "test_record"]:
+    require(source_type in evidence_types, f"phase-prd evidence_sources.source_type missing {source_type}")
+verification_items = unit_schema["allOf"][1]["properties"]["verification_plan"]["items"]
+require("evidence_types" in verification_items.get("required", []), "unit verification_plan item must require evidence_types")
+require(
+    verification_items["properties"]["evidence_types"]["items"]["enum"] == sorted(evidence_types),
+    "unit verification_plan evidence_types enum must match phase evidence source types",
+)
 
 standard_chain = (root / "contracts/standard-chain.yaml").read_text(encoding="utf-8")
 for field in director_brief_fields:

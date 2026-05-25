@@ -10,6 +10,13 @@
   "authoritative_fields": [
     "$.unit_id",
     "$.closure_definition",
+    "$.trigger",
+    "$.core_behavior",
+    "$.observable_result",
+    "$.feature_refs",
+    "$.flow_refs",
+    "$.risk_refs",
+    "$.rule_refs",
     "$.integration_context",
     "$.acceptance_criteria",
     "$.verification_plan",
@@ -70,7 +77,19 @@
       "verification_type": "单元测试",
       "business_operation": "调用认证接口，传入正确和错误的账号密码组合",
       "expected_observation": "正确组合返回 200 和会话标识，错误组合返回 401 和模糊错误",
-      "evidence_target": "测试用例覆盖账号不存在、密码错误、认证成功三种场景"
+      "evidence_target": "测试用例覆盖账号不存在、密码错误、认证成功三种场景",
+      "covers_refs": [
+        "AC-2.1",
+        "AC-2.2",
+        "AC-2.3",
+        "RISK-1",
+        "FEAT-2"
+      ],
+      "evidence_types": [
+        "page_description",
+        "data_before_after",
+        "test_record"
+      ]
     }
   ],
   "design_decision_candidates": [],
@@ -82,5 +101,22 @@
   ],
   "exclusions": [
     "UNIT-2 不处理账号注册、第三方登录、多因素认证、密码重置（brief.non_goals）"
+  ],
+  "trigger": "POST /api/login 请求，包含账号和密码",
+  "core_behavior": "接收登录请求，验证账号是否存在，验证密码是否匹配，返回认证结果",
+  "observable_result": "认证成功 → 返回 200，body 包含会话标识 / 认证失败 → 返回 401，body 包含错误消息'账号或密码错误'",
+  "feature_refs": [
+    "FEAT-2"
+  ],
+  "flow_refs": [
+    "TOBE-1",
+    "BPG-1"
+  ],
+  "risk_refs": [
+    "RISK-1"
+  ],
+  "rule_refs": [
+    "BR-2",
+    "BR-5"
   ]
 }

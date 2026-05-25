@@ -22,6 +22,9 @@
     "$.state_transitions",
     "$.role_permission_matrix",
     "$.risk_ledger",
+    "$.coverage_matrix",
+    "$.technical_evidence_requirements",
+    "$.release_readiness",
     "$.business_flows",
     "$.user_paths",
     "$.rule_mappings",
@@ -509,7 +512,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:5fdb9a8eebb74da9b7fb94f0be2c625510bad657db19e66d3c3c7fcb47116d8c"
+          "reviewed_bundle_digest": "sha256:17c81e9c214d1165f7efe7ab14c39f057442dededd5aeb5905bfb0f9de8ea2c1"
         },
         {
           "perspective": "architecture",
@@ -530,7 +533,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:5fdb9a8eebb74da9b7fb94f0be2c625510bad657db19e66d3c3c7fcb47116d8c"
+          "reviewed_bundle_digest": "sha256:17c81e9c214d1165f7efe7ab14c39f057442dededd5aeb5905bfb0f9de8ea2c1"
         },
         {
           "perspective": "test",
@@ -551,7 +554,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:5fdb9a8eebb74da9b7fb94f0be2c625510bad657db19e66d3c3c7fcb47116d8c"
+          "reviewed_bundle_digest": "sha256:17c81e9c214d1165f7efe7ab14c39f057442dededd5aeb5905bfb0f9de8ea2c1"
         }
       ],
       "convergence_evidence": [
@@ -564,7 +567,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:5fdb9a8eebb74da9b7fb94f0be2c625510bad657db19e66d3c3c7fcb47116d8c"
+      "reviewed_bundle_digest": "sha256:17c81e9c214d1165f7efe7ab14c39f057442dededd5aeb5905bfb0f9de8ea2c1"
     }
   },
   "issue_ledger": [],
@@ -584,5 +587,60 @@
         "用户可主动登出"
       ]
     }
+  },
+  "coverage_matrix": [
+    {
+      "coverage_id": "COV-1",
+      "scenario_ref": "TOBE-1",
+      "business_type": "primary business type",
+      "platform": "primary surface",
+      "action_or_path": "登录入口提交",
+      "support_status": "SUPPORTED",
+      "unit_refs": [
+        "UNIT-1",
+        "UNIT-2",
+        "UNIT-3",
+        "UNIT-4"
+      ],
+      "ac_refs": [
+        "AC-U1-01"
+      ],
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "evidence_targets": [
+        "page or flow evidence",
+        "data before/after evidence",
+        "test execution record"
+      ]
+    }
+  ],
+  "technical_evidence_requirements": [
+    {
+      "requirement_id": "TECH-1",
+      "domain": "api_contract",
+      "business_invariant": "The linked business result must be proven at service, data, and audit boundaries without changing excluded behavior.",
+      "required_downstream_proof": "Downstream design and test evidence must prove the linked AC and risk with interface, data, audit, or execution records.",
+      "unit_refs": [
+        "UNIT-1",
+        "UNIT-2",
+        "UNIT-3",
+        "UNIT-4"
+      ],
+      "risk_refs": [
+        "RISK-1",
+        "RISK-2",
+        "RISK-3"
+      ],
+      "status": "REQUIRED"
+    }
+  ],
+  "release_readiness": {
+    "supported_platforms": [
+      "primary surface"
+    ],
+    "conditional_platforms": [],
+    "unsupported_platforms": [],
+    "residual_risks": []
   }
 }

@@ -22,6 +22,9 @@
     "$.state_transitions",
     "$.role_permission_matrix",
     "$.risk_ledger",
+    "$.coverage_matrix",
+    "$.technical_evidence_requirements",
+    "$.release_readiness",
     "$.business_flows",
     "$.user_paths",
     "$.rule_mappings",
@@ -300,7 +303,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:12dcc9f2577d6d2379a9d743e45c42668e54e9ff2215e6ef154bdef6aa7ea238"
+          "reviewed_bundle_digest": "sha256:423cfe52821d50aedc825c0fdccffc7d59d5c44e118c95b944d10be3457fd5d9"
         },
         {
           "perspective": "architecture",
@@ -318,7 +321,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:12dcc9f2577d6d2379a9d743e45c42668e54e9ff2215e6ef154bdef6aa7ea238"
+          "reviewed_bundle_digest": "sha256:423cfe52821d50aedc825c0fdccffc7d59d5c44e118c95b944d10be3457fd5d9"
         },
         {
           "perspective": "test",
@@ -336,7 +339,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:12dcc9f2577d6d2379a9d743e45c42668e54e9ff2215e6ef154bdef6aa7ea238"
+          "reviewed_bundle_digest": "sha256:423cfe52821d50aedc825c0fdccffc7d59d5c44e118c95b944d10be3457fd5d9"
         }
       ],
       "convergence_evidence": [
@@ -349,7 +352,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:12dcc9f2577d6d2379a9d743e45c42668e54e9ff2215e6ef154bdef6aa7ea238"
+      "reviewed_bundle_digest": "sha256:423cfe52821d50aedc825c0fdccffc7d59d5c44e118c95b944d10be3457fd5d9"
     }
   },
   "issue_ledger": [],
@@ -362,5 +365,52 @@
   "rule_mappings": [
     "Director-owned scope and business rules remain locked; PM maps them to UNIT boundaries, AC, and Verification Plan."
   ],
-  "design_decision_candidates": []
+  "design_decision_candidates": [],
+  "coverage_matrix": [
+    {
+      "coverage_id": "COV-1",
+      "scenario_ref": "TOBE-1",
+      "business_type": "primary business type",
+      "platform": "primary surface",
+      "action_or_path": "complete request submission",
+      "support_status": "SUPPORTED",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "ac_refs": [
+        "AC-U1-01"
+      ],
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "evidence_targets": [
+        "page or flow evidence",
+        "data before/after evidence",
+        "test execution record"
+      ]
+    }
+  ],
+  "technical_evidence_requirements": [
+    {
+      "requirement_id": "TECH-1",
+      "domain": "api_contract",
+      "business_invariant": "The linked business result must be proven at service, data, and audit boundaries without changing excluded behavior.",
+      "required_downstream_proof": "Downstream design and test evidence must prove the linked AC and risk with interface, data, audit, or execution records.",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "risk_refs": [
+        "RISK-1"
+      ],
+      "status": "REQUIRED"
+    }
+  ],
+  "release_readiness": {
+    "supported_platforms": [
+      "primary surface"
+    ],
+    "conditional_platforms": [],
+    "unsupported_platforms": [],
+    "residual_risks": []
+  }
 }

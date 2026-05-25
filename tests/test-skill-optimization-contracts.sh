@@ -50,7 +50,7 @@ path = Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
 
 anchors = {anchor.get("id") for anchor in data.get("preference_anchors", [])}
-required_anchors = {"PA-4", "PA-5", "PA-6", "PA-7", "PA-8"}
+required_anchors = {"review-fail-warn-closure", "director-lock-no-drift", "delivery-confirmation", "pm-recommendation-first", "high-risk-review"}
 missing_anchors = sorted(required_anchors - anchors)
 if missing_anchors:
     raise SystemExit(f"{path}: missing behavior anchors {missing_anchors}")
@@ -58,19 +58,19 @@ if missing_anchors:
 case_by_id = {case.get("id"): case for case in data.get("evals", [])}
 required_cases = {
     "director-lock-drift-blocking": {
-        "anchors": {"PA-5"},
+        "anchors": {"director-lock-no-drift"},
         "signals": ["Director 锁定字段漂移", "停止并报告用户", "用户裁决"],
     },
     "unit-context-and-ac-closure": {
-        "anchors": {"PA-7"},
-        "signals": ["PM 推荐", "未闭合业务假设", "用户补充业务事实"],
+        "anchors": {"pm-recommendation-first"},
+        "signals": ["PM 推荐", "未闭合业务假设", "用户只确认会改变结论的业务事实"],
     },
     "review-delivery-guided-confirmation": {
-        "anchors": {"PA-4", "PA-6", "PA-7"},
+        "anchors": {"review-fail-warn-closure", "delivery-confirmation", "pm-recommendation-first"},
         "signals": ["收口建议", "issue_ledger", "delivery_confirmation", "验证一个会改变交付确认结论的具体业务假设"],
     },
     "high-risk-review-on-demand": {
-        "anchors": {"PA-8"},
+        "anchors": {"high-risk-review"},
         "signals": ["高风险", "High-Risk Signals", "不追加高风险检查"],
     },
 }

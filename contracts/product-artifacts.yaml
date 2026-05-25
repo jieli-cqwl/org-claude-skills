@@ -21,8 +21,43 @@ product_artifacts:
       - 入口与出口条件
   product_manager_phase_contract:
     sections:
+      - Evidence Sources
+      - AS-IS Flows
+      - TO-BE Flows
+      - Business Process Graphs
+      - Feature Inventory
+      - Module Capability Matrix
+      - Entry Scene Inventory
+      - Business Objects
+      - State Transitions
+      - Role Permission Matrix
+      - Risk Ledger
+      - Coverage Matrix
+      - Technical Evidence Requirements
+      - Release Readiness
+      - Business Flows
+      - User Paths
+      - Rule Mappings
+      - Unit Index
+      - Unit Priority Order
+      - Design Decision Candidates
+  product_manager_unit_contract:
+    sections:
+      - Closure Definition
+      - Trigger
+      - Core Behavior
+      - Observable Result
+      - Feature Refs
+      - Flow Refs
+      - Risk Refs
+      - Rule Refs
       - Integration Context
+      - Acceptance Criteria
       - Verification Plan
+      - Design Decision Candidates
+      - Exclusions
+      - Priority
+      - Dependencies
   product_manager_review_contract:
     sections:
       - 最终结论

@@ -166,7 +166,7 @@ TASK_SCOPE_PATHS = {
 REQUIRED_SCHEMA_FIELDS = {
     "brief": {"root_problem", "user_profile", "business_goals", "appetite", "scope_boundaries", "non_goals", "feasibility_constraints", "risks_and_unknowns", "decision_rationale", "delivery_plan", "director_confirmation"},
     "phase-prd": {"director_confirmation"},
-    "unit-definition": {"integration_context", "verification_plan", "design_decision_candidates", "priority", "priority_basis", "dependencies"},
+    "unit-definition": {"trigger", "core_behavior", "observable_result", "feature_refs", "flow_refs", "risk_refs", "rule_refs", "integration_context", "verification_plan", "design_decision_candidates", "priority", "priority_basis", "dependencies"},
     "design": {"co_creation_summary", "constraint_inheritance_confirmation", "review_closure", "final_confirmation", "option_analysis", "runtime_facts", "interfaces", "migration_plan", "verification_plan", "rollback_plan", "modules", "data_architecture", "cross_cutting_concerns", "verification_mapping", "unit_coverage", "impact_scope", "planning_constraints", "product_handoff", "risks", "risk_response"},
     "test-cases": {"qa_handoff_contract", "unit_coverage_view", "design_gap_report", "special_test_triggers", "review_conclusion", "issue_ledger"},
     "plan": {"goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs", "planning_readiness", "implementation_path", "goal_fidelity_review", "user_confirmation"},
@@ -178,7 +178,7 @@ REQUIRED_SCHEMA_FIELDS = {
     "user-decision": {"current_stage", "director_lock_digests"},
 }
 SCHEMA_PROPERTY_FIELDS = {
-    "phase-prd": {"business_flows", "user_paths", "rule_mappings", "design_decision_candidates"},
+    "phase-prd": {"coverage_matrix", "technical_evidence_requirements", "release_readiness", "business_flows", "user_paths", "rule_mappings", "design_decision_candidates"},
 }
 EXPECTED_EXECUTION_MODES = ["browser_required", "non_browser_ok"]
 GOLDEN_FIXTURES = {

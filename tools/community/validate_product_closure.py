@@ -378,14 +378,35 @@ def assert_final_phase_units(payload: dict, label: str, artifact_path: Path) -> 
 
     if payload.get("artifact_type") != "phase-prd":
         return
-    for field in ("business_flows", "user_paths", "rule_mappings"):
+    for field in (
+        "coverage_matrix",
+        "technical_evidence_requirements",
+        "business_flows",
+        "user_paths",
+        "rule_mappings",
+    ):
         values = payload.get(field)
         if not isinstance(values, list) or not values:
             raise ValueError(
                 f"{label} {field} must be non-empty for Manager-finalized phase-prd"
             )
-        if any(not is_substantive_text(item) for item in values):
+        if field in {"business_flows", "user_paths", "rule_mappings"} and any(
+            not is_substantive_text(item) for item in values
+        ):
             raise ValueError(f"{label} {field} contains placeholder values")
+    readiness = payload.get("release_readiness")
+    if not isinstance(readiness, dict):
+        raise ValueError(
+            f"{label} release_readiness must be an object for Manager-finalized phase-prd"
+        )
+    for field in (
+        "supported_platforms",
+        "conditional_platforms",
+        "unsupported_platforms",
+        "residual_risks",
+    ):
+        if not isinstance(readiness.get(field), list):
+            raise ValueError(f"{label} release_readiness.{field} must be an array")
     decisions = payload.get("design_decision_candidates")
     if not isinstance(decisions, list):
         raise ValueError(f"{label} design_decision_candidates must be an array")
@@ -409,6 +430,16 @@ def assert_unit_definition_fields(payload: dict, label: str) -> None:
 
     if payload.get("artifact_type") != "unit-definition":
         return
+    for field in ("trigger", "core_behavior", "observable_result"):
+        if not is_substantive_text(payload.get(field)):
+            raise ValueError(f"{label} {field} must be non-empty")
+    for field in ("feature_refs", "flow_refs"):
+        if not is_string_list(payload.get(field)):
+            raise ValueError(f"{label} {field} must be a non-empty string array")
+    for field in ("risk_refs", "rule_refs"):
+        if not is_string_list(payload.get(field), allow_empty=True):
+            raise ValueError(f"{label} {field} must be a string array")
+
     integration = payload.get("integration_context")
     if not isinstance(integration, dict):
         raise ValueError(f"{label} integration_context must be an object")
@@ -465,6 +496,10 @@ def assert_unit_definition_fields(payload: dict, label: str) -> None:
             )
             if not is_substantive_text(item.get(field))
         ]
+        if not is_string_list(item.get("covers_refs")):
+            missing.append("covers_refs")
+        if not is_string_list(item.get("evidence_types")):
+            missing.append("evidence_types")
         if missing:
             raise ValueError(
                 f"{label} verification_plan[{index}] missing fields: {', '.join(missing)}"

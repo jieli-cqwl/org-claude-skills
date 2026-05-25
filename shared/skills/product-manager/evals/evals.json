@@ -13,8 +13,8 @@
         "准入未通过前不输出 PRD、UNIT 或 AC 草案"
       ],
       "expected_anchors": [
-        "PA-1",
-        "PA-5"
+        "handoff-director-baseline",
+        "director-lock-no-drift"
       ]
     },
     {
@@ -30,8 +30,8 @@
         "把 product-director 标为可裁决入口而非自动下一步"
       ],
       "expected_anchors": [
-        "PA-1",
-        "PA-5"
+        "handoff-director-baseline",
+        "director-lock-no-drift"
       ]
     },
     {
@@ -50,15 +50,15 @@
         "review 纳入当前闭环，不承诺后补"
       ],
       "expected_anchors": [
-        "PA-1",
-        "PA-4",
-        "PA-6"
+        "handoff-director-baseline",
+        "review-fail-warn-closure",
+        "delivery-confirmation"
       ]
     },
     {
       "id": "unit-context-and-ac-closure",
       "prompt": "Handoff gate 已通过，输入文件包含已确认 handoff：`shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/brief.json` 和 `phase-1/phase-prd.json`。本 eval 不要求写文件、运行命令或修改既有 UNIT；请基于这份 request review flow，在答复正文为 Phase 1 拆一个闭环 UNIT，并把 AC 收到可以交给 design/test-design 的粒度。",
-      "expected_output": "先基于输入 handoff 在答复正文给 PM 推荐 UNIT 草案、AC 草案、推荐理由和会改变结论的未闭合业务假设；UNIT 写清输入/触发、核心行为、可观察结果、Integration Context、正常/异常/边界示例驱动 AC、Verification Plan、依赖和排除项；用户补充业务事实，不承担 PM 方法判断；不写技术实现路径。",
+      "expected_output": "先基于输入 handoff 在答复正文给 PM 推荐 UNIT 草案、AC 草案、推荐理由和会改变结论的未闭合业务假设；UNIT 写清输入/触发、核心行为、可观察结果、Integration Context、正常/异常/边界示例驱动 AC、Verification Plan、依赖和排除项；用户只确认会改变结论的业务事实；技术实现路径留给下游。",
       "files": [
         "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/brief.json",
         "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/phase-1/phase-prd.json",
@@ -70,12 +70,12 @@
         "Integration Context 写业务模块、不可破坏行为、跨 UNIT 依赖和业务约束",
         "AC 包含示例输入、预期结果、边界情况和失败模式",
         "Verification Plan 写验证类型、业务操作或场景、预期可观察结果和证据目标",
-        "用户补充业务事实，不承担 PM 方法判断"
+        "用户只确认会改变结论的业务事实"
       ],
       "expected_anchors": [
-        "PA-2",
-        "PA-3",
-        "PA-7"
+        "unit-closed-loop",
+        "ac-traceable",
+        "pm-recommendation-first"
       ]
     },
     {
@@ -94,9 +94,9 @@
         "/design 消费已冻结 JSON 产物和明确下游字段"
       ],
       "expected_anchors": [
-        "PA-4",
-        "PA-6",
-        "PA-7"
+        "review-fail-warn-closure",
+        "delivery-confirmation",
+        "pm-recommendation-first"
       ]
     },
     {
@@ -113,8 +113,8 @@
         "没有高风险信号时不追加高风险检查"
       ],
       "expected_anchors": [
-        "PA-4",
-        "PA-8"
+        "review-fail-warn-closure",
+        "high-risk-review"
       ]
     },
     {
@@ -130,7 +130,7 @@
         "分类结果写入 PM 台账"
       ],
       "expected_anchors": [
-        "PA-9"
+        "handoff-input-quality"
       ]
     },
     {
@@ -146,7 +146,7 @@
         "存在优先级-依赖矛盾时暂停修正而非忽略"
       ],
       "expected_anchors": [
-        "PA-10"
+        "unit-priority-consistency"
       ]
     },
     {
@@ -162,7 +162,7 @@
         "Self-check 标记不一致项并返回 owning step 修正；仍需承接时写入既有 issue/review 字段"
       ],
       "expected_anchors": [
-        "PA-11"
+        "cross-unit-semantic-consistency"
       ]
     },
     {
@@ -179,8 +179,8 @@
         "保持 Director 冻结范围"
       ],
       "expected_anchors": [
-        "PA-7",
-        "PA-12"
+        "pm-recommendation-first",
+        "business-flow-coverage"
       ]
     },
     {
@@ -197,8 +197,8 @@
         "识别 UNIT 边界前提"
       ],
       "expected_anchors": [
-        "PA-7",
-        "PA-13"
+        "pm-recommendation-first",
+        "user-path-coverage"
       ]
     },
     {
@@ -215,8 +215,8 @@
         "未确定的规则标为关键假设"
       ],
       "expected_anchors": [
-        "PA-7",
-        "PA-14"
+        "pm-recommendation-first",
+        "business-rule-mapping"
       ]
     },
     {
@@ -232,8 +232,8 @@
         "现状判断由 evidence_sources 或用户裁决支撑"
       ],
       "expected_anchors": [
-        "PA-17",
-        "PA-7"
+        "evidence-for-existing-entry",
+        "pm-recommendation-first"
       ]
     },
     {
@@ -249,47 +249,67 @@
         "OUT_OF_SCOPE 功能可追溯到 Director 或用户裁决"
       ],
       "expected_anchors": [
-        "PA-18",
-        "PA-19"
+        "pre-unit-model-closure",
+        "feature-scope-status"
       ]
     },
     {
       "id": "risk-ledger-downgrades-to-verification",
       "prompt": "库存调整 Phase 命中外部审批系统不可用、重复提交、审批通过后库存回滚失败三个风险。PM 在 Feature inventory and risk/AC 应该怎么处理，能不能只写一句「注意风险」？",
-      "expected_output": "PM 把每个风险写入 risk_ledger，包含来源、类型、触发条件、影响 UNIT、影响、PM 决策、owner/缓解方式、verification_target 和状态。风险降解到 AC、Verification Plan、阻断项、下游 owner 或用户裁决；OPEN/BLOCKED 风险阻断 delivery_confirmation；涉及外部审批不可用、重复提交、回滚失败的风险在 AC 或 Verification Plan 中写可观察验证目标。",
+      "expected_output": "PM 把每个风险写入 risk_ledger，包含来源、类型、触发条件、影响 UNIT、影响、PM 决策、owner/缓解方式、verification_target 和状态。风险落到 AC、Verification Plan、阻断项、下游 owner 或用户裁决；OPEN/BLOCKED 风险阻断 delivery_confirmation；涉及外部审批不可用、重复提交、回滚失败的风险在 AC 或 Verification Plan 中写可观察验证目标。",
       "files": [],
       "expectations": [
         "每个风险写入 risk_ledger 的结构化字段",
-        "风险降解到 AC、Verification Plan、阻断项、owner 或用户裁决",
+        "风险落到 AC、Verification Plan、阻断项、owner 或用户裁决",
         "OPEN/BLOCKED 风险阻断交付确认",
         "外部依赖、重复提交和回滚失败有可观察验证目标",
         "泛泛提醒升级为结构化风险台账"
       ],
       "expected_anchors": [
-        "PA-20",
-        "PA-8"
+        "risk-to-verification",
+        "high-risk-review"
+      ]
+    },
+    {
+      "id": "move-in-next-tenant-output-shape",
+      "prompt": "小需求测试：已租房间登记下一任租客，生成「将搬入」记录，且不影响当前在租关系。请说明 product-manager 的正确产出应该是什么，不要写技术方案。",
+      "expected_output": "PM 先给推荐产品产出：AS-IS 写当前已租房间与当前租客在租关系及入口证据；TO-BE 写运营登记下一任租客后生成独立「将搬入」记录，当前租客、当前合同、账单和房间在租状态不变化；业务流程图覆盖选择房间、登记下一任租客、校验不覆盖当前租客、创建将搬入记录、展示当前在租与将搬入并存；功能清单把创建将搬入记录、保护当前在租关系、展示或消费将搬入状态拆为 IN_SCOPE 能力；风险写覆盖当前租客、误触发合同或账单、重复登记，并落到 AC 或 Verification Plan；UNIT 写闭环、依赖和排除项；AC 写可观察结果。",
+      "files": [],
+      "expectations": [
+        "产出 AS-IS、TO-BE 和业务流程图，而不是只写功能名",
+        "明确当前租客、合同、账单和在租状态不变化",
+        "功能清单映射 IN_SCOPE 能力和 UNIT",
+        "风险落到 AC 或 Verification Plan",
+        "技术方案留给下游"
+      ],
+      "expected_anchors": [
+        "pm-recommendation-first",
+        "business-flow-coverage",
+        "pre-unit-model-closure",
+        "risk-to-verification"
       ]
     },
     {
       "id": "skill-wording-must-be-executable",
       "prompt": "请优化 product-manager 的 SKILL.md：把「为什么要这么做」「确保完整合理」「根据情况适当补充」这类说明保留在主流程里可以吗？",
-      "expected_output": "SKILL.md 主流程保留可执行指令，用自然语言直接写清每一步的输入、判断、写入、暂停条件和下一步。解释性 Why、自证、抽象形容词和不触发动作的说明删除、下沉到 reference，或改成可执行检查项；使用自然语言指令；description 写触发与边界。",
+      "expected_output": "SKILL.md 主流程保留可执行指令，用自然语言按「读取事实 -> 完成 PM 判断 -> 写入契约字段 -> 停止或回流」的隐性顺序表达，不机械拆成四段式标题。解释性 Why、自证、抽象形容词和不触发动作的说明删除、下沉到 reference，或改成可执行检查项；字段必须能追溯到 templates/contracts/scripts；description 写触发与边界。",
       "files": [],
       "expectations": [
         "主流程用自然语言直接写清可执行动作",
         "删除或下沉解释性 Why、自证和低信号说明",
         "把抽象形容词改成可检查条件",
-        "每步写清输入、判断、写入、暂停条件和下一步",
+        "每步用自然语言体现读取事实、PM 判断、契约字段落点和停止或回流条件",
+        "不把主流程机械改成四段式标题模板",
         "description 写触发与边界"
       ],
       "expected_anchors": [
-        "PA-21"
+        "executable-skill-wording"
       ]
     },
     {
       "id": "design-decision-structuring",
       "prompt": "Verification Plan 已完成。Design handoff 扫描发现两个开放问题：1）库存调整精度（整数还是支持小数）影响 UNIT-2 和 UNIT-3 的 AC，Director baseline 未指定；2）调整审批是走现有 OA 审批流还是系统内建审批，影响 UNIT-4 的 Integration Context。PM 应该怎么结构化这两个待设计决策？",
-      "expected_output": "为每个决策记录结构化 design handoff：决策 1（库存精度）：候选选项=整数/支持两位小数，约束=Director 未指定精度但成功标准要求精确管理，影响 UNIT=UNIT-2 和 UNIT-3 的 AC 和边界值，design handoff=由 /design 根据业务数据实际精度需求收口。决策 2（审批流）：候选选项=复用 OA 审批/系统内建审批，约束=现有 OA 审批流已有、系统内建可控性更高，影响 UNIT=UNIT-4，design handoff=由 /design 根据集成成本和控制需求收口。只描述 WHAT 层约束，不提前给技术答案。",
+      "expected_output": "为每个决策记录结构化 design handoff：决策 1（库存精度）：候选选项=整数/支持两位小数，约束=Director 未指定精度但成功标准要求精确管理，影响 UNIT=UNIT-2 和 UNIT-3 的 AC 和边界值，design handoff=由 /design 根据业务数据实际精度需求收口。决策 2（审批流）：候选选项=复用 OA 审批/系统内建审批，约束=现有 OA 审批流已有、系统内建可控性更高，影响 UNIT=UNIT-4，design handoff=由 /design 根据集成成本和控制需求收口。只描述 WHAT 层约束，技术答案留给 /design。",
       "files": [],
       "expectations": [
         "每个决策有候选选项",
@@ -297,10 +317,10 @@
         "每个决策有影响的 UNIT",
         "每个决策有 design handoff 目标",
         "只描述 WHAT 层约束",
-        "不提前给技术答案"
+        "技术答案留给 /design"
       ],
       "expected_anchors": [
-        "PA-15"
+        "design-decision-handoff"
       ]
     },
     {
@@ -320,7 +340,7 @@
         "显式说明这是 PM 侧闸门而非等到 design phase validator 才发现"
       ],
       "expected_anchors": [
-        "PA-16"
+        "pm-preflight-structure-drift"
       ],
       "run_modes": [
         "with_skill",
@@ -331,108 +351,108 @@
   "eval_type": "encoded_preference",
   "preference_anchors": [
     {
-      "id": "PA-1",
+      "id": "handoff-director-baseline",
       "anchor": "准入必须消费已确认的 Director baseline",
       "weight": 1
     },
     {
-      "id": "PA-2",
+      "id": "unit-closed-loop",
       "anchor": "每个 UNIT 必须有输入、触发、核心行为和可观察结果",
       "weight": 1
     },
     {
-      "id": "PA-3",
+      "id": "ac-traceable",
       "anchor": "AC 和排除项必须可验证且可追踪",
       "weight": 1
     },
     {
-      "id": "PA-4",
+      "id": "review-fail-warn-closure",
       "anchor": "三方评审 FAIL 必须关闭，WARN 必须承接",
       "weight": 1
     },
     {
-      "id": "PA-5",
+      "id": "director-lock-no-drift",
       "anchor": "Director locked_fields 和 locked_field_digest 保持上游锁定值；漂移时停在 Handoff gate",
       "weight": 1
     },
     {
-      "id": "PA-6",
+      "id": "delivery-confirmation",
       "anchor": "交付前必须写入 delivery_confirmation",
       "weight": 1
     },
     {
-      "id": "PA-7",
-      "anchor": "共创必须先给 PM 推荐结论草案、推荐理由和会改变结论的未闭合业务假设，用户补充业务事实，不承担 PM 方法判断",
+      "id": "pm-recommendation-first",
+      "anchor": "共创必须先给 PM 推荐结论草案、推荐理由和会改变结论的未闭合业务假设；用户只确认会改变结论的业务事实、约束或裁决",
       "weight": 1
     },
     {
-      "id": "PA-8",
+      "id": "high-risk-review",
       "anchor": "高风险上线、失败重试、回滚、批量重放、外部依赖不可用、幂等或重复提交风险在 Agent review 同一循环检查 High-Risk Signals，并写回 AC、Verification Plan、issue_ledger 或阻断结论",
       "weight": 1
     },
     {
-      "id": "PA-9",
+      "id": "handoff-input-quality",
       "anchor": "Handoff gate 结构完整性通过后扫描语义清晰度，识别歧义定义、范围灰区和输入缺口，按「PM 可收口」与「需回 Director」分类处理，分类结果写入台账",
       "weight": 1
     },
     {
-      "id": "PA-10",
+      "id": "unit-priority-consistency",
       "anchor": "所有 UNIT 闭合后验证整体优先级排序：高优不依赖低优（除非有明确业务理由）、依赖链条与推荐执行顺序一致、存在矛盾时暂停修正",
       "weight": 1
     },
     {
-      "id": "PA-11",
+      "id": "cross-unit-semantic-consistency",
       "anchor": "Self-check 检查跨 UNIT 语义一致性：同一业务概念使用相同术语和状态名、不同 UNIT 规则和排除项不矛盾；不一致项必须返回 owning step 修正，仍需承接时写入既有 issue/review 字段",
       "weight": 1
     },
     {
-      "id": "PA-12",
+      "id": "business-flow-coverage",
       "anchor": "业务流程草案覆盖端到端过程、对象状态变化和关键分支，保持 Director 冻结范围；UNIT 和 AC 进入后续步骤",
       "weight": 1
     },
     {
-      "id": "PA-13",
+      "id": "user-path-coverage",
       "anchor": "用户场景路径覆盖正常、无权限、空状态和错误体验结果；写 WHAT 层可观察状态，界面实现形式留给 /design",
       "weight": 1
     },
     {
-      "id": "PA-14",
+      "id": "business-rule-mapping",
       "anchor": "业务规则细化到业务行为和约束，技术落点留给下游；触及上游范围或规则变化时停止报告用户",
       "weight": 1
     },
     {
-      "id": "PA-15",
+      "id": "design-decision-handoff",
       "anchor": "待设计决策包含候选选项、约束、影响 UNIT 和 design handoff 目标；描述 WHAT 层约束，技术答案留给 /design",
       "weight": 1
     },
     {
-      "id": "PA-16",
+      "id": "pm-preflight-structure-drift",
       "anchor": "PM preflight 在 --phase-dir 模式下调用结构 schema 与结构规则，拦截 chain_registry_digest / authoritative_fields / producer / UNIT closure_definition / cross_unit_dependencies 字符串形态 / design_decision_candidates 字段名等结构漂移，结构缺口停在 PM preflight",
       "weight": 1
     },
     {
-      "id": "PA-17",
+      "id": "evidence-for-existing-entry",
       "anchor": "既有入口、现有页面、用户操作或系统状态必须有 evidence_sources 证据；缺证据时写 ASSUMPTION / gap_reason / required_evidence / blocks_fields 并暂停依赖该证据的最终 UNIT 或 AC",
       "weight": 1
     },
     {
-      "id": "PA-18",
+      "id": "pre-unit-model-closure",
       "anchor": "UNIT 拆分前必须先闭合 AS-IS、TO-BE、功能清单、模块能力矩阵、入口场景、业务对象、状态流转、权限矩阵和风险台账",
       "weight": 1
     },
     {
-      "id": "PA-19",
+      "id": "feature-scope-status",
       "anchor": "feature_inventory 区分 IN_SCOPE / OUT_OF_SCOPE / NEEDS_DECISION；IN_SCOPE 映射 UNIT，OUT_OF_SCOPE 追溯边界，NEEDS_DECISION 停在功能清单等待裁决",
       "weight": 1
     },
     {
-      "id": "PA-20",
-      "anchor": "risk_ledger 把风险降解到 AC、Verification Plan、阻断项、下游 owner 或用户裁决；OPEN/BLOCKED 风险阻断 delivery_confirmation",
+      "id": "risk-to-verification",
+      "anchor": "risk_ledger 把风险落到 AC、Verification Plan、阻断项、下游 owner 或用户裁决；OPEN/BLOCKED 风险阻断 delivery_confirmation",
       "weight": 1
     },
     {
-      "id": "PA-21",
-      "anchor": "SKILL.md 主流程用自然语言直接写清每一步的输入、判断、写入、暂停条件和下一步；解释性 Why、自证和低信号说明删除、下沉或改成检查项；使用自然语言指令",
+      "id": "executable-skill-wording",
+      "anchor": "SKILL.md 主流程用自然语言按读取事实、PM 判断、契约字段落点、停止或回流条件的隐性顺序写清动作；解释性 Why、自证和低信号说明删除、下沉或改成检查项；不机械套四段式标题模板",
       "weight": 1
     }
   ]

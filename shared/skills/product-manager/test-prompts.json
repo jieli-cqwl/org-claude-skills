@@ -47,6 +47,6 @@
   {
     "id": 10,
     "prompt": "Design handoff 扫描发现两个开放问题：库存精度（整数还是小数）影响 UNIT-2 和 UNIT-3 的 AC，审批走 OA 还是系统内建影响 UNIT-4。PM 怎么结构化这两个待设计决策？",
-    "expected": "每个决策包含候选选项、约束条件、影响的 UNIT 和 design handoff 目标；只描述 WHAT 层约束，不提前给技术答案；不写 Director locked_fields。"
+    "expected": "每个决策包含候选选项、约束条件、影响的 UNIT 和 design handoff 目标；只描述 WHAT 层约束，技术答案留给 /design；保持 Director locked_fields 不变。"
   }
 ]

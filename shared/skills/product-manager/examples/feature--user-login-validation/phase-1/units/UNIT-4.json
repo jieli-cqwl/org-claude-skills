@@ -10,6 +10,13 @@
   "authoritative_fields": [
     "$.unit_id",
     "$.closure_definition",
+    "$.trigger",
+    "$.core_behavior",
+    "$.observable_result",
+    "$.feature_refs",
+    "$.flow_refs",
+    "$.risk_refs",
+    "$.rule_refs",
     "$.integration_context",
     "$.acceptance_criteria",
     "$.verification_plan",
@@ -59,7 +66,18 @@
       "verification_type": "集成测试",
       "business_operation": "用户登录后立即登出，再次使用会话访问功能",
       "expected_observation": "登出成功，后续访问返回 401",
-      "evidence_target": "Redis 中会话记录被删除"
+      "evidence_target": "Redis 中会话记录被删除",
+      "covers_refs": [
+        "AC-4.1",
+        "AC-4.2",
+        "RISK-3",
+        "FEAT-4"
+      ],
+      "evidence_types": [
+        "page_description",
+        "data_before_after",
+        "test_record"
+      ]
     }
   ],
   "design_decision_candidates": [],
@@ -71,5 +89,22 @@
   ],
   "exclusions": [
     "UNIT-4 不处理账号注册、第三方登录、多因素认证、密码重置（brief.non_goals）"
+  ],
+  "trigger": "POST /api/logout 请求，携带会话标识",
+  "core_behavior": "接收登出请求，删除 Redis 中的会话记录，返回登出成功",
+  "observable_result": "登出成功 → 返回 200，前端清除本地会话标识并跳转登录页 / 会话不存在 → 返回 200（幂等操作）",
+  "feature_refs": [
+    "FEAT-4"
+  ],
+  "flow_refs": [
+    "TOBE-1",
+    "BPG-1"
+  ],
+  "risk_refs": [
+    "RISK-3"
+  ],
+  "rule_refs": [
+    "BR-2",
+    "BR-5"
   ]
 }

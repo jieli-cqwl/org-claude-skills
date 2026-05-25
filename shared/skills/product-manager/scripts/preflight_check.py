@@ -50,6 +50,9 @@ FAILURE_OWNER = {
     "PM_PRE_UNIT_MODEL_FAILURE": "product-manager",
     "PM_SCOPE_MAPPING_FAILURE": "product-manager",
     "PM_RISK_CLOSURE_FAILURE": "product-manager",
+    "PM_COVERAGE_MATRIX_FAILURE": "product-manager",
+    "PM_TECHNICAL_EVIDENCE_FAILURE": "product-manager",
+    "PM_RELEASE_READINESS_FAILURE": "product-manager",
     "PM_PRE_REVIEW_ISSUE_FAILURE": "product-manager",
     "PM_DESIGN_HANDOFF_FAILURE": "product-manager",
 }
@@ -265,6 +268,8 @@ PRE_UNIT_FIELDS = (
     "state_transitions",
     "role_permission_matrix",
     "risk_ledger",
+    "coverage_matrix",
+    "technical_evidence_requirements",
 )
 
 
@@ -377,6 +382,164 @@ def validate_risk_ledger(phase: dict[str, Any]) -> None:
             )
 
 
+def validate_coverage_matrix(phase: dict[str, Any]) -> None:
+    for item in require_non_empty_array(phase, "coverage_matrix"):
+        if not isinstance(item, dict):
+            raise PreflightFailure(
+                "PM_COVERAGE_MATRIX_FAILURE", "coverage_matrix items must be objects"
+            )
+        missing = [
+            field
+            for field in (
+                "coverage_id",
+                "scenario_ref",
+                "business_type",
+                "platform",
+                "action_or_path",
+                "support_status",
+            )
+            if not item.get(field)
+        ]
+        if not isinstance(item.get("evidence_targets"), list) or not item.get(
+            "evidence_targets"
+        ):
+            missing.append("evidence_targets")
+        if missing:
+            raise PreflightFailure(
+                "PM_COVERAGE_MATRIX_FAILURE",
+                f"coverage_matrix item missing fields: {', '.join(missing)}",
+            )
+        status = item.get("support_status")
+        if status in {"SUPPORTED", "CONDITIONAL"}:
+            for field in ("unit_refs", "ac_refs"):
+                if not isinstance(item.get(field), list) or not item.get(field):
+                    raise PreflightFailure(
+                        "PM_COVERAGE_MATRIX_FAILURE",
+                        f"{status} coverage_matrix item must map {field}: {item.get('coverage_id', '<unknown>')}",
+                    )
+        if status == "UNSUPPORTED" and not item.get("decision_or_boundary_ref"):
+            raise PreflightFailure(
+                "PM_COVERAGE_MATRIX_FAILURE",
+                f"UNSUPPORTED coverage_matrix item must carry decision_or_boundary_ref: {item.get('coverage_id', '<unknown>')}",
+            )
+
+
+def validate_technical_evidence_requirements(phase: dict[str, Any]) -> None:
+    for item in require_non_empty_array(phase, "technical_evidence_requirements"):
+        if not isinstance(item, dict):
+            raise PreflightFailure(
+                "PM_TECHNICAL_EVIDENCE_FAILURE",
+                "technical_evidence_requirements items must be objects",
+            )
+        missing = [
+            field
+            for field in (
+                "requirement_id",
+                "domain",
+                "business_invariant",
+                "required_downstream_proof",
+                "status",
+            )
+            if not item.get(field)
+        ]
+        if not isinstance(item.get("unit_refs"), list) or not item.get("unit_refs"):
+            missing.append("unit_refs")
+        if not isinstance(item.get("risk_refs"), list):
+            missing.append("risk_refs")
+        if missing:
+            raise PreflightFailure(
+                "PM_TECHNICAL_EVIDENCE_FAILURE",
+                f"technical_evidence_requirements item missing fields: {', '.join(missing)}",
+            )
+        if item.get("status") == "BLOCKED":
+            raise PreflightFailure(
+                "PM_TECHNICAL_EVIDENCE_FAILURE",
+                f"technical_evidence_requirements contains BLOCKED item: {item.get('requirement_id', '<unknown>')}",
+            )
+
+
+def validate_release_readiness(phase: dict[str, Any]) -> None:
+    readiness = phase.get("release_readiness")
+    if not isinstance(readiness, dict):
+        raise PreflightFailure(
+            "PM_RELEASE_READINESS_FAILURE", "release_readiness must be an object"
+        )
+    for field in (
+        "supported_platforms",
+        "conditional_platforms",
+        "unsupported_platforms",
+        "residual_risks",
+    ):
+        if not isinstance(readiness.get(field), list):
+            raise PreflightFailure(
+                "PM_RELEASE_READINESS_FAILURE",
+                f"release_readiness.{field} must be an array",
+            )
+    for item in readiness.get("residual_risks", []):
+        if not isinstance(item, dict):
+            raise PreflightFailure(
+                "PM_RELEASE_READINESS_FAILURE",
+                "release_readiness.residual_risks items must be objects",
+            )
+        missing = [
+            field
+            for field in ("risk_id", "description", "owner", "target_resolution", "status")
+            if not item.get(field)
+        ]
+        if missing:
+            raise PreflightFailure(
+                "PM_RELEASE_READINESS_FAILURE",
+                f"release_readiness residual risk missing fields: {', '.join(missing)}",
+            )
+        if item.get("status") in {"OPEN", "BLOCKED"}:
+            raise PreflightFailure(
+                "PM_RELEASE_READINESS_FAILURE",
+                f"release_readiness contains open residual risk: {item.get('risk_id', '<unknown>')}={item.get('status')}",
+            )
+
+
+def validate_business_process_graphs(phase: dict[str, Any]) -> None:
+    for graph in require_non_empty_array(phase, "business_process_graphs"):
+        if not isinstance(graph, dict):
+            raise PreflightFailure(
+                "PM_PRE_UNIT_MODEL_FAILURE",
+                "business_process_graphs items must be objects",
+            )
+        for node in graph.get("nodes", []):
+            if not isinstance(node, dict):
+                raise PreflightFailure(
+                    "PM_PRE_UNIT_MODEL_FAILURE",
+                    "business_process_graphs[].nodes items must be objects",
+                )
+            missing = [
+                field
+                for field in ("step_id", "label", "actor", "object_state")
+                if not node.get(field)
+            ]
+            if missing:
+                raise PreflightFailure(
+                    "PM_PRE_UNIT_MODEL_FAILURE",
+                    f"business_process_graphs node missing fields: {', '.join(missing)}",
+                )
+        for edge in graph.get("edges", []):
+            if not isinstance(edge, dict):
+                raise PreflightFailure(
+                    "PM_PRE_UNIT_MODEL_FAILURE",
+                    "business_process_graphs[].edges items must be objects",
+                )
+            missing = [
+                field
+                for field in ("from_step", "to_step", "condition", "object_state_change")
+                if not edge.get(field)
+            ]
+            if missing or not isinstance(edge.get("risk_refs"), list):
+                detail = ", ".join(missing + ([] if isinstance(edge.get("risk_refs"), list) else ["risk_refs"]))
+                raise PreflightFailure(
+                    "PM_PRE_UNIT_MODEL_FAILURE",
+                    f"business_process_graphs edge missing fields: {detail}",
+                )
+
+
 def validate_pre_review_issues(phase: dict[str, Any]) -> None:
     issues = phase.get("pre_review_issue_ledger", [])
     if issues is None:
@@ -420,8 +583,12 @@ def validate_pm_model_fields(phase: dict[str, Any]) -> None:
     for field in PRE_UNIT_FIELDS:
         require_non_empty_array(phase, field)
     validate_evidence_sources(phase)
+    validate_business_process_graphs(phase)
     validate_feature_inventory(phase)
     validate_risk_ledger(phase)
+    validate_coverage_matrix(phase)
+    validate_technical_evidence_requirements(phase)
+    validate_release_readiness(phase)
     validate_pre_review_issues(phase)
     validate_design_handoff_aliases(phase)
 

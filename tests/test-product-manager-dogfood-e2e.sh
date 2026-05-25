@@ -179,7 +179,15 @@ if fidelity.get("expected_anchor_count") != 7 or fidelity.get("passed_anchor_cou
     raise SystemExit("anchor fidelity count drift")
 if float(fidelity.get("fidelity")) != 1.0:
     raise SystemExit("anchor fidelity must be 1.0")
-expected_anchors = {f"PA-{index}" for index in range(1, 8)}
+expected_anchors = {
+    "handoff-director-baseline",
+    "unit-closed-loop",
+    "ac-traceable",
+    "review-fail-warn-closure",
+    "director-lock-no-drift",
+    "delivery-confirmation",
+    "pm-recommendation-first",
+}
 anchors = {item.get("anchor_id") for item in fidelity.get("anchors", []) if item.get("passed") is True}
 if anchors != expected_anchors:
     raise SystemExit(f"anchor fidelity missing anchors: {sorted(expected_anchors - anchors)}")

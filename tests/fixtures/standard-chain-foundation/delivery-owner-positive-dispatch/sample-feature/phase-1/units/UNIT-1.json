@@ -10,6 +10,13 @@
   "authoritative_fields": [
     "$.unit_id",
     "$.closure_definition",
+    "$.trigger",
+    "$.core_behavior",
+    "$.observable_result",
+    "$.feature_refs",
+    "$.flow_refs",
+    "$.risk_refs",
+    "$.rule_refs",
     "$.integration_context",
     "$.acceptance_criteria",
     "$.verification_plan",
@@ -55,8 +62,28 @@
       "verification_type": "functional",
       "business_operation": "prepare the first delivery-owner dispatch batch",
       "expected_observation": "dispatch output includes active artifact refs, task dependency state, evidence expectations, and next action",
-      "evidence_target": "delivery-state and artifact-registry"
+      "evidence_target": "delivery-state and artifact-registry",
+      "covers_refs": [
+        "AC-1",
+        "FEAT-1"
+      ],
+      "evidence_types": [
+        "page_description",
+        "data_before_after",
+        "test_record"
+      ]
     }
   ],
-  "design_decision_candidates": []
+  "design_decision_candidates": [],
+  "trigger": "delivery-owner-positive-dispatch sample-feature phase",
+  "core_behavior": "delivery-owner dispatch consumes active canonical runtime state",
+  "observable_result": "dispatch contract names active artifacts, batch state, and readiness handoff obligations",
+  "feature_refs": [
+    "FEAT-1"
+  ],
+  "flow_refs": [
+    "TOBE-1"
+  ],
+  "risk_refs": [],
+  "rule_refs": []
 }

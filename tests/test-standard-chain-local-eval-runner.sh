@@ -82,12 +82,12 @@ if [ "$is_judge" = "1" ]; then
   ],
   "anchor_results": [
     {
-      "id": "PA-1",
+      "id": "handoff-director-baseline",
       "passed": true,
       "evidence": "synthetic response respected the intake baseline"
     },
     {
-      "id": "PA-5",
+      "id": "director-lock-no-drift",
       "passed": true,
       "evidence": "synthetic response refused to rewrite Director locked fields"
     }
@@ -214,15 +214,15 @@ metadata = json.loads(Path(sys.argv[1]).read_text())
 grading = json.loads(Path(sys.argv[2]).read_text())
 summary = json.loads(Path(sys.argv[3]).read_text())
 
-assert metadata["expected_anchors"] == ["PA-1", "PA-5"], metadata
+assert metadata["expected_anchors"] == ["handoff-director-baseline", "director-lock-no-drift"], metadata
 anchor_definitions = metadata["preference_anchor_definitions"]
-assert [item["id"] for item in anchor_definitions] == ["PA-1", "PA-5"], anchor_definitions
+assert [item["id"] for item in anchor_definitions] == ["handoff-director-baseline", "director-lock-no-drift"], anchor_definitions
 expectations = grading["expectations"]
 assert expectations, "missing expectations"
 for expectation in expectations:
     assert set(["text", "passed", "evidence"]).issubset(expectation), expectation
 anchor_results = grading["anchor_results"]
-assert [item["id"] for item in anchor_results] == ["PA-1", "PA-5"], anchor_results
+assert [item["id"] for item in anchor_results] == ["handoff-director-baseline", "director-lock-no-drift"], anchor_results
 assert grading["preference_anchor_summary"] == {
     "passed": 2,
     "failed": 0,

@@ -10,6 +10,13 @@
   "authoritative_fields": [
     "$.unit_id",
     "$.closure_definition",
+    "$.trigger",
+    "$.core_behavior",
+    "$.observable_result",
+    "$.feature_refs",
+    "$.flow_refs",
+    "$.risk_refs",
+    "$.rule_refs",
     "$.integration_context",
     "$.acceptance_criteria",
     "$.verification_plan",
@@ -54,8 +61,34 @@
       "verification_type": "functional",
       "business_operation": "execute the UNIT closed-loop behavior described in closure_definition",
       "expected_observation": "the observable result satisfies the linked acceptance criteria",
-      "evidence_target": "acceptance_criteria"
+      "evidence_target": "acceptance_criteria",
+      "covers_refs": [
+        "AC-U1-01",
+        "RISK-1",
+        "FEAT-1"
+      ],
+      "evidence_types": [
+        "page_description",
+        "data_before_after",
+        "test_record"
+      ]
     }
   ],
-  "design_decision_candidates": []
+  "design_decision_candidates": [],
+  "trigger": "representative business operation for this acceptance criterion",
+  "core_behavior": "foundation registry, schema, template, and catalog are frozen",
+  "observable_result": "catalog and canonical tree exist",
+  "feature_refs": [
+    "FEAT-1"
+  ],
+  "flow_refs": [
+    "TOBE-1",
+    "BPG-1"
+  ],
+  "risk_refs": [
+    "RISK-1"
+  ],
+  "rule_refs": [
+    "RULE-1"
+  ]
 }

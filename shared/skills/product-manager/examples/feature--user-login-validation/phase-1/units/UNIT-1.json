@@ -10,6 +10,13 @@
   "authoritative_fields": [
     "$.unit_id",
     "$.closure_definition",
+    "$.trigger",
+    "$.core_behavior",
+    "$.observable_result",
+    "$.feature_refs",
+    "$.flow_refs",
+    "$.risk_refs",
+    "$.rule_refs",
     "$.integration_context",
     "$.acceptance_criteria",
     "$.verification_plan",
@@ -69,7 +76,19 @@
       "verification_type": "UI 交互测试",
       "business_operation": "用户在登录页输入账号密码并点击登录",
       "expected_observation": "空输入被前端拦截，有效输入发送后端请求",
-      "evidence_target": "浏览器 Network 面板显示请求发送情况"
+      "evidence_target": "浏览器 Network 面板显示请求发送情况",
+      "covers_refs": [
+        "AC-1.1",
+        "AC-1.2",
+        "AC-1.3",
+        "RISK-1",
+        "FEAT-1"
+      ],
+      "evidence_types": [
+        "page_description",
+        "data_before_after",
+        "test_record"
+      ]
     }
   ],
   "design_decision_candidates": [
@@ -95,5 +114,22 @@
   ],
   "exclusions": [
     "UNIT-1 不处理账号注册、第三方登录、多因素认证、密码重置（brief.non_goals）"
+  ],
+  "trigger": "用户手工输入账号 / 用户手工输入密码 / 用户点击登录按钮",
+  "core_behavior": "提供登录界面，接收用户输入的账号密码，执行前端校验，提交认证请求",
+  "observable_result": "前端校验通过 → 发送 POST /api/login 请求 / 前端校验失败 → 显示错误提示，不发送请求",
+  "feature_refs": [
+    "FEAT-1"
+  ],
+  "flow_refs": [
+    "TOBE-1",
+    "BPG-1"
+  ],
+  "risk_refs": [
+    "RISK-1"
+  ],
+  "rule_refs": [
+    "BR-2",
+    "BR-5"
   ]
 }

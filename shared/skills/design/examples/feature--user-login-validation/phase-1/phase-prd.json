@@ -12,7 +12,10 @@
     "$.entry_conditions",
     "$.exit_conditions",
     "$.director_confirmation",
-    "$.unit_priority_order"
+    "$.unit_priority_order",
+    "$.coverage_matrix",
+    "$.technical_evidence_requirements",
+    "$.release_readiness"
   ],
   "phase_id": "phase-1",
   "phase_goal": "实现账号密码登录的核心认证流程，支持登录、登出和会话保持",
@@ -117,7 +120,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
+          "reviewed_bundle_digest": "sha256:9e085dc787fc4fbb6e9c52a6a48f89d8fc3f1a9378b6e7c6ede90dc81c40b72d"
         },
         {
           "perspective": "architecture",
@@ -138,7 +141,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
+          "reviewed_bundle_digest": "sha256:9e085dc787fc4fbb6e9c52a6a48f89d8fc3f1a9378b6e7c6ede90dc81c40b72d"
         },
         {
           "perspective": "test",
@@ -159,7 +162,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
+          "reviewed_bundle_digest": "sha256:9e085dc787fc4fbb6e9c52a6a48f89d8fc3f1a9378b6e7c6ede90dc81c40b72d"
         }
       ],
       "convergence_evidence": [
@@ -172,7 +175,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:703cd9a2570001db3e25279ed80277f9d2f79fa38420b8998b457ce55bc66658"
+      "reviewed_bundle_digest": "sha256:9e085dc787fc4fbb6e9c52a6a48f89d8fc3f1a9378b6e7c6ede90dc81c40b72d"
     }
   },
   "issue_ledger": [],
@@ -192,5 +195,56 @@
         "用户可主动登出"
       ]
     }
+  },
+  "coverage_matrix": [
+    {
+      "coverage_id": "COV-1",
+      "scenario_ref": "TOBE-1",
+      "business_type": "primary business type",
+      "platform": "primary surface",
+      "action_or_path": "primary business path",
+      "support_status": "SUPPORTED",
+      "unit_refs": [
+        "UNIT-1",
+        "UNIT-2",
+        "UNIT-3",
+        "UNIT-4"
+      ],
+      "ac_refs": [
+        "AC-U1-01"
+      ],
+      "evidence_refs": [
+        "EV-1"
+      ],
+      "evidence_targets": [
+        "page or flow evidence",
+        "data before/after evidence",
+        "test execution record"
+      ]
+    }
+  ],
+  "technical_evidence_requirements": [
+    {
+      "requirement_id": "TECH-1",
+      "domain": "api_contract",
+      "business_invariant": "The linked business result must be proven at service, data, and audit boundaries without changing excluded behavior.",
+      "required_downstream_proof": "Downstream design and test evidence must prove the linked AC and risk with interface, data, audit, or execution records.",
+      "unit_refs": [
+        "UNIT-1",
+        "UNIT-2",
+        "UNIT-3",
+        "UNIT-4"
+      ],
+      "risk_refs": [],
+      "status": "REQUIRED"
+    }
+  ],
+  "release_readiness": {
+    "supported_platforms": [
+      "primary surface"
+    ],
+    "conditional_platforms": [],
+    "unsupported_platforms": [],
+    "residual_risks": []
   }
 }

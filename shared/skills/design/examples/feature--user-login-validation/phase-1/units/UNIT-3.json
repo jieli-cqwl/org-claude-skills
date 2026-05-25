@@ -10,6 +10,13 @@
   "authoritative_fields": [
     "$.unit_id",
     "$.closure_definition",
+    "$.trigger",
+    "$.core_behavior",
+    "$.observable_result",
+    "$.feature_refs",
+    "$.flow_refs",
+    "$.risk_refs",
+    "$.rule_refs",
     "$.integration_context",
     "$.acceptance_criteria",
     "$.verification_plan",
@@ -75,13 +82,37 @@
       "verification_type": "集成测试",
       "business_operation": "创建会话后立即验证，30 分钟后再次验证",
       "expected_observation": "立即验证有效，30 分钟后验证无效",
-      "evidence_target": "Redis 中会话数据的 TTL 变化"
+      "evidence_target": "Redis 中会话数据的 TTL 变化",
+      "covers_refs": [
+        "AC-3.1",
+        "AC-3.2",
+        "AC-3.3",
+        "AC-3.4",
+        "FEAT-1"
+      ],
+      "evidence_types": [
+        "page_description",
+        "data_before_after",
+        "test_record"
+      ]
     },
     {
       "verification_type": "故障注入测试",
       "business_operation": "模拟 Redis 不可用，尝试创建和验证会话",
       "expected_observation": "操作失败，返回系统错误",
-      "evidence_target": "错误日志和返回状态码"
+      "evidence_target": "错误日志和返回状态码",
+      "covers_refs": [
+        "AC-3.1",
+        "AC-3.2",
+        "AC-3.3",
+        "AC-3.4",
+        "FEAT-1"
+      ],
+      "evidence_types": [
+        "page_description",
+        "data_before_after",
+        "test_record"
+      ]
     }
   ],
   "design_decision_candidates": [
@@ -104,5 +135,16 @@
   "dependencies": [],
   "exclusions": [
     "UNIT-3 不处理账号注册、第三方登录、多因素认证、密码重置（brief.non_goals）"
-  ]
+  ],
+  "trigger": "认证成功后的用户 ID（来自 UNIT-2） / 用户请求携带的会话标识（来自前端）",
+  "core_behavior": "创建用户会话，存储到 Redis，验证会话有效性，刷新过期时间",
+  "observable_result": "创建会话 → 返回会话标识（UUID） / 验证会话 → 返回有效/无效状态",
+  "feature_refs": [
+    "FEAT-1"
+  ],
+  "flow_refs": [
+    "TOBE-1"
+  ],
+  "risk_refs": [],
+  "rule_refs": []
 }
