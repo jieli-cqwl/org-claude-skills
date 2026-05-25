@@ -2686,6 +2686,7 @@ quick_check() {
   local target="$1"
 
   if [ "$target" = "claude" ] || [ "$target" = "all" ]; then
+    prune_runtime_noise "$CLAUDE_DIR"
     quick_check_superpowers_clean "$CLAUDE_DIR/skills" "$HOME/.claude/skills" "$CLAUDE_ALLOW_LOCAL_RUNTIME_EDITS"
     [ -f "$CLAUDE_DIR/skills/product-director/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-director/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/product-manager/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/product-manager/SKILL.md 不存在"
@@ -2729,6 +2730,8 @@ quick_check() {
 
   if [ "$target" = "codex" ] || [ "$target" = "all" ]; then
     local codex_skills_dir="$CODEX_USER_SKILLS_DIR"
+    prune_runtime_noise "$CODEX_DIR"
+    prune_runtime_noise "$HOME/.agents"
     [ -f "$CODEX_DIR/AGENTS.md" ] || fail "Quick Check 失败: ~/.codex/AGENTS.md 不存在"
     codex_legacy_skill_root_clean || fail "Quick Check 失败: ~/.codex/skills 不应残留非隐藏 skill；Codex skill 统一安装到 ~/.agents/skills"
     quick_check_superpowers_clean "$codex_skills_dir" "$HOME/.agents/skills" "$CODEX_ALLOW_LOCAL_RUNTIME_EDITS"

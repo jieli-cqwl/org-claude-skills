@@ -159,6 +159,16 @@ install_test_assert_path_absent "$state_root/codex" "codex state dir should be r
 
 install_test_case_pass "runtime-smoke: install and uninstall preserve runtime shape"
 
+install_test_case_start "runtime-smoke: quick check removes generated codex tool cache"
+home_dir="$(install_test_new_home runtime-generated-tool-cache)"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-generated-tool-cache-install)" --target codex --check quick
+mkdir -p "$home_dir/.codex/tools/community/__pycache__"
+printf 'cache\n' > "$home_dir/.codex/tools/community/__pycache__/runtime_yaml.cpython-314.pyc"
+cache_log="$(install_test_log_path runtime-generated-tool-cache-check)"
+install_test_run_install_fake_openspec "$home_dir" "$cache_log" --target codex --check quick
+install_test_assert_path_absent "$home_dir/.codex/tools/community/__pycache__" "codex quick check should remove generated tool cache"
+install_test_case_pass "runtime-smoke: quick check removes generated codex tool cache"
+
 install_test_case_start "runtime-smoke: quick check detects runtime reference drift"
 home_dir="$(install_test_new_home runtime-reference-drift)"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-reference-drift-install)" --target codex --check quick
