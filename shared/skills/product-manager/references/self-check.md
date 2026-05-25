@@ -10,7 +10,7 @@ Self-check 读取本文件和当前 JSON 工作草稿，输出送审前阻断反
 - TO-BE product model：目标流程只改变达成 Phase 目标所需的业务行为；正常、边界、失败路径和可观察结果已闭合；未改变 Phase 出口、范围、非目标或可行性。
 - Feature inventory and risk：Director 目标、成功标准、范围、非目标、风险、Phase 入口/出口和输入表格/清单/验收项已逐条映射到功能、覆盖、风险、技术证据、UNIT、AC、Verification Plan 或明确 N/A/边界。
 - Feature inventory and risk：每项能力是 `IN_SCOPE`、`OUT_OF_SCOPE` 或 `NEEDS_DECISION`；`IN_SCOPE` 有候选或真实 `unit_refs`，`OUT_OF_SCOPE` 有 `boundary_ref`，`NEEDS_DECISION` 有 `decision_needed` 且未进入 UNIT。
-- Feature inventory and risk：模块能力、入口场景、覆盖矩阵、技术证据输入、发布口径、业务对象、状态、权限、规则和风险能支撑 UNIT；高风险技术域逐项写 `REQUIRED`、`N_A` 或 `BLOCKED`，没有合并成泛化证明。
+- Feature inventory and risk：模块能力、入口场景、覆盖矩阵、技术证据输入、发布口径、业务对象、状态、权限、规则和风险能支撑 UNIT；高风险技术域逐项写合法 `domain`、`REQUIRED`、`N_A` 或 `BLOCKED`，没有合并成泛化证明。
 - Pre-UNIT gate：没有会改变 UNIT 边界的证据、流程、功能、入口、对象、状态、权限、规则、覆盖矩阵、技术证据输入、发布口径或风险缺口。
 - UNIT split：每个 UNIT 的 `trigger`、`core_behavior` 和 `observable_result` 完成闭环；优先级、依赖、排除项、Integration Context、功能追溯、流程追溯、风险追溯和规则追溯一致。
 - Cross-UNIT consistency：同一对象、状态和规则使用同一名称与口径；排除项、依赖和 Integration Context 不冲突。

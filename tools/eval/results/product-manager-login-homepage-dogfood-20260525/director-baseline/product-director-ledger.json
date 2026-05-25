@@ -2,13 +2,13 @@
   "artifact_type": "co-creation-ledger",
   "schema_version": "1.0.0",
   "producer": "product-director",
-  "scope_ref": "docs/feature--login-homepage-skill-dogfood",
+  "scope_ref": "director-baseline",
   "current_state": {
-    "summary": "Director baseline finalized for the login/homepage dogfood",
+    "summary": "Director baseline finalized before PM canonical expansion",
     "source_refs": [
-      "docs/feature--login-homepage-skill-dogfood/brief.json"
+      "director-baseline/brief.json"
     ],
-    "next_step": "product-manager consumes phase-1"
+    "next_step": "handoff to product-manager canonical expansion"
   },
   "latest_checkpoint_id": "PD-07",
   "confirmations": [
@@ -22,8 +22,8 @@
         "conversation#login-homepage-dogfood-delegation"
       ],
       "output_refs": [
-        "docs/feature--login-homepage-skill-dogfood/brief.json",
-        "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"
+        "director-baseline/brief.json",
+        "director-baseline/phase-prd.json"
       ]
     },
     {
@@ -36,8 +36,8 @@
         "conversation#login-homepage-dogfood-delegation"
       ],
       "output_refs": [
-        "docs/feature--login-homepage-skill-dogfood/brief.json",
-        "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"
+        "director-baseline/brief.json",
+        "director-baseline/phase-prd.json"
       ]
     },
     {
@@ -50,8 +50,8 @@
         "conversation#login-homepage-dogfood-delegation"
       ],
       "output_refs": [
-        "docs/feature--login-homepage-skill-dogfood/brief.json",
-        "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"
+        "director-baseline/brief.json",
+        "director-baseline/phase-prd.json"
       ]
     },
     {
@@ -64,8 +64,8 @@
         "conversation#login-homepage-dogfood-delegation"
       ],
       "output_refs": [
-        "docs/feature--login-homepage-skill-dogfood/brief.json",
-        "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"
+        "director-baseline/brief.json",
+        "director-baseline/phase-prd.json"
       ]
     },
     {
@@ -78,8 +78,8 @@
         "conversation#login-homepage-dogfood-delegation"
       ],
       "output_refs": [
-        "docs/feature--login-homepage-skill-dogfood/brief.json",
-        "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"
+        "director-baseline/brief.json",
+        "director-baseline/phase-prd.json"
       ]
     },
     {
@@ -92,8 +92,8 @@
         "conversation#login-homepage-dogfood-delegation"
       ],
       "output_refs": [
-        "docs/feature--login-homepage-skill-dogfood/brief.json",
-        "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"
+        "director-baseline/brief.json",
+        "director-baseline/phase-prd.json"
       ]
     },
     {
@@ -106,16 +106,16 @@
         "conversation#login-homepage-dogfood-delegation"
       ],
       "output_refs": [
-        "docs/feature--login-homepage-skill-dogfood/brief.json",
-        "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"
+        "director-baseline/brief.json",
+        "director-baseline/phase-prd.json"
       ]
     }
   ],
   "open_questions": [],
   "supersedes": [],
   "handoff_refs": [
-    "docs/feature--login-homepage-skill-dogfood/brief.json",
-    "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"
+    "director-baseline/brief.json",
+    "director-baseline/phase-prd.json"
   ],
   "finalization_basis": {
     "status": "confirmed",

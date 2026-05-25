@@ -545,10 +545,7 @@
         "inline generic error",
         "page-level generic error"
       ],
-      "constraints": [
-        "must not reveal whether username exists",
-        "must keep user unauthenticated"
-      ],
+      "constraints": "must not reveal whether username exists; must keep user unauthenticated",
       "impacted_units": [
         "UNIT-1"
       ],
@@ -560,10 +557,7 @@
         "header identity label",
         "account menu identity label"
       ],
-      "constraints": [
-        "must make current signed-in user observable",
-        "must keep logout discoverable"
-      ],
+      "constraints": "must make current signed-in user observable; must keep logout discoverable",
       "impacted_units": [
         "UNIT-2"
       ],
@@ -700,7 +694,7 @@
     },
     {
       "requirement_id": "TECH-2",
-      "domain": "data_model",
+      "domain": "data_model_state_machine",
       "business_invariant": "Logout changes the browser journey from authenticated to signed out and old-session homepage access fails closed.",
       "required_downstream_proof": "Show before-after auth state evidence and page/interface evidence for logout and post-logout homepage request.",
       "unit_refs": [
@@ -739,7 +733,7 @@
     },
     {
       "requirement_id": "TECH-5",
-      "domain": "rollout_rollback",
+      "domain": "release_rollback",
       "business_invariant": "Phase 1 release declares only the web login/homepage loop and does not claim account lifecycle support.",
       "required_downstream_proof": "Release evidence states supported and unsupported paths before rollout signoff.",
       "unit_refs": [
@@ -796,7 +790,7 @@
             "phase-1/units/UNIT-2.json#acceptance_criteria"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:ecb3b34f8c842acf335235efdc0e6564d2775c6320b21a285b992ff6ef8dd770"
+          "reviewed_bundle_digest": "sha256:2ade10be015c237b775c8f9dc778c9e1e30e699653e6643bde73fec28e30a577"
         },
         {
           "perspective": "architecture",
@@ -816,7 +810,7 @@
             "phase-1/units/UNIT-2.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:ecb3b34f8c842acf335235efdc0e6564d2775c6320b21a285b992ff6ef8dd770"
+          "reviewed_bundle_digest": "sha256:2ade10be015c237b775c8f9dc778c9e1e30e699653e6643bde73fec28e30a577"
         },
         {
           "perspective": "test",
@@ -836,7 +830,7 @@
             "phase-1/phase-prd.json#coverage_matrix"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:ecb3b34f8c842acf335235efdc0e6564d2775c6320b21a285b992ff6ef8dd770"
+          "reviewed_bundle_digest": "sha256:2ade10be015c237b775c8f9dc778c9e1e30e699653e6643bde73fec28e30a577"
         }
       ],
       "convergence_evidence": [
@@ -857,7 +851,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:ecb3b34f8c842acf335235efdc0e6564d2775c6320b21a285b992ff6ef8dd770"
+      "reviewed_bundle_digest": "sha256:2ade10be015c237b775c8f9dc778c9e1e30e699653e6643bde73fec28e30a577"
     }
   }
 }

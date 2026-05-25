@@ -17,7 +17,7 @@
       "step": "Handoff gate",
       "subject_ref": "docs/feature--login-homepage-skill-dogfood/phase-1",
       "confirmed_at": "2026-05-25T13:01:00Z",
-      "decision_summary": "Director lock and Phase boundary consumed without changing Director-owned fields.",
+      "decision_summary": "Director lock and Phase boundary consumed without changing measurable Director-owned fields: 7-day window and zero open blocker findings before PM delivery.",
       "source_refs": [
         "docs/feature--login-homepage-skill-dogfood/brief.json",
         "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"
@@ -68,7 +68,7 @@
       "step": "Feature inventory and risk",
       "subject_ref": "docs/feature--login-homepage-skill-dogfood/phase-1",
       "confirmed_at": "2026-05-25T13:04:00Z",
-      "decision_summary": "Capabilities, excluded account lifecycle, coverage, technical evidence, release boundaries, and risks mapped.",
+      "decision_summary": "Capabilities, excluded account lifecycle, coverage, technical evidence, release boundaries, and Phase 1 baseline risks mapped to UNITs, AC, and Verification Plan.",
       "source_refs": [
         "docs/feature--login-homepage-skill-dogfood/brief.json",
         "docs/feature--login-homepage-skill-dogfood/phase-1/phase-prd.json"

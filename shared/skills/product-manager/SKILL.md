@@ -140,6 +140,7 @@ digraph product_manager_flow {
 - 入口场景回答：工作从哪里开始，谁触发，证据是什么，哪个 UNIT 负责。
 - 覆盖矩阵回答：每个业务态、端、入口动作、绕过调用、异步/离线消费者或路径是否支持；支持项写 `unit_refs`、`ac_refs`、`evidence_refs` 和 `evidence_targets`；暂不支持项写边界或裁决来源，发布时不声明支持。
 - 技术证据输入回答：下游技术方案必须证明哪些业务不变量；把 API 契约、数据模型/状态机、业务态差异、事务边界、幂等并发、绕过前端调用拒绝、权限与数据范围审计、租户/身份、异步/离线消费者过滤、补偿重试、灰度回滚写成 `business_invariant` 和 `required_downstream_proof`，不写接口字段、表字段或实现方案。
+- `technical_evidence_requirements[].domain` 只写这些值：`api_contract`、`data_model_state_machine`、`business_type_difference`、`transaction_boundary`、`idempotency_concurrency`、`permission_audit`、`tenant_identity`、`async_offline_task`、`release_rollback`、`other`。
 - 技术证据输入按适用域逐项写 `REQUIRED`、`N_A` 或 `BLOCKED`；高风险域不得合并成一句泛化证明。日期/占用区间、账款/财务流水、补偿/重试等无专用 domain 时，用 `domain=other` 写清业务不变量。
 - 发布口径回答：哪些端或业务态可声明支持，哪些需独立验证后声明，哪些暂不声明支持；P0 主路径和失败路径必须映射到 `coverage_matrix` 或 Verification Plan；残余风险写 owner、处理时点和关闭状态。
 - 数据库字段、API 参数、组件属性、代码类型和测试实现留给下游角色；PM 只写业务不变量和证据目标。

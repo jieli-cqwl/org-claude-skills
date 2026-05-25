@@ -26,7 +26,7 @@
     "$.issue_ledger",
     "$.delivery_confirmation"
   ],
-  "root_problem": "Internal web users do not have a confirmed login-to-homepage access loop, so anonymous access, invalid credentials, authenticated homepage visibility, and logout invalidation can drift into implementation guesses.",
+  "root_problem": "Internal web user access rules are not product-owned because redirect, failure, session, and logout behavior live in implementation guesses, causing security review delay, test rework, and inconsistent homepage access expectations.",
   "user_profile": [
     {
       "who": "internal web user",
@@ -36,9 +36,9 @@
     }
   ],
   "business_goals": [
-    "anonymous homepage requests never expose authenticated homepage content",
-    "a configured user can sign in, see a user-specific homepage signal, and sign out in one browser journey",
-    "invalid credentials fail closed with a user-readable error and no authenticated state"
+    "Within the 7-day Phase 1 pilot window, reduce open blocker findings for anonymous homepage access, invalid login, valid login, and logout from any detected blocker to zero before PM delivery.",
+    "In the same 7-day observation window, prove 100% of declared web access paths have AC and Verification Plan evidence targets before handoff.",
+    "Keep unsupported account lifecycle paths at zero release claims for this phase."
   ],
   "appetite": {
     "investment_scale": "single focused phase",
@@ -69,13 +69,13 @@
   "risks_and_unknowns": [
     {
       "item": "authenticated homepage content may be exposed through direct URL access or stale browser state",
-      "impact": "users could see homepage content after logout or without signing in",
+      "impact": "Phase 1 baseline fails if users can see homepage content after logout or without signing in.",
       "mitigation": "PM maps anonymous redirect, logout invalidation, and bypass access rejection to AC and Verification Plan",
       "status": "ACCEPTED"
     },
     {
       "item": "invalid credential messaging may leak sensitive account state",
-      "impact": "login failure copy could reveal whether a username exists",
+      "impact": "Phase 1 scope fails if login failure copy leaks account state while the phase only commits to one configured-account access loop.",
       "mitigation": "PM requires a generic readable error and no authenticated state on failure",
       "status": "ACCEPTED"
     }
@@ -115,9 +115,9 @@
     "confirmed_at": "2026-05-25T12:00:00Z",
     "confirmed_by": "codex-owner-dogfood",
     "confirmation_basis": "User delegated this dogfood run to Codex; Codex owns product decisions for validation while preserving Director locked fields.",
-    "locked_field_digest": "sha256:5281bbf29557fffa1f68542bcfbbdd59ae8a7678188c3ac4a959770a3d3d85b0",
+    "locked_field_digest": "sha256:2806e72b3e30a94e39dcd550e5bacd23dbec622e534376d14d11fd29b106410a",
     "locked_fields": {
-      "root_problem": "Internal web users do not have a confirmed login-to-homepage access loop, so anonymous access, invalid credentials, authenticated homepage visibility, and logout invalidation can drift into implementation guesses.",
+      "root_problem": "Internal web user access rules are not product-owned because redirect, failure, session, and logout behavior live in implementation guesses, causing security review delay, test rework, and inconsistent homepage access expectations.",
       "user_profile": [
         {
           "who": "internal web user",
@@ -127,9 +127,9 @@
         }
       ],
       "business_goals": [
-        "anonymous homepage requests never expose authenticated homepage content",
-        "a configured user can sign in, see a user-specific homepage signal, and sign out in one browser journey",
-        "invalid credentials fail closed with a user-readable error and no authenticated state"
+        "Within the 7-day Phase 1 pilot window, reduce open blocker findings for anonymous homepage access, invalid login, valid login, and logout from any detected blocker to zero before PM delivery.",
+        "In the same 7-day observation window, prove 100% of declared web access paths have AC and Verification Plan evidence targets before handoff.",
+        "Keep unsupported account lifecycle paths at zero release claims for this phase."
       ],
       "appetite": {
         "investment_scale": "single focused phase",
@@ -160,13 +160,13 @@
       "risks_and_unknowns": [
         {
           "item": "authenticated homepage content may be exposed through direct URL access or stale browser state",
-          "impact": "users could see homepage content after logout or without signing in",
+          "impact": "Phase 1 baseline fails if users can see homepage content after logout or without signing in.",
           "mitigation": "PM maps anonymous redirect, logout invalidation, and bypass access rejection to AC and Verification Plan",
           "status": "ACCEPTED"
         },
         {
           "item": "invalid credential messaging may leak sensitive account state",
-          "impact": "login failure copy could reveal whether a username exists",
+          "impact": "Phase 1 scope fails if login failure copy leaks account state while the phase only commits to one configured-account access loop.",
           "mitigation": "PM requires a generic readable error and no authenticated state on failure",
           "status": "ACCEPTED"
         }
@@ -190,7 +190,7 @@
   },
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "Login/homepage package preserves Director scope, maps access risks to AC and Verification Plan, and leaves implementation details downstream.",
+    "summary": "Login/homepage package preserves measurable Director scope, maps access risks to AC and Verification Plan, and leaves implementation details downstream.",
     "agent_team_review": {
       "mode": "agent_teams",
       "round": "R2",
@@ -220,7 +220,7 @@
             "phase-1/units/UNIT-2.json#acceptance_criteria"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:ecb3b34f8c842acf335235efdc0e6564d2775c6320b21a285b992ff6ef8dd770"
+          "reviewed_bundle_digest": "sha256:2ade10be015c237b775c8f9dc778c9e1e30e699653e6643bde73fec28e30a577"
         },
         {
           "perspective": "architecture",
@@ -240,7 +240,7 @@
             "phase-1/units/UNIT-2.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:ecb3b34f8c842acf335235efdc0e6564d2775c6320b21a285b992ff6ef8dd770"
+          "reviewed_bundle_digest": "sha256:2ade10be015c237b775c8f9dc778c9e1e30e699653e6643bde73fec28e30a577"
         },
         {
           "perspective": "test",
@@ -260,7 +260,7 @@
             "phase-1/phase-prd.json#coverage_matrix"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:ecb3b34f8c842acf335235efdc0e6564d2775c6320b21a285b992ff6ef8dd770"
+          "reviewed_bundle_digest": "sha256:2ade10be015c237b775c8f9dc778c9e1e30e699653e6643bde73fec28e30a577"
         }
       ],
       "convergence_evidence": [
@@ -281,7 +281,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:ecb3b34f8c842acf335235efdc0e6564d2775c6320b21a285b992ff6ef8dd770"
+      "reviewed_bundle_digest": "sha256:2ade10be015c237b775c8f9dc778c9e1e30e699653e6643bde73fec28e30a577"
     }
   },
   "issue_ledger": [],

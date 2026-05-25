@@ -157,10 +157,7 @@
         "inline generic error",
         "page-level generic error"
       ],
-      "constraints": [
-        "must not reveal whether username exists",
-        "must keep user unauthenticated"
-      ],
+      "constraints": "must not reveal whether username exists; must keep user unauthenticated",
       "impacted_units": [
         "UNIT-1"
       ],

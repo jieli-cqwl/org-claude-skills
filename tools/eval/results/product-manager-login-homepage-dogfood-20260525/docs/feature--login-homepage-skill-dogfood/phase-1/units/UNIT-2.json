@@ -134,10 +134,7 @@
         "header identity label",
         "account menu identity label"
       ],
-      "constraints": [
-        "must make current signed-in user observable",
-        "must keep logout discoverable"
-      ],
+      "constraints": "must make current signed-in user observable; must keep logout discoverable",
       "impacted_units": [
         "UNIT-2"
       ],
