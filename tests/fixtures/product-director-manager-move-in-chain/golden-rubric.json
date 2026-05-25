@@ -1,0 +1,51 @@
+{
+  "artifact_type": "product-director-manager-golden-rubric",
+  "source_prd": "/Users/lijieli/project/qft-tenants/docs/项目文档/PRD-将搬入办理入住.md",
+  "source_demand_ref": "source-demand.md",
+  "core_thesis": "未来租约独立承载；当前在租零污染；办理入住和作废由服务端状态机、权限、账款、审计和证据闭环保护。",
+  "director_must_include_terms": [
+    "已租房登记下一任租客",
+    "当前在租不变",
+    "办理入住后才激活",
+    "作废释放未来租期",
+    "未入住不获得正式租客身份"
+  ],
+  "required_business_types": ["整租", "合租", "集中"],
+  "required_platforms": ["PC", "App", "H5", "HarmonyOS", "小程序"],
+  "conditional_platforms": ["H5", "HarmonyOS"],
+  "required_actions": ["登记租客", "将搬入管理", "合同动作", "办理入住", "作废", "查看跳转"],
+  "required_ac_refs": ["AC1", "AC2", "AC3", "AC4", "AC5", "AC6", "AC7", "AC8", "AC9", "AC10"],
+  "required_evidence_source_types": [
+    "screenshot",
+    "screen_recording",
+    "api_request_response",
+    "data_before_after",
+    "audit_log",
+    "test_record"
+  ],
+  "required_technical_domains": [
+    "api_contract",
+    "data_model_state_machine",
+    "business_type_difference",
+    "transaction_boundary",
+    "idempotency_concurrency",
+    "permission_audit",
+    "tenant_identity",
+    "async_offline_task",
+    "release_rollback"
+  ],
+  "required_risk_terms": [
+    "当前在租",
+    "状态混淆",
+    "未来租约顺序",
+    "财务流水",
+    "正式租客身份",
+    "端范围",
+    "异步任务"
+  ],
+  "release_rules": [
+    "PC 和 App 是发布目标端",
+    "H5 / HarmonyOS 独立验收后才声明支持",
+    "残余风险必须有 owner 和处理时点"
+  ]
+}
