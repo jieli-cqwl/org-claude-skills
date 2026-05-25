@@ -36,7 +36,16 @@ REQUIRED_STEPS = {
         "PM handoff gate",
         "Delivery",
     ),
-    "design": ("S2", "S3", "S4", "S5", "S6", "S7", "S8", "S11"),
+    "design": (
+        "stakeholders-and-concerns",
+        "architecture-significant-requirements",
+        "current-state-evidence",
+        "complexity-model",
+        "decision-discovery",
+        "option-tradeoff",
+        "design-synthesis",
+        "finalize-design",
+    ),
 }
 LEGACY_REQUIRED_STEPS = {
     "product-director": ("D-S2", "D-S3", "D-S4", "D-S5", "D-S5.5", "D-S6", "D-G1"),

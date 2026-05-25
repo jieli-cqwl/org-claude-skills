@@ -1,164 +1,256 @@
 ---
 name: research
 user-invocable: true
-description: "系统性调研、方案拆解与 community 对象识别。Use when 技术/产品选型、已有方案或技术点深度拆解、竞品分析、问题域调研、skill/MCP/plugin/package/仓库对象定位等需要研究支撑判断的场景。"
+description: "Use when a team may act on external information: adoption decisions, candidate selection, claim analysis, community skill/MCP/plugin/package/repo identification, judgment review, or external-solution scouting."
 argument-hint: "[调研主题]"
 context: fork
 allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, TeamCreate, SendMessage, TeamDelete
 ---
 
-# /research -- 系统性调研分析与决策支持
+# /research -- Source Targeting And Team Judgment
 
 > ultrathink
 
+/research 用在团队可能基于外部信息行动之前。它先找准资料/对象，再判准团队判断：prove the source or object is the right one, qualify the evidence, then turn it into a calibrated, challengeable, actionable team judgment.
+
 ## HARD-GATE
 
-1. NO 深度分析 without 范围确认；用户必须确认调研范围和关注维度后才能进入深度分析（Step 3+）。只读预扫描（Glob/Grep/Read）可在等待用户确认期间并行启动，但不得在确认前产生任何工件或对外输出。纯 community 对象定位时，必须产出名称解析 + 搜索覆盖证明。
-2. NO community 对象结论 without 名称归一化（空格/连字符/连写/owner/对象类型）+ 候选排除表。
-3. NO 关键结论 without 可追溯证据源（代码扫描/官方文档/源码/基准/社区指标/生产案例）+ 时间标记；权威来源必须先拆成可验证论点。
-4. NO 推荐或反对 without 最强支持证据 + 最强反方挑战 + 失效条件 + 待验证项。
-5. NO 正式报告收口 without `docs/{feature}/research-report.md` 落盘且用户确认；轻量预判断不是 /research 完成，不为轻量预判断强制落盘 research-report.md。
-6. NO 相邻专门 Skill 抢占：GitHub 仓库雷达动作状态优先路由 `github-repo-radar`；用户明确要求 Deep Research / 深度研究 / 横纵分析 / PDF 报告时路由 `deep-research`。
+<HARD-GATE>
+Do NOT calibrate judgment until source/object targeting is complete.
+Do NOT treat a similar name, mirror, directory page, or secondary summary as the target object.
+Do NOT turn an authority, popularity signal, README, benchmark, blog post, or directory listing into a conclusion; first convert it into verifiable claims and evidence tiers.
+Do NOT recommend, reject, adopt, exclude, or route downstream without strongest support evidence, strongest opposing challenge, failure conditions, and open verification items.
+Do NOT call formal research complete until `docs/{feature}/research-report.md` exists, Report Self-Review passes, and the user confirms the report.
+Do NOT continue inside research when the request belongs to `github-repo-radar` or `deep-research`; route explicitly and stop.
+</HARD-GATE>
 
-## 快速分流与轻量预判断
+## Anti-Pattern: "The First Relevant Result Is The Right Source"
 
-用户只问“怎么看”“值不值得正式调研”“下一步用哪个 Skill”“要不要开完整 research”时，先做轻量预判断，不进入 Step 3+ 深度分析，也不为轻量预判断强制落盘 research-report.md。
+The first plausible source is often the wrong object, a stale mirror, a directory page, or a secondary summary. Research does not start by judging; it starts by proving that the target object and source set are the right ones. A judgment built on the wrong object is worse than no judgment.
 
-轻量预判断只输出最小决策包：
+## When to Use
+
+Use `/research` when the user asks for help before the team may believe, adopt, reject, compare, learn, reuse, or write an external object into a plan.
+
+Typical triggers:
+
+- "这个东西能不能用？" -- adoption judgment for a tool, library, method, product, MCP, plugin, skill, package, or repo.
+- "这几个选哪个？" -- candidate selection where alternatives must be found, narrowed, compared, and challenged.
+- "这个说法靠谱吗？" -- claim, article, method, best-practice, or proposal analysis.
+- "这个到底是哪一个？" -- community object identification when names, owners, mirrors, packages, or repos may be confused.
+- "我倾向 X，帮我把把关。" -- judgment review before a preference enters team planning.
+- "做方案前先看看外面怎么做。" -- external-solution scouting before product, design, technical, or implementation work.
+
+Use it only when the answer must become a team judgment, not merely an explanation.
+
+## When NOT to Use
+
+- Simple facts or definitions: answer directly.
+- Plain summaries: summarize directly unless the user asks whether the claims are reliable or adoptable.
+- Breaking news or latest status without team action: search and answer, but do not open full research.
+- Broad long-horizon research, industry reports, 横纵分析, or PDF-style deliverables: route to `deep-research`.
+- GitHub repo adoption state such as `discard/watch/trial/deep-read/contribute/adopt`: route to `github-repo-radar`.
+- Work already ready for product/design/tech-lead/developer execution: hand off to the relevant downstream skill.
+
+## Checklist
+
+You MUST complete these items in order:
+
+1. **Route the request** -- decide whether this is lightweight answer, `/research`, `deep-research`, `github-repo-radar`, or downstream execution.
+2. **Define the target object** -- identify whether the target is a tool, candidate set, claim, article, method, trend, community object, or existing judgment.
+3. **Find the right sources** -- produce a Source Targeting Package with name variants, upstream/official source, mirror/directory deduplication, excluded lookalikes, and freshness / timestamp.
+4. **Qualify evidence** -- label evidence as official/source code, release notes, benchmark, real usage case, issue/discussion, directory/popularity signal, or opinion piece.
+5. **Calibrate judgment** -- convert evidence into support, opposition, applicability boundary, failure boundary, confidence, and reversal condition.
+6. **Create decision package** -- deliver the current judgment, decisive reason, source targeting result, strongest evidence, strongest challenge, flip condition, and next action.
+7. **Write report when required** -- write `docs/{feature}/research-report.md` only for formal report / 留档 / 团队评审 / 审计 requests.
+8. **Report self-review** -- scan for wrong source, stale source, missing opposition, weak evidence tier, overclaimed confidence, wrong profile, and missing next action.
+9. **User confirmation or route handoff** -- ask for confirmation only when formal report, scope change, cost change, or downstream handoff is involved.
+
+## Process Flow
+
+```dot
+digraph research {
+    "Route the request" [shape=box];
+    "Research needed?" [shape=diamond];
+    "Adjacent route?" [shape=diamond];
+    "Define the target object" [shape=box];
+    "Find the right sources" [shape=box];
+    "Target/source found?" [shape=diamond];
+    "Qualify evidence" [shape=box];
+    "Calibrate judgment" [shape=box];
+    "Create decision package" [shape=box];
+    "Report required?" [shape=diamond];
+    "Write research report" [shape=box];
+    "Report self-review" [shape=box];
+    "User confirms report?" [shape=diamond];
+    "Terminal: confirmed decision/report/route" [shape=doublecircle];
+
+    "Route the request" -> "Research needed?";
+    "Research needed?" -> "Create decision package" [label="lightweight answer"];
+    "Research needed?" -> "Adjacent route?" [label="yes"];
+    "Adjacent route?" -> "Terminal: confirmed decision/report/route" [label="deep-research or github-repo-radar"];
+    "Adjacent route?" -> "Define the target object" [label="no"];
+    "Define the target object" -> "Find the right sources";
+    "Find the right sources" -> "Target/source found?";
+    "Target/source found?" -> "Find the right sources" [label="no, expand variants"];
+    "Target/source found?" -> "Qualify evidence" [label="yes"];
+    "Qualify evidence" -> "Calibrate judgment";
+    "Calibrate judgment" -> "Create decision package";
+    "Create decision package" -> "Report required?";
+    "Report required?" -> "Terminal: confirmed decision/report/route" [label="no"];
+    "Report required?" -> "Write research report" [label="yes"];
+    "Write research report" -> "Report self-review";
+    "Report self-review" -> "User confirms report?";
+    "User confirms report?" -> "Write research report" [label="changes requested"];
+    "User confirms report?" -> "Terminal: confirmed decision/report/route" [label="confirmed"];
+}
+```
+
+## Quick Triage And Routing
+
+Use lightweight triage when the user asks "怎么看", "值不值得正式调研", "下一步用哪个 Skill", or "要不要开完整 research". 轻量预判断不是 /research 完成，不为轻量预判断强制落盘 research-report.md。
+
+Lightweight triage 只输出最小决策包：
 
 - 推荐路径：继续轻量答复、进入正式 `research`、路由 `github-repo-radar`、路由 `deep-research`、或等待用户补范围。
-- 当前依据：用户目标、对象类型、证据缺口、相邻 Skill 边界。
+- 当前依据：用户目标、对象类型、资料定位风险、证据缺口、相邻 Skill 边界。
 - 下一步：一个可执行动作；若要进入正式报告，确认调研范围、关注维度和 feature 目录。
 
-分流规则：
+Routing rules:
 
-- GitHub 仓库发现、评估、比较、学习、贡献、采用，且需要 `discard/watch/trial/deep-read/contribute/adopt` 动作状态 → `github-repo-radar`。
-- 用户显式调用 `$deep-research`，或要求 Deep Research / 深度研究 / 横纵分析 / 历时共时分析 / Markdown + PDF 报告 → `deep-research`。
-- 通用技术选型、方案机制拆解、community 对象定位、证据链审计 → 留在 `research`。
-- 轻量预判断不能声明正式调研完成；若用户要求“正式报告、留档、给团队看、可审计结论”，再进入完整流程和报告落盘门。
+- GitHub 仓库发现、评估、比较、学习、贡献、采用，且需要 `discard/watch/trial/deep-read/contribute/adopt` 动作状态 -> `github-repo-radar`。
+- 用户显式调用 `$deep-research`，或要求 Deep Research / 深度研究 / 横纵分析 / 历时共时分析 / Markdown + PDF 报告 -> `deep-research`。
+- 采用判断、候选取舍、观点吸收、对象识别、已有判断复核、外部方案理解 -> 留在 `research`。
+
+正式报告收口 requires Step 7 report writing, Report Self-Review, and user confirmation.
+
+## The Process
+
+**Route the request:** Ask whether the user needs information, a source/object identity, or a team judgment. If no team action may follow, answer directly. If the work is broad long-form research, route to `deep-research`. If the work is repo adoption-state management, route to `github-repo-radar`.
+
+**Define the target object:** Name the object being judged before searching deeply. It may be a tool, library, framework, product, MCP, plugin, skill, package, repo, article, method, best practice, competitor behavior, trend, candidate set, or existing recommendation. If this is unclear, ask one missing question.
+
+Also choose `presentation_profile` before final output:
+
+- `decision`: 调研目的 is a near-term decision; 目标读者 needs the answer first; 读后动作 is adopt, reject, pilot, wait, or route.
+- `understanding`: 调研目的 is clear understanding; 目标读者 needs mechanism and boundary first; 读后动作 is learn, monitor, or narrow scope.
+- `audit`: 调研目的 is evidence review; 目标读者 needs source coverage and challenge first; 读后动作 is accept, revise, or reopen judgment.
+
+When profile routing is unclear, read `references/report-presentation-framework.md`.
+
+**Find the right sources:** Build a Source Targeting Package before judgment:
+
+- Target object and aliases.
+- name variants: spaces, hyphens, joined words, owner/namespace, command name, package name, repo name.
+- upstream/official source.
+- mirror/directory deduplication.
+- excluded lookalikes.
+- source freshness / timestamp.
+- remaining source blind spots.
+
+For community object identification, do not stop at the first plausible hit. Name variants and excluded lookalikes are mandatory.
+
+**Qualify evidence:** Evidence Qualification must separate evidence strength:
+
+- Strong: official docs, source code, changelog/release notes, accepted standards, reproducible benchmark, production usage case.
+- Medium: maintainer issue/discussion, migration guide, ecosystem integration, credible technical article with primary references.
+- Weak: directory listing, stars/downloads, marketing copy, unverified benchmark, unsourced blog opinion, social proof.
+
+Weak evidence can explain interest; it cannot justify adoption by itself.
+
+**Calibrate judgment:** Judgment Calibration turns evidence into a bounded conclusion:
+
+- Current judgment.
+- Confidence level and why.
+- Decisive reason.
+- Strongest support evidence.
+- Strongest opposing challenge.
+- Applicability boundary.
+- Failure boundary.
+- Reversal / flip condition.
+- Open verification item.
+
+**Use agent teams carefully:** agent teams 只用于 Step 2/3/5 的多策略候选穷举、候选深挖和 challenger 挑战. 召集 agent teams only after the target object and route are clear. Give every member fixed input, evidence requirements, output format, and no-overreach rules. Members must not share conclusions before producing independent evidence.
+
+**Create decision package:** Decision Package is the default output. It is not a report. It must include:
+
+- Source Targeting Package summary.
+- Evidence Qualification summary.
+- Current judgment: adopt / conditionally adopt / reject / learn / monitor / needs more evidence.
+- Confidence.
+- Decisive reason.
+- Strongest opposition.
+- Reversal condition.
+- Next smallest action.
+
+For `decision`, decision 输出首屏必须包含：当前判断、决定性理由、最大风险和下一步. If project constraints are missing, label the output as a general observation, not a recommendation.
+
+## 研究判断动作合同
+
+- 候选机制：每个候选必须写清：解决什么问题、核心机制、适用边界和失效边界。
+- 资料定位：每个外部对象必须写清上游来源、名称变体、镜像/目录去重、排除对象和时间戳。
+- 证据绑定：每个论断必须绑定可追溯证据源；无源论断只能进入待验证项。
+- 证据分级：弱证据只能解释关注度，不能单独支撑采用判断。
+- 论点挑战：每个关键判断必须写最强支持证据、最强反方挑战和结论翻转条件。
+- 项目约束：每个推荐必须引用项目约束；缺少项目约束时只能标为通用观察，不得作为推荐。
+
+## Report Writing
+
+Write `docs/{feature}/research-report.md` only when the user asks for a formal report, retention, team review, auditability, or a long-form research artifact. The report must state `调研模式` and `呈现模式`, then use source targeting -> evidence qualification -> judgment -> audit progressive disclosure.
+
+Template routes:
+
+- Use `projections/research-report-template.md`.
+- Select one profile header: `decision`, `understanding`, or `audit`.
+- Select one mode body: `selection`, `analysis`, or `discovery`.
+- Always keep shared audit appendix, Report Self-Review, and User Confirmation Gate.
+- Do not recreate split header/body/appendix projection files.
+
+## Report Self-Review
+
+After writing the report, review it before asking the user to confirm:
+
+1. **Source scan:** target object, source variants, upstream source, excluded lookalikes, freshness, and blind spots are explicit.
+2. **Evidence scan:** every key claim has a traceable source, timestamp, and evidence tier.
+3. **Challenge scan:** every key judgment includes strongest support, strongest opposition, and failure boundary.
+4. **Scope scan:** the report answers the confirmed scope and does not expand into unconfirmed dimensions.
+5. **Profile scan:** first screen matches `decision`, `understanding`, or `audit`.
+6. **Action scan:** next step is executable and tied to project constraints; missing constraints are marked as general observation.
+
+Fix self-review failures inline before asking for confirmation.
+
+## User Confirmation Gate
+
+For lightweight triage, ask the user to confirm the recommended path only when the next step changes scope, cost, or skill route.
+
+For formal reports, ask the user to review `docs/{feature}/research-report.md`. If the user requests changes, update the report and rerun Report Self-Review. Do not claim formal research complete until the user confirms.
+
+## Terminal State
+
+The terminal state is either a confirmed lightweight decision package, a user-confirmed research report, or an explicit route to an adjacent skill.
+
+The ONLY allowed next action after a completed formal research report is the user-confirmed handoff target. Do not silently continue into design, planning, implementation, `github-repo-radar`, or `deep-research`.
 
 ## 警示信号
 
-If you catch yourself thinking:
-- "列一下主流方案让用户自己选" → STOP. 列清单不是调研，收敛到 TOP 3 并逐项深入才是。
-- "这个方案很流行所以推荐" → STOP. 流行度不是证据，项目适配度才是。
-- "简单介绍下优缺点就够了" → STOP. 每项必须拆解核心机制 + 给出实证数据 + 写出反方挑战和失效边界。
-- "调研完直接给结论" → STOP. 结论必须回绑项目约束，给出可落地的行动项。
-- "这篇文章/这个人很权威所以大概率对" → STOP. 先抽出其中的具体论点，再逐条验证和挑战。
-- "信息差不多够了" → STOP. 检查每个论断是否都有证据源、反证和未验证项，无源或无反方 = 未完成。
-- "多个目录站都指向它，所以可以算独立证据" → STOP. 先回溯上游仓库/文档并对镜像去重。
-- "这个名字看起来像，所以先按它收敛再慢慢修" → STOP. 先做名称归一化、候选并存和排除证明。
+出现以下想法时立刻停下：
 
-## 角色
+- "第一个结果看起来相关" → STOP. 先做名称变体、上游来源、镜像去重和排除证明。
+- "列一下主流方案让用户自己选" → STOP. 收敛到 TOP 3，并解释淘汰项和复活条件。
+- "这个方案很流行所以推荐" → STOP. 用证据等级、项目约束和失效条件评估适配度。
+- "官方/权威这么说，所以可以采纳" → STOP. 抽成可验证论点，再找反方挑战和适用边界。
+- "简单介绍下优缺点就够了" → STOP. 交付 Source Targeting、Evidence Qualification 和 Decision Package。
+- "调研完直接给结论" → STOP. 结论必须带置信度、翻案条件和下一步动作。
+- "多个目录站都指向它，所以可以算独立证据" → STOP. 回溯上游仓库/文档并对镜像去重。
+- "这个名字看起来像，所以先按它收敛再慢慢修" → STOP. 先证明目标对象，不能把相似对象当目标。
 
-你是对抗式研究分析师。定位：深度调研 + 实证分析 + 决策支持。驱动：每个结论都必须经得起"证据在哪"和"最强反对意见是什么"的追问。锚点：宁可只分析 3 个对象但每个透彻，也不列 10 个对象蜻蜓点水。
+## Completion Check
 
-核心方法论：
-- 第一性原理：剥离表象回到核心机制，问"这东西到底解决什么问题"
-- 证据优先：每个论断必须有可追溯证据，无源论断视为未完成
-- 论点挑战：每个关键判断都要写出最强支持证据、最强反方挑战和失效边界
-- 上下文绑定：所有分析回绑项目具体约束，拒绝通用结论
-- 决策导向：输出必须让人一眼看出优缺点、适配度、风险和下一步
-
-能力边界：agent teams 只用于 Step 2/3/5 的多策略候选穷举、候选深挖和 challenger 挑战；必须给每个协作成员传入固定输入、证据要求、输出格式和禁止越权项。research owner 负责范围确认、结论裁决、用户确认和 `research-report.md` 写入。
-
-## 输入
-
-用户提出的调研需求，通常属于三种 mode：
-- `selection`：技术/产品/路线等多方案调研与取舍
-- `analysis`：深拆已有方案/文章/知识/技术点，判断哪些成立、哪些不成立、哪些仅在特定条件下成立
-- `discovery`：定位 community 里的 skill/MCP/plugin/package/仓库对象，解决“这个名字到底指哪个实体”
-
-同时还必须识别一组独立的 `presentation_profile`：
-- `decision`：目标是帮助用户快速做决定
-- `understanding`：目标是帮助用户建立清晰认知
-- `audit`：目标是帮助用户审计证据链、覆盖证明与反方挑战
-
-`presentation_profile` 的判定必须回到三个槽位：
-- 调研目的：本次是为了决策、建立理解，还是审计证据链
-- 目标读者：谁会读这份报告，以及他们已有的上下文水平
-- 读后动作：读者看完后需要做决定、继续学习、执行试点，还是触发复审
-
-## 首轮澄清最小化规则
-
-- 首轮只补缺口，不重复问用户已明确给出的信息；优先用“我理解你要……默认按 X + Y 继续，如有偏差请纠正”的确认式开场。
-- 若用户原话已经明确给出调研对象、关键维度，且 `presentation_profile` 可按默认路由稳定推出，则一次确认式复述即可视为范围确认；无需额外 AskUserQuestion。
-- 先基于用户原话预判 `research_mode` 和 `presentation_profile`，缺口最少化：
-  - `selection` 默认 `decision`
-  - `analysis`：若用户在问“何时成立/失效/为什么/怎么理解/有哪些启发”，直接默认 `understanding` 并推进；若用户在问“是否采纳/怎么推进/该不该用”，默认 `decision`；只有同一请求同时出现理解与决策目标冲突时才追问
-  - `discovery`：若用户明确要求“排除证明/覆盖证明/可审计结论”，默认 `audit`；否则默认 `understanding`
-- 通用最小必问槽位（只有缺失才问）：
-  1. 调研对象或待决策问题
-  2. 最关键的 2-4 个评估维度 / 挑战焦点 / 覆盖要求
-- `feature` 目录名不是首轮硬门槛；若用户未提供，允许先完成范围确认与研究推进，但在 Step 7 落盘前必须补齐。
-- 模式专属补充（只有原话无法定路由时才问）：
-  - `selection`：默认按项目约束画像 + 官方/源码/一手证据优先推进；只有用户明确限制候选池/证据范围，或关键候选边界不清时，才追问范围
-  - `analysis`：只有同时出现“先建立理解”和“立即做采纳决策”的冲突信号时，才追问优先目标
-  - `discovery`：默认先查当前仓库/community；只有仓内证据不足、命中冲突，或用户明确要求时，才升级到外部来源
-- 如果用户原话已经给出了 mode、profile、维度和对象，只做一次确认式复述并直接推进；`feature` 目录名若缺失，留到落盘前补问。禁止把上述问题重新完整问一遍。
-
-## 流程
-
-流程产物合同：每一步都必须形成可被下一步消费的 output，并写清 consumer、acceptance、failure_state、proof。证据不足时输出待验证项和反方挑战，不得把无源判断推进到报告结论。
-
-状态表：
-
-| 状态 | 允许动作 | 停止/转移 |
-| --- | --- | --- |
-| 范围确认 | AskUserQuestion 或确认式复述，启动只读预扫描 | 范围未确认不得进入深度分析 |
-| 候选收敛 | agent teams 多策略穷举候选并去重 | 候选边界不清则回到范围确认 |
-| 深度分析 | agent teams 按候选/论点独立深挖证据 | 证据不足则标注待验证，不编造 |
-| 独立挑战 | agent teams challenger 质疑结论和风险 | 挑战未纳入报告不得输出 |
-| 报告确认 | research owner 写入报告并请求用户确认 | 用户未确认不得声明完成 |
-
-1. 预扫描 + 范围澄清 — 先按“首轮澄清最小化规则”发起确认式提问，优先复述已知信息，只补缺失槽位。若用户原话已明确调研对象、关键维度，且 `presentation_profile` 可按默认路由稳定推出，则一次确认式复述即可视为范围确认；否则再用 AskUserQuestion 确认调研范围 + 关注维度 + `presentation_profile` ← HARD-GATE。`feature` 目录名允许延后到 Step 7 落盘前补齐。
-   当执行呈现模式澄清时：
-	   → 读取 `references/report-presentation-framework.md` 获取 `decision / understanding / audit` 的目标、首屏重点与默认路由规则。
-	   在等待用户回应期间，利用空闲并行启动只读预扫描（Glob/Grep/Read，零副作用，不产生工件）：`selection/analysis` 扫描项目技术栈、依赖、架构模式、已有相关实现；`discovery` 扫描用户给的截图、榜单、既有报告、README、安装入口、文件结构形成对象约束画像。用户确认后，将预扫描结果融入后续步骤。
-   - Output: 调研范围、模式、呈现 profile、预扫描证据；Consumer: Step 2；Acceptance: 关键对象和维度已确认或被默认路由稳定推出；Failure_state: 范围未确认则不得进入深度分析；Proof: 用户确认或确认式复述、预扫描路径。
-2. 模式路由 + 候选收敛 — 基于 Step 1 的扫描结果和确认范围，识别 `selection`、`analysis` 或 `discovery` 模式（见 `references/analysis-frameworks.md`），同时确定 `presentation_profile`。若 Step 1 已明确 `research_mode + presentation_profile + 对象/维度`，则直接呈现识别结果并进入候选收敛，不再重复 AskUserQuestion；只有仍有歧义时才再次确认。同时召集 agent teams 从不同搜索策略并行穷举候选，合并去重后标记证据等级、时间和冲突点。一轮呈现给用户：识别出的 `research_mode + presentation_profile` + 候选列表。`selection` 收敛到 TOP 3（含淘汰理由）并确认评估维度；`analysis` 收敛到 1-3 个核心论点并确认挑战焦点；`discovery` 先做名称归一化（空格/连字符/连写/owner/别名）与对象类型覆盖（repo/skill/MCP/plugin/package/目录），再输出候选表、排除理由、剩余盲区。
-   - Output: 候选集、淘汰表、名称归一化和对象类型覆盖；Consumer: Step 3；Acceptance: 候选边界、证据等级和冲突点可追踪；Failure_state: 候选边界不清则回到 Step 1；Proof: 搜索覆盖、排除理由和候选来源。
-3. 并行深度分析 — 每个候选/论点由 agent teams 成员并行深挖，禁止先共享结论，各自独立形成判断。按 `references/deep-analysis-template.md` 对 `selection/analysis` 的每个对象执行核心机制拆解；`discovery` 对每个候选核对 owner、上游来源、安装入口、README/文件结构、镜像关系、热度口径和排除证据。
-   - Output: 每个候选/论点的机制拆解、证据源、时间标记和待验证项；Consumer: Step 4；Acceptance: 关键判断有来源和反证路径；Failure_state: 证据不足则标待验证；Proof: 官方文档、源码、仓库、代码扫描或基准链接。
-4. 结构化评估 — 汇总各 agent 的独立分析结果。`selection`：按维度集做对比矩阵（评分+证据+主要风险）并形成推荐/次选/不推荐。`analysis`：输出论点挑战表（支持 / 反方 / 判定 / 结论稳健性）。`discovery`：输出实体解析表（候选 / 类型 / 上游来源 / 主要证据 / 反证 / 当前状态）并形成命中 / 部分命中 / 未命中 / 待验证判断。
-   - Output: 对比矩阵、论点挑战表或实体解析表；Consumer: Step 5；Acceptance: 推荐/判定同时包含支持证据、反方证据和失效条件；Failure_state: 证据链断裂则回到 Step 3；Proof: 矩阵 evidence cells 与排除记录。
-5. 独立挑战 — 通过 agent teams 派发 challenger 对 Step 4 的结论进行独立挑战：质疑推荐理由是否成立、反方证据是否被充分考虑、失效边界是否被低估、是否存在权威偏见。challenger 的挑战结果必须原样纳入最终报告。
-   - Output: challenger findings 与结论修正记录；Consumer: Step 6/7；Acceptance: 每个关键结论至少有反方挑战和处理结果；Failure_state: 挑战未纳入报告则不得输出；Proof: challenger 原文、处理决定和残余风险。
-6. 项目适配与行动计划 — 将分析结论（含 challenger 挑战结果）回绑项目约束画像。`selection` 给出采纳/试点/放弃动作；`analysis` 给出吸收/改写后吸收/不采纳动作；`discovery` 给出后续查询、安装或验证动作。AskUserQuestion 确认结论。
-   - Output: 项目适配结论、行动项和失效条件；Consumer: Step 7 和用户决策；Acceptance: 动作可执行且回绑项目约束；Failure_state: 用户不确认则修正结论；Proof: 约束 refs、行动 owner 和用户确认。
-7. 输出报告 — 按以下模板输出 `docs/{feature}/research-report.md`。报告必须显式写出 `调研模式` 与 `呈现模式`，并遵循“答案层 → 判断层 → 证据层 → 审计层”的渐进披露：
-   - `decision` 头部：`projections/research-decision-header-template.md`
-   - `understanding` 头部：`projections/research-understanding-header-template.md`
-   - `audit` 头部：`projections/research-audit-header-template.md`
-   - `selection`：`projections/research-tech-selection-template.md`
-   - `analysis`：`projections/research-analysis-template.md`
-	   - `discovery`：`projections/research-discovery-template.md`
-	   - 共享审计附录：`projections/research-shared-audit-appendix-template.md`
-   - Output: `docs/{feature}/research-report.md`；Consumer: 用户决策、后续设计/实现；Acceptance: 报告包含答案层、判断层、证据层、审计层；Failure_state: feature 目录缺失或用户未确认则不得完成；Proof: 文件路径、证据源列表和用户确认。
-
-## 输出
-
-`docs/{feature}/research-report.md` 由“呈现模式头部 + 调研模式正文 + 共享审计附录”组成。`projections/research-shared-header-template.md` 仅保留为旧路径兼容入口，不能再作为默认模板入口。
-
-## 异常处理
-
-| 情况 | 处理 |
-|------|------|
-| WebSearch 无有效结果 | 换关键词 + 降级为代码分析和文档推理，报告标注信息局限性 |
-| 候选超过 5 个 | 强制 TOP 3，淘汰项列入附录 |
-| 命中很多镜像/目录站 | 去重到上游仓库/官方文档，再评估是否算独立证据 |
-| 名称可能有别名或连写差异 | 强制扩展空格/连字符/连写/owner/对象类型变体，再继续收敛 |
-| 调研中发现范围需扩展 | → 向用户报告并确认是否扩展 |
-| 关键维度无实证数据 | 标注"无实证"，不编造，列出验证方式与结论翻转条件 |
-
-## 完成校验
-
-- [ ] `docs/{feature}/research-report.md` 存在且非空
-- [ ] 报告显式包含 `调研模式` 与 `呈现模式`
-- [ ] 报告含“项目上下文”且引用了实际扫描结果
-- [ ] 报告含“独立挑战记录”，challenger 结论已原样纳入
-- [ ] 报告含“检索路径与覆盖证明”，列出名称变体、对象类型覆盖、已排除候选与剩余盲区
-- [ ] 报告首屏与 `presentation_profile` 一致：`decision` 优先结论与动作，`understanding` 优先概念与边界，`audit` 优先证据审计
-- [ ] 每个关键判断都有最强支持证据 + 最强反方挑战 + 失效边界
-- [ ] 所有权威引用已拆成可验证论点，不以来源头衔直接下结论
-- [ ] 结论回绑项目约束，包含可落地的行动项
+- [ ] Route is correct: direct answer, `/research`, `deep-research`, `github-repo-radar`, or downstream skill.
+- [ ] Target object is explicit.
+- [ ] Source Targeting Package exists: variants, upstream/official source, deduplication, excluded lookalikes, freshness / timestamp, blind spots.
+- [ ] Evidence Qualification labels strong/medium/weak evidence.
+- [ ] Current judgment includes confidence, decisive reason, strongest support, strongest opposition, boundary, flip condition, and next action.
+- [ ] Weak evidence is not used as sole adoption support.
+- [ ] Project constraints are cited for recommendations; missing constraints are marked as general observation.
+- [ ] Formal report, when required, exists at `docs/{feature}/research-report.md`, passes Report Self-Review, and is user-confirmed.

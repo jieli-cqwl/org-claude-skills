@@ -112,7 +112,7 @@ from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 payload["design_ledger"]["confirmations"] = [
-    item for item in payload["design_ledger"]["confirmations"] if item["step"] != "S7"
+    item for item in payload["design_ledger"]["confirmations"] if item["step"] != "option-tradeoff"
 ]
 payload["design_ledger"]["latest_checkpoint_id"] = payload["design_ledger"]["confirmations"][-1]["checkpoint_id"]
 payload["design_ledger"]["finalization_basis"]["accepted_checkpoint_ids"] = [
@@ -121,9 +121,9 @@ payload["design_ledger"]["finalization_basis"]["accepted_checkpoint_ids"] = [
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 if python3 "$SCRIPT" --package "$BROKEN_LEDGER" >"$TMP_ROOT/broken-ledger-output.json"; then
-  fail "design package must reject ledger missing S7"
+  fail "design package must reject ledger missing option-tradeoff"
 fi
-rg -q "S7|ledger" "$TMP_ROOT/broken-ledger-output.json" \
+rg -q "option-tradeoff|ledger" "$TMP_ROOT/broken-ledger-output.json" \
   || fail "ledger failure should be explicit"
 
 BAD_BOUNDARY="$TMP_ROOT/bad-boundary.json"

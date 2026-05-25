@@ -33,9 +33,12 @@ SOP_ROUTE_TERMS = terms("按需读取|用于|形成|检查|记录")
 RESOURCE_READ_TERMS = terms("读取|READ|Read|read|reads")
 RESOURCE_EXTRACT_TERMS = terms("只提取|only extract|extract only")
 RESOURCE_PURPOSE_TERMS = terms("for|用于|获取|形成|检查|记录|规则|方法|口径|生成")
-HARD_GATE_TERMS = terms("## HARD-GATE|## 停手边界|## 准入边界|## 边界")
+HARD_GATE_TERMS = terms(
+    "## HARD-GATE|<HARD-GATE>|## 停手边界|## 准入边界|## 边界"
+)
 FLOW_HEADING_PATTERNS = (
     r"流程",
+    r"Process Flow",
     r"Workflow",
     r"Default Flow",
     r"固定主流程",

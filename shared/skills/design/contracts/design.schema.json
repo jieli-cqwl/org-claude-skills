@@ -14,12 +14,12 @@
           "const": "design"
         },
         "input_analysis": {
-          "description": "S1 输入分析：产品基线（brief/phase-prd/UNIT）的关键提问、约束和用户回应摘要",
+          "description": "输入分析：产品基线（brief/phase-prd/UNIT）、关键约束、系统事实、复杂度模型、未决设计问题和来源摘要",
           "type": "string",
           "minLength": 1
         },
         "key_decisions": {
-          "description": "S5 冻结的关键架构决策；每项关联同 decision_ref 的候选方案和用户确认",
+          "description": "冻结的关键架构决策；每项关联同 decision_ref 的候选方案、事实锚点、失效条件和用户确认",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -73,7 +73,7 @@
           }
         },
         "option_analysis": {
-          "description": "S5 候选方案分析；同一 decision_id 下至少 2 个本质不同方案的取舍和事实锚点",
+          "description": "候选方案分析；同一 decision_id 下至少 2 个本质不同方案的取舍和事实锚点",
           "type": "array",
           "minItems": 2,
           "items": {
@@ -120,7 +120,7 @@
           }
         },
         "runtime_facts": {
-          "description": "S2 运行时采证事实；每条包含 evidence= 和 observed_at=。纯代码重构时写一条「运行时采证不适用：<理由>；evidence=<代码位置>；observed_at=<时间>」",
+          "description": "会影响架构决策的运行时或代码事实；每条包含 evidence= 和 observed_at=。纯代码重构时写一条「运行时采证不适用：<理由>；evidence=<代码位置>；observed_at=<时间>」",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -137,7 +137,7 @@
           }
         },
         "interfaces": {
-          "description": "S6 结构化接口契约；每个接口包含 input_params / output_params / error_codes / boundary_behaviors。无接口变更时允许空数组，并用 interface_boundary 写明沿用的现有契约",
+          "description": "结构化接口契约；每个接口包含 input_params / output_params / error_codes / boundary_behaviors。无接口变更时允许空数组，并用 interface_boundary 写明沿用的现有契约",
           "type": "array",
           "minItems": 0,
           "items": {
@@ -296,7 +296,7 @@
           }
         },
         "interface_boundary": {
-          "description": "S6 接口边界声明；无新增或变更接口时写明沿用的现有契约和对应 UNIT/AC",
+          "description": "接口边界声明；无新增或变更接口时写明沿用的现有契约和对应 UNIT/AC",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -305,7 +305,7 @@
           }
         },
         "quality_attributes": {
-          "description": "S4 质量属性排序；每项包含优先级、关键场景、目标指标、取舍点和 verification_refs",
+          "description": "质量属性排序；每项包含优先级、关键场景、目标指标、取舍点和 verification_refs",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -364,7 +364,7 @@
           }
         },
         "modules": {
-          "description": "S6 模块划分；每个模块包含职责、数据所有者和 unit_refs",
+          "description": "模块划分；每个模块包含职责、数据所有者和 unit_refs",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -406,7 +406,7 @@
           }
         },
         "data_architecture": {
-          "description": "S6 数据架构：storage_decisions、data_flows、consistency_strategy",
+          "description": "数据架构：storage_decisions、data_flows、consistency_strategy",
           "type": "object",
           "required": [
             "summary",
@@ -443,7 +443,7 @@
           "additionalProperties": true
         },
         "cross_cutting_concerns": {
-          "description": "S6 横切关注点；固定覆盖 auth/error/log/config 四项，每项给 decision 和 verification_refs；不适用场景 decision 写「沿用现有方案：<引用>」",
+          "description": "横切关注点；固定覆盖 auth/error/log/config 四项，每项给 decision 和 verification_refs；不适用场景 decision 写「沿用现有方案：<引用>」",
           "type": "array",
           "minItems": 4,
           "items": {
@@ -485,7 +485,7 @@
           }
         },
         "verification_mapping": {
-          "description": "S7 验证映射；每条 Manager VP 或 exit condition 对应 design_validation、test_obligation 和 evidence_ref",
+          "description": "验证映射；每条 Manager VP 或 exit condition 对应 design_validation、test_obligation 和 evidence_ref",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -518,7 +518,7 @@
           }
         },
         "unit_coverage": {
-          "description": "S6 UNIT/AC 覆盖；每个 unit_id 关联 ac_refs 和 design_refs",
+          "description": "UNIT/AC 覆盖；每个 unit_id 关联 ac_refs 和 design_refs",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -554,7 +554,7 @@
           }
         },
         "impact_scope": {
-          "description": "S7 影响范围；每项包含 affected_modules 和 verification_refs。无其他模块影响时写一条「scope_item_id=IS-NONE；impact=仅新增，无其他模块影响：<理由>」",
+          "description": "影响范围；每项包含 affected_modules 和 verification_refs。无其他模块影响时写一条「scope_item_id=IS-NONE；impact=仅新增，无其他模块影响：<理由>」",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -595,7 +595,7 @@
           }
         },
         "planning_constraints": {
-          "description": "S7 待计划约束；交给 /tech-lead 承接的执行约束。无约束时写一条「constraint_id=PC-NONE；description=本 Phase 无额外计划约束」",
+          "description": "待计划约束；交给 /tech-lead 承接的执行约束。无约束时写一条「constraint_id=PC-NONE；description=本 Phase 无额外计划约束」",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -628,7 +628,7 @@
           }
         },
         "product_handoff": {
-          "description": "S8 产品承接：status、accepted_refs、open_failures、warn_followups",
+          "description": "产品承接：status、accepted_refs、open_failures、warn_followups",
           "type": "object",
           "required": [
             "status",
@@ -665,7 +665,7 @@
           "additionalProperties": true
         },
         "risks": {
-          "description": "S7 识别的风险；每条含 severity 和 source_ref。无识别风险时写一条「risk_id=R-NONE；description=本 Phase 未识别阻断性风险；severity=none；source_ref=<分析依据>」",
+          "description": "识别的风险；每条含 severity 和 source_ref。无识别风险时写一条「risk_id=R-NONE；description=本 Phase 未识别阻断性风险；severity=none；source_ref=<分析依据>」",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -698,7 +698,7 @@
           }
         },
         "risk_response": {
-          "description": "S7 风险回应；每条对应 risks 中的 risk_id。R-NONE 的回应写「architecture_response=无需架构回应」",
+          "description": "风险回应；每条对应 risks 中的 risk_id。R-NONE 的回应写「architecture_response=无需架构回应」",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -745,7 +745,7 @@
           }
         },
         "migration_plan": {
-          "description": "S7 迁移计划：从当前状态到目标状态的路径。无迁移时写一条「无需迁移：<理由，如新建模块/新增接口，直接部署>」",
+          "description": "迁移计划：从当前状态到目标状态的路径。无迁移时写一条「无需迁移：<理由，如新建模块/新增接口，直接部署>」",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -754,7 +754,7 @@
           }
         },
         "verification_plan": {
-          "description": "S7 验证计划；每条描述验证方式和通过标准",
+          "description": "验证计划；每条描述验证方式和通过标准",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -763,7 +763,7 @@
           }
         },
         "rollback_plan": {
-          "description": "S7 回滚计划：触发条件、回滚路径、时效要求。无回滚时写一条「无需回滚：<理由，如纯新增，异常时停止发布>」",
+          "description": "回滚计划：触发条件、回滚路径、时效要求。无回滚时写一条「无需回滚：<理由，如纯新增，异常时停止发布>」",
           "type": "array",
           "minItems": 1,
           "items": {
@@ -772,7 +772,7 @@
           }
         },
         "co_creation_summary": {
-          "description": "S2-S8 每步共创摘要；stage_id / question / response / decision_refs",
+          "description": "设计协作摘要；stage_id 使用语义阶段 id，记录 question / response / decision_refs",
           "type": "array",
           "minItems": 7,
           "items": {
@@ -788,13 +788,13 @@
               "stage_id": {
                 "type": "string",
                 "enum": [
-                  "S2",
-                  "S3",
-                  "S4",
-                  "S5",
-                  "S6",
-                  "S7",
-                  "S8"
+                  "stakeholders-and-concerns",
+                  "architecture-significant-requirements",
+                  "current-state-evidence",
+                  "complexity-model",
+                  "decision-discovery",
+                  "option-tradeoff",
+                  "design-synthesis"
                 ]
               },
               "stage_name": {
@@ -822,7 +822,7 @@
           }
         },
         "constraint_inheritance_confirmation": {
-          "description": "S3 约束继承确认：Constitution / ADR / 遗留设计 / 口头约束的用户确认记录",
+          "description": "约束继承确认：Constitution / ADR / 遗留设计 / 口头约束的用户确认记录",
           "type": "object",
           "required": [
             "status",
@@ -874,7 +874,7 @@
           "additionalProperties": true
         },
         "review_closure": {
-          "description": "S10 三视角评审收口：verdict、Reviewed Design Digest、已修正 FAIL 和 WARN 承接",
+          "description": "三视角评审收口：verdict、Reviewed Design Digest、已修正 FAIL 和 WARN 承接",
           "type": "object",
           "required": [
             "reviewed_design_digest",
@@ -987,7 +987,7 @@
           "additionalProperties": true
         },
         "final_confirmation": {
-          "description": "S11 最终确认：status=confirmed 后才能交给 /test-design",
+          "description": "最终确认：status=confirmed 后才能交给 /test-design",
           "type": "object",
           "required": [
             "status",

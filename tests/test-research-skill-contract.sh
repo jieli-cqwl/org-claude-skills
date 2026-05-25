@@ -8,11 +8,7 @@ ensure_test_rg
 RESEARCH_SKILL="$ROOT/shared/skills/research/SKILL.md"
 ANALYSIS_FRAMEWORK="$ROOT/shared/skills/research/references/analysis-frameworks.md"
 PRESENTATION_FRAMEWORK="$ROOT/shared/skills/research/references/report-presentation-framework.md"
-DECISION_TEMPLATE="$ROOT/shared/skills/research/projections/research-decision-header-template.md"
-UNDERSTANDING_TEMPLATE="$ROOT/shared/skills/research/projections/research-understanding-header-template.md"
-AUDIT_TEMPLATE="$ROOT/shared/skills/research/projections/research-audit-header-template.md"
-LEGACY_SHARED_HEADER_TEMPLATE="$ROOT/shared/skills/research/projections/research-shared-header-template.md"
-SHARED_AUDIT_APPENDIX_TEMPLATE="$ROOT/shared/skills/research/projections/research-shared-audit-appendix-template.md"
+REPORT_TEMPLATE="$ROOT/shared/skills/research/projections/research-report-template.md"
 RESEARCH_CHECK="$ROOT/shared/skills/research/scripts/completion_check.sh"
 
 fail() {
@@ -90,11 +86,8 @@ assert_present '调研目的' "$RESEARCH_SKILL"
 assert_present '目标读者' "$RESEARCH_SKILL"
 assert_present '读后动作' "$RESEARCH_SKILL"
 assert_present 'report-presentation-framework\.md' "$RESEARCH_SKILL"
-assert_present 'research-decision-header-template\.md' "$RESEARCH_SKILL"
-assert_present 'research-understanding-header-template\.md' "$RESEARCH_SKILL"
-assert_present 'research-audit-header-template\.md' "$RESEARCH_SKILL"
-assert_present 'research-shared-audit-appendix-template\.md' "$RESEARCH_SKILL"
-assert_absent "模板见 \`references/templates/research-shared-header-template\\.md\` 及对应模式模板" "$RESEARCH_SKILL"
+assert_present 'research-report-template\.md' "$RESEARCH_SKILL"
+assert_absent 'research-(decision|understanding|audit|tech-selection|analysis|discovery|shared-header|shared-audit)-template\.md' "$RESEARCH_SKILL"
 
 test -f "$PRESENTATION_FRAMEWORK" || fail "missing report-presentation-framework.md"
 assert_present 'decision' "$PRESENTATION_FRAMEWORK"
@@ -105,19 +98,63 @@ assert_present '审计层' "$PRESENTATION_FRAMEWORK"
 
 assert_present 'presentation_profile' "$ANALYSIS_FRAMEWORK"
 
-for template in "$DECISION_TEMPLATE" "$UNDERSTANDING_TEMPLATE" "$AUDIT_TEMPLATE"; do
-  test -f "$template" || fail "missing template: ${template#"$ROOT"/}"
-done
-test -f "$LEGACY_SHARED_HEADER_TEMPLATE" || fail "missing legacy shared header template"
-test -f "$SHARED_AUDIT_APPENDIX_TEMPLATE" || fail "missing shared audit appendix template"
+test -f "$REPORT_TEMPLATE" || fail "missing research report template"
+python3 - "$ROOT" "$REPORT_TEMPLATE" <<'PY'
+import sys
+from pathlib import Path
 
+root = Path(sys.argv[1])
+template = Path(sys.argv[2])
+projection_dir = template.parent
+text = template.read_text(encoding="utf-8")
 
+actual = sorted(path.name for path in projection_dir.glob("*.md"))
+expected = ["research-report-template.md"]
+if actual != expected:
+    raise SystemExit(
+        "research projections must collapse to one template; got: "
+        + ", ".join(actual)
+    )
 
+required = [
+    "## 模板使用边界",
+    "## 1. 呈现模式头部",
+    "### decision",
+    "### understanding",
+    "### audit",
+    "## 2. 调研模式正文",
+    "### selection",
+    "### analysis",
+    "### discovery",
+    "## 3. 共享审计附录",
+    "Report Self-Review",
+    "User Confirmation Gate",
+    "The terminal state",
+]
+missing = [term for term in required if term not in text]
+if missing:
+    raise SystemExit("research report template missing terms: " + ", ".join(missing))
 
-assert_present '兼容入口' "$LEGACY_SHARED_HEADER_TEMPLATE"
-assert_present 'report-presentation-framework\.md' "$LEGACY_SHARED_HEADER_TEMPLATE"
-assert_absent "默认按 \`audit\`" "$LEGACY_SHARED_HEADER_TEMPLATE"
-assert_absent '^> 呈现模式：audit$' "$LEGACY_SHARED_HEADER_TEMPLATE"
+legacy_names = [
+    "research-decision-header-template.md",
+    "research-understanding-header-template.md",
+    "research-audit-header-template.md",
+    "research-tech-selection-template.md",
+    "research-analysis-template.md",
+    "research-discovery-template.md",
+    "research-shared-header-template.md",
+    "research-shared-audit-appendix-template.md",
+]
+present_legacy = [name for name in legacy_names if name in text]
+if present_legacy:
+    raise SystemExit(
+        "research report template still points to legacy split templates: "
+        + ", ".join(present_legacy)
+    )
+
+if "..." in text:
+    raise SystemExit("research report template contains vague ellipsis placeholders")
+PY
 
 
 test -f "$RESEARCH_CHECK" || fail "missing research completion_check.sh"

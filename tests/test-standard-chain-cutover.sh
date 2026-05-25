@@ -100,7 +100,16 @@ for design_prompt in \
 do
   assert_present '自检后的设计产物|self-checked design artifact|canonical-shaped design artifact' "$design_prompt"
   assert_present 'owner 已自检并确认可送审的设计产物' "$design_prompt"
-  assert_present 'S11 只追加 `review_closure`、`final_confirmation` 和验证收口' "$design_prompt"
+  python3 - "$design_prompt" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+required = ["Finalize 只追加", "review_closure", "final_confirmation", "验证收口"]
+missing = [term for term in required if term not in text]
+if missing:
+    raise SystemExit(f"missing finalize scope terms: {missing}")
+PY
   assert_present 'Reviewed Design Digest' "$design_prompt"
   assert_absent 'candidate_design_json|Reviewed Candidate Digest|S8 候选设计包|design-candidate-package' "$design_prompt"
   assert_absent '最终冻结工件|final design|reviewer.*写入.*final_confirmation|reviewer.*写入.*review_closure' "$design_prompt"

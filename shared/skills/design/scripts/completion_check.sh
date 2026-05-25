@@ -170,14 +170,22 @@ validate_co_creation_stages() {
     local missing_stages
 
     missing_stages="$(jq -r '
-        ["S2", "S3", "S4", "S5", "S6", "S7", "S8"] as $required
+        [
+            "stakeholders-and-concerns",
+            "architecture-significant-requirements",
+            "current-state-evidence",
+            "complexity-model",
+            "decision-discovery",
+            "option-tradeoff",
+            "design-synthesis"
+        ] as $required
         | (.co_creation_summary | if type == "array" then . else [] end) as $rows
         | ($rows | map(select(type == "object") | .stage_id) | unique) as $seen
         | [$required[] as $stage | select(($seen | index($stage)) == null) | $stage]
         | join(", ")
     ' "$target")"
     if [ -n "$missing_stages" ]; then
-        add_failure "design.json missing S2-S8 co-creation stages: $missing_stages"
+        add_failure "design.json missing required co-creation stages: $missing_stages"
         output_failures "Canonical design gate failed" "$target"
     fi
 }

@@ -531,7 +531,7 @@
   ],
   "co_creation_summary": [
     {
-      "stage_id": "S2",
+      "stage_id": "stakeholders-and-concerns",
       "stage_name": "干系人与关注点",
       "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
       "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
@@ -540,7 +540,7 @@
       ]
     },
     {
-      "stage_id": "S3",
+      "stage_id": "architecture-significant-requirements",
       "stage_name": "架构显著需求",
       "question_or_focus": "confirm the base constraints and problem decomposition",
       "user_response_summary": "User confirmed canonical JSON is the runtime control boundary.",
@@ -549,7 +549,7 @@
       ]
     },
     {
-      "stage_id": "S4",
+      "stage_id": "current-state-evidence",
       "stage_name": "现状证据",
       "question_or_focus": "confirm the design decisions that must be frozen",
       "user_response_summary": "User confirmed schema, registry, and gate alignment are required design decisions.",
@@ -558,7 +558,7 @@
       ]
     },
     {
-      "stage_id": "S5",
+      "stage_id": "complexity-model",
       "stage_name": "复杂度模型",
       "question_or_focus": "choose between canonical-only and markdown-driven runtime authority",
       "user_response_summary": "User selected canonical JSON as runtime truth and rejected markdown runtime authority.",
@@ -567,7 +567,7 @@
       ]
     },
     {
-      "stage_id": "S6",
+      "stage_id": "decision-discovery",
       "stage_name": "决策识别",
       "question_or_focus": "confirm module, interface, and boundary contracts",
       "user_response_summary": "User confirmed validators and registries are the key interfaces.",
@@ -576,7 +576,7 @@
       ]
     },
     {
-      "stage_id": "S7",
+      "stage_id": "option-tradeoff",
       "stage_name": "方案取舍",
       "question_or_focus": "confirm migration, verification, rollback, and risk response",
       "user_response_summary": "User confirmed fail-closed validation and rollback through registry revisions.",
@@ -586,7 +586,7 @@
       ]
     },
     {
-      "stage_id": "S8",
+      "stage_id": "design-synthesis",
       "stage_name": "设计合成",
       "question_or_focus": "confirm planning constraints and impact scope",
       "user_response_summary": "User confirmed schema and fixture updates must land before downstream rollout.",
@@ -627,26 +627,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:059534da203268ec0ea879297a59b5d927aa80cf9717bb27c9c3af3c7f64a034",
+    "reviewed_design_digest": "sha256:ab7cad9a98c78a8d2dd71ad628bdd3c3d7d0682c91ca27c8c370a42903c6f90a",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:059534da203268ec0ea879297a59b5d927aa80cf9717bb27c9c3af3c7f64a034"
+        "reviewed_design_digest": "sha256:ab7cad9a98c78a8d2dd71ad628bdd3c3d7d0682c91ca27c8c370a42903c6f90a"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:059534da203268ec0ea879297a59b5d927aa80cf9717bb27c9c3af3c7f64a034"
+        "reviewed_design_digest": "sha256:ab7cad9a98c78a8d2dd71ad628bdd3c3d7d0682c91ca27c8c370a42903c6f90a"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:059534da203268ec0ea879297a59b5d927aa80cf9717bb27c9c3af3c7f64a034"
+        "reviewed_design_digest": "sha256:ab7cad9a98c78a8d2dd71ad628bdd3c3d7d0682c91ca27c8c370a42903c6f90a"
       }
     ],
     "resolved_failures": [],

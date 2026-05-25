@@ -14,7 +14,7 @@
   "confirmations": [
     {
       "checkpoint_id": "DES-CHK-00",
-      "step": "S2",
+      "step": "stakeholders-and-concerns",
       "subject_ref": "design.S2",
       "confirmed_at": "2026-04-22T00:03:00Z",
       "decision_summary": "confirmed stakeholders, consumers, and architecture concerns",
@@ -27,7 +27,7 @@
     },
     {
       "checkpoint_id": "DES-CHK-01",
-      "step": "S3",
+      "step": "architecture-significant-requirements",
       "subject_ref": "design.S3",
       "confirmed_at": "2026-04-22T00:03:00Z",
       "decision_summary": "confirmed problem decomposition and inherited constraints",
@@ -40,7 +40,7 @@
     },
     {
       "checkpoint_id": "DES-CHK-02",
-      "step": "S4",
+      "step": "current-state-evidence",
       "subject_ref": "design.S4",
       "confirmed_at": "2026-04-22T00:04:00Z",
       "decision_summary": "confirmed quality attributes and architecture decisions",
@@ -53,7 +53,7 @@
     },
     {
       "checkpoint_id": "DES-CHK-03",
-      "step": "S5",
+      "step": "complexity-model",
       "subject_ref": "design.S5",
       "confirmed_at": "2026-04-22T00:05:00Z",
       "decision_summary": "confirmed selected design options",
@@ -67,7 +67,7 @@
     },
     {
       "checkpoint_id": "DES-CHK-04",
-      "step": "S6",
+      "step": "decision-discovery",
       "subject_ref": "design.S6",
       "confirmed_at": "2026-04-22T00:06:00Z",
       "decision_summary": "confirmed module, interface, and boundary contracts",
@@ -82,7 +82,7 @@
     },
     {
       "checkpoint_id": "DES-CHK-05",
-      "step": "S7",
+      "step": "option-tradeoff",
       "subject_ref": "design.S7",
       "confirmed_at": "2026-04-22T00:07:00Z",
       "decision_summary": "confirmed migration, verification, rollback, and risk response",
@@ -98,7 +98,7 @@
     },
     {
       "checkpoint_id": "DES-CHK-06",
-      "step": "S8",
+      "step": "design-synthesis",
       "subject_ref": "design.S8",
       "confirmed_at": "2026-04-22T00:08:00Z",
       "decision_summary": "confirmed implementation constraints and downstream handoff scope",
@@ -113,7 +113,7 @@
     },
     {
       "checkpoint_id": "DES-CHK-07",
-      "step": "S11",
+      "step": "finalize-design",
       "subject_ref": "design.S11",
       "confirmed_at": "2026-04-22T00:10:00Z",
       "decision_summary": "confirmed design.json finalization and downstream handoff",

@@ -36,7 +36,16 @@ def reviewed_design_digest(payload: dict[str, Any]) -> str:
 
 
 def design_ledger() -> dict[str, Any]:
-    steps = ["S2", "S3", "S4", "S5", "S6", "S7", "S8", "S11"]
+    steps = [
+        "stakeholders-and-concerns",
+        "architecture-significant-requirements",
+        "current-state-evidence",
+        "complexity-model",
+        "decision-discovery",
+        "option-tradeoff",
+        "design-synthesis",
+        "finalize-design",
+    ]
     confirmations = []
     for index, step in enumerate(steps, start=1):
         checkpoint_id = f"DES-CHK-{index:02d}"
@@ -77,13 +86,13 @@ def design_ledger() -> dict[str, Any]:
 
 def co_creation_summary() -> list[dict[str, Any]]:
     rows = [
-        ("S2", "运行时事实采证", "确认现有 qft-pai 主流程证据边界"),
-        ("S3", "约束继承", "确认 PM 冻结范围、不自动外发和失败可接管约束"),
-        ("S4", "设计问题收敛", "确认先设计单渠道文本消息闭环"),
-        ("S5", "方案取舍", "确认单入口状态机优先于分入口汇聚"),
-        ("S6", "接口边界", "确认消息建议回复包的输入输出和错误模式"),
-        ("S7", "风险与验证映射", "确认可观测性、幂等和失败接管验证义务"),
-        ("S8", "产品承接", "确认设计包仅交给 test-design，不进入实现"),
+        ("stakeholders-and-concerns", "干系人与关注点", "确认设计消费者和关注点"),
+        ("architecture-significant-requirements", "架构显著需求", "确认 PM 冻结范围、不自动外发和失败可接管约束"),
+        ("current-state-evidence", "现状证据", "确认现有 qft-pai 主流程证据边界"),
+        ("complexity-model", "复杂度模型", "确认先设计单渠道文本消息闭环"),
+        ("decision-discovery", "决策识别", "确认消息建议回复包的输入输出和错误模式"),
+        ("option-tradeoff", "方案取舍", "确认单入口状态机优先于分入口汇聚"),
+        ("design-synthesis", "设计合成", "确认可观测性、幂等、失败接管和 test-design 交接义务"),
     ]
     return [
         {

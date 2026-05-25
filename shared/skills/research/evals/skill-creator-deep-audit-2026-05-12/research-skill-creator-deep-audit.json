@@ -59,7 +59,7 @@
       "evidence_refs": [
         "shared/skills/research/SKILL.md",
         "shared/skills/research/references/report-presentation-framework.md",
-        "shared/skills/research/projections/research-shared-audit-appendix-template.md",
+        "shared/skills/research/projections/research-report-template.md",
         "shared/skills/research/scripts/completion_check.sh"
       ],
       "decision": "Retain the current resource split."

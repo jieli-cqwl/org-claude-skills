@@ -16,7 +16,15 @@ from canonical_rule_common import (
     _require_string_list,
 )
 
-DESIGN_REQUIRED_CO_CREATION_STAGES = {"S2", "S3", "S4", "S5", "S6", "S7", "S8"}
+DESIGN_REQUIRED_CO_CREATION_STAGES = {
+    "stakeholders-and-concerns",
+    "architecture-significant-requirements",
+    "current-state-evidence",
+    "complexity-model",
+    "decision-discovery",
+    "option-tradeoff",
+    "design-synthesis",
+}
 DESIGN_REVIEW_WRAPPER_FIELDS = {
     "candidate_design_json",
     "review_payload_json",

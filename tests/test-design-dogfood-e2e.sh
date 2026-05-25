@@ -139,7 +139,7 @@ assert_present 'review wrapper fields' "$BAD_WORKSPACE/hook.stderr" "negative ho
 
 MISSING_STAGE_WORKSPACE="$TMP_ROOT/missing-stage-workspace"
 prepare_workspace "$MISSING_STAGE_WORKSPACE" "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "sample-feature"
-jq '.co_creation_summary |= map(select(.stage_id != "S8"))' \
+jq '.co_creation_summary |= map(select(.stage_id != "design-synthesis"))' \
   "$MISSING_STAGE_WORKSPACE/docs/sample-feature/phase-1/design.json" \
   >"$MISSING_STAGE_WORKSPACE/docs/sample-feature/phase-1/design.tmp.json"
 mv "$MISSING_STAGE_WORKSPACE/docs/sample-feature/phase-1/design.tmp.json" \
@@ -147,9 +147,9 @@ mv "$MISSING_STAGE_WORKSPACE/docs/sample-feature/phase-1/design.tmp.json" \
 run_hook "$MISSING_STAGE_WORKSPACE" "sample-feature"
 if [ "$(cat "$MISSING_STAGE_WORKSPACE/hook.status")" = "0" ]; then
   cat "$MISSING_STAGE_WORKSPACE/hook.stdout" >&2
-  fail "design completion gate accepted design without S8 co-creation stage"
+  fail "design completion gate accepted design without design-synthesis confirmation stage"
 fi
-assert_present 'co-creation|co_creation|S2-S8' "$MISSING_STAGE_WORKSPACE/hook.stderr" "missing stage hook stderr"
+assert_present 'co-creation|co_creation|design-synthesis|required confirmation stage' "$MISSING_STAGE_WORKSPACE/hook.stderr" "missing stage hook stderr"
 
 NO_UNIT_WORKSPACE="$TMP_ROOT/no-unit-workspace"
 prepare_workspace "$NO_UNIT_WORKSPACE" "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "sample-feature"

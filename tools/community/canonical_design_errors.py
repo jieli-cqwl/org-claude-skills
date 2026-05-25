@@ -127,7 +127,7 @@ def co_creation_missing_stages(
 ) -> str:
     return (
         f"co_creation_summary missing stages: {missing}. "
-        f"Every design session must record one entry per step S2-S8 "
+        f"Every design session must record one entry per required co-creation step "
         f"(required set: {required}). "
         f"Seen: {seen}. "
         f"Add a co_creation_summary row for each missing stage with the "
@@ -168,7 +168,7 @@ def reviewer_digest_mismatch(index: int, reviewed: object, expected: str) -> str
         f"Every reviewer must review the same self-checked design artifact. If you did "
         f"lint-only fixes after review, follow the lint-only flow: re-compute "
         f"the digest, keep the reviewer verdicts, and log each lint fix in "
-        f"resolved_failures (finding_id=LINT-S10-N)."
+        f"resolved_failures (finding_id=LINT-REVIEW-N)."
     )
 
 
@@ -213,7 +213,7 @@ def decision_options_too_few(index: int, decision_id: str, options: list[str]) -
         f"at least two option_analysis entries under the same decision_ref. "
         f"Found: {options}. "
         f"Every key decision needs >= 2 materially-different options with "
-        f"tradeoffs and fact anchors (HARD-GATE DES-HG-3)."
+        f"tradeoffs and fact anchors before it can be frozen."
     )
 
 

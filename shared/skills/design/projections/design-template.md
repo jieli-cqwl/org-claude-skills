@@ -2,58 +2,56 @@
 
 ## 目标
 
-把已验证 `design.json` 渲染成人类可读设计说明。投影视图只展示已冻结字段，不新增结论，不替代 `design.json`。
+把已验证 `design.json` 渲染成设计说明。投影视图回答“为什么这样设计、决定了什么、下游怎么接”，不新增结论，不替代 `design.json`。
 
-## 输入与事实
+## 阅读线索
 
-- 产品基线：来自 `input_analysis`。
-- 运行时事实：来自 `runtime_facts`，只展示影响设计决策的证据。
-- 约束继承：来自 `constraint_inheritance_confirmation`；无继承约束时展示确认摘要，不补造约束。
+- 背景和证据：说明产品基线、运行时事实和继承约束如何影响设计。
+- 决策和取舍：说明已冻结的关键决策、备选方案、代价和失效条件。
+- 边界和契约：说明模块、数据、接口、横切关注和 UNIT 覆盖如何被下游消费。
+- 质量和演进：说明质量目标、迁移、验证、回滚和风险回应如何闭环。
+- 交接和确认：说明计划约束、产品交接、review 结论和最终确认。
 
-## 共创收口
+## 协作确认
 
-| 阶段 | 关键问题 | 用户回应 | 设计引用 |
-| --- | --- | --- | --- |
-| S3 问题拆解 |  |  |  |
-| S4 决策点识别 |  |  |  |
-| S5 逐项方案探索 |  |  |  |
-| S6 边界与接口共识 |  |  |  |
-| S7 质量与演进闭环 |  |  |  |
-| S8 实施约束收口 |  |  |  |
+| 阶段 | 本节回答 | 设计引用 |
+| --- | --- | --- |
+| Stakeholders & Concerns | 谁消费设计，关注什么。 | `co_creation_summary` |
+| Architecture-Significant Requirements | 哪些需求会改变架构。 | `input_analysis` |
+| Current-State Evidence | 哪些事实支撑决策。 | `runtime_facts` |
+| Complexity Model | 复杂度来自哪里，为什么不加多余结构。 | `input_analysis`、`co_creation_summary` |
+| Decision Discovery | 哪些决策必须冻结，质量属性如何排序。 | `quality_attributes` |
+| Option Tradeoff | 每个决策比较过什么，为什么选当前方案。 | `option_analysis`、`key_decisions` |
+| Design Synthesis | 冻结决策如何落成边界、接口、验证、风险和交接。 | `modules`、`interfaces`、`verification_mapping` |
 
 ## 关键决策
 
-| 决策 | 冻结结论 | 已选方案 | 主要取舍 | 事实锚点 | 用户确认 |
+| 决策 | 冻结结论 | 已选方案 | 主要取舍 | 失效条件 | 事实锚点 |
 | --- | --- | --- | --- | --- | --- |
 
-## 边界设计
+## 边界与契约
 
-### 模块与数据
+- 模块：说明每个模块的职责、数据 owner、依赖和 UNIT 消费方。
+- 数据：说明数据对象、写入者、读取者、存储、流向、一致性、迁移或补偿影响。
+- 接口：说明调用方、输入、输出、错误码和边界行为。
+- 横切关注：说明 auth、error、log、config 的决策和验证引用。
 
-展示 `modules`、`data_architecture` 和 `cross_cutting_concerns` 的冻结结论。
+## 质量、迁移、验证、回滚
 
-### 接口契约
-
-展示 `interfaces` 与 `interface_boundary`；每个接口说明调用方、输入、输出、错误和边界行为。
-
-## 质量与演进
-
-| 质量属性 | 优先级 | 目标指标 | 取舍 | 验证引用 |
-| --- | --- | --- | --- | --- |
-
-展示 `migration_plan`、`verification_plan`、`rollback_plan` 和 `verification_mapping`。
-
-## 产品交付承接
-
-展示 `product_handoff` 的冻结结论；只呈现已写入 `design.json` 的承接项，不补写产品评审过程。
+| 主题 | 本节回答 | 来源 |
+| --- | --- | --- |
+| 质量属性 | 要达到什么、怎么验证、接受什么取舍。 | `quality_attributes`、`verification_mapping` |
+| 迁移 | 从当前状态到目标状态如何分阶段推进。 | `migration_plan` |
+| 验证 | 哪些证据证明设计可以交给下游。 | `verification_plan`、`verification_mapping` |
+| 回滚 | 什么条件触发回滚，如何恢复。 | `rollback_plan` |
 
 ## 风险与交接
 
-- 风险回应：来自 `risks` 与 `risk_response`。
-- 影响范围：来自 `impact_scope`。
-- 待计划约束：来自 `planning_constraints`。
-- 产品交接：来自 `product_handoff`。
-- 最终确认：来自 `final_confirmation`。
+- 风险回应：说明风险、缓解动作、验证引用、回滚或升级路径。
+- 影响范围：说明受影响模块和验证引用。
+- 待计划约束：说明 `/tech-lead` 需要承接的依赖、顺序和限制。
+- 产品交接：说明产品侧需要知道的行为变化、风险接受或确认项。
+- 最终确认：说明用户已确认的冻结摘要。
 
 ## 投影 Manifest
 

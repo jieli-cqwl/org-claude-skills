@@ -110,7 +110,16 @@ assert_absent 'decision_state.*draft / frozen' "$ROOT/shared/skills/design/refer
 assert_absent 'structure-draft-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_present '设计执行者负责从冻结设计转写 ADR' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_present '不能把 draft 直接写为最终工件' "$ROOT/shared/skills/design/references/decision-templates.md"
-assert_present "最终 \`design.json\` 只能由 S11 在用户确认、台账验证和 S10 review 闭环后写入" "$ROOT/shared/skills/design/SKILL.md"
+python3 - "$ROOT/shared/skills/design/SKILL.md" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+required = ["最终 `design.json`", "用户确认", "台账验证", "review 闭环", "写入"]
+missing = [term for term in required if term not in text]
+if missing:
+    raise SystemExit(f"missing design finalization boundary terms: {missing}")
+PY
 assert_present "用户确认后先写入台账 \`finalization_basis\`" "$ROOT/shared/skills/design/SKILL.md"
 assert_present "脚本只从已验证 \`design.json\` 派生 ADR 草稿" "$ROOT/shared/skills/design/SKILL.md"
 assert_present "投影视图、ADR 和模块视图只能从已验证 \`design.json\` 派生" "$ROOT/shared/skills/design/SKILL.md"

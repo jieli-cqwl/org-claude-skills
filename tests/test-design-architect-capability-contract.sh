@@ -28,7 +28,16 @@ assert_absent() {
 }
 
 assert_present '高级交付型架构师|senior delivery architect' "$SKILL"
-assert_present 'LLM 主导.*人类.*业务|人类.*业务.*LLM 主导' "$SKILL"
+python3 - "$SKILL" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+required = ["LLM 主导", "用户确认", "业务语义", "外部现实约束"]
+missing = [term for term in required if term not in text]
+if missing:
+    raise SystemExit(f"missing role boundary terms: {missing}")
+PY
 assert_present '脚本.*确定性|schema.*确定性|hook.*确定性' "$SKILL"
 assert_present '下游.*把活干对|downstream.*correctly execute' "$SKILL"
 assert_absent "boundary_behaviors\` 字段|只使用 \`input_params / output_params / error_codes / boundary_behaviors\` 字段" "$SKILL"
@@ -81,7 +90,7 @@ lifecycle = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 required_eval_ids = {
     "weak-runtime-facts-rejected",
     "planted-contract-drift-blocks-handoff",
-    "human-script-llm-boundary",
+    "user-script-llm-boundary",
     "downstream-consumer-smoke",
     "overdesign-pressure-case",
     "reviewer-finds-architecture-fail",
@@ -96,7 +105,7 @@ required_dimensions = {
     "weak_evidence_rejection",
     "semantic_conflict_detection",
     "downstream_consumability",
-    "human_script_llm_boundary",
+    "user_script_llm_boundary",
     "overdesign_detection",
 }
 dimensions = set(evals.get("grader_dimensions", []))

@@ -33,7 +33,7 @@
     "$.verification_plan",
     "$.rollback_plan"
   ],
-  "input_analysis": "Summarize confirmed product baseline, current system facts, hard constraints, unresolved design questions, and source refs.",
+  "input_analysis": "Summarize confirmed product baseline, current system facts, complexity model, hard constraints, unresolved design questions, and source refs.",
   "key_decisions": [
     {
       "decision_id": "D-001",
@@ -44,7 +44,7 @@
       "fact_refs": [
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "<S5 or S11 user confirmation summary>"
+      "user_confirmation": "<decision confirmation or final confirmation summary>"
     }
   ],
   "option_analysis": [
@@ -267,7 +267,7 @@
   ],
   "co_creation_summary": [
     {
-      "stage_id": "S2",
+      "stage_id": "stakeholders-and-concerns",
       "stage_name": "干系人与关注点",
       "question_or_focus": "<stakeholder concerns and architecture-significant concern confirmation>",
       "user_response_summary": "<confirmed user answer>",
@@ -276,7 +276,7 @@
       ]
     },
     {
-      "stage_id": "S3",
+      "stage_id": "architecture-significant-requirements",
       "stage_name": "架构显著需求",
       "question_or_focus": "<architecture-significant requirement confirmation>",
       "user_response_summary": "<confirmed user answer>",
@@ -285,7 +285,7 @@
       ]
     },
     {
-      "stage_id": "S4",
+      "stage_id": "current-state-evidence",
       "stage_name": "现状证据",
       "question_or_focus": "<current system evidence and runtime fact confirmation>",
       "user_response_summary": "<confirmed user answer>",
@@ -294,16 +294,17 @@
       ]
     },
     {
-      "stage_id": "S5",
+      "stage_id": "complexity-model",
       "stage_name": "复杂度模型",
       "question_or_focus": "<complexity model and quality pressure confirmation>",
       "user_response_summary": "<confirmed user answer>",
       "decision_refs": [
+        "design.json#input_analysis",
         "design.json#quality_attributes"
       ]
     },
     {
-      "stage_id": "S6",
+      "stage_id": "decision-discovery",
       "stage_name": "决策识别",
       "question_or_focus": "<architecture decision inventory confirmation>",
       "user_response_summary": "<confirmed user answer>",
@@ -312,7 +313,7 @@
       ]
     },
     {
-      "stage_id": "S7",
+      "stage_id": "option-tradeoff",
       "stage_name": "方案取舍",
       "question_or_focus": "<selected option and tradeoff question>",
       "user_response_summary": "<confirmed user answer>",
@@ -322,7 +323,7 @@
       ]
     },
     {
-      "stage_id": "S8",
+      "stage_id": "design-synthesis",
       "stage_name": "设计合成",
       "question_or_focus": "<module, interface, migration, verification, rollback, risk, and handoff confirmation>",
       "user_response_summary": "<confirmed user answer>",
@@ -375,7 +376,7 @@
     "status": "requires_confirmation",
     "confirmed_by": "user",
     "confirmed_at": "1970-01-01T00:00:00Z",
-    "summary": "<S11 final confirmation summary>",
+    "summary": "<final confirmation summary>",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

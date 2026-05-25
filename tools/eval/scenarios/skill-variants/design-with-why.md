@@ -23,11 +23,11 @@
    - WARN items must have handling records in design.json `审查结论`.
    - Why: 已识别的设计缺陷流入实施阶段后修复成本指数级上升，越晚发现代价越高。
 5. NO design output without wizard-style co-creation
-   - Every step (S2-S8) must present findings/options to user.
+   - Every required design confirmation stage must present findings/options to user.
    - Ask one question, then pause and wait for user response.
    - Record user responses in design.json `共创摘要`.
    - Why: LLM 跳过用户输入自行输出方案会遗漏领域知识和隐含约束，产出看似合理但脱离业务实际的设计。
-6. NO flow override in S2-S8
+6. NO flow override in required design confirmation stages
    - If user intent conflicts with current co-creation step (e.g. direct deliver/skip), run conflict arbitration first and record the result.
    - Why: 跳步会导致前置信息缺失，后续步骤基于不完整输入产出低质量设计且无法回溯决策依据。
 7. NO implicit inheritance into current decisions
@@ -69,7 +69,7 @@ If you catch yourself thinking:
      - **部署拓扑**：单体还是微服务？网络边界在哪？
      - **故障模式**：单点故障在哪？级联失败怎么传播？
      - **质量属性**：性能/可用性/安全性哪个优先？
-   - 如果任何维度的答案是"不确定"，这就是需要在 S3 中优先拆解的问题。
+   - 如果任何维度的答案是"不确定"，这就是需要在 Architecture-Significant Requirements 中优先拆解的问题。
 
 3. 共创：问题拆解 — 呈现关键发现，一次一个问题引导拆解
 4. 共创：决策点识别 — 列出待决策清单

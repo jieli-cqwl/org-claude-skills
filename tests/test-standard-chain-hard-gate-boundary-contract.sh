@@ -33,8 +33,10 @@ assert_present() {
 
 hard_gate_block() {
   awk '
+    /^<HARD-GATE>$/ { in_block = 1; xml_gate = 1; next }
+    xml_gate && /^<\/HARD-GATE>$/ { exit }
     /^## HARD-GATE$/ { in_block = 1; next }
-    in_block && /^## / { exit }
+    in_block && !xml_gate && /^## / { exit }
     in_block { print }
   ' "$1"
 }
@@ -116,7 +118,7 @@ assert_hard_gate_absent 'next_owner' "$DELIVERY_OWNER_SKILL"
 
 assert_hard_gate_terms "$DIRECTOR_SKILL" "confirmed-baseline gate" '产品总监确认' '已确认基线|冻结基线' '不要|不得'
 assert_hard_gate_terms "$MANAGER_SKILL" "PM handoff confirmation gate" 'director_confirmation\.status=passed|Director' '缺交付确认|delivery_confirmation' '任一不成立|阻断事实|回流节点'
-assert_hard_gate_terms "$DESIGN_SKILL" "design final confirmation gate" 'DES-HG-6' '用户确认|final_confirmation\.status=confirmed' '冻结|交给 `/test-design`'
+assert_hard_gate_terms "$DESIGN_SKILL" "design final confirmation gate" '冻结有闭环' 'final_confirmation\.status=confirmed' '交给 `/test-design`'
 assert_present 'NO task handoff when the task lacks traceable goal' "$TECH_LEAD_SKILL"
 assert_present 'NO FAIL item without stable issue identity' "$QA_SKILL"
 assert_present 'valid `failure_class` and owner-level disposition' "$FIX_SKILL"

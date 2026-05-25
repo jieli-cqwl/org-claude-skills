@@ -25,6 +25,10 @@
 
 ## 2. 总体架构
 
+评审可视化入口：[`2026-05-25--one-human-agent-product-delivery-team--architecture-diagram.html`](./2026-05-25--one-human-agent-product-delivery-team--architecture-diagram.html)。
+
+该 HTML 是产品、研发、测试和交付团队评审时的主展示材料，包含整体架构图、产物流架构图和现有流程查漏补缺矩阵。Markdown 图稿只作为可编辑源稿；普通浏览器直接打开 Markdown 时不会按预期渲染内嵌 HTML/CSS。
+
 这套团队是五层组织系统：
 
 1. **L0 Human Control Tower**
@@ -339,4 +343,4 @@ Required fields:
 - scripts
 - runtime hooks
 
-下一步应基于本文进入更细的 artifact flow / freeze gate 详细矩阵设计，或将本文作为正式架构 spec 交用户审阅后，再进入 implementation planning。
+下一步应先用评审可视化入口对齐产品、研发、测试和交付团队，基于目标架构图对比现有流程查漏补缺。评审确认缺口后，再决定进入 artifact flow / freeze gate 详细矩阵设计或工程化 implementation planning。

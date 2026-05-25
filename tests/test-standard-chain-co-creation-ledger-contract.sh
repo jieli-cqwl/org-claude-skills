@@ -71,7 +71,16 @@ steps_by_producer = {
         "PM handoff gate",
         "Delivery",
     ],
-    "design": ["S2", "S3", "S4", "S5", "S6", "S7", "S8", "S11"],
+    "design": [
+        "stakeholders-and-concerns",
+        "architecture-significant-requirements",
+        "current-state-evidence",
+        "complexity-model",
+        "decision-discovery",
+        "option-tradeoff",
+        "design-synthesis",
+        "finalize-design",
+    ],
 }
 steps = [step for step in steps_by_producer[producer] if step != omit_step]
 confirmations = []
@@ -105,7 +114,7 @@ payload = {
     "supersedes": [
         {
             "supersedes_id": "SUP-1",
-            "detected_at": "S2",
+            "detected_at": confirmations[0]["step"],
             "drifted_from_checkpoint_id": confirmations[0]["checkpoint_id"],
             "proposed_change": "change earlier scope",
             "resolution": "keep latest confirmed decision",
@@ -172,6 +181,8 @@ for producer, skill_path in skills.items():
                 "Director Finalization",
             ]
         )
+    elif producer == "design":
+        required_terms.extend(["设计协作", "审查", "最终确认"])
     else:
         required_terms.extend(spec["checkpoint_steps"])
     missing = [term for term in required_terms if term not in text]
@@ -219,7 +230,7 @@ if python3 "$VALIDATOR" --artifact "$tmpdir/not-final.json" --producer design --
   fail "validator must reject non-finalized ledgers when require-finalized is set"
 fi
 
-write_ledger "$tmpdir/missing-step.json" "design" "co-creation-ledger" "CHK-2" "confirmed" "resolved" "S7"
+write_ledger "$tmpdir/missing-step.json" "design" "co-creation-ledger" "CHK-2" "confirmed" "resolved" "option-tradeoff"
 python3 "$VALIDATOR" --artifact "$tmpdir/missing-step.json" --producer design >/dev/null
 if python3 "$VALIDATOR" --artifact "$tmpdir/missing-step.json" --producer design --require-finalized >/dev/null 2>&1; then
   fail "validator must reject ledgers missing required producer checkpoint steps"

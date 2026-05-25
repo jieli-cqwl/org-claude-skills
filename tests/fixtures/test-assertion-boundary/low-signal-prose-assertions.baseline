@@ -10,7 +10,7 @@ tests/test-design-architect-capability-contract.sh	present	short-present-phrase	
 tests/test-design-architect-capability-contract.sh	present	short-present-phrase	高级交付型架构师|senior delivery architect	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	absent	prose-wrapped-contract	"运行 review_digest 与 phase validator" -> "运行投影渲染脚本"|S10 最终确认、写入、验证和可选投影	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	absent	prose-wrapped-contract	active artifact ref|worklog\.md|reviewer 只读最终冻结的 `design\.json`|reviewer 草稿只能从 canonical|Read/Glob/Grep/LSP|Glob/Grep/LSP|Reference 路由|资源路由：Trigger:|按需读取|需要时|若需要|落盘|真源|当前 eval|当前验证命令|等价证据引用|可委派|尽量	$ROOT/shared/skills/design/SKILL.md
-tests/test-design-skill-governance-redesign.sh	absent	prose-wrapped-contract	reviewer 只读 S8 候选设计包|三视角 review 只审 S8 候选设计包	$ROOT/shared/skills/design/SKILL.md
+tests/test-design-skill-governance-redesign.sh	absent	prose-wrapped-contract	reviewer 只读候选设计包|三视角 review 只审候选设计包	$ROOT/shared/skills/design/SKILL.md
 tests/test-design-skill-governance-redesign.sh	absent	prose-wrapped-contract	冻结后的 `design\.json`|ADR 只是冻结后的投影视图	$ROOT/shared/skills/design/references/decision-templates.md
 tests/test-design-skill-governance-redesign.sh	absent	prose-wrapped-contract	固定投影视图模板|同步义务|all columns required|REQUIRED 遵循|引用锚点合同|execution_basis_ref|已排查并排除|审查结论|审查问题台账|用户裁决记录	$ROOT/shared/skills/design/projections/design-template.md
 tests/test-design-skill-governance-redesign.sh	absent	prose-wrapped-contract	运行 review_digest 与 scoped validator|scoped validator 已运行	$ROOT/shared/skills/design/SKILL.md
@@ -186,10 +186,6 @@ tests/test-product-stability-guidance-contract.sh	present	short-present-phrase	�
 tests/test-product-stability-guidance-contract.sh	present	short-present-phrase	产品总监基线说明书	$ROOT/shared/skills/product-director/projections/director-baseline-template.md
 tests/test-product-template-purity-contract.sh	absent	prose-wrapped-contract	MVP|最小闭环 UNIT|前置约束执行映射|scope_item_id|test_ref|SCOPE-P1U1|确认备注	$ROOT/shared/skills/product-manager/projections/brief-template.md
 tests/test-product-template-purity-contract.sh	absent	short-absent-phrase	MVP/增强/扩展|MVP / 增强 / 扩展	$ROOT/shared/skills/product-manager/projections/phase-prd-template.md
-tests/test-research-skill-contract.sh	absent	short-absent-phrase	^> 呈现模式：audit$	$ROOT/shared/skills/research/projections/research-shared-header-template.md
-tests/test-research-skill-contract.sh	absent	short-absent-phrase	模板见 \`references/templates/research-shared-header-template\.md\` 及对应模式模板	$ROOT/shared/skills/research/SKILL.md
-tests/test-research-skill-contract.sh	absent	short-absent-phrase	默认按 \`audit\`	$ROOT/shared/skills/research/projections/research-shared-header-template.md
-tests/test-research-skill-contract.sh	present	short-present-phrase	兼容入口	$ROOT/shared/skills/research/projections/research-shared-header-template.md
 tests/test-research-skill-contract.sh	present	short-present-phrase	目标读者	$ROOT/shared/skills/research/SKILL.md
 tests/test-research-skill-contract.sh	present	short-present-phrase	读后动作	$ROOT/shared/skills/research/SKILL.md
 tests/test-research-skill-contract.sh	present	short-present-phrase	调研目的	$ROOT/shared/skills/research/SKILL.md

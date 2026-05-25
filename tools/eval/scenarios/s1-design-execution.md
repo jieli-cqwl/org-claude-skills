@@ -46,39 +46,39 @@
 
 以下回答按 /design 流程步骤编排。executor 到达对应步骤时使用该回答。
 
-### S1 Baseline Gate（无需用户输入）
+### Baseline Gate（无需用户输入）
 
 无。executor 自行读取已冻结产品输入。
 
-### S2 Stakeholders & Concerns
+### Stakeholders & Concerns
 
 当 executor 呈现干系人和架构关注点时：
 
 > 回答：确认，用户、产品、测试、tech-lead、开发和运维关注点完整。重点关注内网安全、接口契约、数据一致性和可回滚交付。
 
-### S3 Architecture-Significant Requirements
+### Architecture-Significant Requirements
 
 当 executor 呈现架构显著需求并提问时：
 
 > 回答：PRD 已锁定技术栈 Python+FastAPI+React+TypeScript+Tailwind+SQLite，10-50 人内网应用，单体部署前后端分离。不用 ORM，原生 SQL 参数化查询。重点关注 5 个待设计决策（DD-001 到 DD-005）。没有其他隐含约束。
 
-### S4 Current-State Evidence（无需用户输入）
+### Current-State Evidence（无需用户输入）
 
 无。executor 自行扫描（空项目，预期输出："新项目，无现有代码和依赖"）。
 
-### S5 Complexity Model
+### Complexity Model
 
 当 executor 呈现复杂度模型和质量属性压力时：
 
 > 回答：确认，当前复杂度主要来自认证安全、接口契约、数据状态、部署回滚和后续扩展。
 
-### S6 Decision Discovery
+### Decision Discovery
 
 当 executor 列出待决策清单并确认时：
 
 > 回答：确认，按 PRD 的 5 个待设计决策展开：DD-001 JWT 存储、DD-002 API 契约、DD-003 数据库 schema、DD-004 路由守卫、DD-005 密码哈希。请逐个探索。
 
-### S7 Option Tradeoff
+### Option Tradeoff
 
 对每个决策点，executor 给出方案后：
 
@@ -97,13 +97,13 @@
 **DD-005 密码哈希：**
 > 回答：选 bcrypt，成熟稳定，Python 生态支持好。
 
-### S8 Design Synthesis
+### Design Synthesis
 
 当 executor 分段呈现边界、接口、迁移、回滚、风险、验证映射和待计划约束时：
 
 > 回答：确认，边界和接口定义合理。新项目无迁移需求，回滚策略、验证映射、风险识别和约束清单完整。继续。
 
-### S9 Owner Self-Check（无需用户输入）
+### Owner Self-Check（无需用户输入）
 
 无。executor 自行生成自检后的设计产物和 Reviewed Design Digest。
 

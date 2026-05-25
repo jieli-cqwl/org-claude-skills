@@ -130,7 +130,7 @@
         "shared/runtime",
         "tools/community"
       ],
-      "failure_state": "design canonical gate blocks handoff until design-ledger.json is finalized and design.json has S2-S8 co-creation evidence, inherited constraint confirmation, S11 final confirmation, complete interfaces, migration, verification, and rollback evidence",
+      "failure_state": "design canonical gate blocks handoff until design-ledger.json is finalized and design.json has full co-creation evidence, inherited constraint confirmation, final confirmation, complete interfaces, migration, verification, and rollback evidence",
       "failure_message": "design completion gate failed",
       "exit_code_meanings": {
         "0": "hook decision emitted or help displayed; decision may be allow or block",

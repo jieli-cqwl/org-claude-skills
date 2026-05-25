@@ -131,7 +131,7 @@ package 必须包含：
 - `input_origin`: `stage-2-product-manager-prd-package`
 - `product_manager_package`: 上一步已通过的 PM PRD/UNIT package。
 - `design`: canonical `design` artifact，必须包含架构决策、候选方案取舍、运行时事实、接口输入/输出/错误码、模块边界、数据架构、质量属性、验证映射、UNIT 覆盖、影响面、风险响应、迁移、验证、回滚、review closure 和 final confirmation。
-- `design_ledger`: 覆盖 `S2 -> S8` 和 `S11` 的 finalized co-creation ledger。
+- `design_ledger`: 覆盖 design 语义阶段和 `finalize-design` 的 finalized co-creation ledger。
 - `decision_boundary.blocked_actions`: 继续阻断实现语言最终定版、测试用例定义、任务拆解、代码修改、提交、上线、自动外发、业务风险接受和真实 qft-pai 代码修改。
 
 通过后只表示 `design_ready_for_test_design`，下一角色是 `test-design`。它说明 HOW 层设计包已经可被测试设计消费，但仍不授权测试用例绕过设计缺口、Tech-lead 任务拆解、代码修改、提交、上线、自动外发或业务风险接受。

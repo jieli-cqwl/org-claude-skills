@@ -1,0 +1,194 @@
+{
+  "artifact_type": "research-brainstorming-essence-evidence",
+  "schema_version": "1.0.0",
+  "evaluated_at": "2026-05-25",
+  "objective": "学习 brainstorming 的核心行为控制力，并把它迁移到 research 的真实使用场景、资料/对象精准定位、判断交付和测试证据链。",
+  "scope": {
+    "in_scope": [
+      "shared/skills/research/SKILL.md",
+      "shared/skills/research/references/*.md",
+      "shared/skills/research/projections/research-report-template.md",
+      "tests/test-research-skill-refiner-eval.sh"
+    ],
+    "out_of_scope": [
+      "shared/skills/design/**",
+      "docs/superpowers/specs/**"
+    ]
+  },
+  "brainstorming_essence": [
+    {
+      "id": "BE-01",
+      "name": "hard gate before costly work",
+      "brainstorming_source": "Do not implement before design approval.",
+      "research_encoding": "Do not enter Step 3+ deep analysis before scope/profile confirmation; do not complete formal report before self-review and user confirmation.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md#HARD-GATE",
+        "shared/skills/research/SKILL.md#User-Confirmation-Gate"
+      ]
+    },
+    {
+      "id": "BE-02",
+      "name": "anti-pattern blocks rationalization",
+      "brainstorming_source": "This is too simple to need a design.",
+      "research_encoding": "Research is not collecting sources; lightweight work still needs a decision package, formal work needs report self-review.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md#Anti-Pattern",
+        "shared/skills/research/SKILL.md#Quick-Triage-And-Routing"
+      ]
+    },
+    {
+      "id": "BE-03",
+      "name": "ordered process with terminal state",
+      "brainstorming_source": "Checklist, process flow, user approval, terminal writing-plans handoff.",
+      "research_encoding": "Checklist and process flow end only at confirmed lightweight decision, user-confirmed report, or explicit adjacent-skill route.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md#Checklist",
+        "shared/skills/research/SKILL.md#Process-Flow--Workflow",
+        "shared/skills/research/SKILL.md#Terminal-State"
+      ]
+    },
+    {
+      "id": "BE-04",
+      "name": "step outputs have consumers",
+      "brainstorming_source": "Each step feeds the next: context, questions, approaches, design, spec, review, handoff.",
+      "research_encoding": "References now declare usage boundary, output contract, consumer step, failure state, and stop condition.",
+      "evidence_refs": [
+        "shared/skills/research/references/analysis-frameworks.md#输出合同",
+        "shared/skills/research/references/deep-analysis-template.md#输出合同",
+        "shared/skills/research/references/report-presentation-framework.md#输出合同"
+      ]
+    },
+    {
+      "id": "BE-05",
+      "name": "self-review before user confirmation",
+      "brainstorming_source": "Spec self-review before asking the user to review the written spec.",
+      "research_encoding": "Formal reports require Report Self-Review before User Confirmation Gate.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md#Report-Self-Review",
+        "shared/skills/research/projections/research-report-template.md#Report-Self-Review"
+      ]
+    },
+    {
+      "id": "BE-06",
+      "name": "templates constrain behavior instead of filling blanks",
+      "brainstorming_source": "Design sections are scaled to complexity and reviewed incrementally.",
+      "research_encoding": "The single projection template declares use boundaries, removes vague ellipsis placeholders, and preserves evidence/challenge/failure conditions without file sprawl.",
+      "evidence_refs": [
+        "shared/skills/research/projections/research-report-template.md#模板使用边界",
+        "shared/skills/research/projections/research-report-template.md#呈现模式头部",
+        "shared/skills/research/projections/research-report-template.md#调研模式正文"
+      ]
+    },
+    {
+      "id": "BE-07",
+      "name": "source targeting before judgment",
+      "brainstorming_source": "Explore project context before proposing design.",
+      "research_encoding": "Research must first prove the target object and source set are correct, then qualify evidence and calibrate judgment.",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md#When-to-Use",
+        "shared/skills/research/SKILL.md#The-Process",
+        "shared/skills/research/projections/research-report-template.md#Source-Targeting-Package"
+      ]
+    }
+  ],
+  "success_standards": [
+    {
+      "id": "SS-01",
+      "requirement": "research 入口不是 brainstorming 外形复制，而是具备硬门禁、反模式、顺序流程、用户确认和终态停止。",
+      "status": "pass",
+      "evidence_refs": [
+        "tests/test-research-skill-refiner-eval.sh#assert_research_brainstorming_parity_contract"
+      ]
+    },
+    {
+      "id": "SS-02",
+      "requirement": "references 承接入口流程，明确使用边界、输出合同、失败状态和不得越权行为。",
+      "status": "pass",
+      "evidence_refs": [
+        "tests/test-research-skill-refiner-eval.sh#assert_research_reference_chain_contract",
+        "shared/skills/research/references/analysis-frameworks.md",
+        "shared/skills/research/references/deep-analysis-template.md",
+        "shared/skills/research/references/report-presentation-framework.md"
+      ]
+    },
+    {
+      "id": "SS-03",
+      "requirement": "projections 收敛为单一行为约束模板，不再保留分裂模板或省略号式含糊占位。",
+      "status": "pass",
+      "evidence_refs": [
+        "tests/test-research-skill-refiner-eval.sh#projection_requirements",
+        "shared/skills/research/projections/research-report-template.md"
+      ]
+    },
+    {
+      "id": "SS-04",
+      "requirement": "research 三类核心产出 selection、analysis、discovery 都被 eval 场景覆盖。",
+      "status": "pass",
+      "evidence_refs": [
+        "shared/skills/research/test-prompts.json",
+        "shared/skills/research/evals/evals.json"
+      ]
+    },
+    {
+      "id": "SS-05",
+      "requirement": "Claude Code 的 ultrathink 关键字保留。",
+      "status": "pass",
+      "evidence_refs": [
+        "shared/skills/research/SKILL.md"
+      ]
+    },
+    {
+      "id": "SS-06",
+      "requirement": "research 真实使用场景明确限定为团队可能基于外部信息行动前的采用、选型、观点拆解、对象识别、判断复核和外部方案理解。",
+      "status": "pass",
+      "evidence_refs": [
+        "tests/test-research-skill-refiner-eval.sh#assert_research_real_use_contract",
+        "shared/skills/research/SKILL.md#When-to-Use"
+      ]
+    },
+    {
+      "id": "SS-07",
+      "requirement": "资料/对象精准定位先于判断校准，正式报告模板也必须先输出 Source Targeting Package 和 Evidence Qualification。",
+      "status": "pass",
+      "evidence_refs": [
+        "tests/test-research-skill-refiner-eval.sh#assert_research_source_targeting_contract",
+        "tools/community/check_research_reference_chain.py#check_projections",
+        "shared/skills/research/projections/research-report-template.md#Source-Targeting-Package"
+      ]
+    }
+  ],
+  "verification_commands": [
+    {
+      "command": "bash tests/test-research-skill-refiner-eval.sh",
+      "status": "pass"
+    },
+    {
+      "command": "bash tests/test-research-skill-contract.sh",
+      "status": "pass"
+    },
+    {
+      "command": "bash tests/test-shared-skill-package-quality-baseline.sh",
+      "status": "pass",
+      "evidence": "[PASS] shared Skill package quality baseline (30 skills, 6 static_warn reported)"
+    },
+    {
+      "command": "python3 tools/community/check_test_signal_assertions.py",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check -- shared/skills/research tests/test-research-skill-refiner-eval.sh tests/test-research-skill-contract.sh tests/fixtures/test-assertion-boundary/low-signal-prose-assertions.baseline tools/community/check_research_reference_chain.py",
+      "status": "pass"
+    },
+    {
+      "command": "CODEX_SKILLS_DIR=\"$PWD/community/anthropic/skills\" bash tests/run-all.sh --quick",
+      "status": "blocked_unrelated",
+      "blocking_scope": "tests/test-skill-format-unification.sh -> shared/skills/design/SKILL.md",
+      "evidence": "[59/130] test-skill-format-unification.sh failed: numbered step must use title + bullets, not one-line long sentence in shared/skills/design/SKILL.md"
+    }
+  ],
+  "full_quick_regression": {
+    "status": "blocked_unrelated",
+    "command": "CODEX_SKILLS_DIR=\"$PWD/community/anthropic/skills\" bash tests/run-all.sh --quick",
+    "result": "[59/130] test-skill-format-unification.sh failed on shared/skills/design/SKILL.md step formatting outside research scope"
+  }
+}

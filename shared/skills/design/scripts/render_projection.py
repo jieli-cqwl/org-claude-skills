@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render human-facing design projections from a validated design.json."""
+"""Render design explanation projections from a validated design.json."""
 
 from __future__ import annotations
 
@@ -100,27 +100,27 @@ def section(title: str, body: list[str]) -> str:
 
 def render_design_markdown(payload: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
     sections: list[tuple[str, str, list[str], list[str]]] = [
-        ("input", "Input And Runtime Facts", [
+        ("input", "背景、证据与约束", [
             "$.input_analysis",
             "$.runtime_facts",
             "$.constraint_inheritance_confirmation",
         ], [
-            object_line("Baseline", payload.get("input_analysis"), "$.input_analysis"),
+            object_line("产品基线", payload.get("input_analysis"), "$.input_analysis"),
             *bullet_list(payload.get("runtime_facts"), "$.runtime_facts"),
             object_line(
-                "Constraint inheritance",
+                "约束继承",
                 payload.get("constraint_inheritance_confirmation"),
                 "$.constraint_inheritance_confirmation",
             ),
         ]),
-        ("co_creation", "Co-Creation Closure", ["$.co_creation_summary"], [
+        ("co_creation", "协作确认", ["$.co_creation_summary"], [
             *bullet_list(payload.get("co_creation_summary"), "$.co_creation_summary"),
         ]),
-        ("decisions", "Key Decisions", ["$.key_decisions", "$.option_analysis"], [
+        ("decisions", "关键决策与取舍", ["$.key_decisions", "$.option_analysis"], [
             *bullet_list(payload.get("key_decisions"), "$.key_decisions"),
             *bullet_list(payload.get("option_analysis"), "$.option_analysis"),
         ]),
-        ("boundary", "Boundary And Interfaces", [
+        ("boundary", "边界与接口", [
             "$.modules",
             "$.data_architecture",
             "$.cross_cutting_concerns",
@@ -129,13 +129,13 @@ def render_design_markdown(payload: dict[str, Any]) -> tuple[str, list[dict[str,
             "$.unit_coverage",
         ], [
             *bullet_list(payload.get("modules"), "$.modules"),
-            object_line("Data architecture", payload.get("data_architecture"), "$.data_architecture"),
+            object_line("数据架构", payload.get("data_architecture"), "$.data_architecture"),
             *bullet_list(payload.get("cross_cutting_concerns"), "$.cross_cutting_concerns"),
             *bullet_list(payload.get("interfaces"), "$.interfaces"),
             *bullet_list(payload.get("interface_boundary"), "$.interface_boundary"),
             *bullet_list(payload.get("unit_coverage"), "$.unit_coverage"),
         ]),
-        ("quality", "Quality, Migration, Verification", [
+        ("quality", "质量、迁移、验证、回滚", [
             "$.quality_attributes",
             "$.migration_plan",
             "$.verification_plan",
@@ -148,7 +148,7 @@ def render_design_markdown(payload: dict[str, Any]) -> tuple[str, list[dict[str,
             *bullet_list(payload.get("verification_mapping"), "$.verification_mapping"),
             *bullet_list(payload.get("rollback_plan"), "$.rollback_plan"),
         ]),
-        ("handoff", "Risk And Handoff", [
+        ("handoff", "风险与交接", [
             "$.risks",
             "$.risk_response",
             "$.impact_scope",
@@ -160,8 +160,8 @@ def render_design_markdown(payload: dict[str, Any]) -> tuple[str, list[dict[str,
             *bullet_list(payload.get("risk_response"), "$.risk_response"),
             *bullet_list(payload.get("impact_scope"), "$.impact_scope"),
             *bullet_list(payload.get("planning_constraints"), "$.planning_constraints"),
-            object_line("Product handoff", payload.get("product_handoff"), "$.product_handoff"),
-            object_line("Final confirmation", payload.get("final_confirmation"), "$.final_confirmation"),
+            object_line("产品交接", payload.get("product_handoff"), "$.product_handoff"),
+            object_line("最终确认", payload.get("final_confirmation"), "$.final_confirmation"),
         ]),
     ]
     manifest = [
@@ -169,9 +169,9 @@ def render_design_markdown(payload: dict[str, Any]) -> tuple[str, list[dict[str,
         for section_id, title, pointers, _ in sections
     ]
     header = [
-        "# Design Projection",
+        "# Design 投影视图",
         "",
-        "Generated from validated canonical `design.json`. This view does not replace canonical `design.json`.",
+        "由已验证 `design.json` 生成。本文只提供设计说明视图，不替代 `design.json`。",
         "",
     ]
     content = header + [section(title, body) for _, title, _, body in sections]
