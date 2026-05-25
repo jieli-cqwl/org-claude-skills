@@ -7,6 +7,7 @@ ensure_test_rg
 
 RESEARCH_SKILL="$ROOT/shared/skills/research/SKILL.md"
 ANALYSIS_FRAMEWORK="$ROOT/shared/skills/research/references/analysis-frameworks.md"
+EVIDENCE_PACKAGE_GUIDE="$ROOT/shared/skills/research/references/evidence-package-guide.md"
 PRESENTATION_FRAMEWORK="$ROOT/shared/skills/research/references/report-presentation-framework.md"
 REPORT_TEMPLATE="$ROOT/shared/skills/research/projections/research-report-template.md"
 RESEARCH_CHECK="$ROOT/shared/skills/research/scripts/completion_check.sh"
@@ -86,8 +87,10 @@ assert_present '调研目的' "$RESEARCH_SKILL"
 assert_present '目标读者' "$RESEARCH_SKILL"
 assert_present '读后动作' "$RESEARCH_SKILL"
 assert_present 'report-presentation-framework\.md' "$RESEARCH_SKILL"
+assert_present 'evidence-package-guide\.md' "$RESEARCH_SKILL"
 assert_present 'research-report-template\.md' "$RESEARCH_SKILL"
 assert_absent 'research-(decision|understanding|audit|tech-selection|analysis|discovery|shared-header|shared-audit)-template\.md' "$RESEARCH_SKILL"
+assert_absent 'deep-analysis-template\.md' "$RESEARCH_SKILL"
 
 test -f "$PRESENTATION_FRAMEWORK" || fail "missing report-presentation-framework.md"
 assert_present 'decision' "$PRESENTATION_FRAMEWORK"
@@ -97,6 +100,31 @@ assert_present '答案层' "$PRESENTATION_FRAMEWORK"
 assert_present '审计层' "$PRESENTATION_FRAMEWORK"
 
 assert_present 'presentation_profile' "$ANALYSIS_FRAMEWORK"
+assert_present 'evidence-package-guide\.md' "$ANALYSIS_FRAMEWORK"
+
+test -f "$EVIDENCE_PACKAGE_GUIDE" || fail "missing evidence-package-guide.md"
+test ! -e "$ROOT/shared/skills/research/references/deep-analysis-template.md" || fail "legacy deep-analysis-template.md should not exist"
+python3 - "$EVIDENCE_PACKAGE_GUIDE" <<'PY'
+import sys
+from pathlib import Path
+
+guide = Path(sys.argv[1])
+text = guide.read_text(encoding="utf-8")
+required = {
+    "title": "# 证据包整理指南",
+    "not_report_template": "不是报告模板",
+    "source_targeting": "Source Targeting Package",
+    "evidence_qualification": "Evidence Qualification",
+    "judgment_calibration": "Judgment Calibration",
+}
+missing = [name for name, term in required.items() if term not in text]
+if missing:
+    raise SystemExit("evidence package guide missing contract terms: " + ", ".join(missing))
+forbidden = ["Step 3 深度分析", "深度分析模板", "不可省略任何必填节"]
+present = [term for term in forbidden if term in text]
+if present:
+    raise SystemExit("evidence package guide still uses misleading template wording: " + ", ".join(present))
+PY
 
 test -f "$REPORT_TEMPLATE" || fail "missing research report template"
 python3 - "$ROOT" "$REPORT_TEMPLATE" <<'PY'

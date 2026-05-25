@@ -1,17 +1,17 @@
-# 深度分析模板
+# 证据包整理指南
 
-本文件只负责 `/research` 的 Step 3 深度分析。它在 Source Targeting Package 已存在之后，把候选或论点变成可挑战的证据包，不负责首屏呈现，也不负责最终决策。
+本文件不是报告模板，也不是 `deep-research` 入口。它只在 Source Targeting Package 已成立之后，把候选或论点整理成可挑战的证据包，作为 Evidence Qualification、Judgment Calibration 和后续 challenger 的输入。
 
 ## 使用边界
 
-- 读取时机：Step 2 已经完成候选收敛，且 Source Targeting Package 能说明对象、范围、上游来源和关键维度。
+- 读取时机：候选或论点已经收敛，且 Source Targeting Package 能说明对象、范围、上游来源和关键维度。
 - 允许动作：拆核心机制、绑定证据、完成 Evidence Qualification、记录反方挑战、列出失效边界和待验证项。
 - 禁止动作：不得抢占 `decision` 或 `understanding` 首屏；不得把轻量预判断升级成完整报告；不得把证据不足的判断写成结论。
 - 停止条件：找不到可追溯证据，或发现 Source Targeting Package 目标不明/来源不稳时，输出待验证项和验证路径；不要补想象中的证据。
 
 ## 输出合同
 
-每个候选或论点输出一个证据包，供 Step 4 结构化评估、Judgment Calibration 和 Step 5 challenger 使用。弱证据只能支撑搜索线索或待验证项，不能独立支撑采纳、排除或推荐结论。
+每个候选或论点输出一个证据包，供结构化评估、Judgment Calibration 和 challenger 使用。弱证据只能支撑搜索线索或待验证项，不能独立支撑采纳、排除或推荐结论。
 
 ```markdown
 ## {分析目标名称}

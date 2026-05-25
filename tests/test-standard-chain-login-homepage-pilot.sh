@@ -14,6 +14,27 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s "$ROOT/tests" \
   -p "test_login_homepage_app.py"
 
+python3 - "$ROOT/tests/test_login_homepage_app.py" "$PHASE_DIR/unit-1/test-cases.json" <<'PY'
+import ast
+import json
+import sys
+from pathlib import Path
+
+test_source = ast.parse(Path(sys.argv[1]).read_text(encoding="utf-8"))
+test_cases = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))["test_cases"]
+methods = [
+    item.name
+    for node in test_source.body
+    if isinstance(node, ast.ClassDef) and node.name == "LoginHomepageAcceptanceTests"
+    for item in node.body
+    if isinstance(item, ast.FunctionDef) and item.name.startswith("test_")
+]
+if len(methods) != len(test_cases):
+    raise SystemExit(
+        f"login homepage pilot declared {len(test_cases)} canonical test cases but has {len(methods)} real unittest methods"
+    )
+PY
+
 python3 "$ROOT/tools/community/validate_standard_chain_phase.py" \
   --phase-dir "$PHASE_DIR" \
   --catalog "$CATALOG" \

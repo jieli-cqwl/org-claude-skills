@@ -8,10 +8,16 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from product_split_benchmark_core import CODEX_SKILLS_DIR, ROOT, run_command, write_json
+from product_split_benchmark_core import (
+    CODEX_SKILLS_DIR,
+    ROOT,
+    resolve_skill_creator_path,
+    run_command,
+    write_json,
+)
 
 SKILL_CREATOR = CODEX_SKILLS_DIR / "skill-creator"
-REVIEW_SCRIPT = SKILL_CREATOR / "eval-viewer" / "generate_review.py"
+REVIEW_SCRIPT = resolve_skill_creator_path("eval-viewer/generate_review.py")
 
 
 def run_structured_judge(

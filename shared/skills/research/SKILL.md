@@ -158,6 +158,8 @@ For community object identification, do not stop at the first plausible hit. Nam
 
 Weak evidence can explain interest; it cannot justify adoption by itself.
 
+When a candidate or claim needs more than a one-line evidence summary, read `references/evidence-package-guide.md` and create an evidence package before calibrating judgment.
+
 **Calibrate judgment:** Judgment Calibration turns evidence into a bounded conclusion:
 
 - Current judgment.

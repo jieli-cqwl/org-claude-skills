@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,9 @@ WEAK_RUNTIME_EVIDENCE = {
     "design.json#input_analysis",
     "design.json#runtime_facts",
 }
+PLACEHOLDER_VALUES = {"1970-01-01T00:00:00Z", "UNREVIEWED"}
+GENERIC_HANDOFF_PHRASES = ("Repair the canonical artifact",)
+STAGE_OUTCOME_RE = re.compile(r"\bS\d+\s+design outcome\b")
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -31,6 +35,22 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def violation(kind: str, location: str, message: str) -> dict[str, str]:
     return {"type": kind, "location": location, "message": message}
+
+
+def iter_strings(value: Any, location: str) -> list[tuple[str, str]]:
+    if isinstance(value, str):
+        return [(location, value)]
+    if isinstance(value, list):
+        strings: list[tuple[str, str]] = []
+        for index, item in enumerate(value):
+            strings.extend(iter_strings(item, f"{location}[{index}]"))
+        return strings
+    if isinstance(value, dict):
+        strings = []
+        for key, item in value.items():
+            strings.extend(iter_strings(item, f"{location}.{key}"))
+        return strings
+    return []
 
 
 def evidence_value(fact: str) -> str:
@@ -53,6 +73,37 @@ def collect_verification_refs(design: dict[str, Any]) -> set[str]:
         for row in mapping
         if isinstance(row, dict) and isinstance(row.get("evidence_ref"), str) and row["evidence_ref"].strip()
     }
+
+
+def check_semantic_residue(design: dict[str, Any]) -> list[dict[str, str]]:
+    violations: list[dict[str, str]] = []
+    for location, text in iter_strings(design, "design.json"):
+        stripped = text.strip()
+        if stripped in PLACEHOLDER_VALUES:
+            violations.append(
+                violation(
+                    "semantic_residue_placeholder",
+                    location,
+                    "finalized design.json must replace template placeholders before handoff",
+                )
+            )
+        if STAGE_OUTCOME_RE.search(text):
+            violations.append(
+                violation(
+                    "semantic_residue_stage_label",
+                    location,
+                    "finalized design.json must use semantic process names instead of old stage-number residue",
+                )
+            )
+        if any(phrase in text for phrase in GENERIC_HANDOFF_PHRASES):
+            violations.append(
+                violation(
+                    "semantic_residue_generic_handoff_text",
+                    location,
+                    "interface errors must describe the owned runtime contract, not generic canonical artifact repair",
+                )
+            )
+    return violations
 
 
 def check_runtime_facts(design: dict[str, Any]) -> list[dict[str, str]]:
@@ -94,6 +145,52 @@ def check_interfaces(design: dict[str, Any]) -> list[dict[str, str]]:
             verification_ref = behavior.get("verification_ref")
             if not isinstance(verification_ref, str) or verification_ref not in evidence_refs:
                 violations.append(violation("boundary_behavior_verification_ref_unresolved", f"design.json#interfaces[{index}].boundary_behaviors[{behavior_index}].verification_ref", "boundary behavior verification_ref must resolve to verification_mapping[].evidence_ref"))
+    return violations
+
+
+def interface_allows_phase_dir(interface: dict[str, Any]) -> bool:
+    owner = interface.get("owner", "")
+    summary = interface.get("contract_summary", "")
+    interface_id = interface.get("interface_id", "")
+    haystack = " ".join(
+        item.lower()
+        for item in (owner, summary, interface_id)
+        if isinstance(item, str)
+    )
+    return any(
+        marker in haystack
+        for marker in (
+            "manage_artifact_registry",
+            "validate_standard_chain",
+            "phase directory",
+            "phase-dir",
+            "standard-chain",
+        )
+    )
+
+
+def check_interface_semantic_residue(design: dict[str, Any]) -> list[dict[str, str]]:
+    violations: list[dict[str, str]] = []
+    interfaces = design.get("interfaces", [])
+    if not isinstance(interfaces, list):
+        return violations
+    for interface_index, interface in enumerate(interfaces):
+        if not isinstance(interface, dict):
+            continue
+        input_params = interface.get("input_params", [])
+        if not isinstance(input_params, list):
+            continue
+        for param_index, param in enumerate(input_params):
+            if not isinstance(param, dict):
+                continue
+            if param.get("name") == "phase_dir" and not interface_allows_phase_dir(interface):
+                violations.append(
+                    violation(
+                        "semantic_residue_generic_interface_param",
+                        f"design.json#interfaces[{interface_index}].input_params[{param_index}].name",
+                        "interface input_params must name the runtime/business input consumed by that interface",
+                    )
+                )
     return violations
 
 
@@ -162,8 +259,10 @@ def check_reviewers(design: dict[str, Any]) -> list[dict[str, str]]:
 
 def check_design(design: dict[str, Any]) -> list[dict[str, str]]:
     violations: list[dict[str, str]] = []
+    violations.extend(check_semantic_residue(design))
     violations.extend(check_runtime_facts(design))
     violations.extend(check_interfaces(design))
+    violations.extend(check_interface_semantic_residue(design))
     violations.extend(check_cross_cutting(design))
     violations.extend(check_risk_response(design))
     violations.extend(check_decision_options(design))
@@ -182,7 +281,7 @@ def main(argv: list[str]) -> int:
     design = load_json(args.design)
     violations = check_design(design)
     if not violations:
-        print(json.dumps({"status": "PASS", "checks": ["runtime_fact_evidence", "interface_boundary_behaviors", "boundary_behavior_verification_refs", "cross_cutting_exact_set", "risk_response_coverage", "decision_option_coverage", "reviewer_exact_set"]}, ensure_ascii=False, sort_keys=True))
+        print(json.dumps({"status": "PASS", "checks": ["semantic_residue", "runtime_fact_evidence", "interface_boundary_behaviors", "boundary_behavior_verification_refs", "cross_cutting_exact_set", "risk_response_coverage", "decision_option_coverage", "reviewer_exact_set"]}, ensure_ascii=False, sort_keys=True))
         return 0
     for item in violations:
         print(json.dumps(item, ensure_ascii=False, sort_keys=True), file=sys.stderr)

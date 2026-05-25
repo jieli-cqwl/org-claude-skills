@@ -168,6 +168,7 @@ required_clauses = {
     "exclusion_proof": "excluded lookalikes",
     "freshness": "freshness / timestamp",
     "credibility_tiers": "Evidence Qualification",
+    "evidence_package_guide": "references/evidence-package-guide.md",
 }
 missing = [name for name, term in required_clauses.items() if term not in text]
 if missing:

@@ -126,6 +126,42 @@ class ArchitectContractUnitTests(unittest.TestCase):
         violations = self.mod.check_design(design)
         self.assertIn("reviewer_set_invalid", {v["type"] for v in violations})
 
+    def test_finalized_review_placeholders_are_rejected(self):
+        design = base_design()
+        design["review_closure"]["reviewed_at"] = "1970-01-01T00:00:00Z"
+        design["review_closure"]["reviewers"][0]["verdict"] = "UNREVIEWED"
+
+        violations = self.mod.check_design(design)
+
+        self.assertIn("semantic_residue_placeholder", {v["type"] for v in violations})
+
+    def test_stage_number_residue_in_confirmation_is_rejected(self):
+        design = base_design()
+        design["key_decisions"][0]["user_confirmation"] = (
+            "User confirmed the S11 design outcome and accepted the canonical design artifact."
+        )
+
+        violations = self.mod.check_design(design)
+
+        self.assertIn("semantic_residue_stage_label", {v["type"] for v in violations})
+
+    def test_generic_canonical_handoff_residue_in_interface_is_rejected(self):
+        design = base_design()
+        design["interfaces"][0]["input_params"][0] = {
+            "name": "phase_dir",
+            "type": "path",
+            "required": True,
+            "validation": "must point to a canonical standard-chain phase directory or artifact path",
+            "description": "Canonical phase input consumed by the interface owner.",
+        }
+        design["interfaces"][0]["error_codes"][0]["user_message"] = "Repair the canonical artifact before handoff."
+
+        violations = self.mod.check_design(design)
+        violation_types = {v["type"] for v in violations}
+
+        self.assertIn("semantic_residue_generic_interface_param", violation_types)
+        self.assertIn("semantic_residue_generic_handoff_text", violation_types)
+
 
 class ArchitectContractSubprocessTests(unittest.TestCase):
     def test_cli_reports_jsonl_and_nonzero_for_seeded_defect(self):

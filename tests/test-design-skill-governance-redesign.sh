@@ -2121,6 +2121,13 @@ if present_forbidden or missing:
 for required_heading in ["## Checklist", "## Process Flow", "## The Process"]:
     if required_heading not in text:
         raise SystemExit(f"design skill must follow brainstorming structure: missing {required_heading}")
+for required_flow_line in [
+    '"Finalize Design" [shape=box];',
+    '"User confirms final design?" -> "Finalize Design" [label="yes"];',
+    '"Finalize Design" -> "Run Validators";',
+]:
+    if required_flow_line not in text:
+        raise SystemExit(f"design process flow missing line: {required_flow_line}")
 PY
 assert_present '你是高级交付型架构师' "$DESIGN_SKILL"
 assert_present '也是 design owner' "$DESIGN_SKILL"

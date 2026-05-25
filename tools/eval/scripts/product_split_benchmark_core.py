@@ -19,7 +19,22 @@ CODEX_SKILLS_DIR = Path(
     os.environ.get("CODEX_SKILLS_DIR", str(Path.home() / ".agents" / "skills"))
 ).expanduser()
 SKILL_CREATOR = CODEX_SKILLS_DIR / "skill-creator"
-AGGREGATE_SCRIPT = SKILL_CREATOR / "scripts" / "aggregate_benchmark.py"
+COMMUNITY_SKILL_CREATOR = ROOT / "community" / "anthropic" / "skills" / "skill-creator"
+
+
+def resolve_skill_creator_path(relative_path: str) -> Path:
+    """Prefer configured skill-creator files, then the repository mirror."""
+
+    configured = SKILL_CREATOR / relative_path
+    if configured.exists():
+        return configured
+    mirrored = COMMUNITY_SKILL_CREATOR / relative_path
+    if mirrored.exists():
+        return mirrored
+    return configured
+
+
+AGGREGATE_SCRIPT = resolve_skill_creator_path("scripts/aggregate_benchmark.py")
 DEFAULT_EVAL_SET = (
     ROOT / "tools" / "eval" / "scenarios" / "product-split-benchmark-evals.json"
 )

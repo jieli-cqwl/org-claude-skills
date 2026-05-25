@@ -271,6 +271,7 @@ FULL_TESTS=(
   "tests/test-skill-output-and-gate-contract.sh"
   "tests/test-design-skill-governance-redesign.sh"
   "tests/test-design-architect-capability-contract.sh"
+  "tests/test-design-architect-contract.py"
   "tests/test-test-design-clean-resource.sh"
   "tests/test-test-design-dogfood-flow.sh"
   "tests/test-design-dogfood-e2e.sh"

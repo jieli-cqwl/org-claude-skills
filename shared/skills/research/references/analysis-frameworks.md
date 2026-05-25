@@ -6,7 +6,7 @@
 
 - 读取时机：`research_mode`、`presentation_profile`、对象、资料入口和关键维度已经确认或可安全推断之后。
 - 允许动作：补齐 Source Targeting 检查、选择研究模式、定义候选/论点/实体的收敛口径、完成 Evidence Qualification、生成结构化评估表和 Decision Package 输入。
-- 禁止动作：不得进入深度分析，不得替代 `deep-analysis-template.md`，不得替代 Report Self-Review。
+- 禁止动作：不得进入证据包展开，不得替代 `evidence-package-guide.md`，不得替代 Report Self-Review。
 - 停止条件：候选边界、论点边界、对象类型或上游来源仍不清楚时，回到主流程补 Source Targeting；不要用本文件硬凑判断。
 
 ## 输出合同

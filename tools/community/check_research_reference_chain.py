@@ -13,6 +13,8 @@ def fail(message: str) -> None:
 
 
 def require_terms(path: Path, terms: list[str], label: str) -> str:
+    if not path.exists():
+        fail(f"missing {label} file: {path.name}")
     text = path.read_text(encoding="utf-8")
     missing = [term for term in terms if term not in text]
     if missing:
@@ -34,20 +36,21 @@ def check_references(reference_dir: Path) -> None:
             "结构化评估",
             "资料/对象",
             "弱证据",
-            "不得进入深度分析",
+            "不得进入证据包展开",
             "不得替代 Report Self-Review",
         ],
-        "deep-analysis-template.md": [
+        "evidence-package-guide.md": [
             "## 使用边界",
             "## 输出合同",
             "Source Targeting Package",
             "Evidence Qualification",
             "Judgment Calibration",
-            "Step 3",
+            "证据包",
             "弱证据",
             "证据不足",
             "待验证项",
             "不得抢占",
+            "不是报告模板",
             "轻量预判断",
         ],
         "report-presentation-framework.md": [
@@ -66,11 +69,17 @@ def check_references(reference_dir: Path) -> None:
     for name, terms in requirements.items():
         require_terms(reference_dir / name, terms, "reference contract")
 
-    deep_analysis = (reference_dir / "deep-analysis-template.md").read_text(
+    legacy_deep_analysis = reference_dir / "deep-analysis-template.md"
+    if legacy_deep_analysis.exists():
+        fail("deep-analysis-template.md should be renamed to evidence-package-guide.md")
+
+    evidence_package = (reference_dir / "evidence-package-guide.md").read_text(
         encoding="utf-8"
     )
-    if "不可省略任何必填节" in deep_analysis:
-        fail("deep-analysis-template.md still forces a heavy template")
+    if "不可省略任何必填节" in evidence_package:
+        fail("evidence-package-guide.md still forces a heavy template")
+    if "Step 3 深度分析" in evidence_package:
+        fail("evidence-package-guide.md still uses misleading Step 3 wording")
 
 
 def check_projections(projection_dir: Path) -> None:

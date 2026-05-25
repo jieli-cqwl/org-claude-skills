@@ -125,6 +125,40 @@ class LoginHomepageAcceptanceTests(unittest.TestCase):
         self.assertIn('name="username"', payload)
         self.assertIn('name="password"', payload)
 
+    def test_empty_login_returns_readable_error_without_session_cookie(self) -> None:
+        body = urlencode({"username": "", "password": ""})
+
+        status, headers, payload = self.request(
+            "POST",
+            "/login",
+            body=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        self.assertEqual(HTTPStatus.UNAUTHORIZED, status)
+        self.assertNotIn("Set-Cookie", headers)
+        self.assertIn("Invalid username or password", payload)
+        self.assertIn('name="username"', payload)
+        self.assertIn('name="password"', payload)
+
+    def test_session_cookie_uses_http_only_same_site_lax_attributes(self) -> None:
+        body = urlencode({"username": "demo@example.com", "password": "correct-horse-battery-staple"})
+
+        status, headers, payload = self.request(
+            "POST",
+            "/login",
+            body=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        self.assertEqual(HTTPStatus.SEE_OTHER, status)
+        self.assertEqual("", payload)
+        self.assertEqual("/", headers["Location"])
+        self.assertIn("session=", headers["Set-Cookie"])
+        self.assertIn("Path=/", headers["Set-Cookie"])
+        self.assertIn("HttpOnly", headers["Set-Cookie"])
+        self.assertIn("SameSite=Lax", headers["Set-Cookie"])
+
     def test_invalid_login_emits_access_log(self) -> None:
         body = urlencode({"username": "demo@example.com", "password": "wrong"})
         captured = io.StringIO()
@@ -140,6 +174,23 @@ class LoginHomepageAcceptanceTests(unittest.TestCase):
         log_output = captured.getvalue()
         self.assertIn("POST /login", log_output)
         self.assertIn("401", log_output)
+
+    def test_single_failed_login_request_produces_one_auditable_status_trace(self) -> None:
+        body = urlencode({"username": "", "password": ""})
+        captured = io.StringIO()
+
+        with contextlib.redirect_stderr(captured):
+            self.request(
+                "POST",
+                "/login",
+                body=body,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+
+        log_lines = [line for line in captured.getvalue().splitlines() if "POST /login" in line]
+        self.assertEqual(1, len(log_lines))
+        self.assertIn("401", log_lines[0])
+        self.assertNotIn("correct-horse-battery-staple", log_lines[0])
 
     def test_logout_clears_session_and_rejects_old_cookie(self) -> None:
         cookie = self.login()

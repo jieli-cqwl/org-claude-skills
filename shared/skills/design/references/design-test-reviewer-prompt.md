@@ -13,8 +13,8 @@
 - 只采信输入基线、设计产物、验证映射和用户确认记录。
 - 每条 finding 必须给出 JSON Pointer、输入基线引用或用户确认引用。
 - Reviewed Design Digest 必须等于送审设计产物 digest。
-- Finalize 只追加 `review_closure`、`final_confirmation` 和验证收口；本审查不重新解释设计内容。
-- 你只输出审查报告，不写入或修改 `design.json`；设计 owner 最终取舍、修正、承接和用户确认。
+- Finalize 只追加 `review_closure`、`final_confirmation` 和验证收口；本审查判断已审设计是否能生成测试义务。
+- 只输出审查报告，不写入或修改 `design.json`；设计 owner 完成最终取舍、修正、承接和用户确认。
 
 ## 检查
 

@@ -45,7 +45,7 @@
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
+      "user_confirmation": "User confirmed the final standard-chain runtime design outcome for downstream handoff."
     },
     {
       "decision_id": "D-002",
@@ -57,7 +57,7 @@
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
       ],
-      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
+      "user_confirmation": "User confirmed the final standard-chain runtime design outcome for downstream handoff."
     }
   ],
   "option_analysis": [
@@ -140,7 +140,7 @@
         {
           "code": "VALIDATION_FAILED",
           "condition": "required canonical field, artifact, or reference is missing",
-          "user_message": "Repair the canonical artifact before handoff."
+          "user_message": "Fix the active artifact registry entry before handoff."
         }
       ],
       "boundary_behaviors": [
@@ -180,7 +180,7 @@
         {
           "code": "VALIDATION_FAILED",
           "condition": "required canonical field, artifact, or reference is missing",
-          "user_message": "Repair the canonical artifact before handoff."
+          "user_message": "Fix the readiness blocker before handoff."
         }
       ],
       "boundary_behaviors": [
@@ -474,7 +474,7 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "2026-04-14T00:00:00Z",
-    "summary": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff.",
+    "summary": "User confirmed the final standard-chain runtime design outcome for downstream handoff.",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",
@@ -482,26 +482,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:96f58129f51906f4f3e94974d6d53cc82966565d4dfdaf220336da153e55b62e",
-    "reviewed_at": "1970-01-01T00:00:00Z",
+    "reviewed_design_digest": "sha256:3e1b01730ad377b4d530caa54fd9d0a71f4cde899f04ce26e050e720b60da155",
+    "reviewed_at": "2026-04-14T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:96f58129f51906f4f3e94974d6d53cc82966565d4dfdaf220336da153e55b62e"
+        "reviewed_design_digest": "sha256:3e1b01730ad377b4d530caa54fd9d0a71f4cde899f04ce26e050e720b60da155"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:96f58129f51906f4f3e94974d6d53cc82966565d4dfdaf220336da153e55b62e"
+        "reviewed_design_digest": "sha256:3e1b01730ad377b4d530caa54fd9d0a71f4cde899f04ce26e050e720b60da155"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:96f58129f51906f4f3e94974d6d53cc82966565d4dfdaf220336da153e55b62e"
+        "reviewed_design_digest": "sha256:3e1b01730ad377b4d530caa54fd9d0a71f4cde899f04ce26e050e720b60da155"
       }
     ],
     "resolved_failures": [],

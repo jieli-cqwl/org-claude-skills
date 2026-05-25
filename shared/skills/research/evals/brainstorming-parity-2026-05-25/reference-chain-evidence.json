@@ -54,7 +54,7 @@
       "research_encoding": "References now declare usage boundary, output contract, consumer step, failure state, and stop condition.",
       "evidence_refs": [
         "shared/skills/research/references/analysis-frameworks.md#输出合同",
-        "shared/skills/research/references/deep-analysis-template.md#输出合同",
+        "shared/skills/research/references/evidence-package-guide.md#输出合同",
         "shared/skills/research/references/report-presentation-framework.md#输出合同"
       ]
     },
@@ -107,7 +107,7 @@
       "evidence_refs": [
         "tests/test-research-skill-refiner-eval.sh#assert_research_reference_chain_contract",
         "shared/skills/research/references/analysis-frameworks.md",
-        "shared/skills/research/references/deep-analysis-template.md",
+        "shared/skills/research/references/evidence-package-guide.md",
         "shared/skills/research/references/report-presentation-framework.md"
       ]
     },
@@ -181,14 +181,13 @@
     },
     {
       "command": "CODEX_SKILLS_DIR=\"$PWD/community/anthropic/skills\" bash tests/run-all.sh --quick",
-      "status": "blocked_unrelated",
-      "blocking_scope": "tests/test-skill-format-unification.sh -> shared/skills/design/SKILL.md",
-      "evidence": "[59/130] test-skill-format-unification.sh failed: numbered step must use title + bullets, not one-line long sentence in shared/skills/design/SKILL.md"
+      "status": "pass",
+      "evidence": "[131/131] test-feishu-docs-skill-contract.sh passed; All tests passed"
     }
   ],
   "full_quick_regression": {
-    "status": "blocked_unrelated",
+    "status": "pass",
     "command": "CODEX_SKILLS_DIR=\"$PWD/community/anthropic/skills\" bash tests/run-all.sh --quick",
-    "result": "[59/130] test-skill-format-unification.sh failed on shared/skills/design/SKILL.md step formatting outside research scope"
+    "result": "All tests passed"
   }
 }
