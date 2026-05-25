@@ -59,16 +59,25 @@ class CandidateLookupTests(TempDirTest):
 
         self.assertEqual(set(managed), set(self.lib.MANAGED_SOURCE_NAMES))
         self.assertIn("panniantong_agent_reach", self.lib.MANAGED_SOURCE_NAMES)
-        self.assertIn("skills_sh_alirezarezvani_code_to_prd", self.lib.MANAGED_SOURCE_NAMES)
+        self.assertIn(
+            "skills_sh_alirezarezvani_code_to_prd", self.lib.MANAGED_SOURCE_NAMES
+        )
         self.assertIn("skills_sh_bb_browser", self.lib.MANAGED_SOURCE_NAMES)
         self.assertIn("skills_sh_graphify", self.lib.MANAGED_SOURCE_NAMES)
-        self.assertIn("skills_sh_othmanadi_planning_with_files", self.lib.MANAGED_SOURCE_NAMES)
+        self.assertIn(
+            "skills_sh_othmanadi_planning_with_files", self.lib.MANAGED_SOURCE_NAMES
+        )
         self.assertIn("skills_sh_self_improving_agent", self.lib.MANAGED_SOURCE_NAMES)
+        self.assertIn(
+            "skills_sh_softaworks_mermaid_diagrams", self.lib.MANAGED_SOURCE_NAMES
+        )
 
     def test_real_source_lock_has_all_managed_sources(self) -> None:
         locks = self.lib.load_source_locks(ROOT / "community/SOURCES.yaml")
 
-        self.assertEqual(set(self.lib.managed_locks(locks)), set(self.lib.MANAGED_SOURCE_NAMES))
+        self.assertEqual(
+            set(self.lib.managed_locks(locks)), set(self.lib.MANAGED_SOURCE_NAMES)
+        )
 
     def test_no_update_when_candidate_equals_locked_ref(self) -> None:
         locks = self.lib.load_source_locks(self.lock_path)
@@ -163,7 +172,9 @@ class RunUpdateTests(TempDirTest):
         self.assertEqual(branch, "codex/skill-pull-20260422-3")
 
     def test_sync_commands_cover_every_managed_source(self) -> None:
-        self.assertEqual(set(self.run_update.SYNC_COMMANDS), set(self.lib.MANAGED_SOURCE_NAMES))
+        self.assertEqual(
+            set(self.run_update.SYNC_COMMANDS), set(self.lib.MANAGED_SOURCE_NAMES)
+        )
         self.assertEqual(
             self.run_update.SYNC_COMMANDS["panniantong_agent_reach"],
             ["python3", "tools/community/sync_panniantong_skills_from_upstream.py"],
@@ -284,11 +295,30 @@ class RunUpdateTests(TempDirTest):
         command_text = [" ".join(command) for command in runner.commands]
         self.assertEqual(result.status, "updated")
         self.assertIn("git worktree add", command_text[0])
-        self.assertLess(command_text.index("bash tests/test-install-runtime-smoke.sh"), command_text.index("bash install.sh --target all --check full"))
-        self.assertLess(command_text.index("bash tests/test-community-tools.sh"), command_text.index("python3 tools/community/check_superpowers_upstream_fidelity.py"))
-        self.assertLess(command_text.index("python3 tools/community/check_superpowers_upstream_fidelity.py"), command_text.index("bash tests/test-single-source-layout.sh"))
-        self.assertLess(command_text.index("bash install.sh --target all --check full"), command_text.index("bash install.sh --target all"))
-        self.assertIn("python3 tools/community/sync_anthropic_skills_from_upstream.py", command_text)
+        self.assertLess(
+            command_text.index("bash tests/test-install-runtime-smoke.sh"),
+            command_text.index("bash install.sh --target all --check full"),
+        )
+        self.assertLess(
+            command_text.index("bash tests/test-community-tools.sh"),
+            command_text.index(
+                "python3 tools/community/check_superpowers_upstream_fidelity.py"
+            ),
+        )
+        self.assertLess(
+            command_text.index(
+                "python3 tools/community/check_superpowers_upstream_fidelity.py"
+            ),
+            command_text.index("bash tests/test-single-source-layout.sh"),
+        )
+        self.assertLess(
+            command_text.index("bash install.sh --target all --check full"),
+            command_text.index("bash install.sh --target all"),
+        )
+        self.assertIn(
+            "python3 tools/community/sync_anthropic_skills_from_upstream.py",
+            command_text,
+        )
         self.assertIn("git commit -m chore: pull external skill sources", command_text)
         self.assertTrue(command_text[-1].startswith("git worktree remove"))
         self.assertFalse(Path(result.worktree_path).exists())
@@ -320,14 +350,22 @@ class RunUpdateTests(TempDirTest):
         runner = FakeRunner(fail_contains="--check full")
 
         result = self.run_update.run_update_flow(
-            repo_root=self.repo_root, statuses=statuses, today="2026-04-22", runner=runner, existing_branches=set()
+            repo_root=self.repo_root,
+            statuses=statuses,
+            today="2026-04-22",
+            runner=runner,
+            existing_branches=set(),
         )
 
         command_text = [" ".join(command) for command in runner.commands]
-        full_check_index = command_text.index("bash install.sh --target all --check full")
+        full_check_index = command_text.index(
+            "bash install.sh --target all --check full"
+        )
         self.assertEqual(result.status, "blocked")
         self.assertEqual(result.failed_phase, "full-check install gate")
-        self.assertNotIn("bash install.sh --target all", command_text[full_check_index + 1 :])
+        self.assertNotIn(
+            "bash install.sh --target all", command_text[full_check_index + 1 :]
+        )
 
     def test_update_report_payload_feeds_conversation_summary(self) -> None:
         statuses = [make_anthropic_status(self.lib, summary="v2.0.0")]

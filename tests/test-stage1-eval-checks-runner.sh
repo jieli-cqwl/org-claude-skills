@@ -38,6 +38,7 @@ expected = {
     "stage2_product_director_handoff",
     "stage2_confirmed_brief_package",
     "stage2_product_manager_package",
+    "stage2_director_pm_move_in_chain",
     "stage2_design_package",
     "stage2_test_design_package",
     "stage2_tech_lead_package",
@@ -99,6 +100,23 @@ if product_manager_payload.get("next_standard_chain_role") != "design":
     raise SystemExit(product_manager_payload)
 if "auto_send" not in product_manager_payload.get("validated_blocked_actions", []):
     raise SystemExit(product_manager_payload)
+
+director_pm_payload = checks["stage2_director_pm_move_in_chain"].get("payload", {})
+if director_pm_payload.get("status") != "pass":
+    raise SystemExit(director_pm_payload)
+if director_pm_payload.get("stage2_readiness") != "director_manager_chain_meets_move_in_prd_rubric":
+    raise SystemExit(director_pm_payload)
+if director_pm_payload.get("rubric_summary", {}).get("coverage") != "complete":
+    raise SystemExit(director_pm_payload)
+chain_checks = {item.get("check") for item in director_pm_payload.get("checks", [])}
+for required_check in {
+    "director_boundary",
+    "product_manager_package",
+    "golden_prd_rubric",
+    "downstream_consumability",
+}:
+    if required_check not in chain_checks:
+        raise SystemExit(director_pm_payload)
 
 design_payload = checks["stage2_design_package"].get("payload", {})
 if design_payload.get("status") != "pass":

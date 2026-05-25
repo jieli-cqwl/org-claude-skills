@@ -1,23 +1,31 @@
 # 评审编排
 
-PM owner 自检通过后读取本文。Digest 用来证明 reviewer 审的是同一份包；评审目标是产品质量。
+PM owner 自检通过且 Review digest 当前有效后读取本文。本文只组织评审循环，不补写 PRD 内容。
 
 ## 输入
 
-Manager 阶段评审闭环写入 `brief.json.review_conclusion / issue_ledger` 和最终 JSON 字段。Reviewer 输入限定为：
+Manager 阶段评审闭环只写入 `brief.json.review_conclusion / issue_ledger`、`phase-prd.json.review_conclusion / issue_ledger` 和被问题要求修正的 PM-owned JSON 字段。
+
+Reviewer 只读取 digest 绑定的送审包：
 
 - `brief.json`
 - `phase-{N}/phase-prd.json`
 - `phase-{N}/units/UNIT-*.json`
 - `reviewed_bundle_digest`
 
-聊天记录、临时草稿、legacy markdown 和 projection-only 文本作为背景。
+聊天记录、临时草稿、legacy markdown 和 projection-only 文本只作背景。人类投影视图只渲染 canonical JSON 字段，不能作为下游控制输入。
 
-评审状态必须写入 `review_conclusion.agent_team_review`：记录 `reviewed_artifact_refs`、`reviewed_bundle_digest`、三视角 verdict、finding/evidence refs、read_only 和 `convergence_evidence`。
+## 执行
+
+- 确认 `reviewed_artifact_refs` 和 `reviewed_bundle_digest` 来自当前送审包。
+- 召集 agent teams，让三视角 reviewer 审同一份 `reviewed_bundle_digest`。
+- 派发 reviewer prompt；禁止 reviewer 改写 PM JSON 或补造业务事实。
+- 每个 reviewer verdict 必须回写 issue id、severity、finding、evidence path + value、carryover target 和同一个 `reviewed_bundle_digest`。
+- PM owner 将评审状态写入 `review_conclusion.agent_team_review`：`reviewed_artifact_refs`、`reviewed_bundle_digest`、reviewer verdicts、finding refs、evidence refs、read-only marker 和 `convergence_evidence`。
 
 ## 判断
 
-三视角 reviewer 先回答这些问题：
+三视角 reviewer 必须判断：
 
 - PRD 是否回答 Director baseline，且没有漂移。
 - `/design` 是否能理解行为、约束、状态、风险和待决事项。
@@ -26,27 +34,21 @@ Manager 阶段评审闭环写入 `brief.json.review_conclusion / issue_ledger` �
 
 ## Review Team
 
-召集 agent teams，三视角 reviewer 审同一份 digest：
-
 - Product：`references/prd-reviewer-prompt.md`，用于确认 PRD 是否完整回答用户问题。
 - Architecture：`references/architect-reviewer-prompt.md`，用于确认需求在当前技术上下文中可落地。
 - Test：`references/tester-reviewer-prompt.md`，用于确认 AC 能被真实验证。
 
-三视角 reviewer 审同一份 `reviewed_bundle_digest`；每个 reviewer verdict 必须回写 issue id、severity、evidence path、carryover target 和同一个 `reviewed_bundle_digest`。
-
-PM owner 将评审状态写入 `review_conclusion.agent_team_review`：`reviewed_artifact_refs`、`reviewed_bundle_digest`、reviewer verdicts、finding refs、evidence refs、read-only marker 和 `convergence_evidence`。
-
 ## Loop
 
 - 执行 `3 视角×max10轮`。
-- 任一视角 FAIL：修 PM-owned JSON，重新提交 FAIL 视角评审。
+- 任一视角 FAIL：修 PM-owned JSON，回到 Review digest 刷新 digest，只对 FAIL 视角重新提交评审。
 - 首轮全 PASS：写 `convergence_evidence[].control_action=CONFIRMATION`，再跑一轮确认。
-- WARN 写入 `issue_ledger`，带 owner 和 handoff target。
+- WARN 写入 `issue_ledger`，带 owner、evidence、handoff target 和承接状态。
 - 连续 2 轮 FAIL 数不减少：ASK_USER。
 - 同一 issue 连续 3 轮未关闭：BLOCKED。
 - 第 10 轮仍未关闭：BLOCKED。
 
-下游控制输入以 canonical JSON 为准；人类投影视图只渲染这些字段。
+停止条件：无 open FAIL；WARN 均有 owner、handoff target 和承接状态；`reviewed_bundle_digest` 与最终送审包一致。
 
 ## High-Risk Signals
 

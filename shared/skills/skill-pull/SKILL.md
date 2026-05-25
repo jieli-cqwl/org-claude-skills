@@ -42,6 +42,7 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 - `skills_sh_notebooklm`
 - `skills_sh_othmanadi_planning_with_files`
 - `skills_sh_self_improving_agent`
+- `skills_sh_softaworks_mermaid_diagrams`
 - `persona_colleague_skill`
 - `persona_nuwa_skill`
 - `persona_yourself_skill`

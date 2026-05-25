@@ -15,7 +15,7 @@
       "event_id": "tool-1",
       "tool": "shell",
       "summary": "ran focused standard-chain foundation registry test",
-      "evidence_ref": "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#red"
+      "evidence_ref": "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root"
     }
   ],
   "state_before_refs": [
@@ -34,13 +34,13 @@
     "proving_commands": [
       {
         "command": "bash tests/test-standard-chain-foundation-registry.sh",
-        "current_output_ref": "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#green",
+        "current_output_ref": "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root",
         "result": "pass"
       }
     ],
     "result": "pass",
     "evidence_refs": [
-      "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#green"
+      "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root"
     ]
   },
   "human_interventions": [],

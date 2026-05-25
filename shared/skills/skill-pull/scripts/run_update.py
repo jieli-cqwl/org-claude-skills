@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import re
 import shutil
+import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Protocol, Sequence
@@ -14,27 +15,88 @@ from skill_pull_lib import SourceStatus, load_statuses, run_command, write_json
 
 
 SYNC_COMMANDS = {
-    "anthropic_skills": ["python3", "tools/community/sync_anthropic_skills_from_upstream.py"],
+    "anthropic_skills": [
+        "python3",
+        "tools/community/sync_anthropic_skills_from_upstream.py",
+    ],
     "superpowers": ["python3", "tools/community/sync_canonical_from_upstream.py"],
     "vercel_skills": ["python3", "tools/community/sync_vercel_skills_from_upstream.py"],
-    "vercel_agent_browser": ["python3", "tools/community/sync_vercel_skills_from_upstream.py"],
-    "alchaincyf_darwin_skill": ["python3", "tools/community/sync_alchaincyf_skills_from_upstream.py"],
-    "nextlevelbuilder_ui_ux_pro_max": ["python3", "tools/community/sync_nextlevelbuilder_skills_from_upstream.py"],
-    "panniantong_agent_reach": ["python3", "tools/community/sync_panniantong_skills_from_upstream.py"],
-    "skills_sh_alirezarezvani_code_to_prd": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "skills_sh_baoyu_markdown_to_html": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "skills_sh_bb_browser": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "skills_sh_github_prd": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "skills_sh_graphify": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "skills_sh_humanizer_zh": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "skills_sh_mattpocock_to_prd": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "skills_sh_notebooklm": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "skills_sh_othmanadi_planning_with_files": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "skills_sh_self_improving_agent": ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
-    "persona_colleague_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
-    "persona_nuwa_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
-    "persona_yourself_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
-    "persona_midas_skill": ["python3", "tools/community/sync_persona_skills_from_upstream.py"],
+    "vercel_agent_browser": [
+        "python3",
+        "tools/community/sync_vercel_skills_from_upstream.py",
+    ],
+    "alchaincyf_darwin_skill": [
+        "python3",
+        "tools/community/sync_alchaincyf_skills_from_upstream.py",
+    ],
+    "nextlevelbuilder_ui_ux_pro_max": [
+        "python3",
+        "tools/community/sync_nextlevelbuilder_skills_from_upstream.py",
+    ],
+    "panniantong_agent_reach": [
+        "python3",
+        "tools/community/sync_panniantong_skills_from_upstream.py",
+    ],
+    "skills_sh_alirezarezvani_code_to_prd": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_baoyu_markdown_to_html": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_bb_browser": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_github_prd": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_graphify": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_humanizer_zh": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_mattpocock_to_prd": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_notebooklm": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_othmanadi_planning_with_files": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_self_improving_agent": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "skills_sh_softaworks_mermaid_diagrams": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
+    "persona_colleague_skill": [
+        "python3",
+        "tools/community/sync_persona_skills_from_upstream.py",
+    ],
+    "persona_nuwa_skill": [
+        "python3",
+        "tools/community/sync_persona_skills_from_upstream.py",
+    ],
+    "persona_yourself_skill": [
+        "python3",
+        "tools/community/sync_persona_skills_from_upstream.py",
+    ],
+    "persona_midas_skill": [
+        "python3",
+        "tools/community/sync_persona_skills_from_upstream.py",
+    ],
 }
 VALIDATION_COMMANDS = (
     ["python3", "tools/community/source_lock_check.py"],
@@ -50,11 +112,15 @@ WORKFLOW_TIMEOUT_SECONDS = 3600
 
 
 class Runner(Protocol):
-    def run(self, cmd: list[str], cwd: Path | None = None): ...
+    def run(
+        self, cmd: list[str], cwd: Path | None = None
+    ) -> subprocess.CompletedProcess[str]: ...
 
 
 class SubprocessRunner:
-    def run(self, cmd: list[str], cwd: Path | None = None):
+    def run(
+        self, cmd: list[str], cwd: Path | None = None
+    ) -> subprocess.CompletedProcess[str]:
         return run_command(cmd, cwd=cwd, timeout=WORKFLOW_TIMEOUT_SECONDS)
 
 
@@ -92,7 +158,9 @@ def make_worktree_path(worktree_root: Path, branch_name: str) -> Path:
     return worktree_root / branch_name.replace("/", "-")
 
 
-def update_lock_text(text: str, statuses: Sequence[SourceStatus], captured_at: str) -> str:
+def update_lock_text(
+    text: str, statuses: Sequence[SourceStatus], captured_at: str
+) -> str:
     updated = text
     for status in statuses:
         if status.status != "update":
@@ -105,8 +173,18 @@ def update_lock_text(text: str, statuses: Sequence[SourceStatus], captured_at: s
         if not match:
             raise RuntimeError(f"source block not found: {status.name}")
         block = match.group(0)
-        block = re.sub(r"^    ref: .*$", f"    ref: {status.candidate_ref}", block, flags=re.MULTILINE)
-        block = re.sub(r"^    captured_at: .*$", f"    captured_at: {captured_at}", block, flags=re.MULTILINE)
+        block = re.sub(
+            r"^    ref: .*$",
+            f"    ref: {status.candidate_ref}",
+            block,
+            flags=re.MULTILINE,
+        )
+        block = re.sub(
+            r"^    captured_at: .*$",
+            f"    captured_at: {captured_at}",
+            block,
+            flags=re.MULTILINE,
+        )
         updated = updated[: match.start()] + block + updated[match.end() :]
     return updated
 
@@ -114,7 +192,9 @@ def update_lock_text(text: str, statuses: Sequence[SourceStatus], captured_at: s
 def _copy_for_fake_runner(repo_root: Path, worktree_path: Path) -> None:
     if worktree_path.exists():
         return
-    shutil.copytree(repo_root, worktree_path, ignore=shutil.ignore_patterns(".git", ".worktrees"))
+    shutil.copytree(
+        repo_root, worktree_path, ignore=shutil.ignore_patterns(".git", ".worktrees")
+    )
 
 
 def _run_or_block(
@@ -164,7 +244,9 @@ def _existing_branches(repo_root: Path) -> set[str]:
     return {line.strip() for line in result.stdout.splitlines() if line.strip()}
 
 
-def build_report_payload(result: UpdateResult, statuses: Sequence[SourceStatus]) -> dict[str, Any]:
+def build_report_payload(
+    result: UpdateResult, statuses: Sequence[SourceStatus]
+) -> dict[str, Any]:
     result_payload = asdict(result)
     validations = result_payload.pop("validations")
     install = result_payload.pop("install") or {}
@@ -172,13 +254,17 @@ def build_report_payload(result: UpdateResult, statuses: Sequence[SourceStatus])
     return {
         "result": result_payload,
         "checked_sources": checked_sources,
-        "sources": [source for source in checked_sources if source.get("status") == "update"],
+        "sources": [
+            source for source in checked_sources if source.get("status") == "update"
+        ],
         "validations": validations,
         "install": install,
     }
 
 
-def _write_updated_source_lock(worktree_path: Path, statuses: Sequence[SourceStatus], today: str) -> None:
+def _write_updated_source_lock(
+    worktree_path: Path, statuses: Sequence[SourceStatus], today: str
+) -> None:
     source_lock = worktree_path / "community" / "SOURCES.yaml"
     source_lock.write_text(
         update_lock_text(source_lock.read_text(encoding="utf-8"), statuses, today),
@@ -303,7 +389,13 @@ def _apply_updates_in_worktree(
     if isinstance(validations, UpdateResult):
         return validations
 
-    full_check = _run_workflow_commands(runner, [FULL_CHECK_COMMAND], phase="full-check install gate", branch=branch, worktree_path=worktree_path)
+    full_check = _run_workflow_commands(
+        runner,
+        [FULL_CHECK_COMMAND],
+        phase="full-check install gate",
+        branch=branch,
+        worktree_path=worktree_path,
+    )
     if isinstance(full_check, UpdateResult):
         return full_check
     validations += full_check
@@ -358,7 +450,9 @@ def run_update_flow(
 ) -> UpdateResult:
     blocked = [status for status in statuses if status.status == "blocked"]
     if blocked:
-        return UpdateResult(status="blocked", failed_phase="candidate", stderr=blocked[0].blocker)
+        return UpdateResult(
+            status="blocked", failed_phase="candidate", stderr=blocked[0].blocker
+        )
 
     updates = [status for status in statuses if status.status == "update"]
     if not updates:
@@ -395,17 +489,30 @@ def run_update_flow(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run managed skill pulls.")
-    parser.add_argument("--repo-root", default=".", help="Repository root. Defaults to current directory.")
-    parser.add_argument("--candidate-json", required=True, help="JSON produced by check_candidates.py.")
-    parser.add_argument("--today", required=True, help="Capture date in YYYY-MM-DD format.")
-    parser.add_argument("--output-json", required=True, help="Path for update result JSON.")
+    parser.add_argument(
+        "--repo-root",
+        default=".",
+        help="Repository root. Defaults to current directory.",
+    )
+    parser.add_argument(
+        "--candidate-json", required=True, help="JSON produced by check_candidates.py."
+    )
+    parser.add_argument(
+        "--today", required=True, help="Capture date in YYYY-MM-DD format."
+    )
+    parser.add_argument(
+        "--output-json", required=True, help="Path for update result JSON."
+    )
     args = parser.parse_args()
 
     statuses = load_statuses(Path(args.candidate_json))
-    result = run_update_flow(repo_root=Path(args.repo_root), statuses=statuses, today=args.today)
+    result = run_update_flow(
+        repo_root=Path(args.repo_root), statuses=statuses, today=args.today
+    )
     write_json(Path(args.output_json), build_report_payload(result, statuses))
     if result.status == "blocked":
         raise SystemExit(1)
+
 
 if __name__ == "__main__":
     main()

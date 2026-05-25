@@ -26,7 +26,7 @@
     "proving_commands": [
       {
         "command": "bash tests/test-standard-chain-foundation-registry.sh",
-        "current_output_ref": "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#green",
+        "current_output_ref": "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root",
         "result": "pass"
       }
     ],

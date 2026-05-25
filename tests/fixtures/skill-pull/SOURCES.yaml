@@ -67,6 +67,10 @@ sources:
     repo: https://github.com/zhaono1/agent-playbook
     ref: ooo555
     captured_at: 2026-05-12
+  skills_sh_softaworks_mermaid_diagrams:
+    repo: https://github.com/softaworks/agent-toolkit
+    ref: vvv222
+    captured_at: 2026-05-25
   persona_colleague_skill:
     repo: https://github.com/titanwings/colleague-skill
     ref: ggg777

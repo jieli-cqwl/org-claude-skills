@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import NoReturn
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -37,7 +38,10 @@ SKILL_SOURCES = {
     "code-to-prd": {
         "source_name": "skills_sh_alirezarezvani_code_to_prd",
         "repo_dir_name": "alirezarezvani-claude-skills",
-        "relative_path": Path("product-team") / "code-to-prd" / "skills" / "code-to-prd",
+        "relative_path": Path("product-team")
+        / "code-to-prd"
+        / "skills"
+        / "code-to-prd",
         "display_name": "Code To PRD",
         "short_description": "Manual reverse engineering of an existing codebase into a PRD",
         "default_prompt": "Use $code-to-prd to manually reverse-engineer a PRD from an existing codebase.",
@@ -76,6 +80,17 @@ SKILL_SOURCES = {
         "short_description": "Manual knowledge-graph generation from code, docs, papers, images, and videos",
         "default_prompt": "Use $graphify to manually build or query a knowledge graph for local project content.",
         "local_arg": "graphify_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": True,
+    },
+    "mermaid-diagrams": {
+        "source_name": "skills_sh_softaworks_mermaid_diagrams",
+        "repo_dir_name": "softaworks-agent-toolkit",
+        "relative_path": Path("skills") / "mermaid-diagrams",
+        "display_name": "Mermaid Diagrams",
+        "short_description": "Manual Mermaid diagram generation for architecture and technical documentation",
+        "default_prompt": "Use $mermaid-diagrams to manually create Mermaid diagrams for technical documentation.",
+        "local_arg": "mermaid_diagrams_source_dir",
         "codex_adapter": False,
         "copy_root_license": True,
     },
@@ -137,7 +152,7 @@ SKILL_SOURCES = {
 }
 
 
-def fail(message: str) -> None:
+def fail(message: str) -> NoReturn:
     """Exit with a human-readable error message."""
     raise SystemExit(message)
 
@@ -161,7 +176,9 @@ def load_lock() -> dict[str, dict[str, str]]:
         body = block_match.group("body")
         fields: dict[str, str] = {}
         for key in ("repo", "ref", "captured_at"):
-            field_match = re.search(rf"^    {key}:\s*(?P<value>\S.+?)\s*$", body, flags=re.MULTILINE)
+            field_match = re.search(
+                rf"^    {key}:\s*(?P<value>\S.+?)\s*$", body, flags=re.MULTILINE
+            )
             if not field_match:
                 fail(f"missing {source_name}.{key} in {LOCK_FILE}")
             fields[key] = field_match.group("value")

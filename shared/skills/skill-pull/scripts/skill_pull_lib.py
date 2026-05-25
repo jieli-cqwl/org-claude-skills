@@ -40,6 +40,7 @@ MANAGED_SOURCE_NAMES = (
     "skills_sh_notebooklm",
     "skills_sh_othmanadi_planning_with_files",
     "skills_sh_self_improving_agent",
+    "skills_sh_softaworks_mermaid_diagrams",
     "persona_colleague_skill",
     "persona_nuwa_skill",
     "persona_yourself_skill",
@@ -87,7 +88,9 @@ class SourceStatus:
 
 def _field(body: str, key: str, source_name: str) -> str:
     """Read a scalar field from a simple source-lock block."""
-    match = re.search(rf"^    {re.escape(key)}:\s*(?P<value>\S.+?)\s*$", body, flags=re.MULTILINE)
+    match = re.search(
+        rf"^    {re.escape(key)}:\s*(?P<value>\S.+?)\s*$", body, flags=re.MULTILINE
+    )
     if not match:
         raise ValueError(f"source {source_name} missing field: {key}")
     return match.group("value")
@@ -190,7 +193,9 @@ def _git_ls_remote(repo: str, ref: str) -> str:
     """Resolve a remote ref to a commit hash using git."""
     result = run_command(["git", "ls-remote", repo, ref])
     if result.returncode != 0:
-        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "git ls-remote failed")
+        raise RuntimeError(
+            result.stderr.strip() or result.stdout.strip() or "git ls-remote failed"
+        )
     first = result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
     if not first:
         raise RuntimeError(f"remote ref not found: {ref}")
@@ -201,7 +206,11 @@ def _default_branch_ref(repo: str) -> str:
     """Resolve the upstream default branch ref."""
     result = run_command(["git", "ls-remote", "--symref", repo, "HEAD"])
     if result.returncode != 0:
-        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "default branch lookup failed")
+        raise RuntimeError(
+            result.stderr.strip()
+            or result.stdout.strip()
+            or "default branch lookup failed"
+        )
     for line in result.stdout.splitlines():
         if line.startswith("ref: "):
             return line.split()[1]
@@ -210,16 +219,27 @@ def _default_branch_ref(repo: str) -> str:
 
 def _latest_release(repo: str) -> dict[str, Any] | None:
     """Fetch latest non-prerelease GitHub release metadata."""
-    match = re.match(r"https://github\.com/(?P<owner>[A-Za-z0-9_.-]+)/(?P<repo>[A-Za-z0-9_.-]+?)(?:\.git)?$", repo)
+    match = re.match(
+        r"https://github\.com/(?P<owner>[A-Za-z0-9_.-]+)/(?P<repo>[A-Za-z0-9_.-]+?)(?:\.git)?$",
+        repo,
+    )
     if not match:
         return None
     url = f"https://api.github.com/repos/{match.group('owner')}/{match.group('repo')}/releases/latest"
     parsed = urllib.parse.urlparse(url)
-    if parsed.scheme != "https" or parsed.netloc != "api.github.com" or not parsed.path.startswith("/repos/"):
+    if (
+        parsed.scheme != "https"
+        or parsed.netloc != "api.github.com"
+        or not parsed.path.startswith("/repos/")
+    ):
         raise RuntimeError("unexpected GitHub releases API URL")
-    request = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json"})
+    request = urllib.request.Request(
+        url, headers={"Accept": "application/vnd.github+json"}
+    )
     try:
-        with urllib.request.urlopen(request, timeout=DEFAULT_TIMEOUT_SECONDS) as response:  # nosec B310
+        with urllib.request.urlopen(
+            request, timeout=DEFAULT_TIMEOUT_SECONDS
+        ) as response:  # nosec B310
             payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
@@ -245,7 +265,9 @@ def lookup_candidate(lock: SourceLock) -> CandidateRef:
             return CandidateRef(name=lock.name, ref=ref, source="release", summary=tag)
         default_ref = _default_branch_ref(lock.repo)
         ref = _git_ls_remote(lock.repo, default_ref)
-        return CandidateRef(name=lock.name, ref=ref, source="default_branch", summary=default_ref)
+        return CandidateRef(
+            name=lock.name, ref=ref, source="default_branch", summary=default_ref
+        )
     except RuntimeError as exc:
         return CandidateRef(name=lock.name, ref="", source="error", blocker=str(exc))
 
@@ -255,7 +277,9 @@ def load_candidate_fixture(path: Path) -> dict[str, CandidateRef]:
     data = json.loads(path.read_text(encoding="utf-8"))
     items = data.get("candidates", data)
     return {
-        name: CandidateRef(name=name, **{key: value for key, value in item.items() if key != "name"})
+        name: CandidateRef(
+            name=name, **{key: value for key, value in item.items() if key != "name"}
+        )
         for name, item in items.items()
     }
 
@@ -275,11 +299,17 @@ def load_statuses(path: Path) -> list[SourceStatus]:
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     """Write stable pretty JSON for script handoffs."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
 
 
 def build_arg_parser(description: str) -> argparse.ArgumentParser:
     """Create a parser with the common repo-root argument."""
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("--repo-root", default=".", help="Repository root. Defaults to current directory.")
+    parser.add_argument(
+        "--repo-root",
+        default=".",
+        help="Repository root. Defaults to current directory.",
+    )
     return parser

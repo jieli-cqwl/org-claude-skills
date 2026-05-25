@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 import sys
 from pathlib import Path
+from typing import NoReturn
 
 try:
     import sync_canonical_from_upstream as sync  # type: ignore
@@ -27,6 +28,7 @@ EXPECTED_REPOS = {
     "skills_sh_bb_browser": "https://github.com/epiral/bb-browser",
     "skills_sh_github_prd": "https://github.com/github/awesome-copilot",
     "skills_sh_graphify": "https://github.com/safishamsi/graphify",
+    "skills_sh_softaworks_mermaid_diagrams": "https://github.com/softaworks/agent-toolkit",
     "skills_sh_humanizer_zh": "https://github.com/op7418/Humanizer-zh",
     "skills_sh_mattpocock_to_prd": "https://github.com/mattpocock/skills",
     "skills_sh_notebooklm": "https://github.com/PleasePrompto/notebooklm-skill",
@@ -39,7 +41,7 @@ EXPECTED_REPOS = {
 }
 
 
-def fail(message: str) -> None:
+def fail(message: str) -> NoReturn:
     print(f"[FAIL] {message}", file=sys.stderr)
     raise SystemExit(1)
 
@@ -76,7 +78,9 @@ def validate_source(text: str, source_name: str, expected_repo: str) -> None:
         rf"^    repo: {re.escape(expected_repo)}$",
         f"SOURCES.yaml 中 {source_name}.repo 不匹配预期: {expected_repo}",
     )
-    require_pattern(block, r"^    ref: \S.+$", f"SOURCES.yaml 中 {source_name}.ref 缺失或为空")
+    require_pattern(
+        block, r"^    ref: \S.+$", f"SOURCES.yaml 中 {source_name}.ref 缺失或为空"
+    )
     require_pattern(
         block,
         r"^    captured_at: \d{4}-\d{2}-\d{2}$",
@@ -90,7 +94,9 @@ def validate_source_names(text: str) -> None:
     names = re.findall(r"^  ([A-Za-z0-9_]+):\s*$", text, flags=re.MULTILINE)
     expected = sorted(EXPECTED_REPOS)
     if sorted(names) != expected:
-        fail(f"SOURCES.yaml source 集合不匹配，expected={expected}, actual={sorted(names)}")
+        fail(
+            f"SOURCES.yaml source 集合不匹配，expected={expected}, actual={sorted(names)}"
+        )
 
 
 def validate_superpowers_lock(text: str) -> None:
@@ -159,11 +165,17 @@ def validate_boundary_contract(path: Path) -> None:
     _require_existing_target(text, "mirror_root", directory=True)
     _require_existing_target(text, "first_party_chain_contract")
 
-    require_pattern(text, r"^official_skill_count: 14$", "boundary contract official_skill_count 必须为 14")
+    require_pattern(
+        text,
+        r"^official_skill_count: 14$",
+        "boundary contract official_skill_count 必须为 14",
+    )
     skills = _extract_top_list(text, "official_skills")
     expected = sorted(sync.OFFICIAL_SUPERPOWERS_SKILLS)
     if sorted(skills) != expected:
-        fail(f"boundary contract official_skills 不匹配，expected={expected}, actual={sorted(skills)}")
+        fail(
+            f"boundary contract official_skills 不匹配，expected={expected}, actual={sorted(skills)}"
+        )
     require_pattern(
         text,
         r"^  superpowers_agent_adapters_allowed: false$",

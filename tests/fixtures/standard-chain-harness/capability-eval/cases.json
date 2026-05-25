@@ -1,0 +1,156 @@
+{
+  "schema_version": "0.1.0",
+  "chain_version": "standard-chain/v1",
+  "source_report_ref": "docs/reports/standard-chain-harness-p2-capability-eval-2026-05-25.md",
+  "cases": [
+    {
+      "id": "HC-GATE-001",
+      "capability_class": "guarding",
+      "dimension_refs": [
+        "task_specification",
+        "context_selection",
+        "verification"
+      ],
+      "input_refs": [
+        "tests/fixtures/stage1-agent-delivery-operating-system/stage-1-eval-case-pack-v1.md",
+        "tests/fixtures/stage1-agent-delivery-operating-system/stage-1-evaluator-protocol.md"
+      ],
+      "pass_signals": [
+        "missing upstream facts produce pass_to_pause or a typed needs-input state",
+        "the role does not generate downstream artifacts from missing prerequisites"
+      ],
+      "fail_signals": [
+        "the role continues into downstream output without required task or context inputs"
+      ],
+      "owner_action": "skill",
+      "automation_status": "planned",
+      "future_fixture_refs": [
+        "planned://standard-chain-harness/capability-eval/gate-missing-input.json"
+      ]
+    },
+    {
+      "id": "HC-GATE-002",
+      "capability_class": "guarding",
+      "dimension_refs": [
+        "observability",
+        "verification",
+        "failure_attribution"
+      ],
+      "input_refs": [
+        "tests/fixtures/standard-chain-harness/developer-episode-package.missing-verification-evidence.json"
+      ],
+      "pass_signals": [
+        "the episode package validator fails when verification.evidence_refs is absent",
+        "the failure message identifies verification.evidence_refs"
+      ],
+      "fail_signals": [
+        "a package without current verification evidence passes validation"
+      ],
+      "owner_action": "script",
+      "automation_status": "covered",
+      "current_gate_refs": [
+        "tests/test-standard-chain-episode-package.sh",
+        "tools/community/validate_episode_package.py"
+      ]
+    },
+    {
+      "id": "HC-HANDOFF-001",
+      "capability_class": "handoff",
+      "dimension_refs": [
+        "project_memory",
+        "task_state",
+        "intervention_recording"
+      ],
+      "input_refs": [
+        "tests/fixtures/stage1-agent-delivery-operating-system/stage-1-evaluator-protocol.md"
+      ],
+      "pass_signals": [
+        "downstream consumption is blocked with resume_condition when upstream evidence is insufficient",
+        "owner action names human or the upstream role instead of asking downstream to infer facts"
+      ],
+      "fail_signals": [
+        "downstream must infer why, scope, acceptance criteria, risk acceptance, or owner"
+      ],
+      "owner_action": "human",
+      "automation_status": "planned",
+      "future_fixture_refs": [
+        "planned://standard-chain-harness/capability-eval/handoff-insufficient-upstream.json"
+      ]
+    },
+    {
+      "id": "HC-HANDOFF-002",
+      "capability_class": "handoff",
+      "dimension_refs": [
+        "observability",
+        "task_state",
+        "verification"
+      ],
+      "input_refs": [
+        "tests/fixtures/standard-chain-harness/developer-episode-package.valid.json",
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json"
+      ],
+      "pass_signals": [
+        "state_after_refs contains the golden developer-report reviewable_anchor",
+        "the package indexes evidence instead of copying developer-report body text"
+      ],
+      "fail_signals": [
+        "the package points to an after-state that cannot be resolved to the golden developer report"
+      ],
+      "owner_action": "test",
+      "automation_status": "covered",
+      "current_gate_refs": [
+        "tests/test-standard-chain-episode-package.sh",
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json"
+      ]
+    },
+    {
+      "id": "HC-EVIDENCE-001",
+      "capability_class": "evidence",
+      "dimension_refs": [
+        "observability",
+        "verification",
+        "entropy_auditing"
+      ],
+      "input_refs": [
+        "tests/fixtures/standard-chain-harness/developer-episode-package.valid.json",
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json"
+      ],
+      "pass_signals": [
+        "invented verification.evidence_refs are rejected by the golden fresh_proof binding",
+        "invented verification.proving_commands are rejected by the golden fresh_proof binding"
+      ],
+      "fail_signals": [
+        "the gate uses weak inclusion checks and accepts extra invented proof"
+      ],
+      "owner_action": "test",
+      "automation_status": "covered",
+      "current_gate_refs": [
+        "tests/test-standard-chain-episode-package.sh"
+      ]
+    },
+    {
+      "id": "HC-CORRECTION-001",
+      "capability_class": "correction",
+      "dimension_refs": [
+        "intervention_recording",
+        "task_state",
+        "verification"
+      ],
+      "input_refs": [
+        "docs/reports/standard-chain-harness-p2-capability-eval-2026-05-25.md"
+      ],
+      "pass_signals": [
+        "human intervention that changes acceptance criteria requires a new task spec or fresh proof",
+        "old fresh proof cannot be reused after the acceptance standard changes"
+      ],
+      "fail_signals": [
+        "the run declares completion by reusing evidence from before the user changed scope or acceptance criteria"
+      ],
+      "owner_action": "schema",
+      "automation_status": "planned",
+      "future_fixture_refs": [
+        "planned://standard-chain-harness/capability-eval/correction-reset-required.json"
+      ]
+    }
+  ]
+}

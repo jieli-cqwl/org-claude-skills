@@ -29,6 +29,7 @@ CHECKS = [
     EvalCheck("stage2_product_director_handoff", "tools/eval/scripts/validate_stage2_product_director_handoff_materials.py"),
     EvalCheck("stage2_confirmed_brief_package", "tools/eval/scripts/validate_stage2_confirmed_brief_materials.py"),
     EvalCheck("stage2_product_manager_package", "tools/eval/scripts/validate_stage2_product_manager_materials.py"),
+    EvalCheck("stage2_director_pm_move_in_chain", "tools/eval/scripts/validate_product_director_manager_move_in_chain.py"),
     EvalCheck("stage2_design_package", "tools/eval/scripts/validate_stage2_design_materials.py"),
     EvalCheck("stage2_test_design_package", "tools/eval/scripts/validate_stage2_test_design_materials.py"),
     EvalCheck("stage2_tech_lead_package", "tools/eval/scripts/validate_stage2_tech_lead_materials.py"),

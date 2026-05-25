@@ -25,6 +25,29 @@ official_skills=(
   writing-skills
 )
 
+install_test_assert_rendered_shared_tree_matches_runtime() {
+  local source_dir="$1"
+  local target_dir="$2"
+  local runtime_home_literal="$3"
+  local label="$4"
+  local source rel expected
+
+  while IFS= read -r source; do
+    [ -n "$source" ] || continue
+    rel="${source#"$source_dir"/}"
+    install_test_assert_file_exists "$target_dir/$rel" "$label should include $rel"
+    expected="$(mktemp)"
+    sed "s|{{RUNTIME_HOME}}|$runtime_home_literal|g" "$source" > "$expected"
+    if ! cmp -s "$expected" "$target_dir/$rel"; then
+      printf '[DIFF] %s %s\n' "$label" "$rel" >&2
+      diff -u "$expected" "$target_dir/$rel" >&2 || true
+      rm -f "$expected"
+      install_test_fail "$label should match rendered shared source: $rel"
+    fi
+    rm -f "$expected"
+  done < <(find "$source_dir" -maxdepth 1 -type f -name '*.md' | sort)
+}
+
 install_test_case_start "runtime-smoke: install and uninstall preserve runtime shape"
 home_dir="$(install_test_new_home runtime-smoke)"
 state_root="$(install_test_state_root "$home_dir")"
@@ -37,6 +60,10 @@ install_test_assert_file_exists "$home_dir/.claude/CLAUDE.md" "claude runtime sh
 install_test_assert_file_exists "$home_dir/.codex/AGENTS.md" "codex runtime should include AGENTS.md"
 install_test_assert_file_exists "$codex_skills_dir/product-manager/SKILL.md" "codex user skills should install to official ~/.agents/skills"
 install_test_assert_path_absent "$home_dir/.codex/skills/product-manager/SKILL.md" "codex managed skills should not remain in legacy ~/.codex/skills"
+install_test_assert_rendered_shared_tree_matches_runtime "$ROOT/shared/rules" "$home_dir/.claude/rules" '$HOME/.claude' "claude rules"
+install_test_assert_rendered_shared_tree_matches_runtime "$ROOT/shared/reference" "$home_dir/.claude/reference" '$HOME/.claude' "claude reference"
+install_test_assert_rendered_shared_tree_matches_runtime "$ROOT/shared/rules" "$home_dir/.codex/rules" '$HOME/.codex' "codex rules"
+install_test_assert_rendered_shared_tree_matches_runtime "$ROOT/shared/reference" "$home_dir/.codex/reference" '$HOME/.codex' "codex reference"
 
 for runtime in "$home_dir/.claude/skills" "$codex_skills_dir"; do
   for skill in "${official_skills[@]}"; do
@@ -78,6 +105,10 @@ install_test_assert_file_exists "$codex_skills_dir/code-to-prd/SKILL.md" "codex 
 install_test_assert_file_contains "$codex_skills_dir/code-to-prd/agents/openai.yaml" "allow_implicit_invocation: false" "codex code-to-prd should disable implicit invocation"
 install_test_assert_file_exists "$codex_skills_dir/graphify/SKILL.md" "codex runtime should include graphify"
 install_test_assert_file_contains "$codex_skills_dir/graphify/agents/openai.yaml" "allow_implicit_invocation: false" "codex graphify should disable implicit invocation"
+install_test_assert_file_exists "$home_dir/.claude/skills/mermaid-diagrams/SKILL.md" "claude runtime should include mermaid-diagrams"
+install_test_assert_file_contains "$home_dir/.claude/skills/mermaid-diagrams/SKILL.md" "disable-model-invocation: true" "claude mermaid-diagrams should be manual-only"
+install_test_assert_file_exists "$codex_skills_dir/mermaid-diagrams/SKILL.md" "codex runtime should include mermaid-diagrams"
+install_test_assert_file_contains "$codex_skills_dir/mermaid-diagrams/agents/openai.yaml" "allow_implicit_invocation: false" "codex mermaid-diagrams should disable implicit invocation"
 install_test_assert_file_exists "$home_dir/.claude/skills/planning-with-files/SKILL.md" "claude runtime should include planning-with-files"
 install_test_assert_file_contains "$home_dir/.claude/skills/planning-with-files/SKILL.md" "disable-model-invocation: true" "claude planning-with-files should be manual-only"
 install_test_assert_file_not_contains "$home_dir/.claude/skills/planning-with-files/SKILL.md" "hooks:" "claude planning-with-files should not keep upstream auto hooks"
@@ -123,5 +154,16 @@ install_test_assert_path_absent "$state_root/claude" "claude state dir should be
 install_test_assert_path_absent "$state_root/codex" "codex state dir should be removed after uninstall"
 
 install_test_case_pass "runtime-smoke: install and uninstall preserve runtime shape"
+
+install_test_case_start "runtime-smoke: quick check detects runtime reference drift"
+home_dir="$(install_test_new_home runtime-reference-drift)"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-reference-drift-install)" --target codex --check quick
+printf '\n# drift probe\n' >> "$home_dir/.codex/reference/测试规范.md"
+drift_log="$(install_test_log_path runtime-reference-drift-check)"
+if install_test_run_install_fake_openspec_allow_failure "$home_dir" "$drift_log" --target codex --check quick; then
+  install_test_fail "codex quick check should reject runtime reference drift"
+fi
+install_test_assert_file_contains "$drift_log" "与 shared 源不一致" "codex quick check should explain runtime reference drift"
+install_test_case_pass "runtime-smoke: quick check detects runtime reference drift"
 
 printf '\nInstall runtime smoke tests passed: %d\n' "$INSTALL_TEST_CASE_COUNT"

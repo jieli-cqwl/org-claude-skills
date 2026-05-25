@@ -735,6 +735,7 @@ community_skills_sh_selected() {
     "bb-browser" \
     "code-to-prd" \
     "graphify" \
+    "mermaid-diagrams" \
     "humanizer-zh" \
     "notebooklm" \
     "planning-with-files" \
@@ -2175,6 +2176,7 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/baoyu-markdown-to-html/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/code-to-prd/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/graphify/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/mermaid-diagrams/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/bb-browser/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/humanizer-zh/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/notebooklm/SKILL.md" ] || return 1
@@ -2243,6 +2245,8 @@ runtime_target_complete() {
     [ -f "$codex_skills_dir/code-to-prd/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/graphify/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/graphify/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/mermaid-diagrams/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/mermaid-diagrams/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/humanizer-zh/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/humanizer-zh/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/notebooklm/SKILL.md" ] || return 1
@@ -2630,6 +2634,27 @@ quick_check_control_plane_files() {
   [ -z "$missing_catalog_paths" ] || fail "Quick Check 失败: $display 缺少 standard-chain catalog 资源: $missing_catalog_paths"
 }
 
+quick_check_rendered_shared_tree() {
+  local source_dir="$1"
+  local target_dir="$2"
+  local runtime_home_literal="$3"
+  local display="$4"
+  local source rel expected
+
+  while IFS= read -r source; do
+    [ -n "$source" ] || continue
+    rel="${source#"$source_dir"/}"
+    [ -f "$target_dir/$rel" ] || fail "Quick Check 失败: $display/$rel 不存在"
+    expected="$(mktemp)"
+    sed "s|{{RUNTIME_HOME}}|$runtime_home_literal|g" "$source" > "$expected"
+    if ! cmp -s "$expected" "$target_dir/$rel"; then
+      rm -f "$expected"
+      fail "Quick Check 失败: $display/$rel 与 shared 源不一致"
+    fi
+    rm -f "$expected"
+  done < <(find "$source_dir" -maxdepth 1 -type f -name '*.md' | sort)
+}
+
 quick_check_superpowers_clean() {
   local skills_dir="$1"
   local display="$2"
@@ -2667,6 +2692,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/skill-creator/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/skill-creator/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/feishu-docs/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/deep-research/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/deep-research/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/mermaid-diagrams/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mermaid-diagrams/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/skill-auditor" ] || fail "Quick Check 失败: ~/.claude/skills/skill-auditor 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/new-skills" ] || fail "Quick Check 失败: ~/.claude/skills/new-skills 不应存在"
     [ -f "$CLAUDE_DIR/skills/mcp-builder/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mcp-builder/SKILL.md 不存在"
@@ -2682,6 +2708,8 @@ quick_check() {
     [ -x "$CLAUDE_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.claude/hooks/managed/block_dangerous.sh 不可执行"
     [ -f "$CLAUDE_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.claude/hooks/registry.json 不存在"
     [ -f "$CLAUDE_DIR/CLAUDE.md" ] || fail "Quick Check 失败: ~/.claude/CLAUDE.md 不存在"
+    quick_check_rendered_shared_tree "$SHARED_SOURCE/rules" "$CLAUDE_DIR/rules" "\$HOME/.claude" "$HOME/.claude/rules"
+    quick_check_rendered_shared_tree "$SHARED_SOURCE/reference" "$CLAUDE_DIR/reference" "\$HOME/.claude" "$HOME/.claude/reference"
     claude_agent_files_match_contract "$CLAUDE_DIR" || fail "Quick Check 失败: ~/.claude/agents 不符合 Claude Code 平台 agent 合同或重复了 skill 能力细节"
     [ -f "$CLAUDE_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/protocols/phase-selection-protocol.md 不存在"
     [ ! -f "$CLAUDE_DIR/reference/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.claude/reference/phase-selection-protocol.md 不应存在"
@@ -2727,10 +2755,14 @@ quick_check() {
     [ -f "$codex_skills_dir/agent-reach/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/SKILL.md 不存在"
     [ -f "$codex_skills_dir/bb-browser/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/bb-browser/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/humanizer-zh/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/humanizer-zh/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/mermaid-diagrams/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/mermaid-diagrams/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/mermaid-diagrams/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/mermaid-diagrams/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/notebooklm/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/notebooklm/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/self-improving-agent/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/self-improving-agent/SKILL.md 不存在"
     [ -f "$codex_skills_dir/cli-updater/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/cli-updater/SKILL.md 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
+    quick_check_rendered_shared_tree "$SHARED_SOURCE/rules" "$CODEX_DIR/rules" "\$HOME/.codex" "$HOME/.codex/rules"
+    quick_check_rendered_shared_tree "$SHARED_SOURCE/reference" "$CODEX_DIR/reference" "\$HOME/.codex" "$HOME/.codex/reference"
     [ -f "$CODEX_DIR/agents/code-reviewer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/code-reviewer.toml 不存在"
     [ -f "$CODEX_DIR/agents/consistency-auditor.toml" ] || fail "Quick Check 失败: ~/.codex/agents/consistency-auditor.toml 不存在"
     [ ! -e "$CODEX_DIR/agents/generic-code-reviewer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/generic-code-reviewer.toml 不应存在"

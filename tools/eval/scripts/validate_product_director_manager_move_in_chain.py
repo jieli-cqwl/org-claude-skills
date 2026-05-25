@@ -376,6 +376,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--package", type=Path)
     parser.add_argument("--rubric", type=Path, default=DEFAULT_RUBRIC)
+    parser.add_argument("--repo-root", type=Path, default=ROOT, help="Repository root.")
     parser.add_argument("--emit-package", action="store_true")
     return parser.parse_args()
 
@@ -386,9 +387,8 @@ def main() -> int:
     if args.emit_package:
         print(json.dumps(build_package(rubric), ensure_ascii=False, indent=2, sort_keys=True))
         return 0
-    if args.package is None:
-        raise SystemExit("--package is required unless --emit-package is used")
-    result = validate_package(load_json(args.package), rubric)
+    package = load_json(args.package) if args.package is not None else build_package(rubric)
+    result = validate_package(package, rubric)
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 1 if result["status"] != "pass" else 0
 

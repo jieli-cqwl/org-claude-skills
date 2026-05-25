@@ -124,6 +124,17 @@ sources:
       - Vendor upstream `graphify/skill-codex.md` as `graphify/SKILL.md`，正文保持 upstream 原文并复制 root LICENSE。
       - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会扫描目录、写入 `graphify-out/` 并可调用/安装 Python `graphifyy`。
       - Upstream root LICENSE declares MIT.
+  skills_sh_softaworks_mermaid_diagrams:
+    repo: https://github.com/softaworks/agent-toolkit
+    ref: 3027f20f3181758385a1bb8c022d4041dfb4de84
+    captured_at: 2026-05-25
+    scope:
+      - community/skills-sh/skills/mermaid-diagrams
+    notes:
+      - Vendor upstream `skills/mermaid-diagrams` as `mermaid-diagrams`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 manual-only 可见性，必须手动触发。
+      - 不生成 Codex source adapter；Codex runtime 由 runtime surface 工具生成 manual policy。
+      - Upstream root LICENSE declares MIT.
   skills_sh_baoyu_markdown_to_html:
     repo: https://github.com/JimLiu/baoyu-skills
     ref: dea9322d0db848b46af0e5a43df303537904a679

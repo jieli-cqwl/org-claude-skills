@@ -6,6 +6,7 @@ SCRIPT="$ROOT/tools/community/validate_episode_package.py"
 FIXTURE_ROOT="$ROOT/tests/fixtures/standard-chain-harness"
 VALID="$FIXTURE_ROOT/developer-episode-package.valid.json"
 MISSING_EVIDENCE="$FIXTURE_ROOT/developer-episode-package.missing-verification-evidence.json"
+GOLDEN_DEVELOPER_REPORT="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -16,6 +17,7 @@ fail() {
 [ -f "$ROOT/contracts/episode-package.schema.json" ] || fail "missing episode package schema"
 [ -f "$VALID" ] || fail "missing valid episode package fixture"
 [ -f "$MISSING_EVIDENCE" ] || fail "missing negative episode package fixture"
+[ -f "$GOLDEN_DEVELOPER_REPORT" ] || fail "missing golden developer report fixture"
 
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/episode-package.XXXXXX")"
 cleanup() {
@@ -23,10 +25,49 @@ cleanup() {
 }
 trap cleanup EXIT
 
+assert_indexes_golden_fresh_proof() {
+  local package_file="$1"
+  jq -e -n \
+    --slurpfile package "$package_file" \
+    --slurpfile report "$GOLDEN_DEVELOPER_REPORT" '
+      def normalized_command:
+        {
+          command: .command,
+          current_output_ref: .current_output_ref,
+          result: (.result | ascii_downcase)
+        };
+
+      ($package[0]) as $package |
+      ($report[0]) as $report |
+      ($package.state_after_refs | index($report.reviewable_anchor) != null)
+      and ($package.verification.evidence_refs == $report.fresh_proof.current_evidence_refs)
+      and (
+        [$package.verification.proving_commands[] | normalized_command]
+        == [$report.fresh_proof.proving_commands[] | normalized_command]
+      )
+    ' >/dev/null
+}
+
 python3 "$SCRIPT" --package "$VALID" >"$TMP_DIR/valid.out" \
   || fail "valid developer episode package should pass"
 jq -e '.status == "PASS" and .episode_id == "developer:T1:attempt-1"' "$TMP_DIR/valid.out" >/dev/null \
   || fail "valid episode package output should identify the package"
+assert_indexes_golden_fresh_proof "$VALID" \
+  || fail "valid episode package should index the golden developer-report fresh_proof without inventing verification refs"
+
+jq '.verification.evidence_refs += ["artifact://evidence/invented.log@ev-x#fake"]' "$VALID" >"$TMP_DIR/invented-evidence-ref.json"
+if assert_indexes_golden_fresh_proof "$TMP_DIR/invented-evidence-ref.json"; then
+  fail "golden fresh_proof binding should reject invented verification evidence refs"
+fi
+
+jq '.verification.proving_commands += [{
+  "command": "bash tests/fake.sh",
+  "current_output_ref": "artifact://evidence/invented.log@ev-x#fake",
+  "result": "pass"
+}]' "$VALID" >"$TMP_DIR/invented-proving-command.json"
+if assert_indexes_golden_fresh_proof "$TMP_DIR/invented-proving-command.json"; then
+  fail "golden fresh_proof binding should reject invented proving commands"
+fi
 
 if python3 "$SCRIPT" --package "$MISSING_EVIDENCE" >"$TMP_DIR/missing-evidence.out" 2>/dev/null; then
   cat "$TMP_DIR/missing-evidence.out" >&2
