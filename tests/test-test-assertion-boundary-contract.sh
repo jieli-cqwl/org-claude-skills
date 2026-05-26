@@ -95,6 +95,10 @@ assert_present '确认检查点未闭合不得 handoff' "$TMP_DIR/bad.out"
 assert_present '用户确认检查点未闭合前' "$TMP_DIR/bad.out"
 assert_present 'render_projection' "$TMP_DIR/bad.out"
 assert_present 'Owner Self-Check' "$TMP_DIR/bad.out"
+assert_present '输出沿着探索' "$TMP_DIR/bad.out"
+assert_present '继续执行 Checklist' "$TMP_DIR/bad.out"
+assert_present '用户是决策方' "$TMP_DIR/bad.out"
+assert_present '交付视角 review' "$TMP_DIR/bad.out"
 
 python3 "$CHECKER" --tests-dir "$TMP_DIR/good" >/dev/null
 python3 "$CHECKER" --repo-root "$ROOT" >/dev/null
