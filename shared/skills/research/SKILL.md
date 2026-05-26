@@ -52,9 +52,9 @@ Use it only when the answer must become a team judgment, not merely an explanati
 - GitHub repo adoption state such as `discard/watch/trial/deep-read/contribute/adopt`: route to `github-repo-radar`.
 - Work already ready for product/design/tech-lead/developer execution: hand off to the relevant downstream skill.
 
-## Checklist
+## Workflow Checklist
 
-You MUST complete these items in order:
+流程表：按顺序执行；分支只出现在 route、report required 和 user confirmation 三个点。
 
 1. **Route the request** -- decide whether this is lightweight answer, `/research`, `deep-research`, `github-repo-radar`, or downstream execution.
 2. **Define the target object** -- identify whether the target is a tool, candidate set, claim, article, method, trend, community object, or existing judgment.
@@ -65,46 +65,6 @@ You MUST complete these items in order:
 7. **Write report when required** -- write `docs/{feature}/research-report.md` only for formal report / 留档 / 团队评审 / 审计 requests.
 8. **Report self-review** -- scan for wrong source, stale source, missing opposition, weak evidence tier, overclaimed confidence, wrong profile, and missing next action.
 9. **User confirmation or route handoff** -- ask for confirmation only when formal report, scope change, cost change, or downstream handoff is involved.
-
-## Process Flow
-
-```dot
-digraph research {
-    "Route the request" [shape=box];
-    "Research needed?" [shape=diamond];
-    "Adjacent route?" [shape=diamond];
-    "Define the target object" [shape=box];
-    "Find the right sources" [shape=box];
-    "Target/source found?" [shape=diamond];
-    "Qualify evidence" [shape=box];
-    "Calibrate judgment" [shape=box];
-    "Create decision package" [shape=box];
-    "Report required?" [shape=diamond];
-    "Write research report" [shape=box];
-    "Report self-review" [shape=box];
-    "User confirms report?" [shape=diamond];
-    "Terminal: confirmed decision/report/route" [shape=doublecircle];
-
-    "Route the request" -> "Research needed?";
-    "Research needed?" -> "Create decision package" [label="lightweight answer"];
-    "Research needed?" -> "Adjacent route?" [label="yes"];
-    "Adjacent route?" -> "Terminal: confirmed decision/report/route" [label="deep-research or github-repo-radar"];
-    "Adjacent route?" -> "Define the target object" [label="no"];
-    "Define the target object" -> "Find the right sources";
-    "Find the right sources" -> "Target/source found?";
-    "Target/source found?" -> "Find the right sources" [label="no, expand variants"];
-    "Target/source found?" -> "Qualify evidence" [label="yes"];
-    "Qualify evidence" -> "Calibrate judgment";
-    "Calibrate judgment" -> "Create decision package";
-    "Create decision package" -> "Report required?";
-    "Report required?" -> "Terminal: confirmed decision/report/route" [label="no"];
-    "Report required?" -> "Write research report" [label="yes"];
-    "Write research report" -> "Report self-review";
-    "Report self-review" -> "User confirms report?";
-    "User confirms report?" -> "Write research report" [label="changes requested"];
-    "User confirms report?" -> "Terminal: confirmed decision/report/route" [label="confirmed"];
-}
-```
 
 ## Quick Triage And Routing
 
@@ -122,15 +82,15 @@ Routing rules:
 - 用户显式调用 `$deep-research`，或要求 Deep Research / 深度研究 / 横纵分析 / 历时共时分析 / Markdown + PDF 报告 -> `deep-research`。
 - 采用判断、候选取舍、观点吸收、对象识别、已有判断复核、外部方案理解 -> 留在 `research`。
 
-正式报告收口 requires Step 7 report writing, Report Self-Review, and user confirmation.
+正式报告收口 requires `docs/{feature}/research-report.md`, Report Self-Review, and user confirmation.
 
-## The Process
+## Core Contracts
 
-**Route the request:** Ask whether the user needs information, a source/object identity, or a team judgment. If no team action may follow, answer directly. If the work is broad long-form research, route to `deep-research`. If the work is repo adoption-state management, route to `github-repo-radar`.
+**Route the request:** Decide direct answer, lightweight `/research`, formal `/research`, `deep-research`, `github-repo-radar`, or downstream execution.
 
-**Define the target object:** Name the object being judged before searching deeply. It may be a tool, library, framework, product, MCP, plugin, skill, package, repo, article, method, best practice, competitor behavior, trend, candidate set, or existing recommendation. If this is unclear, ask one missing question.
+**Define the target object:** Name the object before searching deeply: tool, library, framework, product, MCP, plugin, skill, package, repo, article, method, best practice, competitor behavior, trend, candidate set, or existing recommendation. If unclear, ask one missing question.
 
-Also choose `presentation_profile` before final output:
+Choose `presentation_profile` before final output:
 
 - `decision`: 调研目的 is a near-term decision; 目标读者 needs the answer first; 读后动作 is adopt, reject, pilot, wait, or route.
 - `understanding`: 调研目的 is clear understanding; 目标读者 needs mechanism and boundary first; 读后动作 is learn, monitor, or narrow scope.
@@ -148,7 +108,7 @@ When profile routing is unclear, read `references/report-presentation-framework.
 - source freshness / timestamp.
 - remaining source blind spots.
 
-For community object identification, do not stop at the first plausible hit. Name variants and excluded lookalikes are mandatory.
+For community object identification, name variants and excluded lookalikes are mandatory.
 
 **Qualify evidence:** Evidence Qualification must separate evidence strength:
 
@@ -160,30 +120,11 @@ Weak evidence can explain interest; it cannot justify adoption by itself.
 
 When a candidate or claim needs more than a one-line evidence summary, read `references/evidence-package-guide.md` and create an evidence package before calibrating judgment.
 
-**Calibrate judgment:** Judgment Calibration turns evidence into a bounded conclusion:
-
-- Current judgment.
-- Confidence level and why.
-- Decisive reason.
-- Strongest support evidence.
-- Strongest opposing challenge.
-- Applicability boundary.
-- Failure boundary.
-- Reversal / flip condition.
-- Open verification item.
+**Calibrate judgment:** Judgment Calibration must output current judgment, confidence, decisive reason, strongest support, strongest opposing challenge, applicability boundary, failure boundary, reversal / flip condition, and open verification item.
 
 **Use agent teams carefully:** agent teams 只用于 Step 2/3/5 的多策略候选穷举、候选深挖和 challenger 挑战. 召集 agent teams only after the target object and route are clear. Give every member fixed input, evidence requirements, output format, and no-overreach rules. Members must not share conclusions before producing independent evidence.
 
-**Create decision package:** Decision Package is the default output. It is not a report. It must include:
-
-- Source Targeting Package summary.
-- Evidence Qualification summary.
-- Current judgment: adopt / conditionally adopt / reject / learn / monitor / needs more evidence.
-- Confidence.
-- Decisive reason.
-- Strongest opposition.
-- Reversal condition.
-- Next smallest action.
+**Create decision package:** Decision Package is the default output, not a report. Include Source Targeting Package summary, Evidence Qualification summary, current judgment (`adopt / conditionally adopt / reject / learn / monitor / needs more evidence`), confidence, decisive reason, strongest opposition, reversal condition, and next smallest action.
 
 For `decision`, decision 输出首屏必须包含：当前判断、决定性理由、最大风险和下一步. If project constraints are missing, label the output as a general observation, not a recommendation.
 
@@ -198,15 +139,7 @@ For `decision`, decision 输出首屏必须包含：当前判断、决定性理�
 
 ## Report Writing
 
-Write `docs/{feature}/research-report.md` only when the user asks for a formal report, retention, team review, auditability, or a long-form research artifact. The report must state `调研模式` and `呈现模式`, then use source targeting -> evidence qualification -> judgment -> audit progressive disclosure.
-
-Template routes:
-
-- Use `projections/research-report-template.md`.
-- Select one profile header: `decision`, `understanding`, or `audit`.
-- Select one mode body: `selection`, `analysis`, or `discovery`.
-- Always keep shared audit appendix, Report Self-Review, and User Confirmation Gate.
-- Do not recreate split header/body/appendix projection files.
+Write `docs/{feature}/research-report.md` only for formal report, retention, team review, auditability, or long-form research artifact. Use `projections/research-report-template.md`; select one profile header (`decision / understanding / audit`) and one mode body (`selection / analysis / discovery`); keep shared audit appendix, Report Self-Review, and User Confirmation Gate. Do not recreate split header/body/appendix projection files.
 
 ## Report Self-Review
 

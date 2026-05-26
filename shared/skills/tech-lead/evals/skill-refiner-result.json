@@ -258,7 +258,7 @@
     },
     {
       "ring": "Eval",
-      "best_practice_target": "eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
+      "best_practice_target": "eval 去掉 eval-only no-write 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
       "preservation": "保留 tech-lead 的 plan/tasks planning owner、WBS、关键路径、依赖批次、Task 合同、证据路径和用户确认。",
       "evidence": "Eval scope updated: shared/skills/tech-lead/evals/evals.json, shared/skills/tech-lead/evals/lifecycle-review.json, tests/test-standard-chain-skill-evals.sh.",
       "best_practice_sources": [
@@ -276,7 +276,7 @@
       "source_conflicts": "official/github/community external sources reviewed: not used as primary evidence because this is a local first-party skill refinement driven by user-confirmed workflow and repository contracts.",
       "applicability": "Eval change directly removes text/runtime noise or moves deterministic checks to scripts.",
       "non_applicability": "official/github/community external sources reviewed as context only; local contracts and user workflow are authoritative here.",
-      "user_confirmation": "SR-R confirmation accepted for Eval: eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
+      "user_confirmation": "SR-R confirmation accepted for Eval: eval 去掉 eval-only no-write 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
       "verification": "Eval covered by JSON validation, preflight, runtime tests or active-noise scan."
     },
     {
@@ -587,11 +587,11 @@
       "next_cut_reason": "User identified this ring as carrying explain-only or no-consumer noise that should not stay in active skill.",
       "quality_dimension": "E1",
       "decision_layer": "First-party hardening",
-      "phenomenon": "eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
+      "phenomenon": "eval 去掉 eval-only no-write 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
       "why_problem": "Noise in active skill increases model attention cost and blurs tech-lead responsibility boundaries.",
       "impact": "The planning owner may spend effort on input narration or review choreography instead of WBS, dependencies and executable task contracts.",
       "evidence_ref": "shared/skills/tech-lead/evals/evals.json, shared/skills/tech-lead/evals/lifecycle-review.json, tests/test-standard-chain-skill-evals.sh",
-      "target_shape": "Active tech-lead expresses only eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。 with deterministic checks moved to script when possible.",
+      "target_shape": "Active tech-lead expresses only eval 去掉 eval-only no-write 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。 with deterministic checks moved to script when possible.",
       "change_scope": [
         "shared/skills/tech-lead/evals/evals.json",
         "shared/skills/tech-lead/evals/lifecycle-review.json",
@@ -793,8 +793,8 @@
     {
       "ring": "Eval",
       "status": "ISSUE_FIXED",
-      "evidence": "Eval checked against target: eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
-      "owner_verdict": "Accepted: eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。"
+      "evidence": "Eval checked against target: eval 去掉 eval-only no-write 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
+      "owner_verdict": "Accepted: eval 去掉 eval-only no-write 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。"
     },
     {
       "ring": "Cleanup",

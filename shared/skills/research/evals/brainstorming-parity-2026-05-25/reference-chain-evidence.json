@@ -38,12 +38,11 @@
     },
     {
       "id": "BE-03",
-      "name": "ordered process with terminal state",
+      "name": "ordered checklist with terminal state",
       "brainstorming_source": "Checklist, process flow, user approval, terminal writing-plans handoff.",
-      "research_encoding": "Checklist and process flow end only at confirmed lightweight decision, user-confirmed report, or explicit adjacent-skill route.",
+      "research_encoding": "Checklist and terminal state end only at confirmed lightweight decision, user-confirmed report, or explicit adjacent-skill route.",
       "evidence_refs": [
-        "shared/skills/research/SKILL.md#Checklist",
-        "shared/skills/research/SKILL.md#Process-Flow--Workflow",
+        "shared/skills/research/SKILL.md#Workflow-Checklist",
         "shared/skills/research/SKILL.md#Terminal-State"
       ]
     },
@@ -86,7 +85,7 @@
       "research_encoding": "Research must first prove the target object and source set are correct, then qualify evidence and calibrate judgment.",
       "evidence_refs": [
         "shared/skills/research/SKILL.md#When-to-Use",
-        "shared/skills/research/SKILL.md#The-Process",
+        "shared/skills/research/SKILL.md#Core-Contracts",
         "shared/skills/research/projections/research-report-template.md#Source-Targeting-Package"
       ]
     }
@@ -94,7 +93,7 @@
   "success_standards": [
     {
       "id": "SS-01",
-      "requirement": "research 入口不是 brainstorming 外形复制，而是具备硬门禁、反模式、顺序流程、用户确认和终态停止。",
+      "requirement": "research 入口不是 brainstorming 外形复制，而是具备硬门禁、反模式、顺序 checklist、用户确认和终态停止。",
       "status": "pass",
       "evidence_refs": [
         "tests/test-research-skill-refiner-eval.sh#assert_research_brainstorming_parity_contract"

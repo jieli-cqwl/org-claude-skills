@@ -263,7 +263,7 @@
     }
   ],
   "runtime_facts": [
-    "Current isolated pilot worktree runs from base commit 74d48d4.; evidence=tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/design-ledger.json#S4-current-state; observed_at=2026-04-22T12:49:43Z",
+    "Current isolated pilot worktree runs from base commit 74d48d4.; evidence=tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/phase-prd.json#/entry_conditions; observed_at=2026-04-22T12:49:43Z",
     "The first pilot established the local standard-library HTTP example pattern; the feedback pilot stays isolated in examples/feedback_thanks_app.; evidence=tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/design.json#/interfaces; observed_at=2026-04-22T12:49:43Z",
     "python3 -m unittest discover -s tests -p test_feedback_thanks_app.py starts a ThreadingHTTPServer on 127.0.0.1 with an ephemeral port.; evidence=tests/fixtures/standard-chain-pilots/feedback-thanks-pilot/phase-1/unit-1/tasks/T1/verify-result.json#/ac_verification; observed_at=2026-04-22T12:49:43Z"
   ],
@@ -658,26 +658,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:e65326f820ed0e8eb5ff4779b961444d592e5dbd408af84f0f0bd69c53685ae2",
+    "reviewed_design_digest": "sha256:c6697b5dab0f4d52b7375476c226a1711ad2001a04c6adfb4ff2ba97cc16c486",
     "reviewed_at": "2026-04-22T12:49:43Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:e65326f820ed0e8eb5ff4779b961444d592e5dbd408af84f0f0bd69c53685ae2"
+        "reviewed_design_digest": "sha256:c6697b5dab0f4d52b7375476c226a1711ad2001a04c6adfb4ff2ba97cc16c486"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:e65326f820ed0e8eb5ff4779b961444d592e5dbd408af84f0f0bd69c53685ae2"
+        "reviewed_design_digest": "sha256:c6697b5dab0f4d52b7375476c226a1711ad2001a04c6adfb4ff2ba97cc16c486"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:e65326f820ed0e8eb5ff4779b961444d592e5dbd408af84f0f0bd69c53685ae2"
+        "reviewed_design_digest": "sha256:c6697b5dab0f4d52b7375476c226a1711ad2001a04c6adfb4ff2ba97cc16c486"
       }
     ],
     "resolved_failures": [],

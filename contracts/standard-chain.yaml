@@ -164,10 +164,6 @@ co_creation_ledgers:
       path: docs/{feature}/phase-{N}/product-manager-ledger.json
       scope: phase
       producer: product-manager
-    design:
-      path: docs/{feature}/phase-{N}/design-ledger.json
-      scope: phase
-      producer: design
 
 context_handoff:
   scope_registry: contracts/active-doc-scope.yaml

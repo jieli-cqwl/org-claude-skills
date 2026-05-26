@@ -261,7 +261,7 @@
       "shared/skills/skill-refiner/references/rubrics/flow.md",
       "shared/skills/skill-refiner/scripts/grade_fixture_anchor_fidelity.py",
       "shared/skills/skill-refiner/test-prompts.json",
-      "tests/test-skill-refiner-no-harness-dependency.sh",
+      "tests/test-skill-refiner-legacy-dependency-cleanup.sh",
       "tests/run-all.sh",
       "shared/hooks/registry.json",
       "install.sh",

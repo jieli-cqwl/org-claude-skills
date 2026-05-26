@@ -8,7 +8,7 @@ Date: 2026-05-24
 
 保守口径：不把“有门禁”写成“已通过”。矩阵里的等级先按当前仓库结构和历史证据评估；凡标注“历史 4”的地方，只表示仓库已有 eval/pilot 记录或 fixture 证明路径，不表示本轮已完成全量 fresh 复验。
 
-当前不应继续追社区热词做大改，也不应直接接 Hermes、revfactory/harness 或复活 `skill-harness`。正确顺序是：
+当前不应继续追社区热词做大改，也不应直接接 Hermes、revfactory/harness 或新增独立 Skill 承载。正确顺序是：
 
 1. 先用本报告固定能力矩阵和评分口径。
 2. 再把 `episode package` 定位为“run-level 证据索引”，只索引，不替代已有 artifact。
@@ -111,7 +111,7 @@ Date: 2026-05-24
 
 - 不建议直接接 Hermes 替换当前链路。Hermes 是完整 agent runtime；本仓是 Claude/Codex skill/rule/hook/runtime 管理仓。
 - 不建议用 revfactory/harness 生成或覆盖本仓 agents/skills。当前 first-party 链路已有合同和测试锁定，生成器会制造不可控漂移。
-- 不建议复活 `skill-harness`。`tests/test-skill-refiner-no-harness-dependency.sh` 明确防止历史 harness 依赖回流。
+- 不建议新增独立 Skill 承载。`tests/test-skill-refiner-legacy-dependency-cleanup.sh` 明确防止历史依赖回流。
 
 建议吸收：
 
@@ -263,7 +263,7 @@ review / verify / qa / human 快速判断一次 run 是否可信
 
 - 不安装 Hermes。
 - 不引入 revfactory/harness。
-- 不恢复 `skill-harness`。
+- 不新增独立 Skill 承载。
 - 不把 episode package 接到 hooks 自动写入。
 
 ## 本轮证据索引
@@ -290,7 +290,7 @@ review / verify / qa / human 快速判断一次 run 是否可信
 - `tests/test-standard-chain-local-eval-runner.sh`：local eval runner behavior。
 - `tests/test-developer-runtime-proof-contract.sh`：developer fresh proof / failure contract gate。
 - `tests/test-review-evidence-integrity-contract.sh`：review evidence integrity contract。
-- `tests/test-skill-refiner-no-harness-dependency.sh`：防止历史 `skill-harness` 回流。
+- `tests/test-skill-refiner-legacy-dependency-cleanup.sh`：防止旧目录回流。
 - `tests/fixtures/stage1-agent-delivery-operating-system/role-capability-cards.md`：Stage 1 role capability evidence。
 - `tests/fixtures/stage1-agent-delivery-operating-system/skill-growth-cards.md`：Stage 1 skill growth and externalized checks。
 - `tests/fixtures/standard-chain-foundation/golden-pilot/`：golden standard-chain pilot fixture。

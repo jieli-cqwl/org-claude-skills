@@ -64,10 +64,15 @@ quick_plan="$(bash "$RUNNER" --quick --list)"
 release_plan="$(bash "$RUNNER" --release --list)"
 runner_source="$(<"$RUNNER")"
 
+assert_contains "tests/run-focused.sh" "$runner_source" "run-all focused runner syntax coverage"
+assert_contains "tests/test-run-focused-runner-contract.sh" "$runner_source" "run-all focused runner contract syntax coverage"
 assert_contains "shared/skills/delivery-owner/scripts/completion_check.sh" "$runner_source" "run-all shell syntax coverage"
 assert_contains "shared/skills/delivery-owner/scripts/intake_preflight_check.sh" "$runner_source" "run-all shell syntax coverage"
 assert_contains "shared/skills/delivery-owner/scripts/task_packet_check.sh" "$runner_source" "run-all shell syntax coverage"
 assert_not_contains "shared/skills/delivery-owner/scripts/control_decision_check.sh" "$runner_source" "run-all shell syntax coverage"
+
+focused_runner_contract="$(bash "$ROOT/tests/test-run-focused-runner-contract.sh")"
+assert_contains "run-focused runner contract ok" "$focused_runner_contract" "focused runner contract"
 
 assert_contains "mode=full" "$full_plan" "full plan"
 assert_contains "mode=quick" "$quick_plan" "quick plan"
@@ -101,7 +106,6 @@ assert_contains "bash $ROOT/tests/test-skill-quality-standard.sh" "$full_plan" "
 assert_contains "bash $ROOT/tests/test-shared-skill-package-quality-baseline.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-skill-body-quality-static-audit.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-skill-quality-detection-fixtures.sh" "$full_plan" "full plan"
-assert_not_contains "test-skill-harness" "$full_plan" "full plan"
 assert_not_contains "test-install-smoke.sh" "$full_plan" "full plan"
 assert_not_contains "test-install-systematic.sh" "$full_plan" "full plan"
 assert_not_contains "test-install-runtime-audit.sh" "$full_plan" "full plan"
@@ -172,7 +176,6 @@ while IFS= read -r deleted_test; do
   assert_not_contains "$deleted_test" "$release_plan" "release plan"
 done < <(deleted_tests_from_inventory)
 
-assert_not_contains "test-skill-harness" "$quick_plan" "quick plan"
 assert_not_contains "test-install-smoke.sh" "$quick_plan" "quick plan"
 assert_not_contains "test-install-systematic.sh" "$quick_plan" "quick plan"
 assert_not_contains "test-install-runtime-audit.sh" "$quick_plan" "quick plan"

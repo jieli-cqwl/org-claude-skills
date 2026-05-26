@@ -100,7 +100,7 @@ data = json.loads(path.read_text(encoding="utf-8"))
 
 eval_text = json.dumps(data.get("evals", []), ensure_ascii=False)
 if "本 eval 不要求实际写文件" in eval_text or "不要求实际写文件" in eval_text:
-    raise SystemExit(f"{path}: test-design eval prompts must not contain harness-only no-write wording")
+    raise SystemExit(f"{path}: test-design eval prompts must not contain eval-only no-write wording")
 if "要求先执行 design" in eval_text or "要求先回到 design" in eval_text:
     raise SystemExit(f"{path}: test-design evals must wait for user decision instead of forcing design routing")
 

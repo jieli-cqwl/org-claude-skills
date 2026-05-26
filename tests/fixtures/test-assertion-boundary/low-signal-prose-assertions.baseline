@@ -219,7 +219,7 @@ tests/test-skill-refiner-completion-gate.sh	present	short-present-phrase	禁止�
 tests/test-skill-refiner-completion-gate.sh	present	short-present-phrase	策略确认前除台账外不改目标文件	$ROOT/shared/skills/skill-refiner/SKILL.md
 tests/test-skill-refiner-completion-gate.sh	present	short-present-phrase	进入流程后必须先创建可见计划	$ROOT/shared/skills/skill-refiner/SKILL.md
 tests/test-skill-refiner-completion-gate.sh	present	short-present-phrase	验收交付	$ROOT/shared/skills/skill-refiner/SKILL.md
-tests/test-skill-refiner-no-harness-dependency.sh	absent	short-absent-phrase	环节队列循环	$ROOT/shared/skills/skill-refiner/references/examples/developer-optimization-case.md
+tests/test-skill-refiner-legacy-dependency-cleanup.sh	absent	short-absent-phrase	环节队列循环	$ROOT/shared/skills/skill-refiner/references/examples/developer-optimization-case.md
 tests/test-standard-chain-cutover.sh	absent	short-absent-phrase	人类投影视图|projections/qa-report-template	$ROOT/shared/skills/qa/SKILL.md
 tests/test-standard-chain-cutover.sh	present	short-present-phrase	开发/验证或 QA/修复达到 10 轮	$ROOT/shared/skills/delivery-owner/SKILL.md
 tests/test-standard-chain-hard-gate-boundary-contract.sh	present	prose-wrapped-contract	PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`	$ROOT/shared/skills/design/SKILL.md

@@ -27,7 +27,7 @@
 
 评审可视化入口：[`2026-05-25--one-human-agent-product-delivery-team--architecture-diagram.html`](./2026-05-25--one-human-agent-product-delivery-team--architecture-diagram.html)。
 
-该 HTML 是产品、研发、测试和交付团队评审时的主展示材料，包含整体架构图、产物流架构图和现有流程查漏补缺矩阵。Markdown 图稿只作为可编辑源稿；普通浏览器直接打开 Markdown 时不会按预期渲染内嵌 HTML/CSS。
+该 HTML 是产品、研发、测试和交付团队评审时的主展示材料，包含全中文主架构图、产物流与冻结门禁、现状差距摘要和评审结论记录位。Markdown 图稿只作为可编辑源稿；普通浏览器直接打开 Markdown 时不会按预期渲染内嵌图形样式。
 
 这套团队是五层组织系统：
 

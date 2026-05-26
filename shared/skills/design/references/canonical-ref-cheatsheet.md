@@ -37,7 +37,7 @@
 
 - `unit_coverage[*].ac_refs` 必须来自同一个 UNIT 文件里的 `acceptance_criteria[*].ac_id`。
 - 每条覆盖记录只引用自己的 UNIT。
-- UNIT 未覆盖到的 AC 回 `/product-manager` 或 `/test-design` 澄清。
+- UNIT 未覆盖到的 AC 停止冻结；输出 owner、缺失 AC、影响字段和恢复条件。
 
 常见 FAIL：
 - `unit_coverage references unknown ACs`

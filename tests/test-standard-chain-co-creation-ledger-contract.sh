@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File role: prove product/director/manager/design co-creation ledgers are first-class recovery artifacts.
+# File role: prove product director/manager co-creation ledgers are first-class recovery artifacts.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,7 +7,6 @@ CONTRACT="$ROOT/contracts/co-creation-ledgers.yaml"
 VALIDATOR="$ROOT/tools/community/validate_co_creation_ledger.py"
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
-DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
 STANDARD_CHAIN="$ROOT/contracts/standard-chain.yaml"
 RUN_ALL="$ROOT/tests/run-all.sh"
 
@@ -133,32 +132,33 @@ path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encodi
 PY
 }
 
-for file in "$CONTRACT" "$VALIDATOR" "$DIRECTOR_SKILL" "$MANAGER_SKILL" "$DESIGN_SKILL" "$STANDARD_CHAIN" "$RUN_ALL"; do
+for file in "$CONTRACT" "$VALIDATOR" "$DIRECTOR_SKILL" "$MANAGER_SKILL" "$STANDARD_CHAIN" "$RUN_ALL"; do
   assert_file "$file"
 done
 
 assert_present 'co_creation_ledgers:' "$CONTRACT"
 assert_present 'product-director-ledger.json' "$CONTRACT"
 assert_present 'product-manager-ledger.json' "$CONTRACT"
-assert_present 'design-ledger.json' "$CONTRACT"
+assert_absent 'design-ledger.json' "$CONTRACT"
 assert_present 'control_input: false' "$CONTRACT"
 
 assert_present 'co_creation_ledgers:' "$STANDARD_CHAIN"
 assert_present 'docs/{feature}/product-director-ledger.json' "$STANDARD_CHAIN"
 assert_present 'docs/{feature}/phase-{N}/product-manager-ledger.json' "$STANDARD_CHAIN"
-assert_present 'docs/{feature}/phase-{N}/design-ledger.json' "$STANDARD_CHAIN"
+assert_absent 'docs/{feature}/phase-{N}/design-ledger.json' "$STANDARD_CHAIN"
 
-python3 - "$CONTRACT" "$DIRECTOR_SKILL" "$MANAGER_SKILL" "$DESIGN_SKILL" <<'PY'
+python3 - "$CONTRACT" "$DIRECTOR_SKILL" "$MANAGER_SKILL" <<'PY'
 import sys
 from pathlib import Path
 
 import yaml
 
 contract = yaml.safe_load(Path(sys.argv[1]).read_text(encoding="utf-8"))["co_creation_ledgers"]
+if "design" in contract["ledgers"]:
+    raise SystemExit("design must persist co-creation in design.json, not design-ledger.json")
 skills = {
     "product-director": Path(sys.argv[2]),
     "product-manager": Path(sys.argv[3]),
-    "design": Path(sys.argv[4]),
 }
 for producer, skill_path in skills.items():
     spec = contract["ledgers"][producer]
@@ -181,8 +181,6 @@ for producer, skill_path in skills.items():
                 "Director Finalization",
             ]
         )
-    elif producer == "design":
-        required_terms.extend(["设计协作", "审查", "最终确认"])
     else:
         required_terms.extend(spec["checkpoint_steps"])
     missing = [term for term in required_terms if term not in text]
@@ -198,19 +196,17 @@ trap 'rm -rf "$tmpdir"' EXIT
 
 write_ledger "$tmpdir/director.json" "product-director" "co-creation-ledger" "CHK-2" "confirmed" "resolved"
 write_ledger "$tmpdir/manager.json" "product-manager" "co-creation-ledger" "CHK-2" "confirmed" "resolved"
-write_ledger "$tmpdir/design.json" "design" "co-creation-ledger" "CHK-2" "confirmed" "resolved"
 
 python3 "$VALIDATOR" --artifact "$tmpdir/director.json" --producer product-director --require-finalized >/dev/null
 python3 "$VALIDATOR" --artifact "$tmpdir/manager.json" --producer product-manager --require-finalized >/dev/null
-python3 "$VALIDATOR" --artifact "$tmpdir/design.json" --producer design --require-finalized >/dev/null
 
-write_ledger "$tmpdir/unresolved.json" "design" "co-creation-ledger" "CHK-2" "confirmed" "open"
-python3 "$VALIDATOR" --artifact "$tmpdir/unresolved.json" --producer design >/dev/null
-if python3 "$VALIDATOR" --artifact "$tmpdir/unresolved.json" --producer design --require-finalized >/dev/null 2>&1; then
+write_ledger "$tmpdir/unresolved.json" "product-manager" "co-creation-ledger" "CHK-2" "confirmed" "open"
+python3 "$VALIDATOR" --artifact "$tmpdir/unresolved.json" --producer product-manager >/dev/null
+if python3 "$VALIDATOR" --artifact "$tmpdir/unresolved.json" --producer product-manager --require-finalized >/dev/null 2>&1; then
   fail "validator must reject unresolved supersedes entries"
 fi
 
-write_ledger "$tmpdir/mismatch.json" "design" "co-creation-ledger" "CHK-404" "confirmed" "resolved"
+write_ledger "$tmpdir/mismatch.json" "product-manager" "co-creation-ledger" "CHK-404" "confirmed" "resolved"
 python3 - "$tmpdir/mismatch.json" <<'PY'
 import json
 import sys
@@ -221,18 +217,18 @@ payload = json.loads(path.read_text(encoding="utf-8"))
 payload["latest_checkpoint_id"] = "CHK-2"
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 PY
-if python3 "$VALIDATOR" --artifact "$tmpdir/mismatch.json" --producer design --require-finalized >/dev/null 2>&1; then
+if python3 "$VALIDATOR" --artifact "$tmpdir/mismatch.json" --producer product-manager --require-finalized >/dev/null 2>&1; then
   fail "validator must reject latest_checkpoint_id drift"
 fi
 
-write_ledger "$tmpdir/not-final.json" "design" "co-creation-ledger" "CHK-2" "draft" "resolved"
-if python3 "$VALIDATOR" --artifact "$tmpdir/not-final.json" --producer design --require-finalized >/dev/null 2>&1; then
+write_ledger "$tmpdir/not-final.json" "product-manager" "co-creation-ledger" "CHK-2" "draft" "resolved"
+if python3 "$VALIDATOR" --artifact "$tmpdir/not-final.json" --producer product-manager --require-finalized >/dev/null 2>&1; then
   fail "validator must reject non-finalized ledgers when require-finalized is set"
 fi
 
-write_ledger "$tmpdir/missing-step.json" "design" "co-creation-ledger" "CHK-2" "confirmed" "resolved" "option-tradeoff"
-python3 "$VALIDATOR" --artifact "$tmpdir/missing-step.json" --producer design >/dev/null
-if python3 "$VALIDATOR" --artifact "$tmpdir/missing-step.json" --producer design --require-finalized >/dev/null 2>&1; then
+write_ledger "$tmpdir/missing-step.json" "product-manager" "co-creation-ledger" "CHK-2" "confirmed" "resolved" "Design handoff"
+python3 "$VALIDATOR" --artifact "$tmpdir/missing-step.json" --producer product-manager >/dev/null
+if python3 "$VALIDATOR" --artifact "$tmpdir/missing-step.json" --producer product-manager --require-finalized >/dev/null 2>&1; then
   fail "validator must reject ledgers missing required producer checkpoint steps"
 fi
 

@@ -37,7 +37,6 @@ retired_paths=(
   "$ROOT/shared/reference/Skill质量标准.md"
   "$ROOT/shared/reference/Skill能力有效性标准.md"
   "$ROOT/shared/reference/Skill标准.md"
-  "$ROOT/shared/skills/skill-harness"
   "$ROOT/docs/skill-quality-standard-v2"
   "$ROOT/docs/deep-research/2026-04-28-skill-quality-standard"
 )

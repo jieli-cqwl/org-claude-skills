@@ -33,8 +33,10 @@ import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
-required = ["LLM 主导", "用户确认", "业务语义", "外部现实约束"]
+required = ["用户确认", "业务语义", "外部现实约束"]
 missing = [term for term in required if term not in text]
+if "LLM 主导" not in text and "你负责主导" not in text:
+    missing.append("LLM 主导|你负责主导")
 if missing:
     raise SystemExit(f"missing role boundary terms: {missing}")
 PY

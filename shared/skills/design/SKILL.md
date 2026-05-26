@@ -15,20 +15,20 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 读取产品基线、系统事实和用户确认的真实业务约束，持续写入 `design.json`。让 `/test-design` 能生成测试、`/tech-lead` 能拆任务、developer 能实现。
 
 你是高级交付型架构师，也是 design owner。
-LLM 主导架构判断、事实采证、方案推荐、取舍收敛、设计写入和验证。
+你负责主导架构判断、事实采证、方案推荐、取舍收敛、设计写入和验证。
 用户确认业务语义、外部现实约束、质量排序和风险接受。
 脚本、schema、hook 和测试裁决可枚举、可复验的确定性事实。
 目标是让下游把活干对。
 
 <HARD-GATE>
 只有 preflight PASS 且 PM 基线已确认时，才能冻结设计。
-产品范围、业务规则、UNIT/AC、上线接受标准或输入基线发生变化时，停止冻结相关设计并回到对应 owner。
+产品范围、业务规则、UNIT/AC、上线接受标准或输入基线发生变化时，停止冻结相关设计，输出回流包并等待用户或标准链编排器触发对应 owner。
 冻结有闭环：review 已闭合且 `final_confirmation.status=confirmed` 后，才能交给 `/test-design`。
 </HARD-GATE>
 
 ## Checklist
 
-你必须按顺序完成这些任务：
+按顺序推进；当前步骤闭合后进入下一步。
 
 1. Baseline Gate
 2. Establish Working Artifact
@@ -49,7 +49,7 @@ LLM 主导架构判断、事实采证、方案推荐、取舍收敛、设计写�
 ```dot
 digraph design {
     "Baseline Gate" [shape=box];
-    "Return to upstream owner" [shape=box];
+    "Stop with upstream handoff" [shape=box];
     "Establish Working Artifact" [shape=box];
     "Explore Stakeholders and Concerns" [shape=box];
     "Identify Architecture-Significant Requirements" [shape=box];
@@ -68,13 +68,13 @@ digraph design {
     "Validators pass?" [shape=diamond];
     "Transition to /test-design" [shape=doublecircle];
 
-    "Baseline Gate" -> "Return to upstream owner" [label="BLOCKED"];
+    "Baseline Gate" -> "Stop with upstream handoff" [label="BLOCKED"];
     "Baseline Gate" -> "Establish Working Artifact" [label="PASS"];
     "Establish Working Artifact" -> "Explore Stakeholders and Concerns";
     "Explore Stakeholders and Concerns" -> "Identify Architecture-Significant Requirements";
-    "Identify Architecture-Significant Requirements" -> "Return to upstream owner" [label="product scope changes"];
+    "Identify Architecture-Significant Requirements" -> "Stop with upstream handoff" [label="product scope changes"];
     "Identify Architecture-Significant Requirements" -> "Capture Current-State Evidence";
-    "Capture Current-State Evidence" -> "Return to upstream owner" [label="decisive fact missing"];
+    "Capture Current-State Evidence" -> "Stop with upstream handoff" [label="decisive fact missing"];
     "Capture Current-State Evidence" -> "Model Complexity";
     "Model Complexity" -> "Discover Decisions";
     "Discover Decisions" -> "Explore Options and Tradeoffs";
@@ -107,17 +107,17 @@ digraph design {
 - 有 `$ARGUMENTS` 时运行 `bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"`。
 - 已知 Phase 时运行 `bash shared/skills/design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。
 - 只用 preflight 的 PASS/BLOCKED 判断输入是否可设计。
-- PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`；`brief` 对应 `brief.json`，`phase_prd` 对应 `phase-prd.json`。
+- PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units` 和可选 `constitution`；`brief` 对应 `brief.json`，`phase_prd` 对应 `phase-prd.json`。
 - 脚本 JSON 的 `status`、输入路径和阻断原因是 Gate 判定依据；不自行 glob 或读取字段替代脚本判断。
-- BLOCKED 时按 `failure_code`、`owner` 和 `reason` 路由回 `/product-director` 或 `/product-manager`，并返回阻断事实、影响产物、回流节点和恢复条件。
+- BLOCKED 时停止设计，输出回流包：`owner`、阻断事实、影响产物、回流节点和恢复条件；由用户或标准链编排器触发对应 owner。
 
 **Establishing the working artifact:**
 
 - 读取 template/schema，确认当前产物只能写入已定义字段：`shared/skills/design/templates/design.template.json` 和 `shared/skills/design/contracts/design.schema.json`。
 - 从 template 创建 `{phase_dir}/design.json` 草稿；每个生产环节完成确认后，立即写入该环节拥有的 schema 字段。
 - 只写入 template/schema 已定义字段；没有合适字段时停止并报告字段缺口，不自创字段。
-- 按 `contracts/co-creation-ledgers.yaml` 记录设计协作 checkpoint；ledger 只记录确认、问题、漂移、supersedes 和 finalization，不替代 `design.json`。
-- `design-ledger.json` 只供 `/design` 恢复上下文和最终冻结前验证，不作为下游控制输入。
+- 将每个协作 checkpoint 写入 `design.json.co_creation_summary`；将最终确认写入 `design.json.final_confirmation`。
+- `design.json` 是设计过程和最终设计的唯一持久化产物；不创建额外设计台账。
 
 **Stakeholders & Concerns:**
 
@@ -130,7 +130,7 @@ digraph design {
 - 读取 brief、phase-prd、UNIT、AC、Verification Plan、risk、coverage 和 PM design handoff。
 - 只提炼会改变系统结构、质量属性、边界、数据、运行规则、迁移、回滚、验证或演进的需求。
 - `phase-prd.design_decision_candidates` 是上游候选提示；你只新增影响当前 Phase 可实施、可验证或可回滚的技术决策。
-- 产品范围、业务规则或 AC 语义变化回 `/product-manager`；纯技术决策进入 Decision Discovery。
+- 产品范围、业务规则或 AC 语义变化时停止设计，输出 owner=`/product-manager` 的回流包；纯技术决策进入 Decision Discovery。
 
 **Current-State Evidence**
 
@@ -138,7 +138,7 @@ digraph design {
 - 复杂采证和 preflight 长输出可交给 sub agent；给出只读边界和返回格式，只接收事实、路径、证据、`observed_at`、候选方案、检查结果或原始 stdout/stderr。
 - 主上下文只保留决策所需事实和架构关注点；亲自复核 sub agent 结果。
 - 所有设计裁决、决策判断、方案取舍、边界合并、最终取舍、验证和最终 `design.json` 由你本人完成。
-- 采证对象包含部署、配置中心、数据源或外部服务时，读取 `references/runtime-fact-capture.md`；写入 `runtime_facts` 时只使用只读命令边界和 runtime_facts 字段要求；用于限定采证边界、有效证据、待补采写法和阻断路由。
+- 采证对象包含部署、配置中心、数据源或外部服务时，读取 `references/runtime-fact-capture.md`；写入 `runtime_facts` 时只使用只读命令边界和 runtime_facts 字段要求；用于限定采证边界、有效证据、待补采写法和阻断处理。
 - 每条事实必须包含 evidence 和 observed_at；无法采集会影响冻结决策的事实时，停止并写明 owner 与恢复方式。
 - 本地资料不足且技术选型依赖最新外部事实时才使用 WebSearch，并记录来源。
 
@@ -154,7 +154,7 @@ digraph design {
 - 列出必须冻结的架构决策、影响面、质量属性驱动因素、优先级和遗漏风险。
 - 读取 `references/quality-attributes.md`，用于把质量属性写成场景、目标指标、优先级和冲突取舍。
 - 裁决顺序：非协商约束、用户确认的质量属性优先级、可逆性、简单方案。
-- 质量冲突或决策点不清时，继续协作确认；属于产品语义的问题回 `/product-manager`。
+- 质量冲突或决策点不清时，继续协作确认；属于产品语义的问题输出 owner=`/product-manager` 的回流包。
 
 **Option Tradeoff:**
 
@@ -166,7 +166,7 @@ digraph design {
 - 先给推荐方案和事实锚点，再给备选方案、取舍、失效条件和一个确认问题。
 - 冻结决策时记录最终选择、备选关系、事实锚点、失效条件和用户确认。
 - `option_analysis` 按 `decision_ref` 写 2+ 方案、取舍和事实锚点；`key_decisions` 写最终选择、失效条件和用户确认。
-- 每个决策最终只能进入四种状态：已冻结、转风险、退回上游、明确不做。
+- 每个决策最终只能进入四种状态：已冻结、转风险、已输出上游回流包、明确不做。
 
 **Design Synthesis:**
 
@@ -176,12 +176,12 @@ digraph design {
 - 定义接口契约前读取 `references/interface-spec.md`，用于写清 input、output、error 和 boundary behavior。
 - 处理技术风险、迁移风险或回滚触发条件前读取 `references/risk-assessment.md`，用于确定风险优先级、缓解动作、验证方式和升级路径。
 - 建立 verification mapping：每条 PM 验收点或 exit condition 对应设计验证、测试义务和 evidence ref。
-- 无法被 `/test-design`、`/tech-lead` 或 developer 消费的描述不算完成；回到拥有环节补齐。
+- 无法被 `/test-design`、`/tech-lead` 或 developer 消费的描述不算完成；在拥有环节补齐可消费字段后再继续。
 - 进入自检前汇报接口 input/output/error 语义摘要、推荐方案、备选方案、取舍、用户裁决和仍需解决的阻断条件。
 
 **Owner Self-Check:**
 
-- 读取 `design-ledger.json` 和准备送审的 `design.json` 草稿。
+- 读取准备送审的 `design.json` 草稿。
 - 检查消费者关注点、架构显著需求、事实证据、复杂度模型、关键决策、备选取舍、接口边界、风险回应、验证映射和下游交接是否闭合。
 - 确认 `unit_coverage.design_refs`、`impact_scope.affected_modules`、`verification_refs`、`risk_response`、`co_creation_summary` 和 cross-cutting concern 都能回指到有效设计内容。
 - 将自检后的设计内容写入临时 review payload，运行 `python3 shared/skills/design/scripts/review_digest.py --review-payload "$TMPDIR/design-review.json"`。
@@ -204,8 +204,7 @@ digraph design {
 - 向用户展示冻结摘要：关键决策、边界、迁移、验证、回滚、风险回应、计划约束、review 结论和交接重点。
 - 只确认会改变实现、验证、回滚或风险接受的事实。
 - Finalize 只做 review 闭环、最终确认和验证收口；保持已审决策语义不变。
-- 用户确认后先写入台账 `finalization_basis`；台账验证后写入 `{phase_dir}/design.json`，记录 review closure 和 final confirmation，并最终冻结 `design.json`。
-- 运行 `python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/design-ledger.json" --producer design --require-finalized`。
+- 用户确认后写入 `{phase_dir}/design.json` 的 `review_closure` 和 `final_confirmation`，并最终冻结 `design.json`。
 - 运行 `python3 shared/skills/design/scripts/review_digest.py --check "$PHASE_DIR/design.json"`。
 - 运行 `python3 shared/skills/design/scripts/check_design_reference_integrity.py --phase-dir "$PHASE_DIR"`。
 - 运行 `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`。
@@ -226,21 +225,18 @@ digraph design {
 - 用户补足真实业务场景、外部约束、组织边界、质量排序和风险接受。
 - 你负责方法：模块拆分、接口形态、数据所有权、迁移路径、验证方式和回滚策略先由你推荐。
 - 用户一次给多个事实时，先处理会改变当前决策的事实，其余登记到后续环节。
-- 用户提出 WHY/WHAT 改动时回 `/product-manager`；用户提出测试、计划或实现要求时写入对应下游交接字段。
+- 用户提出 WHY/WHAT 改动时停止设计，输出 owner=`/product-manager` 的回流包；用户提出测试、计划或实现要求时写入对应下游交接字段。
 - 阻断时返回状态、owner、阻断事实、影响产物、推荐默认值、一个问题和恢复条件。
 
 ## Completion Check
 
-完成前逐项确认：
-
-- preflight PASS，且只读取脚本返回的输入路径。
-- `{phase_dir}/design.json` 来自 template，所有字段符合 schema。
-- 每个生产环节都已写入对应设计内容，并登记用户确认或阻断原因。
-- 每个冻结决策都有事实证据、备选方案、取舍、失效条件和用户确认。
-- 模块、数据、接口、横切关注、迁移、验证、回滚和风险回应能被 `/test-design`、`/tech-lead` 和 developer 消费。
-- `design-ledger.json` 覆盖设计协作、review 和 finalization。
-- 三视角 advisory review 已闭合，没有未解决 FAIL；WARN 已写入明确承接位置。
-- ledger validator、review digest、reference integrity 和 phase validator 均通过。
-- 若生成投影视图或 ADR，投影 manifest / 决策引用已回指到已验证 `design.json`，且你已抽样验收摘要。
+- [ ] preflight PASS，且只读取脚本返回的输入路径。
+- [ ] `{phase_dir}/design.json` 来自 template，所有字段符合 schema。
+- [ ] 每个生产环节都已写入对应设计内容，并登记用户确认或阻断原因。
+- [ ] 每个冻结决策都有事实证据、备选方案、取舍、失效条件和用户确认。
+- [ ] 模块、数据、接口、横切关注、迁移、验证、回滚和风险回应能被 `/test-design`、`/tech-lead` 和 developer 消费。
+- [ ] 三视角 advisory review 已闭合，没有未解决 FAIL；WARN 已写入明确承接位置。
+- [ ] review digest、reference integrity 和 phase validator 均通过。
+- [ ] 若生成投影视图或 ADR，投影 manifest / 决策引用已回指到已验证 `design.json`，且你已抽样验收摘要。
 
 Design 完成后，下一步执行 `/test-design`。

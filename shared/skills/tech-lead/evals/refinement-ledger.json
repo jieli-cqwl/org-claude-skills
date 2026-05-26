@@ -140,7 +140,7 @@
     {
       "checkpoint_id": "SR-R8-eval-noise-trim",
       "step": "SR-R8",
-      "user_confirmation": "Eval 环节按本轮降噪策略确认：eval 去掉 harness-only 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
+      "user_confirmation": "Eval 环节按本轮降噪策略确认：eval 去掉 eval-only no-write 噪音，继续覆盖缺输入决策包、WBS 实施路径和 readiness task。",
       "normalized_decision": "Eval 环节执行 PATCH，范围 shared/skills/tech-lead/evals/evals.json, shared/skills/tech-lead/evals/lifecycle-review.json, tests/test-standard-chain-skill-evals.sh。",
       "depends_on": [
         "SR-S3-noise-trim-operation"

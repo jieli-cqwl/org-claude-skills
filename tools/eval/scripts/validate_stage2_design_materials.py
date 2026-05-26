@@ -35,55 +35,6 @@ def reviewed_design_digest(payload: dict[str, Any]) -> str:
     return digest(reviewed_design)
 
 
-def design_ledger() -> dict[str, Any]:
-    steps = [
-        "stakeholders-and-concerns",
-        "architecture-significant-requirements",
-        "current-state-evidence",
-        "complexity-model",
-        "decision-discovery",
-        "option-tradeoff",
-        "design-synthesis",
-        "finalize-design",
-    ]
-    confirmations = []
-    for index, step in enumerate(steps, start=1):
-        checkpoint_id = f"DES-CHK-{index:02d}"
-        confirmations.append(
-            {
-                "checkpoint_id": checkpoint_id,
-                "step": step,
-                "subject_ref": f"design.{step}",
-                "confirmed_at": f"2026-05-14T02:{index:02d}:00Z",
-                "decision_summary": f"{step} closed for qft-pai Stage 2 design package",
-                "source_refs": ["stage-2-product-manager-prd-package"],
-                "output_refs": ["phase-1/design.json"],
-            }
-        )
-    return {
-        "artifact_type": "co-creation-ledger",
-        "schema_version": "1.0.0",
-        "producer": "design",
-        "scope_ref": "stage-2/qft-pai/phase-1",
-        "current_state": {
-            "summary": "Design decisions are closed and ready for test-design handoff",
-            "source_refs": ["stage-2-product-manager-prd-package", "phase-1/design.json"],
-            "next_step": "handoff to test-design",
-        },
-        "latest_checkpoint_id": confirmations[-1]["checkpoint_id"],
-        "confirmations": confirmations,
-        "open_questions": [],
-        "supersedes": [],
-        "handoff_refs": ["phase-1/design.json", "phase-1/design-ledger.json"],
-        "finalization_basis": {
-            "status": "confirmed",
-            "confirmed_at": "2026-05-14T02:30:00Z",
-            "summary": "Design package accepted for test-design entry",
-            "accepted_checkpoint_ids": [item["checkpoint_id"] for item in confirmations],
-        },
-    }
-
-
 def co_creation_summary() -> list[dict[str, Any]]:
     rows = [
         ("stakeholders-and-concerns", "干系人与关注点", "确认设计消费者和关注点"),
@@ -293,7 +244,6 @@ def build_design_package(pm_package: dict[str, Any]) -> dict[str, Any]:
         "input_origin": "stage-2-product-manager-prd-package",
         "product_manager_package": pm_package,
         "design": build_design_artifact(pm_package),
-        "design_ledger": design_ledger(),
         "decision_boundary": {
             "allowed_actions": DESIGN_ALLOWED_ACTIONS,
             "blocked_actions": DESIGN_BLOCKED_ACTIONS,

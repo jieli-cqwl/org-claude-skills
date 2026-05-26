@@ -411,7 +411,7 @@ from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
 required = {
-    "return_fields": ["phase_dir", "brief", "phase_prd", "units", "constitution", "ledger"],
+    "return_fields": ["phase_dir", "brief", "phase_prd", "units", "constitution"],
     "closure_status": ["preflight", "PASS", "BLOCKED"],
     "script_boundary": ["不自行 glob", "脚本判断"],
 }
@@ -568,61 +568,6 @@ prepare_phase_probe_workspace() {
   local workspace="$1"
   mkdir -p "$workspace/docs"
   cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$workspace/docs/sample-feature"
-  python3 - "$workspace/docs/sample-feature/phase-1/design-ledger.json" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-steps = [
-    "stakeholders-and-concerns",
-    "architecture-significant-requirements",
-    "current-state-evidence",
-    "complexity-model",
-    "decision-discovery",
-    "option-tradeoff",
-    "design-synthesis",
-    "finalize-design",
-]
-confirmations = []
-for index, step in enumerate(steps, start=1):
-    checkpoint_id = f"DES-CHK-{index:02d}"
-    confirmations.append(
-        {
-            "checkpoint_id": checkpoint_id,
-            "step": step,
-            "subject_ref": f"design.{step}",
-            "confirmed_at": f"2026-05-06T00:{index:02d}:00Z",
-            "decision_summary": f"confirmed {step} design checkpoint",
-            "source_refs": [f"conversation#{step}"],
-            "output_refs": ["design.json#co_creation_summary"],
-        }
-    )
-
-payload = {
-    "artifact_type": "co-creation-ledger",
-    "schema_version": "1.0.0",
-    "producer": "design",
-    "scope_ref": "docs/sample-feature/phase-1",
-    "current_state": {
-        "summary": "design finalized for handoff",
-        "source_refs": ["design.json#final_confirmation"],
-        "next_step": "test-design",
-    },
-    "latest_checkpoint_id": confirmations[-1]["checkpoint_id"],
-    "confirmations": confirmations,
-    "open_questions": [],
-    "supersedes": [],
-    "handoff_refs": ["design.json#final_confirmation"],
-    "finalization_basis": {
-        "status": "confirmed",
-        "confirmed_at": "2026-05-06T00:20:00Z",
-        "summary": "design.json finalization and handoff confirmed",
-        "accepted_checkpoint_ids": [row["checkpoint_id"] for row in confirmations],
-    },
-}
-path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-PY
 }
 
 mutate_test_cases_design_source_ref() {
@@ -1355,38 +1300,6 @@ assert_design_gate_allows_empty_constraint_inheritance() {
   rm -rf "$tmp_dir"
 }
 
-assert_design_gate_rejects_missing_ledger() {
-  local tmp_dir status
-  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-missing-ledger-hook.XXXXXX")"
-  prepare_phase_probe_workspace "$tmp_dir"
-
-  run_design_hook "$tmp_dir"
-  status="$(cat "$tmp_dir/hook.status")"
-  if [ "$status" != "0" ] || ! jq -e '.decision == "allow"' "$tmp_dir/hook.stdout" >/dev/null 2>&1; then
-    cat "$tmp_dir/hook.stdout" >&2
-    cat "$tmp_dir/hook.stderr" >&2
-    rm -rf "$tmp_dir"
-    fail "design gate baseline must allow before missing-ledger probe"
-  fi
-
-  rm -f "$tmp_dir/docs/sample-feature/phase-1/design-ledger.json"
-  run_design_hook "$tmp_dir"
-  status="$(cat "$tmp_dir/hook.status")"
-  if [ "$status" = "0" ]; then
-    cat "$tmp_dir/hook.stdout" >&2
-    cat "$tmp_dir/hook.stderr" >&2
-    rm -rf "$tmp_dir"
-    fail "design gate should exit non-zero when design-ledger.json is missing"
-  fi
-  jq -e '.decision == "block"' "$tmp_dir/hook.stdout" >/dev/null 2>&1 || {
-    cat "$tmp_dir/hook.stdout" >&2
-    cat "$tmp_dir/hook.stderr" >&2
-    rm -rf "$tmp_dir"
-    fail "design gate should emit a block decision when design-ledger.json is missing"
-  }
-  rm -rf "$tmp_dir"
-}
-
 assert_design_digest_script_verifies_review_digest() {
   local tmp_dir design_file review_file stdout_file stderr_file reviewed_design_digest stored_digest
   tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-digest-script.XXXXXX")"
@@ -1548,7 +1461,7 @@ assert_design_preflight_passes_ready_phase() {
     rm -rf "$tmp_dir"
     fail "design preflight should pass ready phase"
   fi
-  jq -e '.status == "PASS" and .unit_count == 1 and (.constitution == null or (.constitution | test("docs/constitution\\.md$"))) and (.ledger | test("design-ledger\\.json$")) and (.units | type == "array" and length == 1) and (.units[0] | test("UNIT-1\\.json$"))' "$stdout_file" >/dev/null || {
+  jq -e '.status == "PASS" and .unit_count == 1 and (.constitution == null or (.constitution | test("docs/constitution\\.md$"))) and (has("ledger") | not) and (.units | type == "array" and length == 1) and (.units[0] | test("UNIT-1\\.json$"))' "$stdout_file" >/dev/null || {
     cat "$stdout_file" >&2
     rm -rf "$tmp_dir"
     fail "design preflight pass payload must include PASS, unit_count, and unit paths"
@@ -1569,7 +1482,7 @@ assert_design_preflight_passes_ready_phase() {
     .status == "PASS"
     and .phase_dir == $phase_dir
     and .unit_count == 1
-    and (.ledger | test("design-ledger\\.json$"))
+    and (has("ledger") | not)
     and (.brief | test("brief\\.json$"))
     and (.phase_prd | test("phase-prd\\.json$"))
   ' "$phase_arg_out" >/dev/null || {
@@ -1581,7 +1494,7 @@ assert_design_preflight_passes_ready_phase() {
     .status == "PASS"
     and .phase_dir == $phase_dir
     and .unit_count == 1
-    and (.ledger | test("design-ledger\\.json$"))
+    and (has("ledger") | not)
     and (.brief | test("brief\\.json$"))
     and (.phase_prd | test("phase-prd\\.json$"))
   ' "$feature_arg_out" >/dev/null || {
@@ -1610,28 +1523,6 @@ assert_design_preflight_rejects_missing_phase_prd() {
     cat "$stdout_file" >&2
     rm -rf "$tmp_dir"
     fail "design preflight missing-input payload must route to product-manager"
-  }
-  rm -rf "$tmp_dir"
-}
-
-assert_design_preflight_rejects_invalid_ledger() {
-  local tmp_dir stdout_file stderr_file
-  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/design-preflight-ledger.XXXXXX")"
-  prepare_phase_probe_workspace "$tmp_dir"
-  stdout_file="$tmp_dir/preflight.stdout"
-  stderr_file="$tmp_dir/preflight.stderr"
-  printf '{}\n' >"$tmp_dir/docs/sample-feature/phase-1/design-ledger.json"
-
-  if bash "$DESIGN_PREFLIGHT" --phase-dir "$tmp_dir/docs/sample-feature/phase-1" >"$stdout_file" 2>"$stderr_file"; then
-    cat "$stdout_file" >&2
-    cat "$stderr_file" >&2
-    rm -rf "$tmp_dir"
-    fail "design preflight should reject invalid existing design-ledger.json"
-  fi
-  jq -e '.status == "BLOCKED" and .failure_code == "LEDGER_INVALID" and .owner == "design"' "$stdout_file" >/dev/null || {
-    cat "$stdout_file" >&2
-    rm -rf "$tmp_dir"
-    fail "design preflight invalid ledger block payload must route to design"
   }
   rm -rf "$tmp_dir"
 }
@@ -2077,8 +1968,7 @@ assert_design_digest_manifest_contract
 assert_design_projection_manifest_contract
 assert_design_registry_contract
 assert_test_design_permission_boundary
-assert_present 'validate_co_creation_ledger\.py' "$DESIGN_CHECK"
-assert_present 'producer design' "$DESIGN_CHECK"
+assert_absent 'design-ledger\.json|validate_design_ledger|producer design' "$DESIGN_CHECK"
 assert_present 'validate_standard_chain_phase\.py' "$DESIGN_CHECK"
 assert_present 'review_digest\.py' "$DESIGN_CHECK"
 assert_absent 'validate_design_semantics|validate_design_references|validate_schema\(|validate_design_cleanup|validate_product_handoff|check_product_closure_contract|missing canonical key decisions|traceability refs do not resolve|missing key decision contract' "$DESIGN_CHECK"
@@ -2122,18 +2012,30 @@ for required_heading in ["## Checklist", "## Process Flow", "## The Process"]:
     if required_heading not in text:
         raise SystemExit(f"design skill must follow brainstorming structure: missing {required_heading}")
 for required_flow_line in [
+    '"Stop with upstream handoff" [shape=box];',
+    '"Baseline Gate" -> "Stop with upstream handoff" [label="BLOCKED"];',
     '"Finalize Design" [shape=box];',
     '"User confirms final design?" -> "Finalize Design" [label="yes"];',
     '"Finalize Design" -> "Run Validators";',
 ]:
     if required_flow_line not in text:
         raise SystemExit(f"design process flow missing line: {required_flow_line}")
+completion = text.split("## Completion Check", 1)[1]
+if "完成前逐项确认：" in completion:
+    raise SystemExit("design Completion Check should not add a prose lead-in")
+plain_bullets = [
+    line for line in completion.splitlines()
+    if line.startswith("- ") and not line.startswith("- [ ] ")
+]
+if plain_bullets:
+    raise SystemExit(
+        "design Completion Check must use checkbox bullets: "
+        + "; ".join(plain_bullets)
+    )
 PY
 assert_present '你是高级交付型架构师' "$DESIGN_SKILL"
 assert_present '也是 design owner' "$DESIGN_SKILL"
 assert_present 'preflight_check\.sh --arguments "\$ARGUMENTS"' "$DESIGN_SKILL"
-assert_present 'PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`' "$DESIGN_SKILL"
-assert_present 'BLOCKED 时按 `failure_code`、`owner` 和 `reason` 路由回 `/product-director` 或 `/product-manager`' "$DESIGN_SKILL"
 assert_absent 'consumer-first|消费者优先' "$DESIGN_SKILL"
 assert_present '只写入 template/schema 已定义字段' "$DESIGN_SKILL"
 assert_present 'Stakeholders & Concerns' "$DESIGN_SKILL"
@@ -2156,7 +2058,7 @@ assert_present 'WARN.*并入 `planning_constraints`、`risk_response`、`verific
 assert_present '冻结 canonical `design\.json`|冻结 `design\.json`|写入 `\{phase_dir\}/design\.json`' "$DESIGN_SKILL"
 assert_present 'review_digest\.py --review-payload "\$TMPDIR/design-review\.json"' "$DESIGN_SKILL"
 assert_present 'review_digest\.py --check "\$PHASE_DIR/design\.json"' "$DESIGN_SKILL"
-assert_present 'validate_co_creation_ledger\.py --artifact "\$PHASE_DIR/design-ledger\.json" --producer design --require-finalized' "$DESIGN_SKILL"
+assert_absent 'design-ledger\.json|validate_co_creation_ledger\.py --artifact "\$PHASE_DIR/design-ledger\.json"|--producer design' "$DESIGN_SKILL"
 assert_present 'validate_standard_chain_phase\.py --phase-dir "\$PHASE_DIR"' "$DESIGN_SKILL"
 assert_present '"Finalize design\.json"|Finalize design\.json|最终冻结' "$DESIGN_SKILL"
 assert_absent '运行 review_digest 与 scoped validator|scoped validator 已运行' "$DESIGN_SKILL"
@@ -2194,6 +2096,23 @@ assert_absent 'Trigger:|Read:|Expect:|Consume:|Evidence:|Sync:' "$DESIGN_SKILL"
 for design_reference in "$ROOT/shared/skills/design/references"/*.md; do
   assert_absent '^## .*Resource Contract|^\| (Trigger|Read|Expect|Consume|Evidence|Sync) \||^>?[[:space:]]*(Trigger|Read|Expect|Consume|Evidence|Sync):' "$design_reference"
 done
+python3 - "$ROOT/shared/skills/design/references/design-reviewer-prompt.md" \
+  "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \
+  "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+for raw in sys.argv[1:]:
+    path = Path(raw)
+    text = path.read_text(encoding="utf-8")
+    if re.search(r"\|\s+D(?:R|P|T)-\d+\s+\|", text):
+        raise SystemExit(f"{path}: reviewer check table should not use maintenance-only row ids")
+    if "| 判断 | 判定方式 |" not in text:
+        raise SystemExit(f"{path}: reviewer check table should keep judgment columns")
+    if not re.search(r"给出 D(?:R|PR|TR)-001 风格稳定 issue id", text):
+        raise SystemExit(f"{path}: reviewer output still needs stable finding ids")
+PY
 for design_resource in \
   "$ROOT/shared/skills/design/projections/adr-spec.md" \
   "$ROOT/shared/skills/design/assets/constitution-template.md"; do
@@ -2347,7 +2266,7 @@ assert_present 'key_decisions.*最终|最终.*key_decisions|key_decisions.*冻�
 assert_absent 'alternatives in `design\.json\.key_decisions`|方案.*`design\.json\.key_decisions`|`design\.json\.key_decisions`.*方案' "$DESIGN_SKILL"
 assert_present 'final_confirmation' "$DESIGN_SKILL"
 assert_present 'product_handoff' "$DESIGN_SKILL"
-assert_present 'design-ledger\.json` 只供 `/design` 恢复上下文和最终冻结前验证，不作为下游控制输入' "$DESIGN_SKILL"
+assert_present 'co_creation_summary' "$DESIGN_SKILL"
 assert_absent '`design\.json\.delivery_confirmation`|design\.json.*delivery_confirmation|delivery_confirmation.*design\.json' "$DESIGN_SKILL"
 assert_design_preflight_passes_ready_phase
 progress "design scripts and hook positive/negative checks"
@@ -2355,10 +2274,8 @@ assert_design_digest_script_verifies_review_digest
 assert_design_projection_renderer_writes_manifest_and_adrs
 assert_design_projection_rejects_disallowed_output_root
 assert_design_preflight_rejects_missing_phase_prd
-assert_design_preflight_rejects_invalid_ledger
 assert_phase_allows_empty_constraint_inheritance
 assert_design_gate_allows_empty_constraint_inheritance
-assert_design_gate_rejects_missing_ledger
 
 progress "cross-cutting concern mutation checks"
 for concern in auth error log config; do

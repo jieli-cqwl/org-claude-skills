@@ -195,9 +195,8 @@ required_markers = {
     "hard_gate_block_start": "<HARD-GATE>",
     "hard_gate_block_end": "</HARD-GATE>",
     "anti_pattern_section": '## Anti-Pattern: "The First Relevant Result Is The Right Source"',
-    "checklist_section": "## Checklist",
-    "process_flow_section": "## Process Flow",
-    "process_section": "## The Process",
+    "checklist_section": "## Workflow Checklist",
+    "core_contracts_section": "## Core Contracts",
     "report_self_review": "## Report Self-Review",
     "user_confirmation_gate": "## User Confirmation Gate",
     "terminal_state": "## Terminal State",
@@ -210,14 +209,21 @@ if missing:
         + ", ".join(missing)
     )
 
+line_count = len(text.splitlines())
+if line_count > 220:
+    raise SystemExit(f"research SKILL.md must stay concise for team rollout; got {line_count} lines")
+
+for noisy_structure in ["## Process Flow", "```dot", "digraph research"]:
+    if noisy_structure in text:
+        raise SystemExit("research SKILL.md still contains duplicate process-flow noise: " + noisy_structure)
+
 section_order = [
     "<HARD-GATE>",
     '## Anti-Pattern: "The First Relevant Result Is The Right Source"',
     "## When to Use",
     "## When NOT to Use",
-    "## Checklist",
-    "## Process Flow",
-    "## The Process",
+    "## Workflow Checklist",
+    "## Core Contracts",
     "## Report Self-Review",
     "## User Confirmation Gate",
     "## Terminal State",
@@ -243,23 +249,6 @@ if checklist[: len(expected)] != expected:
         "research checklist must mirror brainstorming-style ordered execution; got: "
         + ", ".join(checklist[: len(expected)])
     )
-
-flow_required = [
-    'digraph research',
-    '"Route the request"',
-    '"Research needed?"',
-    '"Define the target object"',
-    '"Target/source found?"',
-    '"Qualify evidence"',
-    '"Calibrate judgment"',
-    '"Report required?"',
-    '"Report self-review"',
-    '"User confirms report?"',
-    '"Terminal: confirmed decision/report/route"',
-]
-flow_missing = [term for term in flow_required if term not in text]
-if flow_missing:
-    raise SystemExit("research process flow missing nodes: " + ", ".join(flow_missing))
 
 if "The ONLY allowed next action after a completed formal research report is the user-confirmed handoff target." not in text:
     raise SystemExit("research terminal state must block unconfirmed downstream handoff")

@@ -31,6 +31,11 @@ assert_present() {
   grep -Fq "$needle" "$file" || fail "missing content in ${file#"$ROOT"/}: $needle"
 }
 
+assert_absent() {
+  local needle="$1" file="$2"
+  ! grep -Fq "$needle" "$file" || fail "unexpected content in ${file#"$ROOT"/}: $needle"
+}
+
 hard_gate_block() {
   awk '
     /^<HARD-GATE>$/ { in_block = 1; xml_gate = 1; next }
@@ -126,9 +131,8 @@ assert_present '角色执行必须有合格派发包' "$DELIVERY_OWNER_SKILL"
 
 assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized' "$DIRECTOR_SKILL"
 assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/product-manager-ledger.json" --producer product-manager --require-finalized' "$MANAGER_SKILL"
-assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/design-ledger.json" --producer design --require-finalized' "$DESIGN_SKILL"
+assert_absent 'design-ledger.json' "$DESIGN_SKILL"
 assert_present 'bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"' "$DESIGN_SKILL"
-assert_present 'PASS 后只读取脚本返回的 `phase_dir`、`brief`、`phase_prd`、`units`、可选 `constitution` 和可选 `ledger`' "$DESIGN_SKILL"
 assert_present '`scope_item_refs` 说明范围来源；实际变更范围由 developer 在执行阶段自主分析确定。' "$TECH_LEAD_SKILL"
 assert_present '`FAIL` 项必须使用稳定 `issue_id=QAR-XXX`，并带完整 triage 字段。' "$QA_SKILL"
 assert_present '每个问题有 failure_class 标签（FIXABLE/DESIGN_ISSUE/ENV_ISSUE/REQUIREMENT_AMBIGUITY）' "$FIX_SKILL"

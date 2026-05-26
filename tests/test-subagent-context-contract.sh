@@ -115,12 +115,22 @@ import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
-required = ["最终 `design.json`", "用户确认", "台账验证", "review 闭环", "写入"]
+required = [
+    "最终 `design.json`",
+    "用户确认",
+    "review 闭环",
+    "`final_confirmation`",
+    "写入",
+    "用户确认后写入 `{phase_dir}/design.json` 的 `review_closure` 和 `final_confirmation`",
+]
 missing = [term for term in required if term not in text]
 if missing:
     raise SystemExit(f"missing design finalization boundary terms: {missing}")
+forbidden = ["台账验证", "finalization_basis", "用户确认后先写入台账"]
+present = [term for term in forbidden if term in text]
+if present:
+    raise SystemExit(f"unexpected design ledger finalization terms: {present}")
 PY
-assert_present "用户确认后先写入台账 \`finalization_basis\`" "$ROOT/shared/skills/design/SKILL.md"
 assert_present "脚本只从已验证 \`design.json\` 派生 ADR 草稿" "$ROOT/shared/skills/design/SKILL.md"
 assert_present "投影视图、ADR 和模块视图只能从已验证 \`design.json\` 派生" "$ROOT/shared/skills/design/SKILL.md"
 

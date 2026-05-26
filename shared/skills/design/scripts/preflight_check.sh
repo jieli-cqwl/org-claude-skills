@@ -137,8 +137,6 @@ CONSTITUTION_REF=""
 BRIEF="$FEATURE_DIR/brief.json"
 PHASE_PRD="$PHASE_DIR_ABS/phase-prd.json"
 UNITS_DIR="$PHASE_DIR_ABS/units"
-LEDGER="$PHASE_DIR_ABS/design-ledger.json"
-LEDGER_REF=""
 
 require_json_object() {
     local path="$1"
@@ -163,22 +161,6 @@ run_closure_check() {
     rm -f "$output"
 }
 
-run_ledger_check_if_present() {
-    local ledger_file="$1"
-    local output reason
-
-    [ -f "$ledger_file" ] || return 0
-    output="$(mktemp "${TMPDIR:-/tmp}/design-preflight-ledger.XXXXXX")"
-    if ! python3 "$ROOT/tools/community/validate_co_creation_ledger.py" \
-        --artifact "$ledger_file" \
-        --producer design >"$output" 2>&1; then
-        reason="$(sed -n '1,3p' "$output" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
-        rm -f "$output"
-        fail "LEDGER_INVALID" "design" "existing design-ledger.json is invalid: $reason"
-    fi
-    rm -f "$output"
-}
-
 require_json_object "$BRIEF" "brief.json"
 require_json_object "$PHASE_PRD" "phase-prd.json"
 [ -d "$UNITS_DIR" ] || fail "MISSING_INPUT" "product-manager" "units directory not found: $UNITS_DIR"
@@ -197,7 +179,6 @@ run_closure_check "phase-prd.json" --artifact "$PHASE_PRD" --require-review
 for unit_file in "${UNIT_FILES[@]}"; do
     run_closure_check "$(basename "$unit_file")" --artifact "$unit_file"
 done
-run_ledger_check_if_present "$LEDGER"
 
 UNIT_REFS=()
 for unit_file in "${UNIT_FILES[@]}"; do
@@ -205,14 +186,12 @@ for unit_file in "${UNIT_FILES[@]}"; do
 done
 UNITS_JSON="$(printf '%s\n' "${UNIT_REFS[@]}" | jq -R . | jq -s .)"
 [ -f "$CONSTITUTION" ] && CONSTITUTION_REF="${CONSTITUTION#"$ROOT"/}"
-[ -f "$LEDGER" ] && LEDGER_REF="${LEDGER#"$ROOT"/}"
 
 json_payload \
     --arg status "PASS" \
     --arg phase_dir "${PHASE_DIR_ABS#"$ROOT"/}" \
     --arg constitution "$CONSTITUTION_REF" \
-    --arg ledger "$LEDGER_REF" \
     --arg brief "${BRIEF#"$ROOT"/}" \
     --arg phase_prd "${PHASE_PRD#"$ROOT"/}" \
     --argjson units "$UNITS_JSON" \
-    '{status:$status, phase_dir:$phase_dir, constitution:(if $constitution | length > 0 then $constitution else null end), ledger:(if $ledger | length > 0 then $ledger else null end), brief:$brief, phase_prd:$phase_prd, units:$units, unit_count:($units | length)}'
+    '{status:$status, phase_dir:$phase_dir, constitution:(if $constitution | length > 0 then $constitution else null end), brief:$brief, phase_prd:$phase_prd, units:$units, unit_count:($units | length)}'

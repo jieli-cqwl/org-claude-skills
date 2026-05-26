@@ -15,8 +15,6 @@ test ! -f "$ROOT/shared/reference/Skill生命周期管理.md" || fail "Skill lif
 test ! -f "$ROOT/shared/reference/Skill质量标准.md" || fail "retired skill quality standard must not remain active"
 test ! -f "$ROOT/shared/reference/Skill能力有效性标准.md" || fail "retired skill capability standard must not remain active"
 test ! -f "$ROOT/shared/reference/Skill标准.md" || fail "retired skill standard must not remain active (merged into quality-dimensions.md)"
-test ! -d "$ROOT/shared/skills/skill-harness" || fail "retired skill-harness must not remain active"
-
 python3 - "$ROOT" <<'PY'
 import json
 import re

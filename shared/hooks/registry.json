@@ -74,7 +74,7 @@
         "-h"
       ],
       "output_root": ".",
-      "failure_state": "design canonical gate blocks handoff until design-ledger.json is finalized and design.json has full co-creation evidence, inherited constraint confirmation, final confirmation, complete interfaces, migration, verification, and rollback evidence",
+      "failure_state": "design canonical gate blocks handoff until design.json has full co-creation evidence, inherited constraint confirmation, final confirmation, complete interfaces, migration, verification, and rollback evidence",
       "claude": {
         "supported": true,
         "event": "PostToolUse",

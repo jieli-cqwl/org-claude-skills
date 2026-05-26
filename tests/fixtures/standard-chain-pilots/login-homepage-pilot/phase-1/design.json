@@ -229,7 +229,7 @@
     }
   ],
   "runtime_facts": [
-    "git worktree /Users/lijieli/org-claude-skills-login-homepage-pilot is clean at branch creation from 74d48d4.; evidence=tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/design-ledger.json#S4-current-state; observed_at=2026-04-22T12:23:37Z",
+    "git worktree /Users/lijieli/org-claude-skills-login-homepage-pilot is clean at branch creation from 74d48d4.; evidence=tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/phase-prd.json#/entry_conditions; observed_at=2026-04-22T12:23:37Z",
     "find . -maxdepth 2 found no package.json, pyproject.toml, requirements file, or setup.py at repository root.; evidence=tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/phase-prd.json#/entry_conditions; observed_at=2026-04-22T12:23:37Z",
     "python3 -m unittest discover -s tests -p test_login_homepage_app.py starts a ThreadingHTTPServer on 127.0.0.1 with an ephemeral port.; evidence=tests/fixtures/standard-chain-pilots/login-homepage-pilot/phase-1/unit-1/tasks/T1/verify-result.json#/ac_verification; observed_at=2026-04-22T12:23:37Z"
   ],
@@ -634,26 +634,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:1d291674f09f89d054fe1e097a3c10457979cbf40fa0af179fab8e9697f7c57d",
+    "reviewed_design_digest": "sha256:bf4e6007bc5209828987620ed7338512e6c8adf0a9e80f863bb181e069f37549",
     "reviewed_at": "2026-04-22T12:23:37Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:1d291674f09f89d054fe1e097a3c10457979cbf40fa0af179fab8e9697f7c57d"
+        "reviewed_design_digest": "sha256:bf4e6007bc5209828987620ed7338512e6c8adf0a9e80f863bb181e069f37549"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:1d291674f09f89d054fe1e097a3c10457979cbf40fa0af179fab8e9697f7c57d"
+        "reviewed_design_digest": "sha256:bf4e6007bc5209828987620ed7338512e6c8adf0a9e80f863bb181e069f37549"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:1d291674f09f89d054fe1e097a3c10457979cbf40fa0af179fab8e9697f7c57d"
+        "reviewed_design_digest": "sha256:bf4e6007bc5209828987620ed7338512e6c8adf0a9e80f863bb181e069f37549"
       }
     ],
     "resolved_failures": [],

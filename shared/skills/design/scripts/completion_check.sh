@@ -131,25 +131,6 @@ validate_review_digest() {
     rm -f "$digest_out"
 }
 
-validate_design_ledger() {
-    local design_file="$1"
-    local phase_dir ledger_file ledger_out
-
-    phase_dir="$(cd "$(dirname "$design_file")" && pwd)"
-    ledger_file="$phase_dir/design-ledger.json"
-    ledger_out="$(mktemp "${TMPDIR:-/tmp}/design-ledger-contract.XXXXXX")"
-    if ! python3 "$RUNTIME_ROOT/tools/community/validate_co_creation_ledger.py" \
-        --artifact "$ledger_file" \
-        --producer design \
-        --require-finalized >"$ledger_out" 2>&1; then
-        add_failure "design-ledger.json is not finalized for design handoff"
-        while IFS= read -r line; do
-            [ -n "$line" ] && add_failure "$line"
-        done < <(sed -n '1,3p' "$ledger_out")
-    fi
-    rm -f "$ledger_out"
-}
-
 validate_no_review_wrapper_fields() {
     local target="$1"
     local leaked_fields
@@ -207,7 +188,6 @@ validate_design_artifact() {
     validate_no_review_wrapper_fields "$target"
     validate_co_creation_stages "$target"
     validate_product_inputs "$target"
-    validate_design_ledger "$target"
     validate_phase_contract "$target"
     validate_reference_integrity "$target"
     validate_architect_contract "$target"

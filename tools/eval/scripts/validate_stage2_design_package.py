@@ -16,7 +16,6 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/community"))
 sys.path.insert(0, str(ROOT / "tools/eval/scripts"))
 
-from validate_co_creation_ledger import validate as validate_ledger  # noqa: E402
 from validate_stage2_product_manager_package import (  # noqa: E402
     validate as validate_product_manager_package,
 )
@@ -144,7 +143,7 @@ def check_design_shape(package: dict[str, Any]) -> dict[str, Any]:
     product_handoff_status = product_handoff.get("status") if isinstance(product_handoff, dict) else None
     if product_handoff_status != "READY":
         add_failure(failures, "design.product_handoff.status", "must be READY")
-    for field in ("review_closure", "final_confirmation", "unit_coverage", "verification_mapping"):
+    for field in ("co_creation_summary", "review_closure", "final_confirmation", "unit_coverage", "verification_mapping"):
         if field not in design:
             add_failure(failures, f"design.{field}", "missing")
     return make_check("design_artifact", failures)
@@ -164,8 +163,6 @@ def materialization_failures(package: dict[str, Any]) -> list[str]:
         failures.append("product_manager_package.units: must be non-empty array")
     if not isinstance(package.get("design"), dict):
         failures.append("design: must be object")
-    if not isinstance(package.get("design_ledger"), dict):
-        failures.append("design_ledger: must be object")
     return failures
 
 
@@ -194,10 +191,6 @@ def write_package_files(package: dict[str, Any], root: Path) -> tuple[Path, Path
             )
     (phase_dir / "design.json").write_text(
         json.dumps(package["design"], ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    (phase_dir / "design-ledger.json").write_text(
-        json.dumps(package["design_ledger"], ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     return feature_dir, phase_dir
@@ -249,18 +242,6 @@ def check_design_reference_integrity(phase_dir: Path) -> dict[str, Any]:
     return make_check("design_reference_integrity", failures)
 
 
-def check_design_ledger(package: dict[str, Any]) -> dict[str, Any]:
-    failures: list[str] = []
-    ledger = package.get("design_ledger")
-    if not isinstance(ledger, dict):
-        return make_check("design_ledger", ["design_ledger: must be object"])
-    try:
-        validate_ledger(ledger, "design", require_finalized=True)
-    except ValueError as exc:
-        add_failure(failures, "design_ledger", str(exc))
-    return make_check("design_ledger", failures)
-
-
 def check_authorization_boundary(package: dict[str, Any]) -> dict[str, Any]:
     failures: list[str] = []
     boundary = package.get("decision_boundary")
@@ -290,7 +271,6 @@ def validate(package: dict[str, Any]) -> dict[str, Any]:
         check_package_envelope(package),
         check_product_manager_binding(package),
         check_design_shape(package),
-        check_design_ledger(package),
         check_authorization_boundary(package),
     ]
     materialization_errors = materialization_failures(package)

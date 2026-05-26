@@ -18,14 +18,14 @@
 
 ## 检查
 
-| # | 判断 | 判定方式 |
-|---|------|---------|
-| DT-1 | 可隔离 | 模块依赖、数据边界和外部依赖能被测试隔离或明确替身策略。 |
-| DT-2 | 接口断言 | `input_params`、`output_params`、`error_codes` 和 `boundary_behaviors` 足够生成正常、异常和边界断言。 |
-| DT-3 | 验证闭环 | 每个边界行为的 `verification_ref` 能回到 `verification_mapping[].evidence_ref`。 |
-| DT-4 | 冻结状态 | `interface_boundary`、`key_decisions` 和 `quality_attributes` 已冻结，没有草稿或多版本痕迹。 |
-| DT-5 | 可观测 | 关键链路、质量目标和异常场景有 metrics、日志、trace、告警或排障证据路径。 |
-| DT-6 | 回归边界 | 变更范围、兼容策略、灰度/迁移阶段和回滚触发能转成回归测试义务。 |
+| 判断 | 判定方式 |
+|------|---------|
+| 可隔离 | 模块依赖、数据边界和外部依赖能被测试隔离或明确替身策略。 |
+| 接口断言 | `input_params`、`output_params`、`error_codes` 和 `boundary_behaviors` 足够生成正常、异常和边界断言。 |
+| 验证闭环 | 每个边界行为的 `verification_ref` 能回到 `verification_mapping[].evidence_ref`。 |
+| 冻结状态 | `interface_boundary`、`key_decisions` 和 `quality_attributes` 已冻结，没有草稿或多版本痕迹。 |
+| 可观测 | 关键链路、质量目标和异常场景有 metrics、日志、trace、告警或排障证据路径。 |
+| 回归边界 | 变更范围、兼容策略、灰度/迁移阶段和回滚触发能转成回归测试义务。 |
 
 ## 审查报告格式
 

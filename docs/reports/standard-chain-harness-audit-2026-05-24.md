@@ -4,15 +4,15 @@ Date: 2026-05-24
 
 ## 结论
 
-`herness` 不是可稳定定位的社区对象；按公开证据和语境，应归一化为 `harness / harness engineering`，另一个相近但不同的候选是 `Hermes Agent`。本仓库和 `harness engineering` 强相关：当前 `standard-chain/v1` 已经是一个面向 Claude Code 与 Codex 的 agent harness 控制平面。
+原始误写不是可稳定定位的社区对象；按公开证据和语境，应归一化为 `harness / harness engineering`，另一个相近但不同的候选是 `Hermes Agent`。本仓库和 `harness engineering` 强相关：当前 `standard-chain/v1` 已经是一个面向 Claude Code 与 Codex 的 agent harness 控制平面。
 
-当前建议：不直接引入 Hermes，不复活历史 `skill-harness`，不让社区 meta-harness 生成器改写本仓结构。先做一个最小试点：把 `standard-chain` 的 harness 能力显性化为 condition sheet，并为 `developer` 或 `skill-refiner` 定义一次 run 的 episode package 证据包。
+当前建议：不直接引入 Hermes，不新增独立 Skill 承载，不让社区 meta-harness 生成器改写本仓结构。先做一个最小试点：把 `standard-chain` 的 harness 能力显性化为 condition sheet，并为 `developer` 或 `skill-refiner` 定义一次 run 的 episode package 证据包。
 
 ## 范围
 
 本报告只回答四件事：
 
-1. `herness` 到底应解析成什么对象。
+1. 原始误写应解析成什么对象。
 2. 社区讨论中的 harness 核心机制是什么。
 3. 当前仓库已有能力与 harness engineering 的对应关系。
 4. 下一步怎样学习并最小落地。
@@ -22,13 +22,13 @@ Date: 2026-05-24
 - 不修改 runtime 行为。
 - 不新增 skill、hook、agent 或测试。
 - 不把 `docs/reports` 报告登记为 active `standard-chain` scope。
-- 不重新启用历史 `skill-harness` 承载。
+- 不重新启用旧目录或旧依赖。
 
 ## 名称归一化与候选排除
 
 | 原始/变体 | 类型 | 状态 | 证据与判断 |
 | --- | --- | --- | --- |
-| `herness` | 拼写原词 | 排除为正式对象 | 搜索未发现稳定 AI agent 社区对象；更像误拼或听写。 |
+| 原始误写 | 拼写原词 | 排除为正式对象 | 搜索未发现稳定 AI agent 社区对象；更像误拼或听写。 |
 | `harness` / `agent harness` / `harness engineering` | 概念/方法 | 命中 | Anthropic 与 2026 年多篇论文都将 harness 作为模型外运行控制平面。 |
 | `Hermes Agent` | 开源 agent 产品 | 部分命中 | NousResearch/hermes-agent 是具体 self-improving agent，和 harness 讨论相邻，但不是同一概念。 |
 | Harness CI/CD | DevOps 平台 | 排除 | 语义是 CI/CD 与开发平台，不是本次 agent harness。 |
@@ -70,7 +70,7 @@ Date: 2026-05-24
 3. Fresh evaluator 边界未统一：review / verify / qa 存在，但是否 fresh context、是否 default-fail、是否先读证据再判定，没有被跨链路抽象成一条通用合同。
 4. 运行轨迹未归一化：Claude/Codex hooks、shell 输出、developer-report、eval result 之间还不是同一套 trace/event vocabulary。
 5. 自改进入口风险高：Hermes 式“技能自生成/自改进”如果直接引入，会和 `community/*` 纯镜像、manual-only、first-party 优先冲突。
-6. 历史命名有反证：测试明确阻止 `skill-harness` 残留，说明不能用“复活旧目录”当落地方式。
+6. 旧目录有反证：测试明确阻止旧目录与旧依赖回流，说明不能用“恢复旧目录”当落地方式。
 
 ## 最小试点方案
 
@@ -161,7 +161,7 @@ git diff --no-index --stat -- /dev/null docs/reports/standard-chain-harness-audi
 | 借鉴 Hermes 记忆/技能闭环 | 改写后吸收 | 只学习“经验如何沉淀为可审计技能改进”，不得开放自动写 third-party mirror 或 runtime rules。 |
 | 使用 revfactory/harness 生成本仓 agents/skills | 暂不采纳 | 本仓已有 standard-chain 合同和测试锁定，生成器会引入不可控漂移。 |
 | 用 harness.lol/OpenHarness 做跨 CLI event adapter | 观察 | 等 episode package 需要跨 Claude/Codex 轨迹统一时再试。 |
-| 新建 `skill-harness` | 不采纳 | 当前测试明确要求 retired `skill-harness` 不得 active。 |
+| 新建独立 harness Skill | 不采纳 | 当前测试明确要求旧目录不得 active。 |
 | 新建 `harness-audit` 报告与后续 condition sheet | 采纳 | 小范围、可回退、和现有证据体系一致。 |
 
 ## 反方挑战
@@ -224,7 +224,7 @@ git diff --no-index --stat -- /dev/null docs/reports/standard-chain-harness-audi
 - 当前仓库 standard-chain contract: `contracts/standard-chain.yaml`
 - 当前仓库 runtime surface: `contracts/skill-runtime-surface.json`
 - 当前仓库 hooks registry: `shared/hooks/registry.json`
-- 历史 `skill-harness` 反证: `tests/test-skill-refiner-no-harness-dependency.sh`, `tests/test-skill-effectiveness-eval-framework.sh`
+- 旧目录回流反证: `tests/test-skill-refiner-legacy-dependency-cleanup.sh`, `tests/test-skill-effectiveness-eval-framework.sh`
 
 ## 复检记录
 
@@ -234,7 +234,7 @@ git diff --no-index --stat -- /dev/null docs/reports/standard-chain-harness-audi
 
 范围复盘：只允许修改本报告；不改 runtime、不改 tests、不登记 active scope。
 
-证据复盘：对象解析已有外部来源；仓库映射已有 `README.md`、`contracts/standard-chain.yaml`、`contracts/skill-runtime-surface.json`、`shared/hooks/registry.json` 与退役 `skill-harness` 测试反证。
+证据复盘：对象解析已有外部来源；仓库映射已有 `README.md`、`contracts/standard-chain.yaml`、`contracts/skill-runtime-surface.json`、`shared/hooks/registry.json` 与旧目录回流测试反证。
 
 风险复盘：原验证命令 `git diff --check -- <file>` 对新建未跟踪文件无效，已改为 `git status --short` + `git diff --no-index --stat` 口径；另将 `Claude/Codex adapter` 改成当前可见承载 `shared/agents/{claude,codex}`，避免引用不存在的根 `codex/` 目录。
 
@@ -244,6 +244,6 @@ git diff --no-index --stat -- /dev/null docs/reports/standard-chain-harness-audi
 
 范围复盘：本轮只复核报告自身；无新增文件、无运行时配置改动、无 active scope 变更。
 
-证据复盘：名称归一化、外部来源、仓库承载映射、历史 `skill-harness` 反证、试点建议和失效条件均已覆盖。
+证据复盘：名称归一化、外部来源、仓库承载映射、旧目录回流反证、试点建议和失效条件均已覆盖。
 
 风险复盘：未发现新增目标内问题。剩余风险是下一阶段若真正落地 episode package，必须先补失败 fixture 和 validator 红灯，不能用本报告替代实现验收。

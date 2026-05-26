@@ -57,16 +57,19 @@ if payload.get("stage2_readiness") != "design_ready_for_test_design":
     raise SystemExit(payload)
 if payload.get("next_standard_chain_role") != "test-design":
     raise SystemExit(payload)
+if "design_ledger" in payload:
+    raise SystemExit("design package output must not include design_ledger")
 expected = {
     "package_envelope",
     "product_manager_binding",
     "design_artifact",
     "design_review_digest",
     "design_reference_integrity",
-    "design_ledger",
     "authorization_boundary",
 }
 checks = {item.get("check") for item in payload.get("checks", [])}
+if "design_ledger" in checks:
+    raise SystemExit("design package checks must not include design_ledger")
 missing = sorted(expected - checks)
 if missing:
     raise SystemExit(f"missing checks: {missing}")
@@ -104,27 +107,21 @@ fi
 rg -q "unit_coverage|unit_not_covered_by_design|UNIT-1" "$TMP_ROOT/broken-coverage-output.json" \
   || fail "UNIT coverage failure should be explicit"
 
-BROKEN_LEDGER="$TMP_ROOT/broken-ledger.json"
-python3 - "$PACKAGE" "$BROKEN_LEDGER" <<'PY'
+BROKEN_CO_CREATION="$TMP_ROOT/broken-co-creation.json"
+python3 - "$PACKAGE" "$BROKEN_CO_CREATION" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-payload["design_ledger"]["confirmations"] = [
-    item for item in payload["design_ledger"]["confirmations"] if item["step"] != "option-tradeoff"
-]
-payload["design_ledger"]["latest_checkpoint_id"] = payload["design_ledger"]["confirmations"][-1]["checkpoint_id"]
-payload["design_ledger"]["finalization_basis"]["accepted_checkpoint_ids"] = [
-    item["checkpoint_id"] for item in payload["design_ledger"]["confirmations"]
-]
+payload["design"].pop("co_creation_summary", None)
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
-if python3 "$SCRIPT" --package "$BROKEN_LEDGER" >"$TMP_ROOT/broken-ledger-output.json"; then
-  fail "design package must reject ledger missing option-tradeoff"
+if python3 "$SCRIPT" --package "$BROKEN_CO_CREATION" >"$TMP_ROOT/broken-co-creation-output.json"; then
+  fail "design package must reject design without co_creation_summary"
 fi
-rg -q "option-tradeoff|ledger" "$TMP_ROOT/broken-ledger-output.json" \
-  || fail "ledger failure should be explicit"
+rg -q "co_creation_summary" "$TMP_ROOT/broken-co-creation-output.json" \
+  || fail "co_creation_summary failure should be explicit"
 
 BAD_BOUNDARY="$TMP_ROOT/bad-boundary.json"
 python3 - "$PACKAGE" "$BAD_BOUNDARY" <<'PY'
