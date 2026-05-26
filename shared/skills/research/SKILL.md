@@ -1,7 +1,7 @@
 ---
 name: research
 user-invocable: true
-description: "Use when a team may act on external information: adoption decisions, candidate selection, claim analysis, community skill/MCP/plugin/package/repo identification, judgment review, or external-solution scouting."
+description: "Use when external information may guide action: adoption decisions, candidate selection, claim review, community object identification, team judgment, or solution scouting."
 argument-hint: "[调研主题]"
 context: fork
 allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch, AskUserQuestion, TeamCreate, SendMessage, TeamDelete
