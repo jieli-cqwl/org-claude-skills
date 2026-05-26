@@ -114,14 +114,14 @@ import sys
 from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-payload["design"].pop("co_creation_summary", None)
+payload["design"].pop("design_stage_confirmations", None)
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 if python3 "$SCRIPT" --package "$BROKEN_CONFIRMATIONS" >"$TMP_ROOT/broken-confirmations-output.json"; then
-  fail "design package must reject design without co_creation_summary"
+  fail "design package must reject design without design_stage_confirmations"
 fi
-rg -q "co_creation_summary" "$TMP_ROOT/broken-confirmations-output.json" \
-  || fail "co_creation_summary failure should be explicit"
+rg -q "design_stage_confirmations" "$TMP_ROOT/broken-confirmations-output.json" \
+  || fail "design_stage_confirmations failure should be explicit"
 
 BAD_BOUNDARY="$TMP_ROOT/bad-boundary.json"
 python3 - "$PACKAGE" "$BAD_BOUNDARY" <<'PY'

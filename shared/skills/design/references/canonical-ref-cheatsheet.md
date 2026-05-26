@@ -74,7 +74,7 @@
 ## 7. 必须集合
 
 - reviewer 必须覆盖 `architecture / product / test` 三类。
-- `co_creation_summary` 覆盖全部设计协作语义阶段。
+- `design_stage_confirmations` 覆盖全部设计确认语义阶段。
 - `cross_cutting_concerns` 固定覆盖 auth、error、log、config；data、security、observability 的设计写入对应数据、安全或验证字段。
 - `runtime_facts[*]` 必须包含 `evidence=` 和 `observed_at=`。
 
@@ -86,5 +86,5 @@
 - `verification_refs` 全部能在 `verification_mapping[*].evidence_ref` 找到。
 - `risk_response` 覆盖全部 risks。
 - WARN finding 均有 followup，target 属于 4 个允许值。
-- `co_creation_summary` 覆盖全部设计协作语义阶段。
+- `design_stage_confirmations` 覆盖全部设计确认语义阶段。
 - 运行 schema、rules、digest、reference integrity、phase validator；任一 FAIL 只做最小修正。

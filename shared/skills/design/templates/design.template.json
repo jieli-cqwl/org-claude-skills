@@ -9,7 +9,7 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.input_analysis",
-    "$.design_stage_confirmations",
+    "$.co_creation_summary",
     "$.constraint_inheritance_confirmation",
     "$.review_closure",
     "$.final_confirmation",
@@ -310,62 +310,69 @@
       "design.json#verification_plan"
     ]
   },
-  "design_stage_confirmations": [
+  "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "confirmation_focus": "<stakeholder concerns and architecture-significant concern confirmation>",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Stakeholders and concerns",
+      "question_or_focus": "<stakeholder concerns and architecture-significant concern confirmation>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "confirmation_focus": "<architecture-significant requirement confirmation>",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Architecture-significant requirements",
+      "question_or_focus": "<architecture-significant requirement confirmation>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "confirmation_focus": "<current system evidence and runtime fact confirmation>",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Current-state evidence",
+      "question_or_focus": "<current system evidence and runtime fact confirmation>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "confirmation_focus": "<complexity model and quality pressure confirmation>",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Complexity model",
+      "question_or_focus": "<complexity model and quality pressure confirmation>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#input_analysis",
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "confirmation_focus": "<architecture decision inventory confirmation>",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Decision discovery",
+      "question_or_focus": "<architecture decision inventory confirmation>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "confirmation_focus": "<selected option and tradeoff question>",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Option tradeoff",
+      "question_or_focus": "<selected option and tradeoff question>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "confirmation_focus": "<module, interface, migration, verification, rollback, risk, and handoff confirmation>",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Design synthesis",
+      "question_or_focus": "<module, interface, migration, verification, rollback, risk, and handoff confirmation>",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",
