@@ -1,0 +1,2052 @@
+{
+  "schema_version": 1,
+  "profiles": {
+    "design": {
+      "areas": [
+        "design",
+        "hooks-manifest",
+        "skill-evals",
+        "standard-chain"
+      ],
+      "exclude_tags": [
+        "release-only"
+      ],
+      "include_ids": [
+        "stage2-design-package"
+      ]
+    },
+    "research": {
+      "areas": [
+        "research",
+        "skill-evals"
+      ],
+      "exclude_tags": [
+        "release-only"
+      ]
+    },
+    "skill-refiner": {
+      "areas": [
+        "skill-refiner",
+        "skill-evals"
+      ],
+      "exclude_tags": [
+        "release-only"
+      ]
+    },
+    "standard-chain": {
+      "areas": [
+        "standard-chain",
+        "contracts"
+      ],
+      "exclude_tags": [
+        "release-only"
+      ]
+    },
+    "product-stage2": {
+      "areas": [
+        "product",
+        "stage2"
+      ],
+      "exclude_tags": [
+        "release-only"
+      ]
+    },
+    "install-runtime": {
+      "areas": [
+        "install-runtime",
+        "runtime-surface"
+      ],
+      "exclude_tags": []
+    },
+    "docs-context": {
+      "areas": [
+        "context",
+        "docs"
+      ],
+      "exclude_tags": [
+        "release-only"
+      ]
+    },
+    "codex-runtime": {
+      "areas": [
+        "codex-runtime",
+        "runtime-surface"
+      ],
+      "exclude_tags": []
+    }
+  },
+  "steps": [
+    {
+      "id": "bash-python-syntax",
+      "command": [
+        "bash",
+        "tests/run-all.sh",
+        "--internal-syntax-checks"
+      ],
+      "area": "preflight",
+      "tier": "preflight",
+      "tags": [
+        "syntax"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
+      "id": "shellcheck",
+      "command": [
+        "bash",
+        "tests/run-all.sh",
+        "--internal-shellcheck"
+      ],
+      "area": "preflight",
+      "tier": "preflight",
+      "tags": [
+        "shellcheck"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
+      "id": "contracts-validation",
+      "command": [
+        "bash",
+        "tools/validate-contracts.sh"
+      ],
+      "area": "contracts",
+      "tier": "quick",
+      "tags": [
+        "contract",
+        "canary",
+        "contracts"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
+      "id": "install-core",
+      "command": [
+        "bash",
+        "tests/test-install-core.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-runtime-quick-canary",
+      "command": [
+        "bash",
+        "tests/test-install-runtime-quick-canary.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "quick",
+      "tags": [
+        "canary"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 120
+    },
+    {
+      "id": "install-runtime-smoke",
+      "command": [
+        "bash",
+        "tests/test-install-runtime-smoke.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-safety",
+      "command": [
+        "bash",
+        "tests/test-install-safety.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-runtime",
+      "command": [
+        "bash",
+        "tests/test-install-runtime.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-migration",
+      "command": [
+        "bash",
+        "tests/test-install-migration.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy",
+        "migration"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-retired-skill-cleanup",
+      "command": [
+        "bash",
+        "tests/test-install-retired-skill-cleanup.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "runtime-contract-catalog",
+      "command": [
+        "bash",
+        "tests/test-runtime-contract-catalog.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "iron-law-degradation-boundary",
+      "command": [
+        "bash",
+        "tests/test-iron-law-degradation-boundary.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "runtime-integrity",
+      "command": [
+        "bash",
+        "tests/test-runtime-integrity.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "runtime-reference-activation",
+      "command": [
+        "bash",
+        "tests/test-runtime-reference-activation.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "codex-hook-trust-audit",
+      "command": [
+        "bash",
+        "tests/test-codex-hook-trust-audit.sh"
+      ],
+      "area": "codex-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "platform-runtime-noise",
+      "command": [
+        "bash",
+        "tests/test-platform-runtime-noise.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "single-source-layout",
+      "command": [
+        "bash",
+        "tests/test-single-source-layout.sh"
+      ],
+      "area": "preflight",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "codex-skill-adapter",
+      "command": [
+        "bash",
+        "tests/test-codex-skill-adapter.sh"
+      ],
+      "area": "codex-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "codex-agent-governance",
+      "command": [
+        "bash",
+        "tests/test-codex-agent-governance.sh"
+      ],
+      "area": "codex-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "consistency-audit-canonical-agent",
+      "command": [
+        "bash",
+        "tests/test-consistency-audit-canonical-agent.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "run-all-runner-contract",
+      "command": [
+        "bash",
+        "tests/test-run-all-runner-contract.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "entry-doc-source-contract",
+      "command": [
+        "bash",
+        "tests/test-entry-doc-source-contract.sh"
+      ],
+      "area": "preflight",
+      "tier": "quick",
+      "tags": [
+        "canary"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
+      "id": "test-assertion-boundary-contract",
+      "command": [
+        "bash",
+        "tests/test-test-assertion-boundary-contract.sh"
+      ],
+      "area": "assertion-boundary",
+      "tier": "quick",
+      "tags": [
+        "assertion-boundary",
+        "canary"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
+      "id": "review-fix-redesign-contract",
+      "command": [
+        "bash",
+        "tests/test-review-fix-redesign-contract.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "review-fix-redesign-scenarios",
+      "command": [
+        "bash",
+        "tests/test-review-fix-redesign-scenarios.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "review-canonical-result-gate",
+      "command": [
+        "bash",
+        "tests/test-review-canonical-result-gate.sh"
+      ],
+      "area": "review",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "eval-fixtures-contract",
+      "command": [
+        "bash",
+        "tests/test-eval-fixtures-contract.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "full",
+      "tags": [
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "eval-summary-compat",
+      "command": [
+        "bash",
+        "tests/test-eval-summary-compat.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "full",
+      "tags": [
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-eval-contract",
+      "command": [
+        "bash",
+        "tests/test-product-eval-contract.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "full",
+      "tags": [
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-director-cocreation-contract",
+      "command": [
+        "bash",
+        "tests/test-product-director-cocreation-contract.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-director-real-demand-smoke",
+      "command": [
+        "bash",
+        "tests/test-product-director-real-demand-smoke.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-director-s4-boundary",
+      "command": [
+        "bash",
+        "tests/test-product-director-s4-boundary.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-role-split-contract",
+      "command": [
+        "bash",
+        "tests/test-product-role-split-contract.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-stability-guidance-contract",
+      "command": [
+        "bash",
+        "tests/test-product-stability-guidance-contract.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-context-signal-quality",
+      "command": [
+        "bash",
+        "tests/test-product-context-signal-quality.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-review-agent-team-evidence",
+      "command": [
+        "bash",
+        "tests/test-product-review-agent-team-evidence.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-manager-preflight-contract",
+      "command": [
+        "bash",
+        "tests/test-product-manager-preflight-contract.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-manager-dogfood-e2e",
+      "command": [
+        "bash",
+        "tests/test-product-manager-dogfood-e2e.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [
+        "dogfood",
+        "e2e"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "constraint-closure-contract",
+      "command": [
+        "bash",
+        "tests/test-constraint-closure-contract.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "phase-context-resolution",
+      "command": [
+        "bash",
+        "tests/test-phase-context-resolution.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "delivery-owner-sop-contract",
+      "command": [
+        "bash",
+        "tests/test-delivery-owner-sop-contract.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [
+        "live"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "delivery-estimator-contract",
+      "command": [
+        "bash",
+        "tests/test-delivery-estimator-contract.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [
+        "live"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-output-and-gate-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-output-and-gate-contract.sh"
+      ],
+      "area": "hooks-manifest",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "hooks-manifest"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
+      "id": "managed-doc-output-contract",
+      "command": [
+        "bash",
+        "tests/test-managed-doc-output-contract.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "design-skill-governance-redesign",
+      "command": [
+        "bash",
+        "tests/test-design-skill-governance-redesign.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "design-architect-capability-contract",
+      "command": [
+        "bash",
+        "tests/test-design-architect-capability-contract.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "design-architect-contract",
+      "command": [
+        "python3",
+        "tests/test-design-architect-contract.py"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [
+        "python"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "test-design-clean-resource",
+      "command": [
+        "bash",
+        "tests/test-test-design-clean-resource.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "test-design-dogfood-flow",
+      "command": [
+        "bash",
+        "tests/test-test-design-dogfood-flow.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [
+        "dogfood"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "design-dogfood-e2e",
+      "command": [
+        "bash",
+        "tests/test-design-dogfood-e2e.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [
+        "dogfood",
+        "e2e"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "verify-contract-alignment",
+      "command": [
+        "bash",
+        "tests/test-verify-contract-alignment.sh"
+      ],
+      "area": "review",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "qa-browser-gate-contract",
+      "command": [
+        "bash",
+        "tests/test-qa-browser-gate-contract.sh"
+      ],
+      "area": "review",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "review-convergence-gates",
+      "command": [
+        "bash",
+        "tests/test-review-convergence-gates.sh"
+      ],
+      "area": "review",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "research-skill-contract",
+      "command": [
+        "bash",
+        "tests/test-research-skill-contract.sh"
+      ],
+      "area": "research",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "research-skill-refiner-eval",
+      "command": [
+        "bash",
+        "tests/test-research-skill-refiner-eval.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "full",
+      "tags": [
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "research-skill-creator-deep-audit",
+      "command": [
+        "bash",
+        "tests/test-research-skill-creator-deep-audit.sh"
+      ],
+      "area": "research",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "research-skill-retain-gate",
+      "command": [
+        "bash",
+        "tests/test-research-skill-retain-gate.sh"
+      ],
+      "area": "research",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "deep-research-skill-contract",
+      "command": [
+        "bash",
+        "tests/test-deep-research-skill-contract.sh"
+      ],
+      "area": "research",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "deep-research-scripts",
+      "command": [
+        "python3",
+        "tests/test-deep-research-scripts.py"
+      ],
+      "area": "research",
+      "tier": "full",
+      "tags": [
+        "python"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "delivery-estimator-calculator",
+      "command": [
+        "python3",
+        "tests/test-delivery-estimator-calculator.py"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [
+        "live",
+        "python"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "doc-reference-integrity",
+      "command": [
+        "bash",
+        "tests/test-doc-reference-integrity.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "reference-graph-hygiene",
+      "command": [
+        "bash",
+        "tests/test-reference-graph-hygiene.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "reference-decision-rules",
+      "command": [
+        "bash",
+        "tests/test-reference-decision-rules.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "community-tools",
+      "command": [
+        "bash",
+        "tests/test-community-tools.sh"
+      ],
+      "area": "community",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "anthropic-skill-sync-adapter-contract",
+      "command": [
+        "bash",
+        "tests/test-anthropic-skill-sync-adapter-contract.sh"
+      ],
+      "area": "community",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "superpowers-upstream-fidelity",
+      "command": [
+        "bash",
+        "tests/test-superpowers-upstream-fidelity.sh"
+      ],
+      "area": "community",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "superpowers-boundary",
+      "command": [
+        "bash",
+        "tests/test-superpowers-boundary.sh"
+      ],
+      "area": "community",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "active-doc-scope-lifecycle",
+      "command": [
+        "bash",
+        "tests/test-active-doc-scope-lifecycle.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "context-contract-validator",
+      "command": [
+        "bash",
+        "tests/test-context-contract-validator.sh"
+      ],
+      "area": "context",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
+      "id": "context-contract-hook",
+      "command": [
+        "bash",
+        "tests/test-context-contract-hook.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "context-recovery",
+      "command": [
+        "bash",
+        "tests/test-context-recovery.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "context-contract-audit",
+      "command": [
+        "bash",
+        "tests/test-context-contract-audit.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-format-unification",
+      "command": [
+        "bash",
+        "tests/test-skill-format-unification.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-effectiveness-eval-framework",
+      "command": [
+        "bash",
+        "tests/test-skill-effectiveness-eval-framework.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "full",
+      "tags": [
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-effectiveness-empirical-review",
+      "command": [
+        "bash",
+        "tests/test-skill-effectiveness-empirical-review.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "developer-effectiveness-review-evals",
+      "command": [
+        "bash",
+        "tests/test-developer-effectiveness-review-evals.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "full",
+      "tags": [
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "developer-runtime-proof-contract",
+      "command": [
+        "bash",
+        "tests/test-developer-runtime-proof-contract.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "developer-runtime-failure-matrix",
+      "command": [
+        "bash",
+        "tests/test-developer-runtime-failure-matrix.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "developer-process-compliance-contract",
+      "command": [
+        "bash",
+        "tests/test-developer-process-compliance-contract.sh"
+      ],
+      "area": "developer",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "developer-real-flow-value-pilot",
+      "command": [
+        "bash",
+        "tests/test-developer-real-flow-value-pilot.sh"
+      ],
+      "area": "developer",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-quality-standard",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-standard.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "shared-skill-package-quality-baseline",
+      "command": [
+        "bash",
+        "tests/test-shared-skill-package-quality-baseline.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-body-quality-static-audit",
+      "command": [
+        "bash",
+        "tests/test-skill-body-quality-static-audit.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-anti-noise-static-audit",
+      "command": [
+        "bash",
+        "tests/test-skill-anti-noise-static-audit.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-quality-detection-fixtures",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-detection-fixtures.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-optimization-contracts",
+      "command": [
+        "bash",
+        "tests/test-skill-optimization-contracts.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-completion-gate",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-completion-gate.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-legacy-dependency-cleanup",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-legacy-dependency-cleanup.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-effect-evidence",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-effect-evidence.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-live-baseline-pilot",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-live-baseline-pilot.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "live"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-retain-gate",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-retain-gate.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-pre-f1-closure-gate",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-pre-f1-closure-gate.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-self-dogfood-flow",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-self-dogfood-flow.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [
+        "dogfood"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "skill-refiner-sr-s2-fielded-dogfood",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-sr-s2-fielded-dogfood.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [
+        "dogfood"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "skill-refiner-tech-lead-shadow-flow",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-tech-lead-shadow-flow.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-closure-audit",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-closure-audit.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-github-radar-external-practice",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-github-radar-external-practice.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-refiner-supersedes-drift-gate",
+      "command": [
+        "bash",
+        "tests/test-skill-refiner-supersedes-drift-gate.sh"
+      ],
+      "area": "skill-refiner",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "github-repo-radar-contract",
+      "command": [
+        "bash",
+        "tests/test-github-repo-radar-contract.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-runtime-surface-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-runtime-surface-contract.sh"
+      ],
+      "area": "runtime-surface",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "runtime-surface"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 90
+    },
+    {
+      "id": "skill-runtime-noise",
+      "command": [
+        "bash",
+        "tests/test-skill-runtime-noise.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "release-metadata",
+      "command": [
+        "bash",
+        "tests/test-release-metadata.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "runtime-closeout-record",
+      "command": [
+        "bash",
+        "tests/test-runtime-closeout-record.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-context-budget",
+      "command": [
+        "bash",
+        "tests/test-skill-context-budget.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-context-budget-expiry",
+      "command": [
+        "bash",
+        "tests/test-skill-context-budget-expiry.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-closure-contract",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-closure-contract.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-co-creation-ledger-contract",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-co-creation-ledger-contract.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-hard-gate-boundary-contract",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-hard-gate-boundary-contract.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "task-contract-consumer-alignment",
+      "command": [
+        "bash",
+        "tests/test-task-contract-consumer-alignment.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "subagent-context-contract",
+      "command": [
+        "bash",
+        "tests/test-subagent-context-contract.sh"
+      ],
+      "area": "context",
+      "tier": "full",
+      "tags": [
+        "context"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "first-party-hard-gate-boundary-contract",
+      "command": [
+        "bash",
+        "tests/test-first-party-hard-gate-boundary-contract.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-cutover",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-cutover.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-feedback-thanks-pilot",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-feedback-thanks-pilot.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-foundation-registry",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-foundation-registry.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-login-homepage-pilot",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-login-homepage-pilot.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-pilot-audit",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-pilot-audit.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-local-eval-runner",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-local-eval-runner.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-projection-replay",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-projection-replay.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-readiness-gate",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-readiness-gate.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-runtime-state",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-runtime-state.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-runtime-layering-contract",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-runtime-layering-contract.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-episode-package",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-episode-package.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-harness-capability-eval",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-harness-capability-eval.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "standard-chain-skill-evals",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-skill-evals.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-skill-structure",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-skill-structure.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-user-decision",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-user-decision.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "standard-chain-validator-stack",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-validator-stack.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
+      "id": "td002-dry-run-grader",
+      "command": [
+        "bash",
+        "tests/test-td002-dry-run-grader.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "tl002-dry-run-grader",
+      "command": [
+        "bash",
+        "tests/test-tl002-dry-run-grader.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "do002-dry-run-grader",
+      "command": [
+        "bash",
+        "tests/test-do002-dry-run-grader.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "stage1-003-dry-run-graders",
+      "command": [
+        "bash",
+        "tests/test-stage1-003-dry-run-graders.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage1-dry-run-grader-runner",
+      "command": [
+        "bash",
+        "tests/test-stage1-dry-run-grader-runner.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage1-artifact-structure-contract",
+      "command": [
+        "bash",
+        "tests/test-stage1-artifact-structure-contract.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "e2e-resume001-chain-grader",
+      "command": [
+        "bash",
+        "tests/test-e2e-resume001-chain-grader.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "e2e",
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage2-intake-gate",
+      "command": [
+        "bash",
+        "tests/test-stage2-intake-gate.sh"
+      ],
+      "area": "stage2",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage2-product-director-handoff",
+      "command": [
+        "bash",
+        "tests/test-stage2-product-director-handoff.sh"
+      ],
+      "area": "stage2",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage2-confirmed-brief-package",
+      "command": [
+        "bash",
+        "tests/test-stage2-confirmed-brief-package.sh"
+      ],
+      "area": "stage2",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage2-product-manager-package",
+      "command": [
+        "bash",
+        "tests/test-stage2-product-manager-package.sh"
+      ],
+      "area": "stage2",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage2-design-package",
+      "command": [
+        "bash",
+        "tests/test-stage2-design-package.sh"
+      ],
+      "area": "stage2",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage2-test-design-package",
+      "command": [
+        "bash",
+        "tests/test-stage2-test-design-package.sh"
+      ],
+      "area": "stage2",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage2-tech-lead-package",
+      "command": [
+        "bash",
+        "tests/test-stage2-tech-lead-package.sh"
+      ],
+      "area": "stage2",
+      "tier": "full",
+      "tags": [
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "stage1-eval-checks-runner",
+      "command": [
+        "bash",
+        "tests/test-stage1-eval-checks-runner.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
+      "id": "product-restructure-residual",
+      "command": [
+        "bash",
+        "tests/test-product-restructure-residual.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "product-split-benchmark-contract",
+      "command": [
+        "bash",
+        "tests/test-product-split-benchmark-contract.sh"
+      ],
+      "area": "product",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-pull-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-pull-contract.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-pull-scripts",
+      "command": [
+        "python3",
+        "tests/test-skill-pull-scripts.py"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [
+        "python"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "feishu-docs-skill-contract",
+      "command": [
+        "bash",
+        "tests/test-feishu-docs-skill-contract.sh"
+      ],
+      "area": "other",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "skill-eval-contracts",
+      "command": [
+        "bash",
+        "tests/test-skill-eval-contracts.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "eval-contract",
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    }
+  ]
+}

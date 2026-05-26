@@ -4,9 +4,9 @@
     {
       "id": "handoff-validation-first",
       "prompt": "用 product-manager 继续细化「商家入驻自动审核」这个已通过 Director 确认的 Phase 1，帮我把业务流程、UNIT 和 AC 收到可执行粒度。",
-      "expected_output": "第一轮执行 Handoff gate，先收到 brief.json 与 phase-prd.json handoff 工件，再校验 director_confirmation、locked_fields、当前 Phase 边界与 iteration_timebox_days <= 14；准入未通过时停在 Handoff gate，输出阻断状态和缺失工件清单。",
       "files": [],
       "expectations": [
+        "第一轮执行 Handoff gate，先收到 brief.json 与 phase-prd.json handoff 工件，再校验 director_confirmation、locked_fields、当前 Phase 边界与 iteration_timebox_days <= 14；准入未通过时停在 Handoff gate，输出阻断状态和缺失工件清单。",
         "先执行 Handoff gate 工件接收与验证",
         "要求读取 brief.json 和 phase-prd.json",
         "校验 director_confirmation.status、locked_fields 与 iteration_timebox_days <= 14",
@@ -20,9 +20,9 @@
     {
       "id": "director-lock-drift-blocking",
       "prompt": "PM 细化时发现 Phase 1 的范围需要扩大，原来 Director 锁定的业务规则也要改，能不能直接在 product-manager 里顺手改掉？",
-      "expected_output": "判定 Director 锁定字段漂移；触及 Phase 边界、范围、业务规则或约束事实时停止并报告用户，是否进入 product-director 由用户裁决；当前 PM 记录阻断事实和建议入口，把 product-director 标为可裁决入口而非自动下一步。",
       "files": [],
       "expectations": [
+        "判定 Director 锁定字段漂移；触及 Phase 边界、范围、业务规则或约束事实时停止并报告用户，是否进入 product-director 由用户裁决；当前 PM 记录阻断事实和建议入口，把 product-director 标为可裁决入口而非自动下一步。",
         "识别这是 Director 锁定字段漂移",
         "识别 Director 锁定字段漂移",
         "停止并报告用户，等待用户裁决",
@@ -37,9 +37,9 @@
     {
       "id": "canonical-review-required",
       "prompt": "现在只有旧版 brief.md 和 prd.md，没有 brief.json，也没有 product-manager-review.md。先帮我拆 UNIT，review 后面再补可以吗？",
-      "expected_output": "判定当前停在 Handoff gate；先收到并校验 brief.json / phase-prd.json，legacy markdown 只作背景，初始准入不要求 UNIT-*.json；Handoff 通过后把 phase-prd.json 作为工作草稿逐环节写入。review 不能后补：UNIT 产出后，PM owner 自检通过再计算 reviewed_bundle_digest，让三视角 reviewer 审同一份 digest 绑定的 PM review bundle，评审结论写入 review_conclusion / issue_ledger。",
       "files": [],
       "expectations": [
+        "判定当前停在 Handoff gate；先收到并校验 brief.json / phase-prd.json，legacy markdown 只作背景，初始准入不要求 UNIT-*.json；Handoff 通过后把 phase-prd.json 作为工作草稿逐环节写入。review 不能后补：UNIT 产出后，PM owner 自检通过再计算 reviewed_bundle_digest，让三视角 reviewer 审同一份 digest 绑定的 PM review bundle，评审结论写入 review_conclusion / issue_ledger。",
         "legacy markdown 作为背景，准入工件以 JSON 产物为准",
         "阻断到收到并校验 brief.json / phase-prd.json；初始 Handoff gate 不要求 UNIT-*.json",
         "Handoff 通过后把 phase-prd.json 作为工作草稿逐环节写入",
@@ -58,13 +58,13 @@
     {
       "id": "unit-context-and-ac-closure",
       "prompt": "Handoff gate 已通过，输入文件包含已确认 handoff：`shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/brief.json` 和 `phase-1/phase-prd.json`。本 eval 不要求写文件、运行命令或修改既有 UNIT；请基于这份 request review flow，在答复正文为 Phase 1 拆一个闭环 UNIT，并把 AC 收到可以交给 design/test-design 的粒度。",
-      "expected_output": "先基于输入 handoff 在答复正文给 PM 推荐 UNIT 草案、AC 草案、推荐理由和会改变结论的未闭合业务假设；UNIT 写清输入/触发、核心行为、可观察结果、Integration Context、正常/异常/边界示例驱动 AC、Verification Plan、依赖和排除项；用户只确认会改变结论的业务事实；技术实现路径留给下游。",
       "files": [
         "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/brief.json",
         "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/phase-1/phase-prd.json",
         "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/outputs/docs/request-review-flow/phase-1/units/UNIT-1.json"
       ],
       "expectations": [
+        "先基于输入 handoff 在答复正文给 PM 推荐 UNIT 草案、AC 草案、推荐理由和会改变结论的未闭合业务假设；UNIT 写清输入/触发、核心行为、可观察结果、Integration Context、正常/异常/边界示例驱动 AC、Verification Plan、依赖和排除项；用户只确认会改变结论的业务事实；技术实现路径留给下游。",
         "先给 PM 推荐 UNIT 草案、AC 草案、推荐理由和会改变结论的未闭合业务假设",
         "UNIT 有输入、触发、核心行为和可观察结果",
         "Integration Context 写业务模块、不可破坏行为、跨 UNIT 依赖和业务约束",
@@ -81,9 +81,9 @@
     {
       "id": "review-delivery-guided-confirmation",
       "prompt": "Self-check 扫描发现 AC 缺一个边界案例，Agent review 的 tester 给 WARN、reviewer 无 FAIL；请继续推进到 Delivery 交付确认，并说明怎么交给 /design。",
-      "expected_output": "先给 PM 收口建议：Self-check 标记 AC 缺边界案例后返回 return_to=AC，回 AC 补齐缺失边界案例；说明 Agent review 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为结构化评审结论后，在 Delivery 验证一个会改变 delivery_confirmation 结论的具体业务假设；提供给 /design 消费已冻结 JSON 产物和下游需消费字段。",
       "files": [],
       "expectations": [
+        "先给 PM 收口建议：Self-check 标记 AC 缺边界案例后返回 return_to=AC，回 AC 补齐缺失边界案例；说明 Agent review 无 FAIL 可继续、WARN 必须写入 issue_ledger 并指定承接目标；将 review_conclusion / issue_ledger 更新为结构化评审结论后，在 Delivery 验证一个会改变 delivery_confirmation 结论的具体业务假设；提供给 /design 消费已冻结 JSON 产物和下游需消费字段。",
         "覆盖 Self-check、Agent review、Delivery 的连续引导",
         "先给收口建议，再验证一个会改变交付确认结论的具体业务假设",
         "先给 PM 推荐动作，再验证一个会改变结论的具体业务事实",
@@ -102,9 +102,9 @@
     {
       "id": "high-risk-review-on-demand",
       "prompt": "Agent review 准备评审的 Phase 涉及批量重放失败任务、外部支付通知重试和重复提交幂等风险；三方 reviewer 目前没有 FAIL。请说明 PM 在 Agent review/PM handoff gate 怎么推进，不要展开普通评审的全部细节。",
-      "expected_output": "先给 PM 推荐收敛动作：Agent review 读取 review-orchestration，召集 product、architecture、test 三视角 reviewer 审同一份 digest，并执行 3 视角×max10 轮；当前 Phase 命中批量重放、外部依赖、失败重试和幂等风险，所以在同一评审循环中检查 High-Risk Signals；检查只覆盖高风险场景、失败模式、补偿/回滚、重复提交和需写入 AC/Verification Plan/issue_ledger 的缺口；无 FAIL 才能进入 PM handoff gate，WARN 必须记录承接目标；没有高风险信号时不追加高风险检查。",
       "files": [],
       "expectations": [
+        "先给 PM 推荐收敛动作：Agent review 读取 review-orchestration，召集 product、architecture、test 三视角 reviewer 审同一份 digest，并执行 3 视角×max10 轮；当前 Phase 命中批量重放、外部依赖、失败重试和幂等风险，所以在同一评审循环中检查 High-Risk Signals；检查只覆盖高风险场景、失败模式、补偿/回滚、重复提交和需写入 AC/Verification Plan/issue_ledger 的缺口；无 FAIL 才能进入 PM handoff gate，WARN 必须记录承接目标；没有高风险信号时不追加高风险检查。",
         "先给 PM 推荐收敛动作，再验证会改变结论的事实",
         "Agent review 使用 3 视角×max10 轮评审编排",
         "命中批量重放、外部依赖、失败重试或幂等风险时在同一评审循环中检查 High-Risk Signals",
@@ -120,9 +120,9 @@
     {
       "id": "input-quality-diagnosis",
       "prompt": "Handoff gate preflight 通过了，但 Director baseline 里「审核规则」只写了「按公司标准审核」没有具体标准，「批量操作」出现在范围里但没写上限，「商品状态」在成功标准和业务规则里各出现一次但含义不一致。PM 准备进入 Evidence and AS-IS，应该怎么处理这些问题？",
-      "expected_output": "PM 停在 Handoff gate，识别并分类这三类问题：「按公司标准审核」是歧义定义，需要用户补充具体规则或回 Director 确认；「批量操作上限」是输入缺口，PM 可在 Evidence and AS-IS 业务流程分析中作为关键假设带入验证；「商品状态含义不一致」是语义冲突，进入细化前先统一定义。分类结果写入 PM 台账，「需回 Director」的项停在 Handoff gate 等用户裁决。",
       "files": [],
       "expectations": [
+        "PM 停在 Handoff gate，识别并分类这三类问题：「按公司标准审核」是歧义定义，需要用户补充具体规则或回 Director 确认；「批量操作上限」是输入缺口，PM 可在 Evidence and AS-IS 业务流程分析中作为关键假设带入验证；「商品状态含义不一致」是语义冲突，进入细化前先统一定义。分类结果写入 PM 台账，「需回 Director」的项停在 Handoff gate 等用户裁决。",
         "识别 Director baseline 中的歧义定义、输入缺口和语义冲突",
         "按「PM 可收口」与「需回 Director」分类处理",
         "歧义定义和语义冲突在 Handoff gate 闭合或报告用户",
@@ -136,9 +136,9 @@
     {
       "id": "priority-ordering-synthesis",
       "prompt": "Phase 1 拆了 5 个 UNIT：UNIT-1 商品录入（P0）、UNIT-2 库存管理（P1）、UNIT-3 商品审核（P0）、UNIT-4 商品上架（P1，依赖 UNIT-1 和 UNIT-3）、UNIT-5 商品搜索（P2，依赖 UNIT-4）。所有 UNIT 都已逐个闭合。请在 UNIT split 收尾时验证整体优先级排序并给出推荐执行顺序。",
-      "expected_output": "验证优先级排序一致性：UNIT-4 是 P1，被 P2 的 UNIT-5 依赖，依赖方向成立；UNIT-1 和 UNIT-3 是 P0，被 P1 的 UNIT-4 依赖，依赖方向成立（高优先完成才能解锁低优）；UNIT-2 独立且 P1，可与 UNIT-4 并行。推荐执行顺序：第一批 UNIT-1 + UNIT-3（P0，无依赖），第二批 UNIT-2 + UNIT-4（P1，UNIT-4 等 UNIT-1/UNIT-3 完成），第三批 UNIT-5（P2，等 UNIT-4）。如果存在高优依赖低优的矛盾应标记并暂停修正。",
       "files": [],
       "expectations": [
+        "验证优先级排序一致性：UNIT-4 是 P1，被 P2 的 UNIT-5 依赖，依赖方向成立；UNIT-1 和 UNIT-3 是 P0，被 P1 的 UNIT-4 依赖，依赖方向成立（高优先完成才能解锁低优）；UNIT-2 独立且 P1，可与 UNIT-4 并行。推荐执行顺序：第一批 UNIT-1 + UNIT-3（P0，无依赖），第二批 UNIT-2 + UNIT-4（P1，UNIT-4 等 UNIT-1/UNIT-3 完成），第三批 UNIT-5（P2，等 UNIT-4）。如果存在高优依赖低优的矛盾应标记并暂停修正。",
         "验证高优 UNIT 不依赖低优 UNIT（或有明确业务理由）",
         "依赖链条与执行顺序一致",
         "给出分批推荐执行顺序",
@@ -152,9 +152,9 @@
     {
       "id": "cross-unit-semantic-consistency",
       "prompt": "Self-check 扫描时发现：UNIT-1 的 AC 写「状态变为已发布」，UNIT-3 的 AC 写「状态变为上线中」，但两处指同一个业务状态；UNIT-2 的排除项写「不含退货流程」，UNIT-4 的 Integration Context 写「支持退货触发的库存回滚」。PM 在 Self-check 应该怎么处理？",
-      "expected_output": "PM 在 Self-check 标记两类问题并返回 owning step：1）术语不一致——「已发布」和「上线中」指同一业务状态，return_to=UNIT split 或 AC，回对应环节统一术语并同步修正所有 UNIT 的 AC、闭环定义和状态引用；2）规则矛盾——UNIT-2 排除退货但 UNIT-4 假设退货存在，return_to=Feature inventory and risk 或 UNIT split，确认退货流程是否在 Phase 范围内；在范围内则回 UNIT split 修正 UNIT-2 排除项，范围外则回 UNIT split 修正 UNIT-4 的 Integration Context。仍需承接时写入既有 issue/review 字段，闭合后进入 Agent review。",
       "files": [],
       "expectations": [
+        "PM 在 Self-check 标记两类问题并返回 owning step：1）术语不一致——「已发布」和「上线中」指同一业务状态，return_to=UNIT split 或 AC，回对应环节统一术语并同步修正所有 UNIT 的 AC、闭环定义和状态引用；2）规则矛盾——UNIT-2 排除退货但 UNIT-4 假设退货存在，return_to=Feature inventory and risk 或 UNIT split，确认退货流程是否在 Phase 范围内；在范围内则回 UNIT split 修正 UNIT-2 排除项，范围外则回 UNIT split 修正 UNIT-4 的 Integration Context。仍需承接时写入既有 issue/review 字段，闭合后进入 Agent review。",
         "识别跨 UNIT 术语不一致（同一状态不同名称）",
         "识别跨 UNIT 规则矛盾（排除项与依赖假设冲突）",
         "要求统一术语并同步修正所有引用",
@@ -168,9 +168,9 @@
     {
       "id": "business-flow-refinement",
       "prompt": "Handoff gate 已通过且语义扫描无阻断项。Director baseline 确认了「商品库存管理」Phase 1，目标是让仓库管理员能实时掌握库存并完成调整。请在 Evidence and AS-IS 阶段细化端到端业务流程。",
-      "expected_output": "先给 PM 推荐业务流程草案，并写入 phase-prd 工作草稿中本环节负责字段：evidence_sources / as_is_flows，覆盖端到端过程（入库→库存查询→库存调整→调整审批→记录归档）、关键业务对象状态变化（调整单状态：草稿→待审→已批准/已驳回→已执行）和关键分支（审批通过/驳回/超量预警）；标注会改变流程结论的未闭合业务假设（如是否需要多级审批、是否区分手动和系统自动调整）；本步不拆 UNIT、不写 AC；保持 Director 冻结范围。",
       "files": [],
       "expectations": [
+        "先给 PM 推荐业务流程草案，并写入 phase-prd 工作草稿中本环节负责字段：evidence_sources / as_is_flows，覆盖端到端过程（入库→库存查询→库存调整→调整审批→记录归档）、关键业务对象状态变化（调整单状态：草稿→待审→已批准/已驳回→已执行）和关键分支（审批通过/驳回/超量预警）；标注会改变流程结论的未闭合业务假设（如是否需要多级审批、是否区分手动和系统自动调整）；本步不拆 UNIT、不写 AC；保持 Director 冻结范围。",
         "产出端到端业务流程并写入当前工作草稿字段，功能列表进入后续 Feature inventory",
         "包含关键业务对象的状态变化",
         "识别关键分支（正常/异常/边界）",
@@ -186,9 +186,9 @@
     {
       "id": "user-scenario-path-coverage",
       "prompt": "Evidence and AS-IS 业务流程已闭合，库存调整流程包含「仓库管理员发起调整→主管审批→系统执行」。请在 TO-BE product model 为库存调整走通用户场景路径，要求覆盖正常操作以外的场景。",
-      "expected_output": "走通用户场景路径，覆盖：正常路径（管理员选择商品→填写调整数量和原因→提交→主管审批通过→库存变更生效）；无权限场景（普通员工尝试发起调整→系统拒绝并提示权限不足）；空状态场景（无待审批调整单时审批页面的展示）；错误场景（调整数量超过库存上限→校验拦截并提示）；写 WHAT 层可观察状态和用户反馈，路由和组件方案留给 /design；识别 UNIT 边界前提。",
       "files": [],
       "expectations": [
+        "走通用户场景路径，覆盖：正常路径（管理员选择商品→填写调整数量和原因→提交→主管审批通过→库存变更生效）；无权限场景（普通员工尝试发起调整→系统拒绝并提示权限不足）；空状态场景（无待审批调整单时审批页面的展示）；错误场景（调整数量超过库存上限→校验拦截并提示）；写 WHAT 层可观察状态和用户反馈，路由和组件方案留给 /design；识别 UNIT 边界前提。",
         "覆盖正常路径的完整用户操作序列",
         "覆盖无权限场景及系统反馈",
         "覆盖空状态场景",
@@ -204,9 +204,9 @@
     {
       "id": "business-rule-mapping",
       "prompt": "TO-BE product model 用户场景已闭合。请在 Feature inventory and risk 把「库存调整」的业务语义映射到具体规则：谁能操作、什么条件下需要审批、调整数量有什么校验、状态怎么流转。注意 Director baseline 锁定了「仅仓库管理员和主管可操作库存」。",
-      "expected_output": "映射业务规则：角色权限（仓库管理员可发起调整，主管可审批，其他角色无权限）；审批规则（调整量超过阈值需主管审批，阈值内自动通过——阈值待确认为关键假设）；字段校验（调整数量必须为正整数、原因为必填、调整后库存保持非负）；状态流转（草稿→待审→已批准/已驳回→已执行，已执行为终态不可回退）。规则写业务行为和约束，数据库字段、API 接口和代码实现留给下游；触及 Director 锁定的角色权限时引用而非改写。",
       "files": [],
       "expectations": [
+        "映射业务规则：角色权限（仓库管理员可发起调整，主管可审批，其他角色无权限）；审批规则（调整量超过阈值需主管审批，阈值内自动通过——阈值待确认为关键假设）；字段校验（调整数量必须为正整数、原因为必填、调整后库存保持非负）；状态流转（草稿→待审→已批准/已驳回→已执行，已执行为终态不可回退）。规则写业务行为和约束，数据库字段、API 接口和代码实现留给下游；触及 Director 锁定的角色权限时引用而非改写。",
         "映射角色权限规则",
         "映射审批/校验规则",
         "映射状态流转规则",
@@ -222,9 +222,9 @@
     {
       "id": "evidence-required-for-existing-entry",
       "prompt": "Handoff gate 已通过。用户说「沿用现有后台入口改一下库存调整」，但没有给入口截图、现有流程、日志、页面描述或用户裁决。PM 能不能直接写 AS-IS 和 UNIT？",
-      "expected_output": "PM 先执行证据采集，把缺口写入 evidence_sources：既有后台入口缺截图、流程、日志、页面描述或用户裁决证据，status=ASSUMPTION，并写 gap_reason / required_evidence / blocks_fields；给出 PM 推荐默认理解，并验证一个会改变 AS-IS/TO-BE/功能清单/UNIT 的具体事实；缺证据影响最终结论时暂停写入依赖该证据的 UNIT 和 AC。",
       "files": [],
       "expectations": [
+        "PM 先执行证据采集，把缺口写入 evidence_sources：既有后台入口缺截图、流程、日志、页面描述或用户裁决证据，status=ASSUMPTION，并写 gap_reason / required_evidence / blocks_fields；给出 PM 推荐默认理解，并验证一个会改变 AS-IS/TO-BE/功能清单/UNIT 的具体事实；缺证据影响最终结论时暂停写入依赖该证据的 UNIT 和 AC。",
         "既有入口必须要求截图、流程、日志、页面描述或用户裁决证据",
         "缺证据写入 evidence_sources 的 ASSUMPTION / gap_reason / required_evidence / blocks_fields",
         "先给 PM 推荐默认理解，再验证一个会改变结论的事实",
@@ -239,9 +239,9 @@
     {
       "id": "feature-inventory-before-unit-split",
       "prompt": "PM 已经有 TO-BE 流程草案，但还没有功能清单、模块能力矩阵、入口场景、业务对象、状态流转、权限矩阵和风险台账。用户催促：先把 UNIT 拆出来，其他表后面补。",
-      "expected_output": "PM 先写 feature_inventory、module_capability_matrix、entry_scene_inventory、business_objects、state_transitions、role_permission_matrix 和 risk_ledger。IN_SCOPE 功能映射至少一个 UNIT，NEEDS_DECISION 功能停在功能清单等待裁决，OUT_OF_SCOPE 功能追溯到 Director 非目标/范围边界/用户裁决。缺这些输入时停在能力建模，输出阻断状态。",
       "files": [],
       "expectations": [
+        "PM 先写 feature_inventory、module_capability_matrix、entry_scene_inventory、business_objects、state_transitions、role_permission_matrix 和 risk_ledger。IN_SCOPE 功能映射至少一个 UNIT，NEEDS_DECISION 功能停在功能清单等待裁决，OUT_OF_SCOPE 功能追溯到 Director 非目标/范围边界/用户裁决。缺这些输入时停在能力建模，输出阻断状态。",
         "UNIT 拆分前完成功能清单和模块能力矩阵",
         "入口场景、业务对象、状态流转、权限矩阵和风险台账先可读",
         "IN_SCOPE 功能映射 UNIT",
@@ -256,9 +256,9 @@
     {
       "id": "risk-ledger-downgrades-to-verification",
       "prompt": "库存调整 Phase 命中外部审批系统不可用、重复提交、审批通过后库存回滚失败三个风险。PM 在 Feature inventory and risk/AC 应该怎么处理，能不能只写一句「注意风险」？",
-      "expected_output": "PM 把每个风险写入 risk_ledger，包含来源、类型、触发条件、影响 UNIT、影响、PM 决策、owner/缓解方式、verification_target 和状态。风险落到 AC、Verification Plan、阻断项、下游 owner 或用户裁决；OPEN/BLOCKED 风险阻断 delivery_confirmation；涉及外部审批不可用、重复提交、回滚失败的风险在 AC 或 Verification Plan 中写可观察验证目标。",
       "files": [],
       "expectations": [
+        "PM 把每个风险写入 risk_ledger，包含来源、类型、触发条件、影响 UNIT、影响、PM 决策、owner/缓解方式、verification_target 和状态。风险落到 AC、Verification Plan、阻断项、下游 owner 或用户裁决；OPEN/BLOCKED 风险阻断 delivery_confirmation；涉及外部审批不可用、重复提交、回滚失败的风险在 AC 或 Verification Plan 中写可观察验证目标。",
         "每个风险写入 risk_ledger 的结构化字段",
         "风险落到 AC、Verification Plan、阻断项、owner 或用户裁决",
         "OPEN/BLOCKED 风险阻断交付确认",
@@ -273,9 +273,9 @@
     {
       "id": "move-in-next-tenant-output-shape",
       "prompt": "小需求测试：已租房间登记下一任租客，生成「将搬入」记录，且不影响当前在租关系。请说明 product-manager 的正确产出应该是什么，不要写技术方案。",
-      "expected_output": "PM 先给推荐产品产出：AS-IS 写当前已租房间与当前租客在租关系及入口证据；TO-BE 写运营登记下一任租客后生成独立「将搬入」记录，当前租客、当前合同、账单和房间在租状态不变化；业务流程图覆盖选择房间、登记下一任租客、校验不覆盖当前租客、创建将搬入记录、展示当前在租与将搬入并存；功能清单把创建将搬入记录、保护当前在租关系、展示或消费将搬入状态拆为 IN_SCOPE 能力；风险写覆盖当前租客、误触发合同或账单、重复登记，并落到 AC 或 Verification Plan；UNIT 写闭环、依赖和排除项；AC 写可观察结果。",
       "files": [],
       "expectations": [
+        "PM 先给推荐产品产出：AS-IS 写当前已租房间与当前租客在租关系及入口证据；TO-BE 写运营登记下一任租客后生成独立「将搬入」记录，当前租客、当前合同、账单和房间在租状态不变化；业务流程图覆盖选择房间、登记下一任租客、校验不覆盖当前租客、创建将搬入记录、展示当前在租与将搬入并存；功能清单把创建将搬入记录、保护当前在租关系、展示或消费将搬入状态拆为 IN_SCOPE 能力；风险写覆盖当前租客、误触发合同或账单、重复登记，并落到 AC 或 Verification Plan；UNIT 写闭环、依赖和排除项；AC 写可观察结果。",
         "产出 AS-IS、TO-BE 和业务流程图，而不是只写功能名",
         "明确当前租客、合同、账单和在租状态不变化",
         "功能清单映射 IN_SCOPE 能力和 UNIT",
@@ -292,9 +292,9 @@
     {
       "id": "skill-wording-must-be-executable",
       "prompt": "请优化 product-manager 的 SKILL.md：把「为什么要这么做」「确保完整合理」「根据情况适当补充」这类说明保留在主流程里可以吗？",
-      "expected_output": "SKILL.md 主流程保留可执行指令，用自然语言按「读取事实 -> 完成 PM 判断 -> 写入契约字段 -> 停止或回流」的隐性顺序表达，不机械拆成四段式标题。解释性 Why、自证、抽象形容词和不触发动作的说明删除、下沉到 reference，或改成可执行检查项；字段必须能追溯到 templates/contracts/scripts；description 写触发与边界。",
       "files": [],
       "expectations": [
+        "SKILL.md 主流程保留可执行指令，用自然语言按「读取事实 -> 完成 PM 判断 -> 写入契约字段 -> 停止或回流」的隐性顺序表达，不机械拆成四段式标题。解释性 Why、自证、抽象形容词和不触发动作的说明删除、下沉到 reference，或改成可执行检查项；字段必须能追溯到 templates/contracts/scripts；description 写触发与边界。",
         "主流程用自然语言直接写清可执行动作",
         "删除或下沉解释性 Why、自证和低信号说明",
         "把抽象形容词改成可检查条件",
@@ -309,9 +309,9 @@
     {
       "id": "design-decision-structuring",
       "prompt": "Verification Plan 已完成。Design handoff 扫描发现两个开放问题：1）库存调整精度（整数还是支持小数）影响 UNIT-2 和 UNIT-3 的 AC，Director baseline 未指定；2）调整审批是走现有 OA 审批流还是系统内建审批，影响 UNIT-4 的 Integration Context。PM 应该怎么结构化这两个待设计决策？",
-      "expected_output": "为每个决策记录结构化 design handoff：决策 1（库存精度）：候选选项=整数/支持两位小数，约束=Director 未指定精度但成功标准要求精确管理，影响 UNIT=UNIT-2 和 UNIT-3 的 AC 和边界值，design handoff=由 /design 根据业务数据实际精度需求收口。决策 2（审批流）：候选选项=复用 OA 审批/系统内建审批，约束=现有 OA 审批流已有、系统内建可控性更高，影响 UNIT=UNIT-4，design handoff=由 /design 根据集成成本和控制需求收口。只描述 WHAT 层约束，技术答案留给 /design。",
       "files": [],
       "expectations": [
+        "为每个决策记录结构化 design handoff：决策 1（库存精度）：候选选项=整数/支持两位小数，约束=Director 未指定精度但成功标准要求精确管理，影响 UNIT=UNIT-2 和 UNIT-3 的 AC 和边界值，design handoff=由 /design 根据业务数据实际精度需求收口。决策 2（审批流）：候选选项=复用 OA 审批/系统内建审批，约束=现有 OA 审批流已有、系统内建可控性更高，影响 UNIT=UNIT-4，design handoff=由 /design 根据集成成本和控制需求收口。只描述 WHAT 层约束，技术答案留给 /design。",
         "每个决策有候选选项",
         "每个决策有约束条件",
         "每个决策有影响的 UNIT",
@@ -326,7 +326,6 @@
     {
       "id": "canonical-drift-blocks-pm-handoff",
       "prompt": "有一个已经通过 Handoff gate 到 Feature inventory and risk 的 Phase 目录 `shared/skills/product-manager/examples/feature--user-login-validation`（brief + phase-prd + 4 个 UNITs），结构是干净的标准交付 baseline。请逐字运行并回显：`python3 shared/skills/product-manager/scripts/preflight_check.py --phase-dir shared/skills/product-manager/examples/feature--user-login-validation/phase-1`，并报告 status 与结构校验结果。然后把该目录复制到 `$TMPDIR/pm-drift`，手工注入两处结构漂移：（1）`phase-prd.json` 删掉 `chain_registry_digest`；（2）`units/UNIT-1.json` 的 `integration_context.cross_unit_dependencies` 改成 `[{\"depends_on\":\"UNIT-2\",\"reason\":\"x\"}]` 形态。再次运行同一 preflight，回显输出。报告：failure_code 必须是 `CANONICAL_SCHEMA_FAILURE`；owner 必须是 `product-manager`；说明没有这道 PM 侧闸门时，这两个漂移会一直带到 /design 的 phase validator 才 FAIL，造成 PM 自认完成、下游才爆的延迟。",
-      "expected_output": "在干净 baseline 上 preflight 返回 status=PASS 且结构校验结果为 true；在漂移版上返回 status=BLOCKED、failure_code=CANONICAL_SCHEMA_FAILURE、owner=product-manager，reason 显式指向 chain_registry_digest 缺失或 cross_unit_dependencies 形态不符；说明若 PM preflight 不执行结构契约校验，这些结构漂移会在 PM AC 交接后才由 design phase validator 发现，造成 PM 自认完成而下游才爆的延迟。",
       "files": [
         "shared/skills/product-manager/examples/feature--user-login-validation",
         "shared/skills/product-manager/scripts/preflight_check.py",
@@ -334,6 +333,7 @@
         "tools/community/validate_canonical_rules.py"
       ],
       "expectations": [
+        "在干净 baseline 上 preflight 返回 status=PASS 且结构校验结果为 true；在漂移版上返回 status=BLOCKED、failure_code=CANONICAL_SCHEMA_FAILURE、owner=product-manager，reason 显式指向 chain_registry_digest 缺失或 cross_unit_dependencies 形态不符；说明若 PM preflight 不执行结构契约校验，这些结构漂移会在 PM AC 交接后才由 design phase validator 发现，造成 PM 自认完成而下游才爆的延迟。",
         "干净 baseline 上 preflight status=PASS 且结构校验结果为 true",
         "漂移版上 preflight failure_code=CANONICAL_SCHEMA_FAILURE 且 owner=product-manager",
         "reason 指向 chain_registry_digest 或 cross_unit_dependencies 形态缺陷",

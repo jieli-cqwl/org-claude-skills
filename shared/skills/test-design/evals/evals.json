@@ -5,13 +5,13 @@
     {
       "id": "missing-design-blocks-test-design",
       "prompt": "已有 brief.json、phase-prd.json 和 UNIT 文件，但 design.json 还没出。先帮我写测试用例，设计后面再补。",
-      "expected_output": "阻断 test-design 输出，说明缺少 phase 工作区 design.json；不得生成 test-cases.json；建议 design 责任方补齐并等待用户裁决。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/brief.json",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/phase-prd.json",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/units/UNIT-1.json"
       ],
       "expectations": [
+        "阻断 test-design 输出，说明缺少 phase 工作区 design.json；不得生成 test-cases.json；建议 design 责任方补齐并等待用户裁决。",
         "明确 design.json 是前置必需工件",
         "不输出最终 test-cases.json",
         "建议 design 责任方补齐",
@@ -30,11 +30,11 @@
     {
       "id": "developer-self-test-obligations",
       "prompt": "产品和设计都已确认。请说明 test-design 如何让开发在编码前知道自己要自测什么。",
-      "expected_output": "说明每条测试义务要包含 product refs、design refs、assertion_target、steps、expected_result 和 evidence_expectation，供 developer 绑定 test_ref 自测；同时区分 developer 自测义务与 QA 执行义务。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
+        "说明每条测试义务要包含 product refs、design refs、assertion_target、steps、expected_result 和 evidence_expectation，供 developer 绑定 test_ref 自测；同时区分 developer 自测义务与 QA 执行义务。",
         "说明开发消费 test_refs 和 assertion_target",
         "区分开发自测和 QA 执行",
         "要求 evidence_expectation",
@@ -52,9 +52,9 @@
     {
       "id": "qa-handoff-obligations",
       "prompt": "这个 UNIT 是 H5 多步骤表单提交，成功和错误提示依赖页面状态。请说明 QA 交接义务必须怎样设计。",
-      "expected_output": "说明 qa_handoff_contract 应写清 obligation_id、trigger_source、qa_stage、requiredness、execution_mode、skip_rule、evidence_expectation 和 design_source_refs；浏览器状态相关义务应标记 browser_required。",
       "files": [],
       "expectations": [
+        "说明 qa_handoff_contract 应写清 obligation_id、trigger_source、qa_stage、requiredness、execution_mode、skip_rule、evidence_expectation 和 design_source_refs；浏览器状态相关义务应标记 browser_required。",
         "明确输出 QA handoff obligation",
         "每条义务包含 obligation_id 和 evidence_expectation",
         "H5 页面状态标记 browser_required",
@@ -72,11 +72,11 @@
     {
       "id": "typed-gap-routes-to-owner",
       "prompt": "AC 要求历史记录可回滚，但 design.json 没有数据结构、迁移或回滚策略。请执行 test-design 分析。",
-      "expected_output": "输出 DESIGN_GAP 或 TESTABILITY_GAP，引用 product/design 证据，说明无法形成数据一致性或回滚测试义务，给出 owner、next_action 和 blocking 裁决。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
+        "输出 DESIGN_GAP 或 TESTABILITY_GAP，引用 product/design 证据，说明无法形成数据一致性或回滚测试义务，给出 owner、next_action 和 blocking 裁决。",
         "识别 typed gap",
         "引用产品和设计证据",
         "给出 owner 与 next_action",
@@ -94,11 +94,11 @@
     {
       "id": "specialty-design-minimal-expansion",
       "prompt": "design.json 已定义 auth、error、log、config、data_architecture 和性能指标。请说明 test-design 如何展开专项测试。",
-      "expected_output": "按专项测试设计手册做最小有效展开，覆盖安全、性能、数据一致性或集成/契约风险；每个专项义务要有 source_ref 和 test case、QA handoff 或 typed gap 承接。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
+        "按专项测试设计手册做最小有效展开，覆盖安全、性能、数据一致性或集成/契约风险；每个专项义务要有 source_ref 和 test case、QA handoff 或 typed gap 承接。",
         "专项义务按命中风险做最小分层",
         "说明 specialty trigger 的 source_ref",
         "用测试用例、QA handoff 或 gap 承接",
@@ -116,9 +116,9 @@
     {
       "id": "three-view-review-convergence",
       "prompt": "测试质量、产品、架构三位 reviewer 都给出了独立结论。请说明 test-design 如何合并审查结论。",
-      "expected_output": "先说明 test-design owner 必须完成自检并用 review_digest.py 计算 reviewed_test_cases_digest；三视角 reviewer 只读审同一个 digest 绑定的测试设计产物。你复核三视角 findings，按 3 视角×max10轮收敛；首轮全 PASS 仍做 R2/CONFIRMATION；任一 FAIL 系统修正后只重提 FAIL 视角；记录最终裁决、修正依据和未承接风险，写入 review_conclusion.reviewed_test_cases_digest、reviewer_verdicts[]、convergence_evidence[] 和 issue_ledger。",
       "files": [],
       "expectations": [
+        "先说明 test-design owner 必须完成自检并用 review_digest.py 计算 reviewed_test_cases_digest；三视角 reviewer 只读审同一个 digest 绑定的测试设计产物。你复核三视角 findings，按 3 视角×max10轮收敛；首轮全 PASS 仍做 R2/CONFIRMATION；任一 FAIL 系统修正后只重提 FAIL 视角；记录最终裁决、修正依据和未承接风险，写入 review_conclusion.reviewed_test_cases_digest、reviewer_verdicts[]、convergence_evidence[] 和 issue_ledger。",
         "要求 owner 自检通过后再送审",
         "要求计算并记录 reviewed_test_cases_digest",
         "要求 reviewer 审同一 digest 绑定的测试设计产物",

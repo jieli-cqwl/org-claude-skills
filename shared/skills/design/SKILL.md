@@ -21,86 +21,36 @@ allowed-tools: Read, Write, Glob, Grep, LSP, WebSearch, AskUserQuestion, Agent, 
 目标是让下游把活干对。
 
 <HARD-GATE>
-只有 preflight PASS 且 PM 基线已确认时，才能冻结设计。
-产品范围、业务规则、UNIT/AC、上线接受标准或输入基线发生变化时，停止冻结相关设计，输出回流包并等待用户或标准链编排器触发对应 owner。
-冻结有闭环：review 已闭合且 `final_confirmation.status=confirmed` 后，才能交给 `/test-design`。
+preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得创建、改写或冻结 `design.json` 的设计内容。
+产品范围、业务规则、UNIT/AC、上线接受标准或输入基线发生变化时，停止设计冻结，输出回流包并等待用户或标准链编排器触发对应 owner。
+冻结有闭环：review 未闭合或 `final_confirmation.status=confirmed` 不成立时，不得交给 `/test-design`。
 </HARD-GATE>
 
-## Checklist
+## Workflow Checklist
 
-按顺序推进；当前步骤闭合后进入下一步。
+按顺序创建任务并完成；只在 Baseline Gate、范围/语义漂移、review、用户确认或 validator 失败时分支。
 
-1. Baseline Gate
-2. Establish Working Artifact
-3. Explore Stakeholders and Concerns
-4. Identify Architecture-Significant Requirements
-5. Capture Current-State Evidence
-6. Model Complexity
-7. Discover Decisions
-8. Explore Options and Tradeoffs
-9. Synthesize Design
-10. Owner Self-Review
-11. Advisory Review
-12. Finalize Design
-13. Transition to /test-design
+1. **Baseline Gate** — run preflight; stop with an upstream handoff package on BLOCKED.
+2. **Establish Working Artifact** — create `{phase_dir}/design.json` from template/schema.
+3. **Explore Stakeholders and Concerns** — turn design consumers into design obligations.
+4. **Identify Architecture-Significant Requirements** — extract only requirements that change structure, data, interfaces, quality, migration, rollback, or verification.
+5. **Capture Current-State Evidence** — collect code, interface, data, config, runtime, and external-service facts with evidence and `observed_at`.
+6. **Model Complexity** — identify the real complexity source and default to the smallest viable architecture.
+7. **Discover Decisions** — list architecture decisions that must be frozen, their drivers, priority, and missing risk.
+8. **Explore Options and Tradeoffs** — process one decision at a time with recommendation, alternatives, tradeoffs, failure conditions, and user confirmation.
+9. **Synthesize Design** — convert frozen decisions into modules, data ownership, interfaces, cross-cutting concerns, migration, verification, rollback, risk response, and handoff.
+10. **Owner Self-Review** — verify the draft is consumable, referenced, and ready for advisory review.
+11. **Advisory Review** — run architecture/product/test review and fold FAIL/WARN into owned design fields.
+12. **Finalize Design** — show freeze summary, record final confirmation, and run digest/reference/phase validators.
+13. **Transition to /test-design** — hand off only after validators pass and `design.json` is frozen.
 
-## Process Flow
+## Capability Contracts
 
-```dot
-digraph design {
-    "Baseline Gate" [shape=box];
-    "Stop with upstream handoff" [shape=box];
-    "Establish Working Artifact" [shape=box];
-    "Explore Stakeholders and Concerns" [shape=box];
-    "Identify Architecture-Significant Requirements" [shape=box];
-    "Capture Current-State Evidence" [shape=box];
-    "Model Complexity" [shape=box];
-    "Discover Decisions" [shape=box];
-    "Explore Options and Tradeoffs" [shape=box];
-    "More decisions?" [shape=diamond];
-    "Synthesize Design" [shape=box];
-    "Owner Self-Review" [shape=box];
-    "Advisory Review" [shape=box];
-    "Review passes?" [shape=diamond];
-    "User confirms final design?" [shape=diamond];
-    "Finalize Design" [shape=box];
-    "Run Validators" [shape=box];
-    "Validators pass?" [shape=diamond];
-    "Transition to /test-design" [shape=doublecircle];
+**Intake Routing:**
 
-    "Baseline Gate" -> "Stop with upstream handoff" [label="BLOCKED"];
-    "Baseline Gate" -> "Establish Working Artifact" [label="PASS"];
-    "Establish Working Artifact" -> "Explore Stakeholders and Concerns";
-    "Explore Stakeholders and Concerns" -> "Identify Architecture-Significant Requirements";
-    "Identify Architecture-Significant Requirements" -> "Stop with upstream handoff" [label="product scope changes"];
-    "Identify Architecture-Significant Requirements" -> "Capture Current-State Evidence";
-    "Capture Current-State Evidence" -> "Stop with upstream handoff" [label="decisive fact missing"];
-    "Capture Current-State Evidence" -> "Model Complexity";
-    "Model Complexity" -> "Discover Decisions";
-    "Discover Decisions" -> "Explore Options and Tradeoffs";
-    "Explore Options and Tradeoffs" -> "More decisions?";
-    "More decisions?" -> "Explore Options and Tradeoffs" [label="yes"];
-    "More decisions?" -> "Synthesize Design" [label="no"];
-    "Synthesize Design" -> "Owner Self-Review";
-    "Owner Self-Review" -> "Explore Options and Tradeoffs" [label="decision gap"];
-    "Owner Self-Review" -> "Synthesize Design" [label="contract or risk gap"];
-    "Owner Self-Review" -> "Advisory Review" [label="pass"];
-    "Advisory Review" -> "Review passes?";
-    "Review passes?" -> "Explore Options and Tradeoffs" [label="decision FAIL"];
-    "Review passes?" -> "Synthesize Design" [label="boundary, verification, risk FAIL"];
-    "Review passes?" -> "User confirms final design?" [label="pass or WARN accepted"];
-    "User confirms final design?" -> "Synthesize Design" [label="changes requested"];
-    "User confirms final design?" -> "Finalize Design" [label="yes"];
-    "Finalize Design" -> "Run Validators";
-    "Run Validators" -> "Validators pass?";
-    "Validators pass?" -> "Owner Self-Review" [label="no"];
-    "Validators pass?" -> "Transition to /test-design" [label="yes"];
-}
-```
-
-**终点是进入 `/test-design`。** 在 `/design` 中只写设计约束；测试用例、任务拆解和实现代码交给下游 Skill。
-
-## The Process
+- 先判断请求归属：WHY/WHAT 变化交回 `/product-manager`；HOW 设计留在 `/design`；测试、计划或实现要求写入 `/test-design`、`/tech-lead` 或 developer 交接字段。
+- 不用架构设计补产品语义缺口；不把测试用例、任务拆解或实现代码写进 `design.json`。
+- 设计问题只处理会影响结构、边界、数据、质量属性、迁移、回滚、验证或运维风险的 HOW 判断。
 
 **Baseline Gate:**
 
@@ -142,11 +92,19 @@ digraph design {
 - 每条事实必须包含 evidence 和 observed_at；无法采集会影响冻结决策的事实时，停止并写明 owner 与恢复方式。
 - 本地资料不足且技术选型依赖最新外部事实时才使用 WebSearch，并记录来源。
 
+**Evidence Strength:**
+
+- Strong：代码、schema、脚本输出、测试结果、配置、接口契约、数据库/运行时只读证据。
+- Medium：项目文档、历史 ADR、已确认用户事实、稳定团队约定。
+- Weak：推断、未核验 agent 输出、过期文档、自引用 `design.json`、无来源说法。
+- 弱证据不能冻结架构决策；它只能触发补采、风险记录、用户确认或上游回流。
+- 每条事实写清 evidence、observed_at、来源路径或命令；无法补强且影响关键决策时停止冻结。
+
 **Complexity Model:**
 
 - 把复杂度拆成业务规则、数据状态、角色协作、运行规则、质量属性、外部约束、资源限制和未来变化。
 - 读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用简单、合适、演化三原则裁决复杂度。
-- 默认推荐最小可行架构；只有真实复杂度、质量目标或风险代价证明必要时才引入复杂模式。
+- 默认推荐最小可行架构；只有真实复杂度、质量目标或风险代价证明复杂模式能降低总体风险时才引入。
 - Constitution、历史 ADR、遗留设计或口头约束只有在用户确认后才能继承。
 
 **Decision Discovery:**
@@ -168,6 +126,14 @@ digraph design {
 - `option_analysis` 按 `decision_ref` 写 2+ 方案、取舍和事实锚点；`key_decisions` 写最终选择、失效条件和用户确认。
 - 每个决策最终只能进入四种状态：已冻结、转风险、已输出上游回流包、明确不做。
 
+**Decision Shape:**
+
+- 每个 `key_decisions` 项必须写清 `decision_id`、summary、verdict、`option_ref`、`fact_refs` 和 `user_confirmation`。
+- 每个冻结决策必须能回指同一 `decision_id` 的 `option_analysis.decision_ref`；备选方案、取舍和失效条件写入 `option_analysis.tradeoff`。
+- 决策驱动写入 `input_analysis` 或 key decision summary；下游影响写入 `impact_scope`；验证义务写入 `verification_mapping`。
+- 推荐不是偏好陈述；推荐必须由事实、质量属性优先级、可逆性、风险代价或实现约束支撑。
+- 被拒方案必须说明为什么此 Phase 不选；失效条件必须说明什么事实出现时需要重开决策。
+
 **Design Synthesis:**
 
 - 把冻结决策转成模块、数据所有权、接口、横切关注点、迁移、验证、回滚、风险回应、影响范围、计划约束和产品交接。
@@ -178,6 +144,13 @@ digraph design {
 - 建立 verification mapping：每条 PM 验收点或 exit condition 对应设计验证、测试义务和 evidence ref。
 - 无法被 `/test-design`、`/tech-lead` 或 developer 消费的描述不算完成；在拥有环节补齐可消费字段后再继续。
 - 进入自检前汇报接口 input/output/error 语义摘要、推荐方案、备选方案、取舍、用户裁决和仍需解决的阻断条件。
+
+**Downstream Consumability:**
+
+- `/test-design` 必须能从 `verification_mapping` 写出断言、fixture 边界、失败场景和 evidence ref。
+- `/tech-lead` 必须能看出任务边界、依赖顺序、迁移步骤、风险承接和不可并行点。
+- developer 必须能实现接口 input/output/error、模块职责、数据 owner、边界行为和保护逻辑。
+- delivery-owner 必须能从 `risk_response`、`rollback_plan` 和 `planning_constraints` 判断风险、回滚和 release 条件，知道哪些 WARN 被承接到哪里。
 
 **Owner Self-Check:**
 
@@ -199,11 +172,17 @@ digraph design {
 - FAIL 必须系统性修正并重审；WARN 必须给出承接位置，并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`。
 - 无法形成可验证 agent teams 时，停止并报告能力缺口。
 
-**Finalizing design.json:**
+**Review Closure:**
+
+- review 闭合必须包含 owner 自检、advisory review verdict、FAIL 修正证据、WARN 承接位置和用户接受状态。
+- reviewer 只能给判断和证据，不能替 owner 冻结设计；owner 必须把有效 finding 合并回 `design.json` 的拥有字段。
+- review 未闭合时不能进入 final confirmation；WARN 没有承接位置时按 FAIL 处理。
+
+**Finalization And Handoff:**
 
 - 向用户展示冻结摘要：关键决策、边界、迁移、验证、回滚、风险回应、计划约束、review 结论和交接重点。
 - 只确认会改变实现、验证、回滚或风险接受的事实。
-- Finalize 只做 review 闭环、最终确认和验证收口；保持已审决策语义不变。
+- Finalize design.json 只做 review 闭环、最终确认和验证收口；保持已审决策语义不变。
 - 用户确认后写入 `{phase_dir}/design.json` 的 `review_closure` 和 `final_confirmation`，并最终冻结 `design.json`。
 - 运行 `python3 shared/skills/design/scripts/review_digest.py --check "$PHASE_DIR/design.json"`。
 - 运行 `python3 shared/skills/design/scripts/check_design_reference_integrity.py --phase-dir "$PHASE_DIR"`。
@@ -221,7 +200,7 @@ digraph design {
 
 ## User Collaboration
 
-- 先给推荐和依据，再问一个会改变设计结论的问题；必要时补充可逆性判断。
+- 先给推荐和依据，再问一个会改变设计结论的问题；当推荐方案不可逆、迁移成本高或风险接受不明确时，补充可逆性判断。
 - 用户补足真实业务场景、外部约束、组织边界、质量排序和风险接受。
 - 你负责方法：模块拆分、接口形态、数据所有权、迁移路径、验证方式和回滚策略先由你推荐。
 - 用户一次给多个事实时，先处理会改变当前决策的事实，其余登记到后续环节。

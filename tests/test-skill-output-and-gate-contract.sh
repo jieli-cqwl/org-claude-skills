@@ -557,7 +557,7 @@ assert_refactor_gate_ignores_placeholder_transcript_candidates() {
 
   run_hook "$ROOT/shared/skills/refactor/scripts/completion_check.sh" \
     "$workspace" "refactor-placeholder-candidates" \
-    "docs/重构-[模块名]/plan.md\ndocs/重构-demo/plan.md\ndocs/重构-xxx/plan.md\n"
+    "docs/refactor--{模块名}/plan.md\ndocs/refactor--demo/plan.md\ndocs/refactor--xxx/plan.md\n"
   assert_hook_noop_allowed "$workspace" "refactor gate should ignore placeholder Stop candidates"
 }
 

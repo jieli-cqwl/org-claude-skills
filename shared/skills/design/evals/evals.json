@@ -4,9 +4,9 @@
     {
       "id": "missing-product-inputs-block",
       "prompt": "帮我直接给订单退款做技术设计，但现在只有一句需求，没有 brief.json、phase-prd.json 或 UNIT 文件。",
-      "expected_output": "阻断设计输出，说明缺少 brief.json、phase-prd.json 和 UNIT 基线；要求先补齐 product-director / product-manager 产物，不得凭一句话生成 design.json。",
       "files": [],
       "expectations": [
+        "阻断设计输出，说明缺少 brief.json、phase-prd.json 和 UNIT 基线；要求先补齐 product-director / product-manager 产物，不得凭一句话生成 design.json。",
         "明确缺少 brief.json、phase-prd.json 或 UNIT-*.json",
         "不输出 design.json 或最终架构方案",
         "要求回到上游补齐冻结需求基线",
@@ -23,13 +23,13 @@
     {
       "id": "alternatives-and-runtime-scan",
       "prompt": "基于输入文件里的 sample-feature brief.json、phase-prd.json 和 UNIT 做架构显著需求与复杂度探索摘要。这个功能会接触 phase validator 和 readiness gate 代码；本地 eval 不要求写 design.json、不要求运行完整 validator、不要求进入设计合成或最终写入。请只读采证后输出：已读取的产品输入、UNIT 和代码证据；3 条带 evidence、observed_at、只读 command/status、decision_id 的 runtime_facts；2 个关键决策点（decision_ref）且每个给 2 个本质不同方案、推荐方案、取舍、事实锚点和待用户裁决点。最后明确等待用户确认后才收敛设计。",
-      "expected_output": "先扫描产品输入、UNIT 和现有代码，只读记录 runtime facts；每条 runtime fact 带 evidence、observed_at、只读 command/status 和 decision_id；按 2 个关键决策点呈现 2 个以上本质不同方案及取舍，并用 decision_ref 归属；给出推荐方案、推荐理由和待用户裁决点；确认关键技术理解后再收敛设计；不得写 design.json、不得单方案直接拍板、不得跳到最终写入。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
         "tools/community",
         "shared/runtime"
       ],
       "expectations": [
+        "先扫描产品输入、UNIT 和现有代码，只读记录 runtime facts；每条 runtime fact 带 evidence、observed_at、只读 command/status 和 decision_id；按 2 个关键决策点呈现 2 个以上本质不同方案及取舍，并用 decision_ref 归属；给出推荐方案、推荐理由和待用户裁决点；确认关键技术理解后再收敛设计；不得写 design.json、不得单方案直接拍板、不得跳到最终写入。",
         "先读取产品输入、UNIT 和现有代码",
         "涉及配置中心或数据源时记录带 evidence 和 observed_at 的 runtime facts",
         "每个关键决策点提供 2 个以上本质不同的方案对比",
@@ -50,13 +50,13 @@
     {
       "id": "self-checked-design-review",
       "prompt": "sample-feature 已完成设计协作确认并准备进入三视角 review。请从 design.json 草稿中的 co_creation_summary、key_decisions、option_analysis、runtime_facts 和已确认设计内容组装 owner 已自检并确认可送审的设计产物，写到 $TMPDIR/design-review.json；逐字运行并在回答中回显命令：python3 shared/skills/design/scripts/review_digest.py --review-payload \"$TMPDIR/design-review.json\"。本地 eval 不启动真实 agent teams，请输出架构、产品、测试 reviewer 将收到的输入摘要，并分别写出 `架构 reviewer Reviewed Design Digest:`、`产品 reviewer Reviewed Design Digest:`、`测试 reviewer Reviewed Design Digest:` 三行；三行 digest 都必须等于 Reviewed Design Digest。输入摘要必须覆盖接口 input/output/error 语义、迁移/验证/回滚闭环、干系人关注点、推荐方案、备选方案、取舍和用户裁决。本轮不要写入 {phase_dir}/design.json，并说明 Finalize 只追加 review_closure、final_confirmation 和验证收口，design.json 只能在用户最终确认后写入。",
-      "expected_output": "组装 owner 已自检并确认可送审的设计产物，不写入或覆盖 phase-{N}/design.json；运行并回显 review_digest.py --review-payload 完整命令，得到 Reviewed Design Digest；三类 reviewer 审同一份 owner 已自检并确认可送审的设计产物，并分别输出架构 reviewer Reviewed Design Digest、产品 reviewer Reviewed Design Digest、测试 reviewer Reviewed Design Digest，且三者等于输入设计产物的 digest；输入摘要覆盖接口输入、输出、错误语义、迁移/验证/回滚闭环、干系人关注点、推荐方案、备选方案、取舍和用户裁决；Finalize 只追加 review_closure、final_confirmation 和验证收口，design.json 只能在用户最终确认后写入；digest 不一致、FAIL 未修正或审查输入缺关键上下文时不得进入最终确认，review FAIL 必须修正并重审，WARN 必须给出承接位置。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
         "tools/community",
         "shared/runtime"
       ],
       "expectations": [
+        "组装 owner 已自检并确认可送审的设计产物，不写入或覆盖 phase-{N}/design.json；运行并回显 review_digest.py --review-payload 完整命令，得到 Reviewed Design Digest；三类 reviewer 审同一份 owner 已自检并确认可送审的设计产物，并分别输出架构 reviewer Reviewed Design Digest、产品 reviewer Reviewed Design Digest、测试 reviewer Reviewed Design Digest，且三者等于输入设计产物的 digest；输入摘要覆盖接口输入、输出、错误语义、迁移/验证/回滚闭环、干系人关注点、推荐方案、备选方案、取舍和用户裁决；Finalize 只追加 review_closure、final_confirmation 和验证收口，design.json 只能在用户最终确认后写入；digest 不一致、FAIL 未修正或审查输入缺关键上下文时不得进入最终确认，review FAIL 必须修正并重审，WARN 必须给出承接位置。",
         "组装 owner 已自检并确认可送审的设计产物，不写入或覆盖 phase-{N}/design.json",
         "运行 python3 shared/skills/design/scripts/review_digest.py --review-payload \"$TMPDIR/design-review.json\"",
         "架构、产品、测试 reviewer 审同一份 owner 已自检并确认可送审的设计产物",
@@ -83,7 +83,6 @@
     {
       "id": "reference-integrity-catches-semantic-defects",
       "prompt": "输入文件里的 design fixture (`shared/skills/design/examples/feature--user-login-validation`) 是通过 schema、canonical_design_rules 与 phase validator 的干净 baseline。请先运行并回显：`python3 shared/skills/design/scripts/check_design_reference_integrity.py --phase-dir shared/skills/design/examples/feature--user-login-validation/phase-1`。然后把 design.json 复制到 `$TMPDIR/seeded-design.json`，手工注入两处语义缺陷：（1）`unit_coverage` 删掉 UNIT-4 的条目；（2）`modules[0].unit_refs` 追加一个不存在的 `UNIT-99`。把缺陷版 design.json 放回一个临时 phase 目录（其他文件从 fixture 拷贝），再次运行该脚本并回显输出。报告：现有 `validate_canonical_schema`、`canonical_design_rules`、`validate_standard_chain_phase` 是否也拦截这两个缺陷；该脚本输出的两条违规 type 名；以及没有该脚本时 design.json 被误认为已完成的风险路径。",
-      "expected_output": "在 fixture baseline 上回显命令并得到 status=PASS；在缺陷版上回显命令并得到两条 JSONL：`unit_not_covered_by_design` (UNIT-4) 与 `module_references_unknown_unit` (UNIT-99)；显式说明同样的缺陷版 design.json 通过 validate_canonical_schema、canonical_design_rules 和 validate_standard_chain_phase（canonical rules 只覆盖 option_ref 类 ref）；因此若最终完成校验不运行 check_design_reference_integrity.py，unit_coverage 漏 UNIT 或 modules.unit_refs 指向幽灵 UNIT 会被误认为已完成，并在 /test-design、/tech-lead 消费阶段才爆出 AC/计划缺口。",
       "files": [
         "shared/skills/design/examples/feature--user-login-validation",
         "shared/skills/design/scripts/check_design_reference_integrity.py",
@@ -92,6 +91,7 @@
         "tools/community/validate_standard_chain_phase.py"
       ],
       "expectations": [
+        "在 fixture baseline 上回显命令并得到 status=PASS；在缺陷版上回显命令并得到两条 JSONL：`unit_not_covered_by_design` (UNIT-4) 与 `module_references_unknown_unit` (UNIT-99)；显式说明同样的缺陷版 design.json 通过 validate_canonical_schema、canonical_design_rules 和 validate_standard_chain_phase（canonical rules 只覆盖 option_ref 类 ref）；因此若最终完成校验不运行 check_design_reference_integrity.py，unit_coverage 漏 UNIT 或 modules.unit_refs 指向幽灵 UNIT 会被误认为已完成，并在 /test-design、/tech-lead 消费阶段才爆出 AC/计划缺口。",
         "在 baseline fixture 上运行 check_design_reference_integrity.py 得 status=PASS",
         "在缺陷版上运行脚本得到 unit_not_covered_by_design 与 module_references_unknown_unit 两条违规",
         "显式说明 schema、canonical_design_rules、phase validator 均不拦截这两个缺陷",
@@ -108,7 +108,6 @@
     {
       "id": "finalize-design-artifact-after-review",
       "prompt": "输入文件里的 sample-feature 已完成设计协作确认、owner self-check、三视角 advisory review PASS/WARN 承接，用户已确认最终设计。先把 `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature` 复制到 `docs/sample-feature` 作为 phase 工作区，然后使用 `docs/sample-feature/phase-1/design.json` 做 bounded final validation。不要重写整份设计，只在缺少 final_confirmation 或 review_closure 承接字段时做最小补丁；不得新增 template/schema 未定义字段。设置 PHASE_DIR=docs/sample-feature/phase-1，运行并在回答中回显：bash shared/skills/design/scripts/preflight_check.sh --phase-dir \"$PHASE_DIR\"；python3 shared/skills/design/scripts/review_digest.py --check \"$PHASE_DIR/design.json\"；python3 shared/skills/design/scripts/check_design_reference_integrity.py --phase-dir \"$PHASE_DIR\"；python3 tools/community/validate_standard_chain_phase.py --phase-dir \"$PHASE_DIR\"。最后报告：review_closure.reviewed_design_digest 来自 owner 自检后的设计产物且最终写入未用交付文件刷新 digest；接口边界 input/output/error 语义；逐项列出每个 quality_attributes[*] 的 target_metrics、verification_refs，以及每个 verification_ref 解析到的 verification_mapping.evidence_ref；验证结果；阻断条件；以及投影只能在这些验证通过后用 render_projection.py 派生，且脚本只写投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供你抽样验收。",
-      "expected_output": "复制 sample-feature 到 docs/sample-feature 后，使用 docs/sample-feature/phase-1/design.json 做 bounded final validation，不重新生成整份设计，不新增 template/schema 未定义字段；必要时只补 final_confirmation 或 review_closure 承接字段。确认 design.json 记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary input/output/error 语义、逐项带 target_metrics 且 verification_refs 可解析到 verification_mapping.evidence_ref 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和来自 owner 自检后设计产物的 review_closure.reviewed_design_digest，且最终写入不用交付文件刷新 digest；运行并回显 preflight_check.sh、review_digest.py --check、check_design_reference_integrity.py 与 validate_standard_chain_phase.py，并报告当前 PASS/BLOCK 结果；未解决审查 FAIL、digest 不匹配、phase validator 失败或字段超出 template/schema 时不得完成；投影只能在验证通过后用 render_projection.py 派生，脚本只写目标投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供你抽样验收。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
         "contracts/canonical",
@@ -127,6 +126,7 @@
         "shared/skills/fix/contracts"
       ],
       "expectations": [
+        "复制 sample-feature 到 docs/sample-feature 后，使用 docs/sample-feature/phase-1/design.json 做 bounded final validation，不重新生成整份设计，不新增 template/schema 未定义字段；必要时只补 final_confirmation 或 review_closure 承接字段。确认 design.json 记录 final_confirmation.status=confirmed，包含 input_analysis、按 decision_ref 分组且带 fact_refs 的 option_analysis、key_decisions、interface_boundary input/output/error 语义、逐项带 target_metrics 且 verification_refs 可解析到 verification_mapping.evidence_ref 的 quality_attributes、migration_plan、verification_plan、rollback_plan 和来自 owner 自检后设计产物的 review_closure.reviewed_design_digest，且最终写入不用交付文件刷新 digest；运行并回显 preflight_check.sh、review_digest.py --check、check_design_reference_integrity.py 与 validate_standard_chain_phase.py，并报告当前 PASS/BLOCK 结果；未解决审查 FAIL、digest 不匹配、phase validator 失败或字段超出 template/schema 时不得完成；投影只能在验证通过后用 render_projection.py 派生，脚本只写目标投影草稿/manifest 或 ADR 草稿并返回紧凑摘要供你抽样验收。",
         "使用已有 phase-1/design.json 做 bounded final validation，不重新生成整份设计",
         "记录 final_confirmation.status=confirmed",
         "包含关键决策、每个关键决策同组 2+ 带 fact_refs 的 option_analysis、接口边界和带 target_metrics / verification_refs 的质量属性",
@@ -156,11 +156,11 @@
     {
       "id": "weak-runtime-facts-rejected",
       "prompt": "输入里的 design 草稿只有 runtime_facts: [\"Redis 已部署；evidence=design.json#input_analysis; observed_at=2026-05-18T00:00:00Z\"]，没有命令、文件、配置或用户确认来源。请判断是否可以冻结关键架构决策，并说明下一步。",
-      "expected_output": "阻断冻结设计；指出 runtime fact 是自指 evidence，不能支撑关键决策；要求补充只读命令、源码/配置路径、输入基线引用或用户确认；不得把该事实写成冻结设计依据。",
       "files": [
         "shared/skills/design/references/runtime-fact-capture.md"
       ],
       "expectations": [
+        "阻断冻结设计；指出 runtime fact 是自指 evidence，不能支撑关键决策；要求补充只读命令、源码/配置路径、输入基线引用或用户确认；不得把该事实写成冻结设计依据。",
         "识别 design.json#input_analysis 自指 evidence 是弱证据",
         "阻断关键决策冻结",
         "给出可复查证据补充方式",
@@ -178,11 +178,11 @@
     {
       "id": "planted-contract-drift-blocks-handoff",
       "prompt": "UNIT-1 的待设计决策写着会话标识在 localStorage 还是 sessionStorage，安全约束又要求防 XSS 窃取。design 草稿直接选择 HttpOnly Cookie，但没有说明它改变了 UNIT 决策候选，也没有用户确认。请审查是否能交给 /test-design。",
-      "expected_output": "不能交接；识别 UNIT 候选与 design 决策存在业务/技术语义漂移；说明 HttpOnly Cookie 可能是更优安全方案，但必须回退用户或 /product-manager 确认候选范围和验收语义；不得静默交给 /test-design。",
       "files": [
         "shared/skills/design/examples/feature--user-login-validation/phase-1"
       ],
       "expectations": [
+        "不能交接；识别 UNIT 候选与 design 决策存在业务/技术语义漂移；说明 HttpOnly Cookie 可能是更优安全方案，但必须回退用户或 /product-manager 确认候选范围和验收语义；不得静默交给 /test-design。",
         "识别 localStorage/sessionStorage 与 HttpOnly Cookie 的候选漂移",
         "区分技术推荐和业务/UNIT 裁决",
         "要求用户或上游确认",
@@ -201,7 +201,6 @@
     {
       "id": "user-script-llm-boundary",
       "prompt": "你正在收口 design.json。哪些检查必须交给脚本/schema/hook，哪些判断由 LLM 做，哪些必须让用户确认？请基于 design 阶段给出执行边界，不要泛泛而谈。",
-      "expected_output": "明确脚本/schema/hook 裁决 JSON 结构、引用、digest、路径、phase 状态、reviewer 集合、verification refs、risk coverage 等确定性事项；LLM 负责语义判断、复杂度、方案取舍、证据解释和产物组织；用户确认业务语义、价值排序、风险接受、范围变化和上线/组织约束。",
       "files": [
         "shared/assistant.md",
         "shared/rules/执行纪律.md",
@@ -209,6 +208,7 @@
         "shared/skills/design/contracts/design.schema.json"
       ],
       "expectations": [
+        "明确脚本/schema/hook 裁决 JSON 结构、引用、digest、路径、phase 状态、reviewer 集合、verification refs、risk coverage 等确定性事项；LLM 负责语义判断、复杂度、方案取舍、证据解释和产物组织；用户确认业务语义、价值排序、风险接受、范围变化和上线/组织约束。",
         "列出确定性检查并交给脚本/schema/hook",
         "列出 LLM 语义职责",
         "列出用户必须确认事项",
@@ -226,13 +226,13 @@
     {
       "id": "downstream-consumer-smoke",
       "prompt": "给定一个设计草稿，请从 /test-design 和 /tech-lead 视角判断它是否可消费。草稿缺少接口边界行为、质量属性 verification_refs、迁移失败回滚触发条件。请给出是否可交接和必须补齐的字段。",
-      "expected_output": "判定不可交接；从 /test-design 视角指出无法生成接口边界、质量属性和回滚断言；从 /tech-lead 视角指出无法拆迁移任务、回滚任务和验证任务；列出需要补齐的 design.json 字段并阻断完成。",
       "files": [
         "shared/skills/design/contracts/design.schema.json",
         "shared/skills/test-design/contracts/test-cases.schema.json",
         "shared/skills/tech-lead/contracts/plan.schema.json"
       ],
       "expectations": [
+        "判定不可交接；从 /test-design 视角指出无法生成接口边界、质量属性和回滚断言；从 /tech-lead 视角指出无法拆迁移任务、回滚任务和验证任务；列出需要补齐的 design.json 字段并阻断完成。",
         "以 /test-design 消费失败说明测试义务缺口",
         "以 /tech-lead 消费失败说明计划拆解缺口",
         "点名 boundary_behaviors、verification_refs、rollback trigger",
@@ -252,12 +252,12 @@
     {
       "id": "overdesign-pressure-case",
       "prompt": "Phase 只有一个静态感谢页和一个本地 unittest，设计草稿建议新增事件总线、独立配置服务、Redis 缓存和服务拆分。请以 design owner 判断是否合理。",
-      "expected_output": "识别过度设计；说明当前复杂度不足以支撑事件总线、配置服务、缓存或服务拆分；推荐沿用简单模块边界和现有测试路径；保留演进条件而不把抽象写入当前 design.json。",
       "files": [
         "shared/skills/design/references/architecture-patterns.md",
         "shared/skills/design/references/service-decomposition.md"
       ],
       "expectations": [
+        "识别过度设计；说明当前复杂度不足以支撑事件总线、配置服务、缓存或服务拆分；推荐沿用简单模块边界和现有测试路径；保留演进条件而不把抽象写入当前 design.json。",
         "识别低复杂度场景",
         "拒绝不必要抽象",
         "给出简单、合适、演化的替代方案",
@@ -274,13 +274,13 @@
     {
       "id": "reviewer-finds-architecture-fail",
       "prompt": "请作为 design owner 处理 reviewer 结果：架构 reviewer 发现 Redis 故障时设计仍返回登录成功、rollback_plan 只写'回滚代码'没有触发条件，测试 reviewer 发现 verification_refs 指不到 verification_mapping。产品 reviewer WARN 统一错误文案需交给 product_handoff。判断能否进入最终确认。",
-      "expected_output": "不能进入最终确认；将 Redis 故障成功登录、不可执行 rollback_plan、verification_refs 悬空判为 FAIL 并回到方案取舍或设计合成修正后重审；产品 WARN 承接到 product_handoff；说明 FAIL 未闭合不得写 final_confirmation。",
       "files": [
         "shared/skills/design/references/design-reviewer-prompt.md",
         "shared/skills/design/references/design-test-reviewer-prompt.md",
         "shared/skills/design/scripts/review_digest.py"
       ],
       "expectations": [
+        "不能进入最终确认；将 Redis 故障成功登录、不可执行 rollback_plan、verification_refs 悬空判为 FAIL 并回到方案取舍或设计合成修正后重审；产品 WARN 承接到 product_handoff；说明 FAIL 未闭合不得写 final_confirmation。",
         "未解决 FAIL 阻断最终确认",
         "按问题类型回退方案取舍或设计合成",
         "WARN 给出承接位置",
@@ -299,13 +299,13 @@
     {
       "id": "upstream-business-change-blocks-architecture-freeze",
       "prompt": "设计合成草稿已经准备冻结，但用户突然补充：退款必须支持财务人工复核，原 UNIT 只覆盖自动退款。请以 design owner 判断能否继续写 final_confirmation，并说明必须回退到哪里。",
-      "expected_output": "不能冻结设计或写 final_confirmation；识别用户新补充改变业务范围和 UNIT/AC 语义，必须回退用户和 /product-manager 确认需求、候选方案和验收语义；在上游基线更新前只能记录待确认冲突，不能把人工复核静默塞进 design.json 或交给 /test-design、/tech-lead。",
       "files": [
         "shared/rules/执行纪律.md",
         "shared/skills/design/SKILL.md",
         "shared/skills/product-manager/SKILL.md"
       ],
       "expectations": [
+        "不能冻结设计或写 final_confirmation；识别用户新补充改变业务范围和 UNIT/AC 语义，必须回退用户和 /product-manager 确认需求、候选方案和验收语义；在上游基线更新前只能记录待确认冲突，不能把人工复核静默塞进 design.json 或交给 /test-design、/tech-lead。",
         "识别人工复核是业务范围和 UNIT/AC 语义变化",
         "阻断 final_confirmation",
         "要求用户和 /product-manager 重新确认候选方案与验收语义",

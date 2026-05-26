@@ -14,7 +14,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 1. NO scan without a recognized project marker file (pom.xml/build.gradle/package.json/pyproject.toml/go.mod/Cargo.toml).
 2. NO health score without objective evidence (Grep results, line counts, concrete numbers).
-3. NO report without saving to `docs/reports/tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`.
+3. NO report without saving to `docs/reports--tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`.
 4. NO scan results generated to project root directory.
 5. NO severity rating without file_path:line_number for each issue.
 6. NO ad-hoc "uncertainty adjustment" on findings without a rule defined in `references/sqale-scoring.md`.
@@ -25,7 +25,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 
 ## 目标
 
-目标是对目标项目执行代码健康度、技术债、Skills 质量、文档一致性和可选性能扫描。完成边界是生成 `docs/reports/tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`，报告中的健康度评分、问题分级、修复建议和跳过项都有可复验证据。
+目标是对目标项目执行代码健康度、技术债、Skills 质量、文档一致性和可选性能扫描。完成边界是生成 `docs/reports--tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`，报告中的健康度评分、问题分级、修复建议和跳过项都有可复验证据。
 
 ## 输入
 
@@ -42,7 +42,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
 | 2. 确定性预扫描 | 项目路径 | Run stats/complexity/dependency/tree 脚本 | 预扫描数据包 | Agent 1-4 | 脚本成功或记录手动统计替代 | 退回 Glob/Grep 手动统计并记录原因 | 脚本输出或手动统计证据 |
 | 3. 并行扫描 | 预扫描数据包和 reference 合同 | Execute 6 Agent 扫描并记录跳过条件 | 分组 findings 和跳过项 | 汇总报告 | 每组完成或给出跳过理由 | 失败 Agent 产出阻断/跳过证据 | findings file_path:line_number |
 | 4. 性能分析 | `/scan perf` 子命令 | Read perf 工具规则并执行可用分析 | 性能瓶颈 TOP 5 | 汇总报告 | 有瓶颈证据或不可执行说明 | 无 perf 子命令时跳过 | perf 输出或跳过理由 |
-| 5. 汇总报告 | 分组 findings、评分规则、性能结果 | Write 技术债报告 | `docs/reports/tech-debt/[YYYY-MM-DD]_技术债扫描报告.md` | 用户/CTO | 报告含评分、分级、证据和建议 | 缺证据时不得生成评分 | 报告文件和检查清单 |
+| 5. 汇总报告 | 分组 findings、评分规则、性能结果 | Write 技术债报告 | `docs/reports--tech-debt/[YYYY-MM-DD]_技术债扫描报告.md` | 用户/CTO | 报告含评分、分级、证据和建议 | 缺证据时不得生成评分 | 报告文件和检查清单 |
 
 ### 1. 项目识别
 
@@ -105,7 +105,7 @@ bash {{SKILLS_HOME}}/scan/scripts/dir-tree.sh [项目路径]
 
 汇总评分时，读取 `references/sqale-scoring.md`（评分算法部分），获取技术债权重公式和 A-F 评级映射。
 
-输出到 `docs/reports/tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`，章节顺序固定：
+输出到 `docs/reports--tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`，章节顺序固定：
 
 1. 项目识别证据（特征文件、语言、代码行数）
 2. 预扫描执行记录（脚本 PASS/FAIL 列表；FAIL 必须附 stderr 前 3 行和退回策略）
@@ -126,4 +126,4 @@ bash {{SKILLS_HOME}}/scan/scripts/dir-tree.sh [项目路径]
 - [ ] 健康度评分有客观证据（代码行数、问题计数、SQALE 公式三者齐全）
 - [ ] 无临时"不确定性折算"（规则未定义则不得使用）
 - [ ] 报告章节顺序与 Step 5 定义一致；"性能分析"独立于 Agent 4
-- [ ] 报告已保存到 `docs/reports/tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`
+- [ ] 报告已保存到 `docs/reports--tech-debt/[YYYY-MM-DD]_技术债扫描报告.md`

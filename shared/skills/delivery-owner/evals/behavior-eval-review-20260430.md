@@ -19,7 +19,7 @@ infra_failures: 0
 
 ## Blind Low-Context Evidence
 
-Executor prompts used `--hide-expected-outcome`; the executor saw the task facts but not the expected answer. The judge still used `expected_output`, expectations and anchors.
+Executor prompts used `--hide-expectations`; the executor saw the task facts but not the expected answer. The judge still used expectations and anchors.
 
 | Eval id | With skill | Without skill |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ Evidence:
 
 ## Prompt-Rich Replay Evidence
 
-Earlier prompt-rich evals remain useful as regression checks, but they are not used for uplift because the executor prompt included `Expected outcome`.
+Earlier prompt-rich evals remain useful as regression checks, but they are not used for uplift because the executor prompt included `Expectations`.
 
 | Eval id | Evidence | Result |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ Prompt-rich `without_skill` evidence: `tools/eval/results/delivery-owner-behavio
 
 ## Findings Closed During Eval
 
-- Runner answer leakage: local executor used to see `Expected outcome`; `--hide-expected-outcome` now supports blind executor runs.
+- Runner answer leakage: local executor used to see `Expectations`; `--hide-expectations` now supports blind executor runs.
 - Developer/verifier FAIL output linked or summarized packet fields; SOP now requires inline Task Packet, including logical refs when file paths are unavailable.
 - Local eval environments cannot invoke live role agents; SOP now distinguishes `dispatched_to` from `dispatch_ready`.
 - No-progress pause sometimes skipped explicit status-card fields; SOP now requires status card before user decision package and `next_owner: user` on user pauses.

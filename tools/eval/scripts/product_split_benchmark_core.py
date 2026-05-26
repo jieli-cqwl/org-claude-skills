@@ -211,8 +211,8 @@ def run_executor(
                 "eval_id": eval_item["id"],
                 "eval_name": eval_item["name"],
                 "prompt": eval_item["prompt"],
-                "expected_output": eval_item["expected_output"],
                 "configuration": config.display_name,
+                "expectations": eval_item.get("expectations", []),
             },
         )
         command = [

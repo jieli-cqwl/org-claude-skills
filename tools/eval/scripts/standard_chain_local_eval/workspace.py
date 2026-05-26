@@ -10,21 +10,31 @@ from pathlib import Path
 from .common import ROOT, RUN_MODES, load_json, run_command, write_json
 
 
-def enrich_case_with_anchor_definitions(skill_name: str, case: dict, anchors_by_id: dict[str, dict]) -> dict:
+def enrich_case_with_anchor_definitions(
+    skill_name: str, case: dict, anchors_by_id: dict[str, dict]
+) -> dict:
     """Attach preference anchor definitions referenced by one eval case."""
 
     expected_anchors = case.get("expected_anchors", [])
     if not isinstance(expected_anchors, list):
         raise ValueError(f"{skill_name}/{case['id']}: expected_anchors must be a list")
-    missing = [anchor_id for anchor_id in expected_anchors if anchor_id not in anchors_by_id]
+    missing = [
+        anchor_id for anchor_id in expected_anchors if anchor_id not in anchors_by_id
+    ]
     if missing:
-        raise ValueError(f"{skill_name}/{case['id']}: unknown expected anchors: {', '.join(missing)}")
+        raise ValueError(
+            f"{skill_name}/{case['id']}: unknown expected anchors: {', '.join(missing)}"
+        )
     enriched = dict(case)
-    enriched["preference_anchor_definitions"] = [anchors_by_id[anchor_id] for anchor_id in expected_anchors]
+    enriched["preference_anchor_definitions"] = [
+        anchors_by_id[anchor_id] for anchor_id in expected_anchors
+    ]
     return enriched
 
 
-def build_anchor_index(skill_name: str, payload: dict, eval_path: Path) -> dict[str, dict]:
+def build_anchor_index(
+    skill_name: str, payload: dict, eval_path: Path
+) -> dict[str, dict]:
     """Build a unique preference-anchor lookup for one eval payload."""
 
     preference_anchors = payload.get("preference_anchors", [])
@@ -55,12 +65,18 @@ def load_skill_evals(skill_name: str, eval_ids: set[str] | None) -> list[dict]:
         raise ValueError(f"{eval_path}: evals must be a list")
     anchors_by_id = build_anchor_index(skill_name, payload, eval_path)
     if eval_ids is None:
-        return [enrich_case_with_anchor_definitions(skill_name, case, anchors_by_id) for case in evals]
+        return [
+            enrich_case_with_anchor_definitions(skill_name, case, anchors_by_id)
+            for case in evals
+        ]
     selected = [case for case in evals if str(case.get("id")) in eval_ids]
     missing = eval_ids - {str(case.get("id")) for case in selected}
     if missing:
         raise ValueError(f"{eval_path}: unknown eval ids: {', '.join(sorted(missing))}")
-    return [enrich_case_with_anchor_definitions(skill_name, case, anchors_by_id) for case in selected]
+    return [
+        enrich_case_with_anchor_definitions(skill_name, case, anchors_by_id)
+        for case in selected
+    ]
 
 
 def prepare_workspace(skill_name: str, output_dir: Path, run_mode: str) -> Path:
@@ -95,13 +111,17 @@ def resolve_case_file(skill_name: str, file_ref: str) -> Path:
         try:
             candidate.relative_to(ROOT)
         except ValueError as exc:
-            raise ValueError(f"{skill_name}: eval file escapes repo root: {file_ref}") from exc
+            raise ValueError(
+                f"{skill_name}: eval file escapes repo root: {file_ref}"
+            ) from exc
         if candidate.exists():
             return candidate
     raise FileNotFoundError(f"{skill_name}: missing eval input file: {file_ref}")
 
 
-def copy_case_files(skill_name: str, case: dict, workspace: Path, run_mode: str = "with_skill") -> None:
+def copy_case_files(
+    skill_name: str, case: dict, workspace: Path, run_mode: str = "with_skill"
+) -> None:
     """Copy case-declared input files into the temporary workspace."""
 
     files = case.get("files", [])
@@ -116,7 +136,9 @@ def copy_case_files(skill_name: str, case: dict, workspace: Path, run_mode: str 
         if run_mode == "without_skill":
             target_skill_root = Path("shared") / "skills" / skill_name
             if relative == target_skill_root or target_skill_root in relative.parents:
-                raise ValueError(f"{skill_name}/{case['id']}: without_skill cannot copy target skill files")
+                raise ValueError(
+                    f"{skill_name}/{case['id']}: without_skill cannot copy target skill files"
+                )
         target = workspace / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         if source.is_dir():
@@ -131,7 +153,7 @@ def build_executor_prompt(
     skill_name: str,
     case: dict,
     run_mode: str,
-    include_expected_outcome: bool = True,
+    include_expectations: bool = True,
 ) -> str:
     """Build the prompt that executes one eval case against a target skill."""
 
@@ -153,8 +175,8 @@ def build_executor_prompt(
             "约束：",
             "- 不得读取或依赖目标 skill 的 SKILL.md。",
             "- 只根据 Eval prompt 和通用工程判断回应。"
-            if not include_expected_outcome
-            else "- 只根据 Eval prompt、Expected outcome 和通用工程判断回应。",
+            if not include_expectations
+            else "- 只根据 Eval prompt、Expectations 和通用工程判断回应。",
         ]
     else:
         raise ValueError(f"unsupported run mode: {run_mode}")
@@ -172,8 +194,9 @@ def build_executor_prompt(
         "Eval prompt:",
         str(case["prompt"]),
     ]
-    if include_expected_outcome:
-        prompt_lines.extend(["", "Expected outcome:", str(case["expected_output"])])
+    if include_expectations:
+        expectation_lines = [f"- {item}" for item in case.get("expectations", [])]
+        prompt_lines.extend(["", "Expectations:", *(expectation_lines or ["- none"])])
     return "\n".join(prompt_lines)
 
 
@@ -208,7 +231,7 @@ def run_executor(
             skill_name,
             case,
             run_mode,
-            include_expected_outcome=not bool(getattr(args, "hide_expected_outcome", False)),
+            include_expectations=not bool(getattr(args, "hide_expectations", False)),
         ),
     ]
     if model:
@@ -217,19 +240,27 @@ def run_executor(
     completed = run_command(command, workspace, timeout_sec)
     duration_seconds = time.time() - started_at
     run_dir.mkdir(parents=True, exist_ok=True)
-    (run_dir / "executor.log").write_text((completed.stdout or "") + (completed.stderr or ""), encoding="utf-8")
+    (run_dir / "executor.log").write_text(
+        (completed.stdout or "") + (completed.stderr or ""), encoding="utf-8"
+    )
     write_json(
         run_dir / "timing.json",
         {
-            "executor_start": datetime.fromtimestamp(started_at, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "executor_start": datetime.fromtimestamp(started_at, timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
             "executor_end": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "total_duration_seconds": round(duration_seconds, 1),
         },
     )
     response_available_after_timeout = (
-        completed.returncode == 124 and response_path.is_file() and response_path.stat().st_size > 0
+        completed.returncode == 124
+        and response_path.is_file()
+        and response_path.stat().st_size > 0
     )
     if completed.returncode != 0 and not response_available_after_timeout:
-        raise RuntimeError(f"{skill_name}/{case['id']}: executor exited {completed.returncode}")
+        raise RuntimeError(
+            f"{skill_name}/{case['id']}: executor exited {completed.returncode}"
+        )
     if not response_path.is_file():
         raise RuntimeError(f"{skill_name}/{case['id']}: missing response output")

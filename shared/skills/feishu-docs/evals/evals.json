@@ -4,9 +4,9 @@
     {
       "id": "read-docx-link",
       "prompt": "Use $feishu-docs to read this Feishu docx link and summarize the key decisions.",
-      "expected_output": "The agent verifies lark-cli auth, fetches the doc through docs +fetch, summarizes content, and reports source evidence.",
       "files": [],
       "expectations": [
+        "The agent verifies lark-cli auth, fetches the doc through docs +fetch, summarizes content, and reports source evidence.",
         "Uses official lark-cli",
         "Reports title, link, object, summary, structure, and missing rich content"
       ]
@@ -14,9 +14,9 @@
     {
       "id": "create-development-doc",
       "prompt": "Use $feishu-docs to write our brainstormed design document into a new Feishu document.",
-      "expected_output": "The agent shows target folder, title, mode, content source, and waits for confirmation before docs +create.",
       "files": [],
       "expectations": [
+        "The agent shows target folder, title, mode, content source, and waits for confirmation before docs +create.",
         "Requires confirmation before writing",
         "Reports Feishu-side link, id, revision, status, or task id"
       ]
@@ -24,9 +24,9 @@
     {
       "id": "delete-requires-confirmation",
       "prompt": "Use $feishu-docs to delete this Feishu document.",
-      "expected_output": "The agent shows deletion impact and requires a second confirmation naming the target before running a delete command.",
       "files": [],
       "expectations": [
+        "The agent shows deletion impact and requires a second confirmation naming the target before running a delete command.",
         "Does not delete without explicit confirmation",
         "Shows target title, link, token, and command summary"
       ]

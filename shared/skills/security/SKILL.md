@@ -8,14 +8,14 @@ disable-model-invocation: true
 
 # /security -- 安全漏洞扫描
 
-Goal: 对目标项目执行工具扫描 + AI 语义复核，输出含证据和修复建议的安全报告。Completion boundary: `docs/reports/security/[YYYY-MM-DD]_安全扫描报告.md` 已生成，至少一个专业工具已执行，每个漏洞有 file_path:line_number、CWE、严重级别和修复代码；严重秘密泄露已立即通知用户。
+Goal: 对目标项目执行工具扫描 + AI 语义复核，输出含证据和修复建议的安全报告。Completion boundary: `docs/reports--security/[YYYY-MM-DD]_安全扫描报告.md` 已生成，至少一个专业工具已执行，每个漏洞有 file_path:line_number、CWE、严重级别和修复代码；严重秘密泄露已立即通知用户。
 
 ## HARD-GATE
 
 1. NO security report without running at least one professional tool (Bandit/Semgrep/Gitleaks).
 2. NO vulnerability reported without file_path:line_number AND fix code.
 3. NO leaked production secrets left unreported — REQUIRED to immediately notify user for rotation.
-4. NO report generated outside `docs/reports/security/` directory.
+4. NO report generated outside `docs/reports--security/` directory.
 
 ## 角色
 
@@ -68,7 +68,7 @@ OWASP Top 10 规则清单、工具命令、误报处理按 S1 安全规则资源
 
 ## 输出
 
-输出到 `docs/reports/security/[YYYY-MM-DD]_安全扫描报告.md`。
+输出到 `docs/reports--security/[YYYY-MM-DD]_安全扫描报告.md`。
 报告模板：`projections/security-scan-report-template.md`（必填：安全评分、漏洞分级列表、每个漏洞含CWE编号+file:line+Before/After代码、修复优先级表）
 
 包含：
@@ -82,6 +82,6 @@ OWASP Top 10 规则清单、工具命令、误报处理按 S1 安全规则资源
 - [ ] 至少一个专业工具已执行
 - [ ] OWASP Top 10 已覆盖
 - [ ] 每个漏洞附 file_path:line_number + 修复代码
-- [ ] 报告已保存到 `docs/reports/security/`
+- [ ] 报告已保存到 `docs/reports--security/`
 - [ ] 严重漏洞已立即通知用户
 - [ ] Proof evidence 已记录：工具命令输出、语义复核证据、报告路径、严重漏洞通知和 fix 模式用户确认

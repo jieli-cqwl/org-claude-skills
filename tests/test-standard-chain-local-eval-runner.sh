@@ -194,15 +194,15 @@ else:
 case = {
     "id": "prompt-leak",
     "prompt": "现场事实，不包含答案。",
-    "expected_output": "EXPECTED_SENTINEL_SHOULD_NOT_REACH_EXECUTOR",
+    "expectations": ["EXPECTATION_SENTINEL_SHOULD_NOT_REACH_EXECUTOR"],
     "files": [],
 }
 visible_prompt = build_executor_prompt("delivery-owner", case, "with_skill")
-assert "Expected outcome:" in visible_prompt
-assert "EXPECTED_SENTINEL_SHOULD_NOT_REACH_EXECUTOR" in visible_prompt
-hidden_prompt = build_executor_prompt("delivery-owner", case, "with_skill", include_expected_outcome=False)
-assert "Expected outcome:" not in hidden_prompt
-assert "EXPECTED_SENTINEL_SHOULD_NOT_REACH_EXECUTOR" not in hidden_prompt
+assert "Expectations:" in visible_prompt
+assert "EXPECTATION_SENTINEL_SHOULD_NOT_REACH_EXECUTOR" in visible_prompt
+hidden_prompt = build_executor_prompt("delivery-owner", case, "with_skill", include_expectations=False)
+assert "Expectations:" not in hidden_prompt
+assert "EXPECTATION_SENTINEL_SHOULD_NOT_REACH_EXECUTOR" not in hidden_prompt
 PY
 
 python3 - <<'PY' "$RUN_DIR/eval_metadata.json" "$RUN_DIR/grading.json" "$OUT_DIR/summary.json"

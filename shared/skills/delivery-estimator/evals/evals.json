@@ -4,9 +4,9 @@
     {
       "id": "raw-requirement-executive-schedule",
       "prompt": "老板问会员权益改版什么时候能交付，业务只给了需求描述，没有现成 tasks。请用 1 人 + Codex/Claude Code agents 的模式估排期。",
-      "expected_output": "先说明估算假设与缺口，再给一页结论、日历化交付日期、Mermaid Gantt、WBS 字典、里程碑、关键路径、P50/P80/P95、人类投入、每环节产出、风险缓冲和重估触发条件；不得把缺失 AC 当成已确认事实。",
       "files": [],
       "expectations": [
+        "先说明估算假设与缺口，再给一页结论、日历化交付日期、Mermaid Gantt、WBS 字典、里程碑、关键路径、P50/P80/P95、人类投入、每环节产出、风险缓冲和重估触发条件；不得把缺失 AC 当成已确认事实。",
         "输出业务可读交付日期和老板可读投入时长",
         "包含甘特图、WBS 字典、里程碑和 baseline/data date",
         "列出风险、假设和重估触发条件",
@@ -17,11 +17,11 @@
     {
       "id": "frozen-tasks-ai-parallelism",
       "prompt": "这里有已冻结的 phase-dir 和 tasks.json。帮我评估交付排期，token 管够，可以开多个 agent。",
-      "expected_output": "消费冻结 tasks，给出 baseline、甘特图、WBS 字典、里程碑、关键路径、float/slack、并行批次、最大并发 agent 数、P50/P80/P95、人类 review/QA/决策投入和风险缓冲；不反向改 tasks。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
+        "消费冻结 tasks，给出 baseline、甘特图、WBS 字典、里程碑、关键路径、float/slack、并行批次、最大并发 agent 数、P50/P80/P95、人类 review/QA/决策投入和风险缓冲；不反向改 tasks。",
         "输出带日历日期、甘特图和状态基线的交付排期并保留 canonical 来源",
         "列出风险和并行约束",
         "明确哪些任务可并行、哪些必须串行",
@@ -31,9 +31,9 @@
     {
       "id": "high-uncertainty-readiness-risk",
       "prompt": "需求里有一个团队没接过的第三方支付 SDK，客户要日期，老板要知道投入和风险。请估完整交付计划。",
-      "expected_output": "把第三方 SDK 作为 readiness / spike 风险前置，给出通过和失败后的排期分支、甘特图/里程碑影响、风险缓冲、重估触发条件和是否建议承诺日期。",
       "files": [],
       "expectations": [
+        "把第三方 SDK 作为 readiness / spike 风险前置，给出通过和失败后的排期分支、甘特图/里程碑影响、风险缓冲、重估触发条件和是否建议承诺日期。",
         "输出交付日期但标明风险条件",
         "将高不确定性风险前置为 readiness 或 spike",
         "给老板可决策的人类投入和风险缓冲",

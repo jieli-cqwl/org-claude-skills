@@ -60,7 +60,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 2. 若报告缺失，读取错误描述、日志、堆栈、失败命令，形成可复现现象清单。
 3. 输出目录解析：
    - 可解析 work_dir：输出到 `{work_dir}/fix-result.json`。
-   - 无可解析 work_dir：创建 `docs/hotfix-YYYYMMDD-HHMM/`，输出到 `fix-result.json`。
+   - 无可解析 work_dir：创建 `docs/hotfix--YYYYMMDD-HHMM/`，输出到 `fix-result.json`。
 4. 修复轮次 N：
    - 当前目录已有 `fix-result.json` 历史 revision：取最大序号 + 1。
    - 无历史报告：N = 1。

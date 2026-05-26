@@ -64,7 +64,7 @@ for index, case in enumerate(evals, start=1):
         raise SystemExit(f"{path}: duplicate eval id {case_id!r}")
     seen_ids.add(case_id)
 
-    for field in ("prompt", "expected_output"):
+    for field in ("prompt",):
         value = case.get(field)
         if not isinstance(value, str) or not value.strip():
             raise SystemExit(f"{path}: eval {case_id!r} missing non-empty {field}")
@@ -147,10 +147,7 @@ if missing_dimensions:
 
 case_by_id = {case.get("id"): case for case in data.get("evals", [])}
 missing_design_case = case_by_id.get("missing-design-blocks-test-design", {})
-missing_design_text = "\n".join([
-    missing_design_case.get("expected_output", ""),
-    *missing_design_case.get("expectations", []),
-])
+missing_design_text = "\n".join(missing_design_case.get("expectations", []))
 for term in ("design 责任方", "等待用户裁决"):
     if term not in missing_design_text:
         raise SystemExit(f"{path}: missing-design-blocks-test-design must include {term!r}")
@@ -186,7 +183,7 @@ field_expectations = {
 }
 for case_id, required_terms in field_expectations.items():
     case = case_by_id.get(case_id)
-    text = "\n".join([case.get("expected_output", ""), *case.get("expectations", [])])
+    text = "\n".join(case.get("expectations", []))
     missing_terms = sorted(term for term in required_terms if term not in text)
     if missing_terms:
         raise SystemExit(f"{path}: eval {case_id!r} missing contract terms {missing_terms}")
@@ -315,7 +312,7 @@ field_expectations = {
 }
 for case_id, required_terms in field_expectations.items():
     case = case_by_id.get(case_id)
-    text = "\n".join([case.get("expected_output", ""), *case.get("expectations", [])])
+    text = "\n".join(case.get("expectations", []))
     missing_terms = sorted(term for term in required_terms if term not in text)
     if missing_terms:
         raise SystemExit(f"{path}: eval {case_id!r} missing contract terms {missing_terms}")

@@ -4,13 +4,13 @@
     {
       "id": "missing-upstream-artifact-decision-package",
       "prompt": "帮我把会员权益需求拆成开发计划，但现在还没有 test-cases.json，design.json 也只是口头说过。",
-      "expected_output": "阻断 tasks.json 输出，说明 brief.json、phase-prd.json、UNIT、design.json、test-cases.json 缺一不可；输出用户决策包，列出 gap、owner、影响、可选路径和推荐路径。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/brief.json",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/phase-prd.json",
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/units/UNIT-1.json"
       ],
       "expectations": [
+        "阻断 tasks.json 输出，说明 brief.json、phase-prd.json、UNIT、design.json、test-cases.json 缺一不可；输出用户决策包，列出 gap、owner、影响、可选路径和推荐路径。",
         "明确缺少 design.json 或 test-cases.json",
         "不输出 tasks.json",
         "输出用户决策包而不是自动替用户选择路径",
@@ -25,11 +25,11 @@
     {
       "id": "wbs-implementation-path-plan",
       "prompt": "输入文件里的 sample-feature 上游工件都齐了，请按 tech-lead 说明如何把它拆成 AI 可执行任务。",
-      "expected_output": "说明 planning readiness 通过；给出 WBS、implementation path、critical path、dependency strategy、parallel batches、investment/risk signals；说明每个 Task 合同覆盖来源追踪、依赖批次、验收证据和风险可见性，具体字段与必填项按 tasks.schema.json / tasks.template.json 执行；明确 scope_item_refs 说明范围来源，实际变更范围由 developer 自主分析。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
+        "说明 planning readiness 通过；给出 WBS、implementation path、critical path、dependency strategy、parallel batches、investment/risk signals；说明每个 Task 合同覆盖来源追踪、依赖批次、验收证据和风险可见性，具体字段与必填项按 tasks.schema.json / tasks.template.json 执行；明确 scope_item_refs 说明范围来源，实际变更范围由 developer 自主分析。",
         "明确 planning readiness 结论",
         "给出 WBS / work packages / executable tasks",
         "给出关键路径、依赖关系和并行批次",
@@ -47,11 +47,11 @@
     {
       "id": "readiness-task-does-not-change-upstream-decisions",
       "prompt": "输入文件里的 sample-feature 有一个第三方 SDK 的本地命令是否可重复运行还不确定，但产品、架构和测试义务都已经确认。请按 tech-lead 说明规划方式。",
-      "expected_output": "把问题限定为 execution readiness，创建 readiness Task 证明环境/命令/权限/数据前提；不得改变产品范围、架构决策或测试义务；后续任务必须通过 depends_on 或批次依赖等待该前提证明。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
+        "把问题限定为 execution readiness，创建 readiness Task 证明环境/命令/权限/数据前提；不得改变产品范围、架构决策或测试义务；后续任务必须通过 depends_on 或批次依赖等待该前提证明。",
         "区分执行前提不足与上游决策不足",
         "readiness Task 包含 success_signal、failure_signal 和 evidence_target",
         "后续任务通过 depends_on 或 batch 表达等待关系",
@@ -67,11 +67,11 @@
     {
       "id": "risk-driven-batch-sequencing",
       "prompt": "输入文件里的 sample-feature 上游工件齐全。假设 Phase 目标包含两部分：1) 集成一个团队从未使用过的第三方支付 SDK（技术可行性未验证），2) 实现标准的订单列表 CRUD。请按 tech-lead 说明规划。",
-      "expected_output": "将第三方支付 SDK 集成识别为高不确定性，放在 batch 1 或建 readiness Task；标准 CRUD 排在 SDK 可行性验证后或并行但不依赖 SDK 结果。batch 1 边界有明确验证点（SDK 联通性是否通过）。每个 Task 的 scope_item_refs 追踪到上游 AC。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
+        "将第三方支付 SDK 集成识别为高不确定性，放在 batch 1 或建 readiness Task；标准 CRUD 排在 SDK 可行性验证后或并行但不依赖 SDK 结果。batch 1 边界有明确验证点（SDK 联通性是否通过）。每个 Task 的 scope_item_refs 追踪到上游 AC。",
         "高不确定性任务（SDK 集成）排在靠前 batch 或建 readiness Task",
         "batch 边界有明确的验证点或决策点",
         "标准 CRUD 不被不必要地阻塞",

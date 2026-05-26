@@ -27,6 +27,7 @@
       "self_checked_design_review_digest",
       "final_artifact_write",
       "projection_after_validation",
+      "design_reference_integrity",
       "architect_role_boundary",
       "weak_evidence_rejection",
       "semantic_conflict_detection",

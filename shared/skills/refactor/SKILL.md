@@ -13,7 +13,7 @@ disable-model-invocation: true
 1. NO refactoring without a diagnosis (problem type + evidence at file_path:line_number).
 2. NO refactoring without existing tests passing before AND after changes.
 3. NO direction chosen without applying the 3 principles (Simple / Fit / Evolve).
-4. NO /refactor completion without plan.md written to docs/重构-{模块名}/.
+4. NO /refactor completion without plan.md written to docs/refactor--{模块名}/.
 
 ## 角色
 
@@ -35,7 +35,7 @@ disable-model-invocation: true
 | Diagnosis | 读取目标文件/模块，定位问题类型、指标和 file_path:line_number | 无证据则停止；问题类型明确后进入 Principles |
 | Principles | 用 Simple / Fit / Evolve 裁决重构方向 | 原则冲突未裁决则回到 Diagnosis |
 | Route | 按语言、模块规模和风险决定小步重构或大型重构计划 | 影响范围不清则补调用方分析 |
-| Plan | 写 `docs/重构-[模块名]/plan.md` 与验证步骤 | 缺测试 proof、影响分析或步骤证据则不得完成 |
+| Plan | 写 `docs/refactor--{模块名}/plan.md` 与验证步骤 | 缺测试 proof、影响分析或步骤证据则不得完成 |
 
 ### 1. 诊断
 
@@ -71,11 +71,11 @@ Output: 三原则裁决记录与重构边界。Consumer: 语言路由与 plan.md
 
 Java: God Class、接口泛滥、Spring 分层。Python: ABC 滥用、装饰器嵌套、过度 OOP。大型重构使用并行分析：Explore Agent 检测坏味道 → Agent 生成重构方案 → 汇总计划交给 /delivery-owner 执行。
 
-Output: `docs/重构-[模块名]/plan.md` 草案与验证路径。Consumer: `/delivery-owner` 或用户执行。Acceptance: 每个步骤有验证方式、影响分析和测试命令。Failure_state: 调用方影响或测试边界不清则阻断。Proof: 前后测试命令、调用方引用计数和计划文件。
+Output: `docs/refactor--{模块名}/plan.md` 草案与验证路径。Consumer: `/delivery-owner` 或用户执行。Acceptance: 每个步骤有验证方式、影响分析和测试命令。Failure_state: 调用方影响或测试边界不清则阻断。Proof: 前后测试命令、调用方引用计数和计划文件。
 
 ## 输出
 
-输出到 `docs/重构-[模块名]/plan.md`，包含：
+输出到 `docs/refactor--{模块名}/plan.md`，包含：
 - 报告模板：`projections/refactor-plan-template.md`（诊断结果表、重构方向+三原则校验、具体步骤+验证方式、影响分析+调用方引用计数）
 - 诊断结果（问题类型 + 量化指标 + file_path:line_number）
 - 重构方向（减法/加法/调整）+ 三原则校验
@@ -89,4 +89,4 @@ Output: `docs/重构-[模块名]/plan.md` 草案与验证路径。Consumer: `/de
 - [ ] 每个重构步骤附 file_path:line_number
 - [ ] 影响分析含调用方引用计数
 - [ ] 全量测试通过
-- [ ] 验证 evidence 已记录：重构前测试命令与输出、重构后当前验证命令与输出、`docs/重构-[模块名]/plan.md` 文件路径
+- [ ] 验证 evidence 已记录：重构前测试命令与输出、重构后当前验证命令与输出、`docs/refactor--{模块名}/plan.md` 文件路径

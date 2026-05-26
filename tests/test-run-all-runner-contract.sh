@@ -58,10 +58,12 @@ assert_contains "--full" "$help_output" "help output"
 assert_contains "--release" "$help_output" "help output"
 assert_contains "--profile" "$help_output" "help output"
 assert_contains "--list" "$help_output" "help output"
+assert_contains "--format=json" "$help_output" "help output"
 
 full_plan="$(bash "$RUNNER" --full --list)"
 quick_plan="$(bash "$RUNNER" --quick --list)"
 release_plan="$(bash "$RUNNER" --release --list)"
+quick_json="$(bash "$RUNNER" --quick --list --format=json)"
 runner_source="$(<"$RUNNER")"
 
 assert_contains "tests/run-focused.sh" "$runner_source" "run-all focused runner syntax coverage"
@@ -81,16 +83,56 @@ assert_contains "steps=" "$full_plan" "full plan"
 assert_contains "steps=" "$quick_plan" "quick plan"
 assert_contains "steps=" "$release_plan" "release plan"
 
+python3 - "$quick_json" <<'PY'
+import json
+import sys
+
+plan = json.loads(sys.argv[1])
+if plan.get("mode") != "quick":
+    raise SystemExit("quick json plan must report mode=quick")
+steps = plan.get("steps")
+if not isinstance(steps, list) or not steps:
+    raise SystemExit("quick json plan must include non-empty steps")
+if len(steps) > 35:
+    raise SystemExit(f"quick should stay a small canary plan, got {len(steps)} steps")
+required_areas = {
+    "preflight",
+    "contracts",
+    "standard-chain",
+    "context",
+    "install-runtime",
+    "hooks-manifest",
+    "skill-evals",
+    "runtime-surface",
+    "assertion-boundary",
+}
+areas = {step.get("area") for step in steps}
+missing = sorted(required_areas - areas)
+if missing:
+    raise SystemExit(f"quick plan missing required areas: {missing}")
+for step in steps:
+    tags = set(step.get("tags", []))
+    forbidden = {"full-only", "release-only", "dogfood", "e2e", "live", "migration", "install-heavy"}
+    blocked = sorted(tags & forbidden)
+    if blocked:
+        raise SystemExit(f"quick step {step.get('id')} has forbidden tags: {blocked}")
+    timeout = step.get("timeout_sec")
+    if not isinstance(timeout, int) or timeout <= 0 or timeout > 120:
+        raise SystemExit(f"quick step {step.get('id')} must have timeout_sec in 1..120")
+PY
+
 full_steps="$(plan_count steps "$full_plan")"
 quick_steps="$(plan_count steps "$quick_plan")"
 release_steps="$(plan_count steps "$release_plan")"
-quick_excluded_count="$(plan_count full_only_excluded "$quick_plan")"
 
 [ "$full_steps" -gt "$quick_steps" ] || fail "full plan should have more steps than quick plan"
-[ "$release_steps" -eq "$full_steps" ] || fail "release plan should match full plan step count"
-[ "$quick_excluded_count" -ge 9 ] || fail "quick excluded count should not shrink below the post-cleanup floor"
+[ "$release_steps" -ge "$full_steps" ] || fail "release plan should include at least the full plan"
+[ "$quick_steps" -le 35 ] || fail "quick plan should stay below 35 canary steps"
 
 assert_contains "bash $ROOT/tests/test-install-core.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-runtime-quick-canary.sh" "$quick_plan" "quick plan"
+assert_not_contains "test-install-runtime-smoke.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-install-runtime-quick-canary.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-install-runtime-smoke.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-install-safety.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-install-runtime.sh" "$full_plan" "full plan"
@@ -112,36 +154,26 @@ assert_not_contains "test-install-runtime-audit.sh" "$full_plan" "full plan"
 
 assert_contains "bash $ROOT/tools/validate-contracts.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-entry-doc-source-contract.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-developer-effectiveness-review-evals.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-developer-runtime-proof-contract.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-developer-runtime-failure-matrix.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-standard-chain-runtime-layering-contract.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-standard-chain-episode-package.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-standard-chain-harness-capability-eval.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-test-assertion-boundary-contract.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-skill-quality-standard.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-shared-skill-package-quality-baseline.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-skill-body-quality-static-audit.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-skill-quality-detection-fixtures.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-review-fix-redesign-contract.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-product-role-split-contract.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-product-stability-guidance-contract.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-stage2-product-director-handoff.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-standard-chain-validator-stack.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-context-contract-validator.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-skill-output-and-gate-contract.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-skill-runtime-surface-contract.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-skill-eval-contracts.sh" "$quick_plan" "quick plan"
+assert_not_contains "test-design-dogfood-e2e.sh" "$quick_plan" "quick plan"
+assert_not_contains "test-product-manager-dogfood-e2e.sh" "$quick_plan" "quick plan"
+assert_not_contains "test-install-migration.sh" "$quick_plan" "quick plan"
+assert_not_contains "test-standard-chain-harness-capability-eval.sh" "$quick_plan" "quick plan"
+assert_not_contains "test-developer-effectiveness-review-evals.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-stage2-product-director-handoff.sh" "$full_plan" "full plan"
-assert_contains "bash $ROOT/tests/test-stage2-confirmed-brief-package.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-stage2-confirmed-brief-package.sh" "$full_plan" "full plan"
-assert_contains "bash $ROOT/tests/test-stage2-product-manager-package.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-stage2-product-manager-package.sh" "$full_plan" "full plan"
-assert_contains "bash $ROOT/tests/test-stage2-design-package.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-stage2-design-package.sh" "$full_plan" "full plan"
-assert_contains "bash $ROOT/tests/test-stage2-test-design-package.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-stage2-test-design-package.sh" "$full_plan" "full plan"
-assert_contains "bash $ROOT/tests/test-stage2-tech-lead-package.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-stage2-tech-lead-package.sh" "$full_plan" "full plan"
 
 for release_heavy_test in \
   "tests/test-install-core.sh" \
-  "tests/test-install-runtime-smoke.sh" \
   "tests/test-install-safety.sh" \
   "tests/test-install-runtime.sh" \
   "tests/test-install-migration.sh" \
@@ -150,7 +182,6 @@ for release_heavy_test in \
   "tests/test-platform-runtime-noise.sh" \
   "tests/test-codex-skill-adapter.sh"
 do
-  assert_contains "excluded: $release_heavy_test" "$quick_plan" "quick plan"
   assert_not_contains "bash $ROOT/$release_heavy_test" "$quick_plan" "quick plan"
   assert_contains "bash $ROOT/$release_heavy_test" "$full_plan" "full plan"
   assert_contains "bash $ROOT/$release_heavy_test" "$release_plan" "release plan"
@@ -163,7 +194,6 @@ for moved_test in \
   "tests/test-standard-chain-skill-structure.sh" \
   "tests/test-release-metadata.sh"
 do
-  assert_contains "excluded: $moved_test" "$quick_plan" "quick plan"
   assert_not_contains "bash $ROOT/$moved_test" "$quick_plan" "quick plan"
   assert_contains "bash $ROOT/$moved_test" "$full_plan" "full plan"
   assert_contains "bash $ROOT/$moved_test" "$release_plan" "release plan"

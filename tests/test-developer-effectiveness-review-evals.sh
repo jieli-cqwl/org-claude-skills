@@ -59,7 +59,6 @@ for case_id, spec in required.items():
     text = "\n".join(
         [
             str(case.get("prompt", "")),
-            str(case.get("expected_output", "")),
             "\n".join(str(item) for item in case.get("expectations", [])),
         ]
     )

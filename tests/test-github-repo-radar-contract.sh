@@ -9,7 +9,7 @@ SKILL="$ROOT/shared/skills/github-repo-radar/SKILL.md"
 RUBRIC="$ROOT/shared/skills/github-repo-radar/references/evaluation-rubric.md"
 EVALS="$ROOT/shared/skills/github-repo-radar/evals/evals.json"
 ADAPTER="$ROOT/shared/skills/github-repo-radar/agents/openai.yaml"
-RUN_ALL="$ROOT/tests/run-all.sh"
+GATE_PLAN="$ROOT/tests/gate-plan.json"
 
 fail() {
   printf '[github-repo-radar-contract][FAIL] %s\n' "$*" >&2
@@ -43,6 +43,7 @@ test -f "$SKILL" || fail "missing SKILL.md"
 test -f "$RUBRIC" || fail "missing evaluation rubric"
 test -f "$EVALS" || fail "missing evals.json"
 test -f "$ADAPTER" || fail "missing Codex adapter"
+test -f "$GATE_PLAN" || fail "missing gate plan"
 
 assert_present '^allowed-tools: .*WebSearch.*WebFetch.*AskUserQuestion' "$SKILL" "Skill current-evidence tools"
 assert_present '^allowed-tools: .*Read.*Write' "$SKILL" "Skill report IO tools"
@@ -76,10 +77,14 @@ ids = [item.get("id") for item in evals]
 assert len(ids) == len(set(ids)), "eval ids must be unique"
 for item in evals:
     assert isinstance(item.get("prompt"), str) and item["prompt"].strip(), "prompt required"
-    assert isinstance(item.get("expected_output"), str) and item["expected_output"].strip(), "expected_output required"
+    expectations = item.get("expectations")
+    assert isinstance(expectations, list) and expectations, "expectations required"
+    assert all(isinstance(value, str) and value.strip() for value in expectations), "expectations must be non-empty strings"
     assert isinstance(item.get("files"), list), "files must be a list"
 
-text = "\n".join(item["prompt"] + "\n" + item["expected_output"] for item in evals)
+text = "\n".join(
+    item["prompt"] + "\n" + "\n".join(item.get("expectations", [])) for item in evals
+)
 required = [
     ("source class", ["来源类别", "source class", "source_type"]),
     ("crawl date", ["抓取日期", "crawl date", "crawled_at"]),
@@ -93,6 +98,7 @@ for label, options in required:
     assert any(option in text for option in options), f"missing eval coverage: {label}"
 PY
 
-assert_present 'tests/test-github-repo-radar-contract\.sh' "$RUN_ALL" "run-all registration"
+assert_present '"id": "github-repo-radar-contract"' "$GATE_PLAN" "gate-plan registration"
+assert_present '"tests/test-github-repo-radar-contract.sh"' "$GATE_PLAN" "gate-plan command"
 
 printf 'github-repo-radar contract ok\n'

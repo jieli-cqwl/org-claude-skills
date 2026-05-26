@@ -2008,18 +2008,64 @@ if present_forbidden or missing:
     raise SystemExit(
         f"design owner wording contract failed: forbidden={present_forbidden}, missing={missing}"
     )
-for required_heading in ["## Checklist", "## Process Flow", "## The Process"]:
+hard_gate = text.split("<HARD-GATE>", 1)[1].split("</HARD-GATE>", 1)[0]
+hard_gate_required = [
+    "preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate",
+    "不得创建、改写或冻结 `design.json` 的设计内容",
+    "输出回流包并等待用户或标准链编排器触发对应 owner",
+    "review 未闭合或 `final_confirmation.status=confirmed` 不成立时，不得交给 `/test-design`",
+]
+missing_hard_gate = [term for term in hard_gate_required if term not in hard_gate]
+if missing_hard_gate:
+    raise SystemExit(f"design hard gate missing strict boundary terms: {missing_hard_gate}")
+hard_gate_forbidden = ["只有 preflight PASS", "才能冻结设计", "才能交给 `/test-design`"]
+present_hard_gate_forbidden = [term for term in hard_gate_forbidden if term in hard_gate]
+if present_hard_gate_forbidden:
+    raise SystemExit(f"design hard gate still uses weaker positive-only terms: {present_hard_gate_forbidden}")
+for forbidden_heading in ["## Process Flow", "## The Process"]:
+    if forbidden_heading in text:
+        raise SystemExit(f"design skill should not keep bulky process-manual structure: {forbidden_heading}")
+for forbidden_marker in ["```dot", "digraph design"]:
+    if forbidden_marker in text:
+        raise SystemExit(f"design skill should not use a diagram where instruction contracts are needed: {forbidden_marker}")
+for required_heading in ["## Workflow Checklist", "## Capability Contracts", "## User Collaboration", "## Completion Check"]:
     if required_heading not in text:
-        raise SystemExit(f"design skill must follow brainstorming structure: missing {required_heading}")
-for required_flow_line in [
-    '"Stop with upstream handoff" [shape=box];',
-    '"Baseline Gate" -> "Stop with upstream handoff" [label="BLOCKED"];',
-    '"Finalize Design" [shape=box];',
-    '"User confirms final design?" -> "Finalize Design" [label="yes"];',
-    '"Finalize Design" -> "Run Validators";',
+        raise SystemExit(f"design skill missing section: {required_heading}")
+checklist = text.split("## Workflow Checklist", 1)[1].split("## Capability Contracts", 1)[0]
+if "按顺序创建任务并完成" not in checklist:
+    raise SystemExit("design checklist must explicitly require ordered task creation and completion")
+items = [line for line in checklist.splitlines() if re.match(r"^\d+\. ", line)]
+if len(items) != 13:
+    raise SystemExit(f"design checklist should contain 13 ordered items, got {len(items)}")
+bad_items = [
+    item for item in items
+    if not re.match(r"^\d+\. \*\*[^*]+\*\* — .+", item)
+]
+if bad_items:
+    raise SystemExit(
+        "design checklist items must use 'stage — action/result' form: "
+        + "; ".join(bad_items)
+    )
+capability_contracts = text.split("## Capability Contracts", 1)[1].split("## User Collaboration", 1)[0]
+for required_capability in [
+    "Intake Routing",
+    "Evidence Strength",
+    "Decision Shape",
+    "Downstream Consumability",
+    "Review Closure",
+    "Finalization And Handoff",
 ]:
-    if required_flow_line not in text:
-        raise SystemExit(f"design process flow missing line: {required_flow_line}")
+    if required_capability not in capability_contracts:
+        raise SystemExit(f"design capability contract missing: {required_capability}")
+for name, terms in {
+    "intake_route_boundary": ["WHY/WHAT", "HOW", "/product-manager", "/test-design", "/tech-lead"],
+    "evidence_strength_tiers": ["Strong", "Medium", "Weak", "弱证据不能冻结架构决策"],
+    "decision_shape": ["key_decisions", "decision_id", "option_ref", "fact_refs", "user_confirmation", "option_analysis.decision_ref", "option_analysis.tradeoff", "impact_scope", "verification_mapping"],
+    "downstream_consumability": ["/test-design", "断言", "/tech-lead", "任务边界", "developer", "input/output/error", "delivery-owner", "risk_response", "rollback_plan", "planning_constraints"],
+}.items():
+    missing_terms = [term for term in terms if term not in capability_contracts]
+    if missing_terms:
+        raise SystemExit(f"design capability contract {name} missing terms: {missing_terms}")
 completion = text.split("## Completion Check", 1)[1]
 if "完成前逐项确认：" in completion:
     raise SystemExit("design Completion Check should not add a prose lead-in")
@@ -2158,6 +2204,43 @@ assert_present 'final_artifact_write' "$DESIGN_EVALS"
 assert_present 'projection_after_validation' "$DESIGN_EVALS"
 assert_present 'architect_eval_matrix_updated_needs_empirical_rerun' "$DESIGN_EFFECTIVENESS"
 assert_present 'architect_anchors_updated_needs_fidelity_run' "$DESIGN_EFFECTIVENESS"
+python3 - "$DESIGN_EVALS" "$DESIGN_EFFECTIVENESS" \
+  "$ROOT/shared/skills/design/references/architecture-patterns.md" \
+  "$ROOT/shared/skills/design/references/design-reviewer-prompt.md" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+evals_path = Path(sys.argv[1])
+review_path = Path(sys.argv[2])
+architecture_patterns = Path(sys.argv[3]).read_text(encoding="utf-8")
+architecture_reviewer = Path(sys.argv[4]).read_text(encoding="utf-8")
+evals = json.loads(evals_path.read_text(encoding="utf-8"))
+review = json.loads(review_path.read_text(encoding="utf-8"))
+
+eval_dimensions = evals.get("grader_dimensions")
+review_dimensions = review.get("capability_uplift", {}).get("grader_dimensions")
+if review_dimensions != eval_dimensions:
+    raise SystemExit(
+        f"{review_path}: capability_uplift.grader_dimensions must mirror evals.json grader_dimensions"
+    )
+
+if "降低总体风险" not in architecture_patterns:
+    raise SystemExit("architecture-patterns must state complex patterns require total-risk reduction")
+if "证明收益后，再推荐更复杂模式" in architecture_patterns:
+    raise SystemExit("architecture-patterns must not allow benefit-only justification for complex patterns")
+
+required_reviewer_terms = [
+    "decision_id",
+    "option_analysis.decision_ref",
+    "option_analysis.tradeoff",
+    "弱证据",
+    "自引用 `design.json`",
+]
+missing = [term for term in required_reviewer_terms if term not in architecture_reviewer]
+if missing:
+    raise SystemExit(f"design architecture reviewer must align to schema/evidence contract: {missing}")
+PY
 assert_absent 'S10 最终确认|S10 confirmation summary|S5 or S10 user confirmation summary' "$DESIGN_TEMPLATE"
 assert_absent 'S10 最终确认' "$DESIGN_SCHEMA"
 assert_present 'final confirmation summary' "$DESIGN_TEMPLATE"

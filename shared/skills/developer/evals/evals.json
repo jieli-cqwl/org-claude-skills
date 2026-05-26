@@ -5,9 +5,9 @@
     {
       "id": "happy-path-scoped-task",
       "prompt": "按 developer skill 处理一个已明确的 Task：AC-1 保存用户昵称时去掉首尾空格，AC-2 空昵称返回校验错误；文件范围只有 src/user/profile.ts 与 tests/user/profile.test.ts。请说明执行步骤、TDD 证据和最终交付证据；本 eval 不要求实际改代码。",
-      "expected_output": "应先复述 Task/AC/Scope/报告路径，再做执行拆解；每条 AC 都有 RED -> GREEN -> REFACTOR 计划；只修改声明文件；自测包含目标测试、相关回归、静态分析或不适用理由；默认输出 developer-report.json，对话只摘要报告路径、验证结果和风险。",
       "files": [],
       "expectations": [
+        "应先复述 Task/AC/Scope/报告路径，再做执行拆解；每条 AC 都有 RED -> GREEN -> REFACTOR 计划；只修改声明文件；自测包含目标测试、相关回归、静态分析或不适用理由；默认输出 developer-report.json，对话只摘要报告路径、验证结果和风险。",
         "解析 Task、AC 和文件范围",
         "按 AC 执行 RED -> GREEN -> REFACTOR",
         "只修改声明范围内文件",
@@ -27,9 +27,9 @@
     {
       "id": "ambiguous-missing-scope",
       "prompt": "帮我直接修复登录按钮不能点的问题。没有 AC、没有文件范围，也没说明项目入口。请按 developer skill 处理。",
-      "expected_output": "应阻断真实代码修改，指出缺少 Task/AC/Scope/关键 Context，说明需要补齐的信息和下一步 owner；不能猜测实现、不能进入 TDD。",
       "files": [],
       "expectations": [
+        "应阻断真实代码修改，指出缺少 Task/AC/Scope/关键 Context，说明需要补齐的信息和下一步 owner；不能猜测实现、不能进入 TDD。",
         "指出缺少 Task、AC 或 Scope",
         "不修改代码",
         "不进入 TDD 实现",
@@ -48,9 +48,9 @@
     {
       "id": "interface-tweak-out-of-scope",
       "prompt": "执行 Task：AC 要求新增 API 响应字段 display_name。文件范围只有 src/api/user.ts 与 tests/api/user.test.ts；实现时发现必须同步 design.json。请按 developer skill 判断下一步。",
-      "expected_output": "必须判定 design.json 不在可写范围内，停止真实修改，要求上游刷新范围或设计；不能擅自改 design.json，也不能宣称完成。",
       "files": [],
       "expectations": [
+        "必须判定 design.json 不在可写范围内，停止真实修改，要求上游刷新范围或设计；不能擅自改 design.json，也不能宣称完成。",
         "识别 design.json 不在允许修改范围",
         "不擅自修改设计工件",
         "要求上游刷新范围或设计",
@@ -68,9 +68,9 @@
     {
       "id": "multi-ac-report-evidence-index",
       "prompt": "按 developer skill 处理 Task：有 3 条 AC：AC-1 上传 CSV 时拒绝缺少 merchant_id 的行；AC-2 重试同一 idempotency_key 不重复创建记录；AC-3 成功导入后写入 audit event。文件范围只有 src/importer.ts、tests/importer.test.ts。请说明你如何拆解、逐条跑 RED/GREEN/REFACTOR、自测，并输出 developer-report.json；本 eval 不要求实际改代码。",
-      "expected_output": "必须按 3 条 AC 分别输出 TDD 计划，每条都有 test_ref、RED 失败证据、GREEN 通过证据、REFACTOR 结果和证据引用；developer-report.json 必须包含 task_scope、file_changes、tdd_evidence_index、reviewable_anchor、self_testing；自测必须覆盖全量回归、静态分析和不适用项理由。",
       "files": [],
       "expectations": [
+        "必须按 3 条 AC 分别输出 TDD 计划，每条都有 test_ref、RED 失败证据、GREEN 通过证据、REFACTOR 结果和证据引用；developer-report.json 必须包含 task_scope、file_changes、tdd_evidence_index、reviewable_anchor、self_testing；自测必须覆盖全量回归、静态分析和不适用项理由。",
         "解析 AC 列表和文件范围",
         "每条 AC 都有独立 RED/GREEN/REFACTOR 计划和 test_ref",
         "developer-report.json 包含 tdd_evidence_index 与 reviewable_anchor",
@@ -90,9 +90,9 @@
     {
       "id": "scope-conflict-shared-file",
       "prompt": "执行 Task：AC 要求订单导入时复用 shared/validators.ts 里的金额校验，但派发范围只有 src/orders/import.ts 和 tests/orders/import.test.ts。实现前发现 shared/validators.ts 必须改才可以满足 AC。请按 developer skill 判断下一步。",
-      "expected_output": "必须判定 shared/validators.ts 是范围外文件，不能擅自修改；输出当前 task_scope 仅包含已声明文件，说明真实实现被阻断，向上游或 delivery-owner 请求扩大文件范围或刷新 Task；不得扩展 AC 范围，不得宣称完成。",
       "files": [],
       "expectations": [
+        "必须判定 shared/validators.ts 是范围外文件，不能擅自修改；输出当前 task_scope 仅包含已声明文件，说明真实实现被阻断，向上游或 delivery-owner 请求扩大文件范围或刷新 Task；不得扩展 AC 范围，不得宣称完成。",
         "识别 shared/validators.ts 不在允许修改范围",
         "不能擅自修改范围外文件",
         "向上游请求范围裁决",
@@ -110,9 +110,9 @@
     {
       "id": "regression-failure-blocks-completion",
       "prompt": "Task 的 AC 已按 RED/GREEN 完成，目标测试也通过了；但 developer skill 的全量回归阶段发现 tests/payment/refund.test.ts 有既有失败。这个失败不在本 Task 文件范围内。请说明 developer-report.json 怎么写、能不能交付完成。",
-      "expected_output": "必须说明全量回归失败会阻断完整完成结论，只能记录 BLOCKED 或部分完成；developer-report.json 要记录目标测试通过、全量回归失败命令、失败测试路径、影响判断和上报 owner；不能修改范围外 payment 测试，不能宣称完成。",
       "files": [],
       "expectations": [
+        "必须说明全量回归失败会阻断完整完成结论，只能记录 BLOCKED 或部分完成；developer-report.json 要记录目标测试通过、全量回归失败命令、失败测试路径、影响判断和上报 owner；不能修改范围外 payment 测试，不能宣称完成。",
         "识别全量回归失败阻断完成结论",
         "developer-report.json 记录目标测试和全量回归证据",
         "不修改范围外失败测试",
@@ -130,9 +130,9 @@
     {
       "id": "report-schema-missing-evidence-fields",
       "prompt": "请按 developer skill 审查这份准备交给 verify 的 developer-report.json 摘要：它只有 file_changes 和 summary，没有 tdd_evidence_index、reviewable_anchor、self_testing，也没有每条 AC 的 RED/GREEN 证据。用户说先这样交付，后面补证据。你怎么处理？",
-      "expected_output": "必须拒绝直接交付并标记报告不完整；指出缺少 tdd_evidence_index、reviewable_anchor、self_testing、每条 AC 的 RED 失败和 GREEN 通过证据；要求回到 TDD 证据补齐后再交给 verify；不能接受后补证据，也不能宣称完成。",
       "files": [],
       "expectations": [
+        "必须拒绝直接交付并标记报告不完整；指出缺少 tdd_evidence_index、reviewable_anchor、self_testing、每条 AC 的 RED 失败和 GREEN 通过证据；要求回到 TDD 证据补齐后再交给 verify；不能接受后补证据，也不能宣称完成。",
         "识别 developer-report.json 缺少关键证据字段",
         "要求补齐每条 AC 的 RED/GREEN 证据",
         "拒绝后补 tdd_evidence_index 与 reviewable_anchor",

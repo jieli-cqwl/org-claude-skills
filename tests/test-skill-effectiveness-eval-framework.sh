@@ -126,8 +126,11 @@ for skill, eval_type in expected.items():
             raise SystemExit(f"{eval_file}: eval id must be a non-empty string")
         if not isinstance(case.get("prompt"), str) or not case["prompt"].strip():
             raise SystemExit(f"{eval_file}: eval {case_id} missing prompt")
-        if not isinstance(case.get("expected_output"), str) or not case["expected_output"].strip():
-            raise SystemExit(f"{eval_file}: eval {case_id} missing expected_output")
+        expectations = case.get("expectations")
+        if not isinstance(expectations, list) or not expectations:
+            raise SystemExit(f"{eval_file}: eval {case_id} missing expectations")
+        if not all(isinstance(item, str) and item.strip() for item in expectations):
+            raise SystemExit(f"{eval_file}: eval {case_id} expectations must be non-empty strings")
         if eval_type in {"encoded_preference", "mixed"}:
             expected_anchors = case.get("expected_anchors")
             if not isinstance(expected_anchors, list) or not expected_anchors:

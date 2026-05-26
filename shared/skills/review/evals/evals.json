@@ -4,11 +4,11 @@
     {
       "id": "full-review-canonical-phase",
       "prompt": "请按 review skill 审查输入文件里的 sample-feature phase-1 改动：brief.json 与 artifact-registry.json 已存在，scope=full。请说明你会如何收集范围、分配 A/B/C 评审、验证 High findings，并说明 code-review-result.json 必须怎样产出；本 eval 不要求实际写文件。",
-      "expected_output": "明确先确认 git diff、brief.json、artifact-registry.json 与当前 Phase 工作区；scope=full 时覆盖 A/B/C 审查；Critical/High finding 必须按 verification protocol 标记状态；最终写入 code-review-result.json。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
+        "明确先确认 git diff、brief.json、artifact-registry.json 与当前 Phase 工作区；scope=full 时覆盖 A/B/C 审查；Critical/High finding 必须按 verification protocol 标记状态；最终写入 code-review-result.json。",
         "明确读取 git diff、brief.json 和 artifact-registry.json",
         "按 scope=full 覆盖 REVIEW_A / REVIEW_B / REVIEW_C",
         "Critical 或 High finding 有验证状态和证据",
@@ -27,9 +27,9 @@
     {
       "id": "missing-scope-or-workspace",
       "prompt": "帮我 review 一下刚才的代码，范围你自己看着办。当前没有给 commit range、文件列表、brief.json 或 artifact-registry.json。请按 review skill 处理。",
-      "expected_output": "阻断执行，明确缺少有效审查范围和当前 feature / UNIT 工作区路径；不能猜测范围、不能输出 APPROVE、COMMENT 或 REQUEST_CHANGES，也不能写 code-review-result.json。",
       "files": [],
       "expectations": [
+        "阻断执行，明确缺少有效审查范围和当前 feature / UNIT 工作区路径；不能猜测范围、不能输出 APPROVE、COMMENT 或 REQUEST_CHANGES，也不能写 code-review-result.json。",
         "指出缺少审查范围",
         "指出缺少 canonical 工作区或 artifact registry",
         "不输出最终 review verdict",
@@ -48,7 +48,6 @@
     {
       "id": "evidence-integrity-special-review",
       "prompt": "请按 review skill 审查一个 skill 质量门禁改动：git diff 触达 shared/skills/verify/SKILL.md、tools/community/validate_standard_chain_readiness.py、tests/test-standard-chain-readiness-gate.sh。输入文件里的 sample-feature brief.json 和 artifact-registry.json 已定位。请说明审查计划和最终报告必须包含什么；本 eval 不要求实际写文件。",
-      "expected_output": "明确识别触达 skill、runtime gate 与 PASS/decision/status 脚本，执行证据链完整性专项；报告包含专项适用性、触发依据、EI findings、已排除项、REVIEW_A/B/C 结论，并明确目标 code-review-result.json 路径与可落盘内容；在本 eval 不写文件约束下标注未落盘。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature",
         "shared/skills/verify/SKILL.md",
@@ -56,6 +55,7 @@
         "tests/test-standard-chain-readiness-gate.sh"
       ],
       "expectations": [
+        "明确识别触达 skill、runtime gate 与 PASS/decision/status 脚本，执行证据链完整性专项；报告包含专项适用性、触发依据、EI findings、已排除项、REVIEW_A/B/C 结论，并明确目标 code-review-result.json 路径与可落盘内容；在本 eval 不写文件约束下标注未落盘。",
         "识别 skill 与 runtime gate 质量风险",
         "执行 evidence integrity 专项审查",
         "报告已排除项和触发依据",

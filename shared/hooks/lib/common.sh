@@ -218,7 +218,7 @@ add_failure_with_hint() {
 # --- Feature 目录定位（参数化） ---
 # $1: transcript grep 正则（匹配 transcript 中的文件路径）
 # $2: git anchor 文件名（如 plan.md、code-review-report.md）
-# $3: git anchor glob 前缀（默认 'docs/*'，refactor 用 'docs/重构-*'）
+# $3: git anchor glob 前缀（默认 'docs/*'，refactor 用 'docs/refactor--*'）
 
 find_feature_dir() {
     local transcript_pattern="$1"

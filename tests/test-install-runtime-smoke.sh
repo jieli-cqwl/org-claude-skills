@@ -58,6 +58,9 @@ install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runt
 
 install_test_assert_file_exists "$home_dir/.claude/CLAUDE.md" "claude runtime should include CLAUDE.md"
 install_test_assert_file_exists "$home_dir/.codex/AGENTS.md" "codex runtime should include AGENTS.md"
+install_test_assert_file_contains "$home_dir/.claude/CLAUDE.md" "硬约束来源" "claude entry should identify rules as the hard constraint source"
+install_test_assert_file_contains "$home_dir/.codex/AGENTS.md" "硬约束来源" "codex entry should identify rules as the hard constraint source"
+install_test_assert_file_not_contains "$home_dir/.codex/AGENTS.md" "硬约束加载：始终先遵循" "codex entry should not imply rules are automatically loaded"
 install_test_assert_file_exists "$codex_skills_dir/product-manager/SKILL.md" "codex user skills should install to official ~/.agents/skills"
 install_test_assert_path_absent "$home_dir/.codex/skills/product-manager/SKILL.md" "codex managed skills should not remain in legacy ~/.codex/skills"
 install_test_assert_rendered_shared_tree_matches_runtime "$ROOT/shared/rules" "$home_dir/.claude/rules" '$HOME/.claude' "claude rules"

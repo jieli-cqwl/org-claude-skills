@@ -1,7 +1,7 @@
 #!/bin/bash
 # 安全扫描报告完整性自动检查脚本
 # 触发时机: security skill-local Stop
-# 功能: 检查 docs/reports/security/ 报告的工具执行证据与 OWASP 覆盖
+# 功能: 检查 docs/reports--security/ 报告的工具执行证据与 OWASP 覆盖
 
 set -euo pipefail
 
@@ -20,11 +20,11 @@ hook_init
 
 # --- 报告文件定位 ---
 
-REPORT_DIR="docs/reports/security"
+REPORT_DIR="docs/reports--security"
 REPORT_FILE=""
 
 if [ -n "$TRANSCRIPT_PATH" ] && [ -f "$TRANSCRIPT_PATH" ]; then
-    REPORT_FILE=$(grep -oE 'docs/reports/security/[^"[:space:]{}]+\.md' "$TRANSCRIPT_PATH" 2>/dev/null \
+    REPORT_FILE=$(grep -oE 'docs/reports--security/[^"[:space:]{}]+\.md' "$TRANSCRIPT_PATH" 2>/dev/null \
         | sed -E '/\{[^}]+\}/d' | sort -u | tail -1 || true)
 fi
 
@@ -32,9 +32,9 @@ if [ -z "$REPORT_FILE" ] || [ ! -f "$REPORT_FILE" ]; then
     REPORT_FILE=$(find_report_by_pattern "$REPORT_DIR" "*.md")
 fi
 
-# SC1: 报告存在于 docs/reports/security/
+# SC1: 报告存在于 docs/reports--security/
 if [ -z "$REPORT_FILE" ] || [ ! -f "$REPORT_FILE" ]; then
-    add_failure "SC1: docs/reports/security/ 下无安全扫描报告"
+    add_failure "SC1: docs/reports--security/ 下无安全扫描报告"
     output_failures "安全扫描报告完整性检查未通过" ""
     exit 0
 fi

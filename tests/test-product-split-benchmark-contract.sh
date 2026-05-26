@@ -72,7 +72,6 @@ for item in payload["evals"]:
     assert item.get("outcome_rubric"), item
     searchable = "\n".join(
         [
-            item.get("expected_output", ""),
             *[expectation.get("text", "") for expectation in item.get("expectations", [])],
             *[expectation.get("pattern", "") for expectation in item.get("expectations", [])],
         ]
@@ -133,7 +132,6 @@ eval_item = {
     "id": 0,
     "name": "nonzero executor",
     "prompt": "return keyword",
-    "expected_output": "keyword",
     "expectations": [{"text": "keyword", "pattern": "keyword"}],
 }
 try:

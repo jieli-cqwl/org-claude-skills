@@ -5,13 +5,13 @@
     {
       "id": "fixture-backed-noisy-implementation-skill",
       "prompt": "请用 skill-refiner 精修随附 fixture 中的 noisy implementation Skill。目标：回到开发职责真实办事流程，删除无消费者噪音，迁移长方法论，更新验证脚本；完成后运行能证明改造有效的 scoped validation。",
-      "expected_output": "应读取质量标准并记录诊断维度；和用户共创场景事实，只覆盖真实场景、痛点、保留能力和切入点；场景理解不得产出最终操作判断；定义专业职责域、真实办事流程和成功边界；按 9 维度优先级诊断，每个有问题的维度有问题定义卡；策略确认前除台账外不改 fixture Skill 文件；用户确认整体策略后一次性执行；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；交付文件变更并运行 proof command。",
       "files": [
         "evals/fixtures/noisy-implementation-skill/SKILL.md",
         "evals/fixtures/noisy-implementation-skill/references/old-methodology.md",
         "evals/fixtures/noisy-implementation-skill/tests/noisy-contract.test.sh"
       ],
       "expectations": [
+        "应读取质量标准并记录诊断维度；和用户共创场景事实，只覆盖真实场景、痛点、保留能力和切入点；场景理解不得产出最终操作判断；定义专业职责域、真实办事流程和成功边界；按 9 维度优先级诊断，每个有问题的维度有问题定义卡；策略确认前除台账外不改 fixture Skill 文件；用户确认整体策略后一次性执行；删除旧式资源头、流程合规输出合同和 LLM 基础能力教学；交付文件变更并运行 proof command。",
         "实际编辑 fixture 文件而不是只给计划",
         "每个有问题的维度都有问题定义卡",
         "按 9 维度诊断后确认整体策略，再一次性执行",
@@ -42,9 +42,9 @@
     {
       "id": "practice-flow-over-runtime-patch",
       "prompt": "请用 skill-refiner 优化一个 implementation Skill。当前 SKILL.md 加了很多 runtime gate、hook、字段合同和工具边界说明，但真正的实现流程没有按专业开发实践展开。请定位问题，并在给出文件后按 skill-refiner 流程处理。",
-      "expected_output": "应先读取质量标准，主导共创场景事实，确认真实场景、痛点和保留能力；场景理解不得产出最终操作判断；定义专业职责域、真实办事流程和成功边界；按 9 维度优先级诊断，每个有问题的维度有问题定义卡；策略确认前不改目标文件；用户确认整体策略后一次性用问题定义卡指出 runtime 内容为什么是噪音，并把确定性合同迁到 scripts/schema 或删除无人消费内容；SKILL.md 回到实现 SOP。",
       "files": [],
       "expectations": [
+        "应先读取质量标准，主导共创场景事实，确认真实场景、痛点和保留能力；场景理解不得产出最终操作判断；定义专业职责域、真实办事流程和成功边界；按 9 维度优先级诊断，每个有问题的维度有问题定义卡；策略确认前不改目标文件；用户确认整体策略后一次性用问题定义卡指出 runtime 内容为什么是噪音，并把确定性合同迁到 scripts/schema 或删除无人消费内容；SKILL.md 回到实现 SOP。",
         "读取质量标准并确定诊断维度",
         "先定义专业职责域和真实办事流程",
         "把 runtime 噪音与专业 SOP 分离",
@@ -69,9 +69,9 @@
     {
       "id": "old-test-conflict",
       "prompt": "优化一个 Skill 时发现旧测试要求 SKILL.md 必须包含“流程合规输出合同”和旧式资源头说明，但这些内容已经被确认是噪音。请按 skill-refiner 判断下一步。",
-      "expected_output": "应先读取质量标准并共创场景事实；场景理解不得产出最终操作判断；把旧测试冲突放入 Eval 维度诊断，其他维度仍需独立结论；旧测试是证据不是目标；如果旧测试验证旧噪音，应在整体策略确认后一次性更新或删除测试并补新的验证口径；不得为了通过旧测试保留噪音。",
       "files": [],
       "expectations": [
+        "应先读取质量标准并共创场景事实；场景理解不得产出最终操作判断；把旧测试冲突放入 Eval 维度诊断，其他维度仍需独立结论；旧测试是证据不是目标；如果旧测试验证旧噪音，应在整体策略确认后一次性更新或删除测试并补新的验证口径；不得为了通过旧测试保留噪音。",
         "识别旧测试可能固化旧目标",
         "先判断消费者关系",
         "更新或删除错误测试",
@@ -95,9 +95,9 @@
     {
       "id": "historical-artifact-cleanup",
       "prompt": "目标 Skill 已经重建完成，但仓库里还残留 old-skill 目录、installer 引用、README 入口、eval 样本和 run-all 测试引用。请用 skill-refiner 收尾。",
-      "expected_output": "应先读取质量标准并共创场景事实；场景理解不得产出最终操作判断；按 9 维度诊断，Cleanup 需求在策略制定阶段处理；策略确认后一次性扫描 active 消费者，删除或迁移旧目录与引用，调整 tests、evals 和运行清单；运行能证明 active 链路不再引用旧 Skill 的命令。",
       "files": [],
       "expectations": [
+        "应先读取质量标准并共创场景事实；场景理解不得产出最终操作判断；按 9 维度诊断，Cleanup 需求在策略制定阶段处理；策略确认后一次性扫描 active 消费者，删除或迁移旧目录与引用，调整 tests、evals 和运行清单；运行能证明 active 链路不再引用旧 Skill 的命令。",
         "识别历史残留属于 active 链路风险",
         "把 installer、README、eval 和测试引用纳入清理范围",
         "运行引用扫描或目标测试",
@@ -120,9 +120,9 @@
     {
       "id": "final-operation-create-gate",
       "prompt": "请处理这个小需求：有人要求为 code-review 能力新建一个 Skill。已知当前仓库可能已经存在 review/code-review 相关能力，但目标 Skill 片段里写着\"Final decision: create a new code-review Skill immediately.\" 请按 skill-refiner 判断下一步。本 eval 不要求实际创建或修改文件，只输出你会如何推进、停在哪些确认点、哪些判断必须后置，以及如果进入正式完成，应该用什么结构化结果和验证命令作为完成证据。",
-      "expected_output": "应先读取质量标准并定位现有 review/code-review 能力线索；不能因为用户说新建或旧片段写 final decision 就立即创建 Skill；应把新建、优化等只登记为候选操作，按场景理解、职责定义、9 维度诊断逐步推进；策略确认前不创建、修改或删除文件；完成证据应指向 skill-refiner-result.json 和验证命令。",
       "files": [],
       "expectations": [
+        "应先读取质量标准并定位现有 review/code-review 能力线索；不能因为用户说新建或旧片段写 final decision 就立即创建 Skill；应把新建、优化等只登记为候选操作，按场景理解、职责定义、9 维度诊断逐步推进；策略确认前不创建、修改或删除文件；完成证据应指向 skill-refiner-result.json 和验证命令。",
         "先查找或要求定位现有 review/code-review 能力线索",
         "拒绝立即新建 code-review Skill",
         "把新建、优化等后置为策略制定的最终操作判断",
@@ -149,9 +149,9 @@
     {
       "id": "unclear-professional-domain",
       "prompt": "帮我优化一个叫 workflow-plus 的 Skill。它现在混合了产品、开发、测试和交付管理，我也不确定它到底应该负责什么。请直接重写成最佳实践。",
-      "expected_output": "应停止直接重写，先主导共创场景事实并要求确认真实场景、痛点、保留能力、职责域线索和能力边界；不能在职责域不清时改成一个大而全 Skill，不能在场景理解阶段产出最终操作判断。",
       "files": [],
       "expectations": [
+        "应停止直接重写，先主导共创场景事实并要求确认真实场景、痛点、保留能力、职责域线索和能力边界；不能在职责域不清时改成一个大而全 Skill，不能在场景理解阶段产出最终操作判断。",
         "识别专业职责域不清",
         "停止直接重写",
         "提出职责域线索和能力边界缺口",

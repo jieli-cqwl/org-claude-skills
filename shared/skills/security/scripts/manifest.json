@@ -5,8 +5,19 @@
       "id": "completion-check",
       "path": "scripts/completion_check.sh",
       "owner": "security",
-      "allowed_args": ["hook payload via stdin only", "--help", "-h"],
-      "denied_args": ["--exec", "--shell", "--network", ";", "&&", "|"],
+      "allowed_args": [
+        "hook payload via stdin only",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
       "external_commands": [
         "bash",
         "cat",
@@ -24,8 +35,13 @@
       "timeout_seconds": 15,
       "output_limit_bytes": 65536,
       "output_root": ".",
-      "allowed_output_roots": ["."],
-      "allowed_input_roots": ["docs/reports/security", "shared/hooks"],
+      "allowed_output_roots": [
+        "."
+      ],
+      "allowed_input_roots": [
+        "docs/reports--security",
+        "shared/hooks"
+      ],
       "failure_state": "SECURITY_COMPLETION_GATE_FAILED",
       "failure_message": "security completion gate failed",
       "exit_code_meanings": {

@@ -51,7 +51,6 @@
     {
       "id": "multi-agent-selection",
       "prompt": "帮我调研多 agent 协作方案，比较 agent teams、单 agent、多轮手工编排三种方式；目标是给一个中型技能开发项目选默认方案。",
-      "expected_output": "确认 selection + decision，收敛 TOP 3，并输出推荐、次选、不推荐和行动项。",
       "expected_anchors": [
         "RA-05",
         "RA-08",
@@ -60,12 +59,15 @@
       "run_modes": [
         "with_skill",
         "without_skill"
-      ]
+      ],
+      "expectations": [
+        "确认 selection + decision，收敛 TOP 3，并输出推荐、次选、不推荐和行动项。"
+      ],
+      "files": []
     },
     {
       "id": "skill-doc-detail-analysis",
       "prompt": "请研究观点：技能文档越详细越好，步骤越多越稳。我要知道何时成立、何时失效。",
-      "expected_output": "确认 analysis + understanding，收敛 1-3 个核心论点，并写出支持、反方和失效边界。",
       "expected_anchors": [
         "RA-06",
         "RA-08"
@@ -73,12 +75,15 @@
       "run_modes": [
         "with_skill",
         "without_skill"
-      ]
+      ],
+      "expectations": [
+        "确认 analysis + understanding，收敛 1-3 个核心论点，并写出支持、反方和失效边界。"
+      ],
+      "files": []
     },
     {
       "id": "agent-browser-discovery-audit",
       "prompt": "帮我搞清楚 community 里提到的 agent-browser 到底指哪个对象，并给排除证明。",
-      "expected_output": "确认 discovery + audit，覆盖名称变体、对象类型、候选排除和剩余盲区。",
       "expected_anchors": [
         "RA-07",
         "RA-08"
@@ -86,48 +91,60 @@
       "run_modes": [
         "with_skill",
         "without_skill"
-      ]
+      ],
+      "expectations": [
+        "确认 discovery + audit，覆盖名称变体、对象类型、候选排除和剩余盲区。"
+      ],
+      "files": []
     },
     {
       "id": "quick-advisory-no-report",
       "prompt": "先判断这个 topic 值不值得开正式调研，别写报告也别建 docs。",
-      "expected_output": "输出轻量预判断、证据缺口和下一步；不得把 research-report.md 当成本轮完成条件。",
       "expected_anchors": [
         "RA-01"
       ],
       "run_modes": [
         "with_skill",
         "without_skill"
-      ]
+      ],
+      "expectations": [
+        "输出轻量预判断、证据缺口和下一步；不得把 research-report.md 当成本轮完成条件。"
+      ],
+      "files": []
     },
     {
       "id": "github-repo-radar-routing",
       "prompt": "帮我找几个适合采用的 GitHub repo，并给 discard/watch/trial/adopt 动作状态。",
-      "expected_output": "路由 github-repo-radar，不在 research 内硬做仓库雷达。",
       "expected_anchors": [
         "RA-03"
       ],
       "run_modes": [
         "with_skill",
         "without_skill"
-      ]
+      ],
+      "expectations": [
+        "路由 github-repo-radar，不在 research 内硬做仓库雷达。"
+      ],
+      "files": []
     },
     {
       "id": "deep-research-routing",
       "prompt": "我要对 MCP 做 Deep Research，按横纵分析法输出 Markdown 和 PDF。",
-      "expected_output": "路由 deep-research，不在 research 内接管 PDF 深度报告。",
       "expected_anchors": [
         "RA-04"
       ],
       "run_modes": [
         "with_skill",
         "without_skill"
-      ]
+      ],
+      "expectations": [
+        "路由 deep-research，不在 research 内接管 PDF 深度报告。"
+      ],
+      "files": []
     },
     {
       "id": "formal-report-completion-gate",
       "prompt": "这个调研要给团队复审留档，请输出正式 research-report.md，并给独立挑战记录和覆盖证明。",
-      "expected_output": "进入正式 research 流程；完成前必须有 report、profile 声明、独立挑战记录、覆盖证明和用户确认。",
       "expected_anchors": [
         "RA-02",
         "RA-08"
@@ -135,7 +152,11 @@
       "run_modes": [
         "with_skill",
         "without_skill"
-      ]
+      ],
+      "expectations": [
+        "进入正式 research 流程；完成前必须有 report、profile 声明、独立挑战记录、覆盖证明和用户确认。"
+      ],
+      "files": []
     }
   ]
 }

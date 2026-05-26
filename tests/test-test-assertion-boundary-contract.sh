@@ -19,6 +19,16 @@ assert_present() {
   grep -Eq "$pattern" "$file" || fail "missing pattern: $pattern"
 }
 
+assert_any_present() {
+  local file="$1"
+  shift
+  local pattern
+  for pattern in "$@"; do
+    grep -Eq "$pattern" "$file" && return 0
+  done
+  return 1
+}
+
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test-assertion-boundary.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
@@ -30,7 +40,9 @@ line_count="$(wc -l <"$AGENTS_ENTRY" | tr -d ' ')"
   || fail "AGENTS.md should stay concise: $line_count lines > $MAX_AGENTS_LINES"
 assert_present '测试断言边界' "$AGENTS_ENTRY"
 assert_present 'tools/community/check_test_signal_assertions\.py' "$AGENTS_ENTRY"
-assert_present 'tests/fixtures/test-assertion-boundary/low-signal-prose-assertions\.baseline' "$AGENTS_ENTRY"
+if grep -Eq 'low-signal-prose-assertions\.baseline' "$AGENTS_ENTRY"; then
+  fail "AGENTS.md must not document a low-signal assertion baseline"
+fi
 
 mkdir -p "$TMP_DIR/bad" "$TMP_DIR/good"
 
@@ -49,6 +61,9 @@ assert_present '确认检查点未闭合不得 handoff' "$ROOT/shared/skills/exa
 assert_section_present "$ROOT/shared/skills/example/SKILL.md" "## HARD-GATE" '用户确认检查点未闭合前，不得冻结基线' "example hard-gate prose"
 assert_present '^- 执行：`python3 shared/skills/example/scripts/render_projection\.py --feature-dir "docs/\{feature\}"`' "$ROOT/shared/skills/example/SKILL.md"
 assert_present 'Owner Self-Check|owner 自检|自检后.*送审' "$ROOT/shared/skills/example/SKILL.md"
+assert_any_present "$ROOT/shared/skills/example/SKILL.md" '输出沿着探索、选项、推荐、确认推进' '继续执行 Checklist 的下一步'
+grep -Eq '用户是决策方' "$ROOT/shared/skills/example/SKILL.md"
+rg -n '交付视角 review' "$ROOT/shared/skills/example/SKILL.md" >/dev/null
 BAD
 
 cat >"$TMP_DIR/good/test-good-contract.sh" <<'GOOD'

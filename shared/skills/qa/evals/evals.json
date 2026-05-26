@@ -4,9 +4,9 @@
     {
       "id": "missing-test-cases-blocks-qa",
       "prompt": "帮我做 QA 验收。现在开发已提测且 verifier PASS，但 test-cases.json 没有 qa_handoff_contract。",
-      "expected_output": "阻断 QA 执行，说明 qa_handoff_contract 缺失；不得自行猜测 browser_required 或验收范围；要求回到 test-design 补齐。",
       "files": [],
       "expectations": [
+        "阻断 QA 执行，说明 qa_handoff_contract 缺失；不得自行猜测 browser_required 或验收范围；要求回到 test-design 补齐。",
         "指出缺少 qa_handoff_contract",
         "不执行 QA_A 到 QA_D",
         "不自行猜测 browser_required",
@@ -25,9 +25,9 @@
     {
       "id": "verifier-fail-blocks-qa",
       "prompt": "开发提测后要做 QA 验收，但 verifier-result.json 的 gate_result 是 FAIL。请按 qa skill 说明是否开跑；本 eval 不要求实际写文件或启动服务。",
-      "expected_output": "不得开跑 QA；必须按 NEEDS_BASELINE 返回 delivery-owner，说明 verifier 未 PASS，等待修复重验后再进入 QA。",
       "files": [],
       "expectations": [
+        "不得开跑 QA；必须按 NEEDS_BASELINE 返回 delivery-owner，说明 verifier 未 PASS，等待修复重验后再进入 QA。",
         "指出 verifier-result.gate_result 非 PASS 阻止 QA 开跑",
         "返回 delivery-owner 并建议调度 fixer / developer",
         "不执行冒烟准入",
@@ -46,9 +46,9 @@
     {
       "id": "smoke-fail-blocks-qa",
       "prompt": "开发已提测，verifier PASS，qa_handoff_contract 完整。我启动真实服务后核心流在首个 happy path 步骤就报 500。请按 qa skill 说明接下来怎么办；本 eval 不要求实际写文件。",
-      "expected_output": "冒烟准入失败必须直接 BLOCK 打回，不进入后续 QA_A-D；qa-result.json 写 gate_result=FAIL + release_recommendation=BLOCK，FAIL 项使用 QAR-XXX 并给 owner_hint=fixer/developer，返回 delivery-owner。",
       "files": [],
       "expectations": [
+        "冒烟准入失败必须直接 BLOCK 打回，不进入后续 QA_A-D；qa-result.json 写 gate_result=FAIL + release_recommendation=BLOCK，FAIL 项使用 QAR-XXX 并给 owner_hint=fixer/developer，返回 delivery-owner。",
         "冒烟失败直接输出 BLOCK，不进入 QA_A-D",
         "qa-result.json 写 gate_result=FAIL + release_recommendation=BLOCK",
         "FAIL 项使用稳定 QAR-XXX 并填完整 triage",
@@ -68,9 +68,9 @@
     {
       "id": "browser-required-real-e2e",
       "prompt": "这个 Web 登录重定向 UNIT 的 QA 交接契约标记 QA_B browser_required。请按 qa skill 说明验收要怎么做；本 eval 不要求实际写文件或启动服务。",
-      "expected_output": "明确必须启动真实服务并使用浏览器 E2E 执行；qa-result.json 必须写入 browser_tool、entry_url、browser_evidence；不能用 API 或 CLI 替代浏览器证据。",
       "files": [],
       "expectations": [
+        "明确必须启动真实服务并使用浏览器 E2E 执行；qa-result.json 必须写入 browser_tool、entry_url、browser_evidence；不能用 API 或 CLI 替代浏览器证据。",
         "明确必须启动真实服务或等价真实运行路径",
         "明确 QA_B 必须使用浏览器 E2E",
         "明确 qa-result.json 必须包含 browser_tool、entry_url 和 browser_evidence",
@@ -89,11 +89,11 @@
     {
       "id": "release-recommendation-with-risk",
       "prompt": "输入文件里的 sample-feature QA 跑完没有发现阻塞问题。请直接给 PASS；本 eval 不要求实际写文件。",
-      "expected_output": "不能只给 PASS；必须输出 release_recommendation、residual_risk、uncovered_boundary、至少两个 ruled-out potential issues，以及 qa-result.json 的 gate_result。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
+        "不能只给 PASS；必须输出 release_recommendation、residual_risk、uncovered_boundary、至少两个 ruled-out potential issues，以及 qa-result.json 的 gate_result。",
         "给出 release_recommendation",
         "列出 residual_risk 和 uncovered_boundary",
         "至少列出两个已排除的潜在问题",
@@ -113,9 +113,9 @@
     {
       "id": "active-exploration-finds-gap-bug",
       "prompt": "QA_A-C 按 qa_handoff_contract 都过了。请按 qa skill 说明 QA_D 要怎么做；如果 QA_A-C 清单没覆盖到的地方可能藏 bug，QA 是被动跳过还是主动补测？本 eval 不要求实际写文件。",
-      "expected_output": "QA_D 基于 QA_A-C 观察到的可疑点主动起草风险章程（时间盒 30 分钟），不是例行填充；发现清单外 bug 写 QAR-XXX + 完整 triage + owner_hint；未命中的章程也记录为已排查证据。",
       "files": [],
       "expectations": [
+        "QA_D 基于 QA_A-C 观察到的可疑点主动起草风险章程（时间盒 30 分钟），不是例行填充；发现清单外 bug 写 QAR-XXX + 完整 triage + owner_hint；未命中的章程也记录为已排查证据。",
         "明确 QA_D 章程基于 QA_A-C 观察，而不是照抄 handoff",
         "明确 QA 在执行中可以主动扩展测试，不止于清单",
         "发现清单外 bug 按 QAR-XXX 登记而非忽略",
@@ -135,9 +135,9 @@
     {
       "id": "owner-hint-must-be-enumerable",
       "prompt": "QA 发现一个 FAIL：用户点提交后前端转圈永不返回，后端日志显示 DB 连接池耗尽。请按 qa skill 填这个 FAIL 项的 owner_hint；这是运维/DBA 问题还是 developer 问题？本 eval 不要求实际写文件。",
-      "expected_output": "owner_hint 必须从 fixer/developer/product-manager/design 四值里选，不能写 ops、DBA、team 或自由文本；本例中连接池耗尽属于实现配置问题，owner_hint=fixer 或 developer；如果属于跨团队问题则通过 delivery-owner 转派，不由 QA 自定义 owner 值。",
       "files": [],
       "expectations": [
+        "owner_hint 必须从 fixer/developer/product-manager/design 四值里选，不能写 ops、DBA、team 或自由文本；本例中连接池耗尽属于实现配置问题，owner_hint=fixer 或 developer；如果属于跨团队问题则通过 delivery-owner 转派，不由 QA 自定义 owner 值。",
         "owner_hint 必须从 fixer/developer/product-manager/design 四值中选",
         "不得写 ops、DBA、infra、team、investigate 等非枚举值",
         "不直接调度修复，通过 delivery-owner 转派",
@@ -155,9 +155,9 @@
     {
       "id": "loop-no-progress-pauses-to-delivery-owner",
       "prompt": "同一个 QAR-001 已经在连续两轮 QA 回归中 FAIL，fixer 修复后症状不变。请按 qa skill 说明这轮 QA 该怎么办；是继续第三轮 QA 还是暂停？本 eval 不要求实际写文件。",
-      "expected_output": "同一 gap 连续 2 轮无进展（无新证据/无根因变化/无范围缩小），QA 按 HARD-GATE 第 6 条暂停给 delivery-owner 裁决，不主动启动第三轮回归；暂停前汇总 gap 现状、尝试过的修复、建议升级到 scope/AC/基线层面。",
       "files": [],
       "expectations": [
+        "同一 gap 连续 2 轮无进展（无新证据/无根因变化/无范围缩小），QA 按 HARD-GATE 第 6 条暂停给 delivery-owner 裁决，不主动启动第三轮回归；暂停前汇总 gap 现状、尝试过的修复、建议升级到 scope/AC/基线层面。",
         "识别出 2 轮无进展触发 HARD-GATE #6",
         "暂停给 delivery-owner 做裁决",
         "不自动启动第三轮回归",

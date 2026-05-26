@@ -55,7 +55,12 @@ def judge_schema() -> dict:
                 },
             },
         },
-        "required": ["expectations", "notes", "optimization_findings", "anchor_results"],
+        "required": [
+            "expectations",
+            "notes",
+            "optimization_findings",
+            "anchor_results",
+        ],
         "additionalProperties": False,
     }
 
@@ -89,9 +94,6 @@ Eval id: {case["id"]}
 
 Prompt:
 {case["prompt"]}
-
-Expected output:
-{case["expected_output"]}
 
 Expectations:
 {expectations}
@@ -151,12 +153,16 @@ def summarize_anchor_results(anchor_results: list[dict]) -> dict:
     }
 
 
-def run_judge(skill_name: str, case: dict, response_text: str, run_dir: Path, args: object) -> dict:
+def run_judge(
+    skill_name: str, case: dict, response_text: str, run_dir: Path, args: object
+) -> dict:
     """Grade one response and write skill-creator-compatible grading.json."""
 
     timeout_sec = int(getattr(args, "timeout_sec"))
     model = getattr(args, "judge_model")
-    with tempfile.TemporaryDirectory(prefix="standard-chain-local-eval-judge-") as temp_dir:
+    with tempfile.TemporaryDirectory(
+        prefix="standard-chain-local-eval-judge-"
+    ) as temp_dir:
         temp_path = Path(temp_dir)
         schema_path = temp_path / "schema.json"
         schema_path.write_text(json.dumps(judge_schema()), encoding="utf-8")
@@ -178,9 +184,13 @@ def run_judge(skill_name: str, case: dict, response_text: str, run_dir: Path, ar
         if model:
             command[2:2] = ["--model", model]
         completed = run_command(command, temp_path, timeout_sec)
-    (run_dir / "grader.log").write_text((completed.stdout or "") + (completed.stderr or ""), encoding="utf-8")
+    (run_dir / "grader.log").write_text(
+        (completed.stdout or "") + (completed.stderr or ""), encoding="utf-8"
+    )
     if completed.returncode != 0:
-        raise RuntimeError(f"{skill_name}/{case['id']}: judge exited {completed.returncode}")
+        raise RuntimeError(
+            f"{skill_name}/{case['id']}: judge exited {completed.returncode}"
+        )
     judged = json.loads(completed.stdout)
     expectations = judged["expectations"]
     anchor_results = normalize_anchor_results(case, judged)
@@ -208,7 +218,9 @@ def run_judge(skill_name: str, case: dict, response_text: str, run_dir: Path, ar
     return grading
 
 
-def summarize_grading(skill_name: str, case: dict, run_dir: Path, grading: dict, run_mode: str) -> dict:
+def summarize_grading(
+    skill_name: str, case: dict, run_dir: Path, grading: dict, run_mode: str
+) -> dict:
     """Convert one grading payload into the top-level run summary row."""
 
     failed = [item["text"] for item in grading["expectations"] if not item["passed"]]
@@ -242,16 +254,19 @@ def write_eval_metadata(skill_name: str, case: dict, run_dir: Path) -> None:
             "skill_name": skill_name,
             "eval_id": case["id"],
             "prompt": case["prompt"],
-            "expected_output": case["expected_output"],
             "files": case.get("files", []),
             "assertions": case.get("expectations", []),
             "expected_anchors": case.get("expected_anchors", []),
-            "preference_anchor_definitions": case.get("preference_anchor_definitions", []),
+            "preference_anchor_definitions": case.get(
+                "preference_anchor_definitions", []
+            ),
         },
     )
 
 
-def record_infra_failure(skill_name: str, case: dict, run_dir: Path, error: Exception, args: object) -> dict:
+def record_infra_failure(
+    skill_name: str, case: dict, run_dir: Path, error: Exception, args: object
+) -> dict:
     """Persist an eval infrastructure failure without hiding it as a score."""
 
     message = str(error)
@@ -262,8 +277,19 @@ def record_infra_failure(skill_name: str, case: dict, run_dir: Path, error: Exce
         {
             "expectations": [],
             "anchor_results": [],
-            "preference_anchor_summary": {"passed": 0, "failed": 0, "total": 0, "fidelity": None},
-            "summary": {"passed": 0, "failed": 0, "total": 0, "pass_rate": None, "graded": False},
+            "preference_anchor_summary": {
+                "passed": 0,
+                "failed": 0,
+                "total": 0,
+                "fidelity": None,
+            },
+            "summary": {
+                "passed": 0,
+                "failed": 0,
+                "total": 0,
+                "pass_rate": None,
+                "graded": False,
+            },
             "infrastructure_failure": message,
             "optimization_findings": [INFRA_FAILURE_FINDING],
         },

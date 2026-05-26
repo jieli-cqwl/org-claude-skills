@@ -37,7 +37,7 @@ allowed-tools: Read, Write, WebSearch, WebFetch, AskUserQuestion
 - 必需：目标场景（`learn` 学源码、`adopt` 引入依赖、`contribute` 找贡献入口、`compare` 横评同类项目、`track` 建立长期雷达）和对象（领域关键词、技术栈、GitHub repo URL、候选仓库列表，或用户已有 star/list）。
 - 用户约束：语言、许可证要求、活跃度要求、合规限制、依赖政策、时间预算、输出位置。
 - 禁止猜测：生产采用批准、法律接受度、安全放行、私有仓库访问权限和用户真实风险偏好。缺这些信息时写成证据缺口、降级原因或下一步验证，不替用户批准。
-- 输出位置：默认对话输出；用户要求留档时写入 `docs/github-repo-radar/{topic}-report.md`。
+- 输出位置：默认对话输出；用户要求留档时写入 `docs/github-repo-radar--{topic}/report.md`。
 
 ## 流程
 

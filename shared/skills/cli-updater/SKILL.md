@@ -26,7 +26,7 @@ Goal: 在保留现有安装渠道和认证/配置边界的前提下，检查或�
 
 - 目标：用户指定的 `claude`、`codex`，未指定时覆盖两者。
 - 执行模式：默认 `update`；用户说“只检查、不要升级、不要执行更新”时为 `check-only`。
-- 输出位置：默认对话输出；用户要求留档时写入 `docs/ai-cli-updates/YYYY-MM-DD-report.md`。
+- 输出位置：默认对话输出；用户要求留档时写入 `docs/ai-cli-updates--YYYY-MM-DD/report.md`。
 - 权限边界：只更新 CLI 包本身；不修改项目代码、认证状态、全局配置或安装渠道。
 
 ## 状态词
@@ -86,7 +86,7 @@ Goal: 在保留现有安装渠道和认证/配置边界的前提下，检查或�
 
 ## 输出
 
-Artifact contract: path 默认对话输出，用户要求留档时写入 `docs/ai-cli-updates/YYYY-MM-DD-report.md`；format 为中文 Markdown 晨报；required field 包含状态、before/after 版本、执行命令、命令输出摘要、官方来源、blocked 原因和用户下一步；consumer 为用户当天升级决策；validation 通过 replay 命令输出、版本证据和官方链接核对。
+Artifact contract: path 默认对话输出，用户要求留档时写入 `docs/ai-cli-updates--YYYY-MM-DD/report.md`；format 为中文 Markdown 晨报；required field 包含状态、before/after 版本、执行命令、命令输出摘要、官方来源、blocked 原因和用户下一步；consumer 为用户当天升级决策；validation 通过 replay 命令输出、版本证据和官方链接核对。
 
 按 S7 已读取的 morning-report 模板输出中文晨报。必须包含：
 

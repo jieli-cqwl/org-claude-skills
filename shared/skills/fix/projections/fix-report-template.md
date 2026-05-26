@@ -4,7 +4,7 @@
 
 ## 输入分析
 [输入来源清单：report/log/stacktrace/failed command]
-[work_dir 解析结果：{work_dir} 或 docs/hotfix-YYYYMMDD-HHMM]
+[work_dir 解析结果：{work_dir} 或 docs/hotfix--YYYYMMDD-HHMM]
 [问题数量汇总]
 
 差异说明（N > 1 时 REQUIRED）:

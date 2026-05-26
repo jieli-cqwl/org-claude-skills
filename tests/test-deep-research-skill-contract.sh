@@ -25,6 +25,10 @@ grep -Fq 'research-report.md' "$skill_file" || fail "skill must declare markdown
 grep -Fq 'research-report.pdf' "$skill_file" || fail "skill must declare pdf artifact"
 grep -Fq 'sources.json' "$skill_file" || fail "skill must declare source artifact"
 grep -Fq 'full completion is blocked' "$skill_file" || fail "skill must block completion when required artifacts fail"
+grep -Fq 'docs/deep-research--{date}--{slug}/' "$skill_file" || fail "deep-research output directory must use managed doc naming"
+if grep -Fq 'docs/deep-research/' "$skill_file"; then
+  fail "deep-research output directory must not use legacy nested naming"
+fi
 
 for ref in methodology.md source-policy.md arxiv-policy.md report-template.md; do
   test -f "$skill_dir/references/$ref" || fail "missing reference: $ref"

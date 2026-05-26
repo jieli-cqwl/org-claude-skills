@@ -83,12 +83,10 @@ for case_id, requirement in required_cases.items():
     missing = sorted(requirement["anchors"] - case_anchors)
     if missing:
         raise SystemExit(f"{path}: eval {case_id} missing anchors {missing}")
-    if not case.get("expected_output"):
-        raise SystemExit(f"{path}: eval {case_id} must define expected_output")
     expectations = case.get("expectations", [])
     if not isinstance(expectations, list) or not expectations:
         raise SystemExit(f"{path}: eval {case_id} must define expectations")
-    behavior_text = "\n".join([case.get("expected_output", ""), *expectations])
+    behavior_text = "\n".join(expectations)
     missing_signals = [signal for signal in requirement["signals"] if signal not in behavior_text]
     if missing_signals:
         raise SystemExit(f"{path}: eval {case_id} missing behavior signals {missing_signals}")

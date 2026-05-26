@@ -5,9 +5,9 @@
     {
       "id": "missing-tech-lead-plan-blocks",
       "prompt": "用户说：这个功能差不多定了，你直接组织开发交付吧。但当前没有 tech-lead tasks、task scope、AC 或依赖信息。请按 delivery-owner 处理。",
-      "expected_output": "应输出 NEEDS_BASELINE 或 NEEDS_INPUT，明确缺少 tech-lead 冻结计划、task scope、AC、依赖和证据要求；不得创建 task、不得派 developer agent、不得猜验收口径，并暂停给用户补齐基线。",
       "files": [],
       "expectations": [
+        "应输出 NEEDS_BASELINE 或 NEEDS_INPUT，明确缺少 tech-lead 冻结计划、task scope、AC、依赖和证据要求；不得创建 task、不得派 developer agent、不得猜验收口径，并暂停给用户补齐基线。",
         "识别缺少 tech-lead 冻结计划",
         "不创建 task 或补 AC",
         "不派发 developer agent",
@@ -25,9 +25,9 @@
     {
       "id": "preflight-missing-qa-handoff-blocks",
       "prompt": "tech-lead tasks 已冻结，developer agent executor 也可用，但当前 test-cases 没有 qa_handoff_contract。用户让你先派 developer agent 开始做。请按 delivery-owner 处理。",
-      "expected_output": "应在前置校验或接手阶段阻断，说明缺少 QA handoff 会导致后续验收不可判定；不得因为 developer agent 可用就派发实现，应暂停给用户补齐 test-design/QA handoff 输入。",
       "files": [],
       "expectations": [
+        "应在前置校验或接手阶段阻断，说明缺少 QA handoff 会导致后续验收不可判定；不得因为 developer agent 可用就派发实现，应暂停给用户补齐 test-design/QA handoff 输入。",
         "识别 QA handoff 缺失",
         "不派发 developer agent",
         "说明后续 QA 无法验收",
@@ -45,9 +45,9 @@
     {
       "id": "delivery-review-finds-dependency-risk",
       "prompt": "tech-lead plan 已冻结，包含 T1/T2/T3，其中 T2 depends_on T1，T3 无依赖但会改同一个配置文件。请按 delivery-owner 在派发前 review 执行策略。",
-      "expected_output": "应先做交付视角 review，识别 T2 必须在 T1 后串行、T3 存在共享配置文件风险；给出 serial/parallel/mixed 策略、风险和下一步派发顺序，而不是直接全部并行派 developer agent。",
       "files": [],
       "expectations": [
+        "应先做交付视角 review，识别 T2 必须在 T1 后串行、T3 存在共享配置文件风险；给出 serial/parallel/mixed 策略、风险和下一步派发顺序，而不是直接全部并行派 developer agent。",
         "先 review tasks",
         "识别 T2 依赖 T1",
         "识别共享配置文件风险",
@@ -65,9 +65,9 @@
     {
       "id": "dispatch-with-task-packet",
       "prompt": "tech-lead plan 已冻结，T2 的 scope 和 AC 清楚。当前缺口是 AC-2 未实现，已有 developer agent executor 可用。请按 delivery-owner 派发下一步。",
-      "expected_output": "应先判断缺口属于 developer agent responsibility，再输出包含 task_ref、role、goal、scope、input_refs、expected_evidence、stop_condition、forbidden_actions 的 task packet；expected_evidence 应包含 developer preflight、RED/GREEN/REFACTOR 和 developer-report.json；不得自己实现 AC-2。",
       "files": [],
       "expectations": [
+        "应先判断缺口属于 developer agent responsibility，再输出包含 task_ref、role、goal、scope、input_refs、expected_evidence、stop_condition、forbidden_actions 的 task packet；expected_evidence 应包含 developer preflight、RED/GREEN/REFACTOR 和 developer-report.json；不得自己实现 AC-2。",
         "先判断缺口责任域",
         "路由给 developer agent",
         "输出完整 task packet",
@@ -87,9 +87,9 @@
     {
       "id": "role-agent-available-delegation",
       "prompt": "tech-lead plan 已冻结，T2 scope/AC 清楚。当前有 developer agent 可用，同时当前模型也能使用 developer skill。缺口是 AC-2 未实现。请按 delivery-owner 处理下一步。",
-      "expected_output": "应优先把 AC-2 派给 developer agent，输出 bounded task packet，并说明只接收结论和证据引用；不得在当前上下文切换成 developer 开始实现或读取大量代码细节。",
       "files": [],
       "expectations": [
+        "应优先把 AC-2 派给 developer agent，输出 bounded task packet，并说明只接收结论和证据引用；不得在当前上下文切换成 developer 开始实现或读取大量代码细节。",
         "识别 developer agent 可用",
         "优先调度 developer agent",
         "输出 bounded task packet",
@@ -107,9 +107,9 @@
     {
       "id": "developer-verifier-fail-loop-reruns",
       "prompt": "developer agent 已返回 T2 的 developer-report.json，声称 AC-2 完成；verifier agent 随后返回 FAIL，指出 AC-2 的 scope 证据缺失且 verify-result.json 里列出 missing gap。请按 delivery-owner 推进下一步。",
-      "expected_output": "应停在开发/验证循环，不进入 QA；把 verifier agent 的明确 missing gap 回派 developer agent：可调用 executor 时调度并记录 dispatched_to，受限 eval 环境无法实际调度时标记 dispatch_ready。必须重新生成并内联收窄后的 developer packet，不能只给文件链接或校验结果。packet 必须包含 task_ref、role=developer、goal 中的 missing gap、scope、input_refs 指向 verify-result/missing gap、expected_evidence 要求 fresh developer-report.json 和对应证据、stop_condition 和 forbidden_actions；developer agent 返回后必须再次调度 verifier agent 复验。状态卡必须更新 current_gap、progress_signal、consecutive_no_progress_count、next_owner、evidence_refs 和 resume_condition。达到 10 轮，或同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化时，暂停给用户决策。",
       "files": [],
       "expectations": [
+        "应停在开发/验证循环，不进入 QA；把 verifier agent 的明确 missing gap 回派 developer agent：可调用 executor 时调度并记录 dispatched_to，受限 eval 环境无法实际调度时标记 dispatch_ready。必须重新生成并内联收窄后的 developer packet，不能只给文件链接或校验结果。packet 必须包含 task_ref、role=developer、goal 中的 missing gap、scope、input_refs 指向 verify-result/missing gap、expected_evidence 要求 fresh developer-report.json 和对应证据、stop_condition 和 forbidden_actions；developer agent 返回后必须再次调度 verifier agent 复验。状态卡必须更新 current_gap、progress_signal、consecutive_no_progress_count、next_owner、evidence_refs 和 resume_condition。达到 10 轮，或同一 gap 连续 2 轮没有关闭、缩小、新证据、新阻塞、新风险或 owner 变化时，暂停给用户决策。",
         "识别 verifier agent FAIL",
         "不进入 QA",
         "把明确 missing gap 回派 developer agent，并记录 dispatched_to 或 dispatch_ready",
@@ -137,9 +137,9 @@
     {
       "id": "stale-evidence-after-fix",
       "prompt": "T3 之前 verifier agent 和 qa agent 都通过了，但 fixer agent 刚改了 T3 相关代码。用户问能不能直接调度 /commit。",
-      "expected_output": "应判定旧 verifier agent / qa agent 证据 freshness 可能失效，不能直接 /commit；应调度受影响 verifier agent / qa agent 补 fresh evidence，并记录证据失效原因。",
       "files": [],
       "expectations": [
+        "应判定旧 verifier agent / qa agent 证据 freshness 可能失效，不能直接 /commit；应调度受影响 verifier agent / qa agent 补 fresh evidence，并记录证据失效原因。",
         "识别 fixer agent 后旧证据可能失效",
         "不直接 /commit",
         "路由回正确角色补 fresh evidence",
@@ -157,9 +157,9 @@
     {
       "id": "qa-fixer-fail-loop-reruns",
       "prompt": "所有 task 都有 developer-report 和 verifier agent PASS，qa agent 执行用户路径后返回 FAIL，给出可复现缺陷和 qa-result.json。fixer agent 随后完成最小修复并返回 fix-result.json。请按 delivery-owner 推进下一步。",
-      "expected_output": "应停在 QA/修复循环；QA FAIL 是可复现缺陷时调度 fixer agent，并输出 fixer packet。packet 必须包含 task_ref、role=fixer、goal 中的 failing qa-result、scope、input_refs 指向 qa-result/verify-result、expected_evidence 要求 root cause、minimal fix、freshness 判断和 fix-result.json、stop_condition 和 forbidden_actions。fixer agent 修改后不能直接 /commit，必须重跑受影响 verifier agent 和 qa agent；状态卡必须更新 current_gap、progress_signal、consecutive_no_progress_count、stale_evidence_refs、next_owner、evidence_refs 和 resume_condition。只有 verifier agent / qa agent fresh PASS 且用户授权明确后才调度 /commit。同一 gap 连续 2 轮无进展时暂停给用户决策。",
       "files": [],
       "expectations": [
+        "应停在 QA/修复循环；QA FAIL 是可复现缺陷时调度 fixer agent，并输出 fixer packet。packet 必须包含 task_ref、role=fixer、goal 中的 failing qa-result、scope、input_refs 指向 qa-result/verify-result、expected_evidence 要求 root cause、minimal fix、freshness 判断和 fix-result.json、stop_condition 和 forbidden_actions。fixer agent 修改后不能直接 /commit，必须重跑受影响 verifier agent 和 qa agent；状态卡必须更新 current_gap、progress_signal、consecutive_no_progress_count、stale_evidence_refs、next_owner、evidence_refs 和 resume_condition。只有 verifier agent / qa agent fresh PASS 且用户授权明确后才调度 /commit。同一 gap 连续 2 轮无进展时暂停给用户决策。",
         "识别 qa agent FAIL 是可复现缺陷",
         "调度 fixer agent 做根因和最小修复",
         "输出 fixer packet",
@@ -189,9 +189,9 @@
     {
       "id": "scope-ac-conflict-escalates",
       "prompt": "developer agent 说必须修改 T4 scope 外的设计和接口才可能实现；qa agent 也说当前 AC 无法判断通过标准。请按 delivery-owner 决定下一步。",
-      "expected_output": "应判定这是 scope/AC/技术基线和风险取舍问题，暂停给用户决策并给出用户决策包；不得让 developer agent 自行扩大 scope，也不得要求 qa agent 猜验收标准。",
       "files": [],
       "expectations": [
+        "应判定这是 scope/AC/技术基线和风险取舍问题，暂停给用户决策并给出用户决策包；不得让 developer agent 自行扩大 scope，也不得要求 qa agent 猜验收标准。",
         "识别 scope/AC/技术基线冲突",
         "暂停给用户决策",
         "输出用户决策包",
@@ -210,9 +210,9 @@
     {
       "id": "no-increment-follow-up-reroutes",
       "prompt": "同一个 developer agent executor 已经连续两轮只回复“还在处理”，没有新证据、新修复、新阻塞或新风险。请按 delivery-owner 跟进。",
-      "expected_output": "应停止无增量催办，说明当前 gap 没有关闭或变窄；不能继续发送“继续处理”。状态卡必须记录 current_gap、progress_signal=no_progress、consecutive_no_progress_count=2、evidence_refs、next_owner 或 decision_boundary。若暂停给用户决策，必须输出 user-decision-package，包含 decision_needed、required_user_answer、resume_condition 和 next_action_after_decision。",
       "files": [],
       "expectations": [
+        "应停止无增量催办，说明当前 gap 没有关闭或变窄；不能继续发送“继续处理”。状态卡必须记录 current_gap、progress_signal=no_progress、consecutive_no_progress_count=2、evidence_refs、next_owner 或 decision_boundary。若暂停给用户决策，必须输出 user-decision-package，包含 decision_needed、required_user_answer、resume_condition 和 next_action_after_decision。",
         "识别无增量循环",
         "不继续催同一个 owner",
         "选择重派、请求资源、换 owner 或暂停",
@@ -235,9 +235,9 @@
     {
       "id": "qa-pass-dispatches-commit",
       "prompt": "所有 tech-lead task 都有 developer-report 和 verify PASS，QA 刚输出 PASS，当前没有未决风险。用户授权可以提交。请按 delivery-owner 收尾。",
-      "expected_output": "应确认 developer agent / verifier agent / qa agent 闭环后调度 /commit；受限环境无法实际调用时输出 /commit handoff 并记录 dispatch_ready。handoff 必须提供提交输入、变更范围、验证证据、用户授权和期望 commit 结果；交付负责人不得直接提交，也不得把 qa agent PASS 冒充最终业务签收。",
       "files": [],
       "expectations": [
+        "应确认 developer agent / verifier agent / qa agent 闭环后调度 /commit；受限环境无法实际调用时输出 /commit handoff 并记录 dispatch_ready。handoff 必须提供提交输入、变更范围、验证证据、用户授权和期望 commit 结果；交付负责人不得直接提交，也不得把 qa agent PASS 冒充最终业务签收。",
         "确认 developer agent / verifier agent / qa agent 证据闭合",
         "检查用户提交授权",
         "调度 /commit 或记录 dispatch_ready",
@@ -256,9 +256,9 @@
     {
       "id": "qa-pass-without-commit-authorization-pauses",
       "prompt": "所有 task 都有 developer-report 和 verifier agent PASS，qa agent 也 PASS，当前没有未决风险，但用户没有明确授权提交。请按 delivery-owner 收尾。",
-      "expected_output": "应确认交付证据已闭合，但不能调度 /commit；应暂停给用户决策，说明缺少提交授权、影响、可选项和推荐路径。",
       "files": [],
       "expectations": [
+        "应确认交付证据已闭合，但不能调度 /commit；应暂停给用户决策，说明缺少提交授权、影响、可选项和推荐路径。",
         "确认 developer agent / verifier agent / qa agent 证据闭合",
         "识别缺少提交授权",
         "不调度 /commit",
@@ -277,9 +277,9 @@
     {
       "id": "low-context-verify-gap-routing",
       "prompt": "现场状态：T2 的开发报告说 AC-2 已完成；最新 verify-result 是 FAIL，原因是 AC-2 只有结论，没有 scope evidence。我现在要推进交付，下一步怎么安排？",
-      "expected_output": "应识别这是开发/验证循环中的 verifier FAIL，不进入 QA 或提交；把缺失 scope evidence 的 gap 收窄后回派 developer agent，内联 developer Task Packet，input_refs 指向 developer-report 和 verify-result，expected_evidence 要求 fresh developer-report 和 scope evidence；状态卡记录 current_gap、progress_signal、consecutive_no_progress_count、next_owner 和 resume_condition；developer agent 返回后必须再调度 verifier agent 复验，并说明 10 轮或同一 gap 连续 2 轮无进展时暂停给用户决策。",
       "files": [],
       "expectations": [
+        "应识别这是开发/验证循环中的 verifier FAIL，不进入 QA 或提交；把缺失 scope evidence 的 gap 收窄后回派 developer agent，内联 developer Task Packet，input_refs 指向 developer-report 和 verify-result，expected_evidence 要求 fresh developer-report 和 scope evidence；状态卡记录 current_gap、progress_signal、consecutive_no_progress_count、next_owner 和 resume_condition；developer agent 返回后必须再调度 verifier agent 复验，并说明 10 轮或同一 gap 连续 2 轮无进展时暂停给用户决策。",
         "识别 verifier FAIL 属于开发/验证循环",
         "不进入 QA 或提交",
         "回派 developer agent",
@@ -306,9 +306,9 @@
     {
       "id": "low-context-fix-invalidates-evidence",
       "prompt": "现场状态：T3 之前 verify PASS，QA 也 PASS；后来线上路径复现了一个缺陷，fixer 已经做了最小修复并产出 fix-result。现在能不能进入提交？",
-      "expected_output": "应识别 fixer 后旧 verifier/QA 证据可能失效，不能直接提交；停在 QA/修复循环，标记 stale_evidence_refs，调度受影响 verifier agent 复验，再调度 qa agent 重跑受影响用户路径；只有 fresh verifier PASS、fresh QA PASS 且用户授权明确后才调度 /commit。",
       "files": [],
       "expectations": [
+        "应识别 fixer 后旧 verifier/QA 证据可能失效，不能直接提交；停在 QA/修复循环，标记 stale_evidence_refs，调度受影响 verifier agent 复验，再调度 qa agent 重跑受影响用户路径；只有 fresh verifier PASS、fresh QA PASS 且用户授权明确后才调度 /commit。",
         "识别 fixer 后旧证据可能失效",
         "不直接提交或 /commit",
         "停在 QA/修复循环",
@@ -331,9 +331,9 @@
     {
       "id": "low-context-stalled-followup-pause",
       "prompt": "现场状态：同一个交付缺口已经跟进两轮；每轮都只是回复“还在处理”，没有新报告、没有新证据、没有新阻塞，也没有换 owner。继续催吗？",
-      "expected_output": "应识别同一 gap 连续 2 轮无进展，停止继续催同一个 owner；状态卡记录 PAUSED_FOR_USER_DECISION、current_gap、progress_signal=no_progress、consecutive_no_progress_count=2、evidence_refs、next_owner=user 和 resume_condition；输出用户决策包，包含 decision_needed、facts、impact、options、recommendation、required_user_answer 和 next_action_after_decision。",
       "files": [],
       "expectations": [
+        "应识别同一 gap 连续 2 轮无进展，停止继续催同一个 owner；状态卡记录 PAUSED_FOR_USER_DECISION、current_gap、progress_signal=no_progress、consecutive_no_progress_count=2、evidence_refs、next_owner=user 和 resume_condition；输出用户决策包，包含 decision_needed、facts、impact、options、recommendation、required_user_answer 和 next_action_after_decision。",
         "识别连续两轮无进展",
         "不继续催同一个 owner",
         "状态卡记录 PAUSED_FOR_USER_DECISION",
@@ -357,9 +357,9 @@
     {
       "id": "complex-dependency-strategy",
       "prompt": "tech-lead plan 已冻结，包含 T1/T2/T3/T4/T5。T2 depends_on T1。T3 和 T4 没有 depends_on，但 T3 改 src/auth/middleware.ts，T4 改 src/auth/session.ts，两者都读写 src/auth/types.ts。T5 无依赖，改 src/utils/logger.ts。T1 是技术验证型任务（POC 验证新 OAuth provider），不确定性高。请按 delivery-owner 审视并制定执行策略。",
-      "expected_output": "应识别三层依赖：T2→T1 显式依赖；T3/T4 隐式文件依赖（共享 src/auth/types.ts）；T5 无依赖。关键路径是 T1→T2（最长串行链路），T1 高不确定性 + 关键路径 → 最先执行。T3/T4 需要串行或隔离（共享 types.ts 会冲突）。T5 可与任何任务并行。策略应为 mixed：先 T1（风险前置 + 关键路径根节点），T1 通过后释放 T2，同时 T3/T4 串行或隔离执行，T5 随时可并行。不能默认全并行。",
       "files": [],
       "expectations": [
+        "应识别三层依赖：T2→T1 显式依赖；T3/T4 隐式文件依赖（共享 src/auth/types.ts）；T5 无依赖。关键路径是 T1→T2（最长串行链路），T1 高不确定性 + 关键路径 → 最先执行。T3/T4 需要串行或隔离（共享 types.ts 会冲突）。T5 可与任何任务并行。策略应为 mixed：先 T1（风险前置 + 关键路径根节点），T1 通过后释放 T2，同时 T3/T4 串行或隔离执行，T5 随时可并行。不能默认全并行。",
         "识别 T2→T1 显式依赖",
         "识别 T3/T4 的隐式文件依赖（共享 types.ts）",
         "识别关键路径是 T1→T2",
@@ -382,9 +382,9 @@
     {
       "id": "loop-root-cause-diagnosis",
       "prompt": "现场状态：T2 的 AC-2 要求实现 OAuth 登录。developer agent 已经跑了两轮：第一轮说 OAuth 流程已实现，verifier FAIL 说缺少 token refresh 逻辑；第二轮 developer 说已添加 token refresh，verifier 再次 FAIL 说 token refresh 逻辑存在但不符合 AC-2 的 scope 要求——AC 要求使用 httpOnly cookie 存储 token，但实现用了 localStorage。当前是开发/验证循环第 2 轮。请按 delivery-owner 诊断并推进。",
-      "expected_output": "应诊断根因：不是 developer 能力问题（两轮都有进展），而是信息缺口或 scope 模糊——developer 对 AC-2 的 token 存储方式理解与 verifier 不一致。如果 AC-2 明确写了 httpOnly cookie，根因是信息缺口，应收窄 packet 把具体存储要求写入 input_refs 和 goal。如果 AC-2 对存储方式描述模糊，根因是 scope 模糊，应暂停给用户澄清。无论哪种，都不应该不加诊断地直接再催 developer 做第三轮。回派 packet 应收窄：goal 写明 token 存储方式要求，input_refs 指向 verify-result 的具体失败点。",
       "files": [],
       "expectations": [
+        "应诊断根因：不是 developer 能力问题（两轮都有进展），而是信息缺口或 scope 模糊——developer 对 AC-2 的 token 存储方式理解与 verifier 不一致。如果 AC-2 明确写了 httpOnly cookie，根因是信息缺口，应收窄 packet 把具体存储要求写入 input_refs 和 goal。如果 AC-2 对存储方式描述模糊，根因是 scope 模糊，应暂停给用户澄清。无论哪种，都不应该不加诊断地直接再催 developer 做第三轮。回派 packet 应收窄：goal 写明 token 存储方式要求，input_refs 指向 verify-result 的具体失败点。",
         "诊断根因而不是直接重派",
         "识别根因类型是信息缺口或 scope 模糊，不是 developer 能力问题",
         "识别 developer 和 verifier 对 token 存储方式理解不一致",
@@ -406,9 +406,9 @@
     {
       "id": "redispatch-packet-narrowing",
       "prompt": "现场状态：上一轮你给 developer agent 的 packet 是 task_ref=T3, role=developer, goal=实现 AC-3 用户个人资料编辑功能, forbidden_scope=src/config/, input_refs=plan.md 和 tasks.md, expected_evidence=developer-report.json 和测试通过, stop_condition=AC-3 green, forbidden_actions=禁止修改 forbidden_scope 中的文件。developer 返回后，verifier FAIL 指出：AC-3 的头像上传功能未实现（developer-report 只覆盖了文本字段编辑），verify-result.json 列出 missing_gap: avatar-upload-not-implemented。请按 delivery-owner 回派。",
-      "expected_output": "回派 packet 必须比上一轮更收窄：goal 从'实现 AC-3 用户个人资料编辑功能'收窄到'实现 AC-3 的头像上传功能'或对应 missing gap 描述；input_refs 增加 verify-result.json 和 developer-report.json（上一轮的文本字段已通过的证据）；expected_evidence 增加头像上传相关的测试证据或明确新增证据要求；stop_condition 更精确。不能复制上一轮 packet 原样重派。状态卡更新 current_gap 和 progress_signal。",
       "files": [],
       "expectations": [
+        "回派 packet 必须比上一轮更收窄：goal 从'实现 AC-3 用户个人资料编辑功能'收窄到'实现 AC-3 的头像上传功能'或对应 missing gap 描述；input_refs 增加 verify-result.json 和 developer-report.json（上一轮的文本字段已通过的证据）；expected_evidence 增加头像上传相关的测试证据或明确新增证据要求；stop_condition 更精确。不能复制上一轮 packet 原样重派。状态卡更新 current_gap 和 progress_signal。",
         "回派 packet 的 goal 比上一轮更具体",
         "goal 聚焦到头像上传功能而非整个 AC-3",
         "input_refs 增加 verify-result.json",

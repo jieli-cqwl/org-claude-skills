@@ -171,11 +171,10 @@ case = cases.get("high-risk-review-on-demand")
 if not case:
     raise SystemExit(f"{path}: missing eval high-risk-review-on-demand")
 anchors = set(case.get("expected_anchors", []))
-if "PA-8" not in anchors:
-    raise SystemExit(f"{path}: high-risk-review-on-demand must anchor PA-8")
+if "high-risk-review" not in anchors:
+    raise SystemExit(f"{path}: high-risk-review-on-demand must anchor high-risk-review")
 text = "\n".join(
-    [case.get("expected_output", "")]
-    + [item for item in case.get("expectations", []) if isinstance(item, str)]
+    [item for item in case.get("expectations", []) if isinstance(item, str)]
 )
 required_signals = ["High-Risk Signals", "不追加高风险检查"]
 missing = [signal for signal in required_signals if signal not in text]

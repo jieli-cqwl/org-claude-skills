@@ -1,7 +1,7 @@
 #!/bin/bash
 # 重构计划完整性自动检查脚本
 # 触发时机: refactor skill-local Stop
-# 功能: 检查 docs/重构-{模块名}/plan.md 的诊断结果与三原则校验
+# 功能: 检查 docs/refactor--{模块名}/plan.md 的诊断结果与三原则校验
 
 set -euo pipefail
 
@@ -20,8 +20,8 @@ hook_init
 
 # --- 重构目录定位 ---
 
-TRANSCRIPT_PATTERN='docs/重构-[^/"[:space:]*{}]+/plan\.md'
-resolve_feature_dir "docs/重构-*/plan.md" "$TRANSCRIPT_PATTERN" "plan.md" 'docs/重构-*'
+TRANSCRIPT_PATTERN='docs/refactor--[^/"[:space:]*{}]+/plan\.md'
+resolve_feature_dir "docs/refactor--*/plan.md" "$TRANSCRIPT_PATTERN" "plan.md" 'docs/refactor--*'
 if [ -z "$FEATURE_DIR" ]; then
     printf '{}\n'
     exit 0
@@ -30,7 +30,7 @@ output_failures "重构计划完整性检查未通过" ""
 
 PLAN_FILE="$FEATURE_DIR/plan.md"
 
-# RF1: plan.md 存在于 docs/重构-{模块名}/
+# RF1: plan.md 存在于 docs/refactor--{模块名}/
 if [ ! -f "$PLAN_FILE" ]; then
     add_failure "RF1: plan.md 不存在：$PLAN_FILE"
 elif [ ! -s "$PLAN_FILE" ]; then

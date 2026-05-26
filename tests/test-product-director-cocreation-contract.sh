@@ -120,7 +120,7 @@ case = evals.get("missing-finalization-deps-still-co-creates")
 if not case:
     raise SystemExit("missing eval: missing-finalization-deps-still-co-creates")
 text = "\n".join(
-    [case.get("prompt", ""), case.get("expected_output", "")]
+    [case.get("prompt", "")]
     + case.get("expectations", [])
     + case.get("expected_anchors", [])
 )

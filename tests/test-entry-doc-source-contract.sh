@@ -37,8 +37,8 @@ grep -Eq 'community/superpowers/skills' "$AGENTS_ENTRY" \
   || fail "AGENTS.md should protect the Superpowers mirror boundary"
 grep -Eq 'tools/community/check_test_signal_assertions\.py' "$AGENTS_ENTRY" \
   || fail "AGENTS.md should point at the low-signal assertion checker"
-grep -Eq 'tests/fixtures/test-assertion-boundary/low-signal-prose-assertions\.baseline' "$AGENTS_ENTRY" \
-  || fail "AGENTS.md should point at the low-signal assertion baseline"
+! grep -Eq 'tests/fixtures/test-assertion-boundary/low-signal-prose-assertions\.baseline' "$AGENTS_ENTRY" \
+  || fail "AGENTS.md should not document a low-signal assertion baseline"
 ! grep -Eq '只约束开发本仓' "$AGENTS_ENTRY" \
   || fail "AGENTS.md should not contain scope-only filler"
 ! grep -Eq '只约束开发本仓' "$README" \
