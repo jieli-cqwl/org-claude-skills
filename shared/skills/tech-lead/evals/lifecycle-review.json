@@ -7,7 +7,7 @@
   "evidence_refs": [
     "shared/skills/tech-lead/SKILL.md",
     "shared/skills/tech-lead/evals/evals.json",
-    "shared/skills/skill-refiner/references/quality-dimensions.md"
+    "shared/skills/skill-quality-audit/references/audit-dimensions.md"
   ],
   "next_action": "Run refreshed implementation-planning evals and runtime contract tests before promoting the rewrite.",
   "encoded_preference": {

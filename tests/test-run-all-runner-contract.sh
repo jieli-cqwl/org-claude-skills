@@ -129,12 +129,26 @@ release_steps="$(plan_count steps "$release_plan")"
 [ "$release_steps" -ge "$full_steps" ] || fail "release plan should include at least the full plan"
 [ "$quick_steps" -le 35 ] || fail "quick plan should stay below 35 canary steps"
 
-assert_contains "bash $ROOT/tests/test-install-core.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-core.sh --group basic" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-core.sh --group runtime-noise" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-core.sh --group runtime-idempotent" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-core.sh --group runtime-product-split" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-core.sh --group claude-agents" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-core.sh --group codex-agent-model-config" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-core.sh --group codex-agent-config-file" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-core.sh --group codex-agent-file-contracts" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-core.sh --group codex-local-edit" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-install-runtime-quick-canary.sh" "$quick_plan" "quick plan"
 assert_not_contains "test-install-runtime-smoke.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-install-runtime-quick-canary.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-install-runtime-smoke.sh" "$full_plan" "full plan"
-assert_contains "bash $ROOT/tests/test-install-safety.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-safety.sh --group backup-and-conflict" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-safety.sh --group external-codex" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-safety.sh --group external-claude" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-safety.sh --group rollback" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-safety.sh --group codex-hooks" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-safety.sh --group state-cleanup" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-install-safety.sh --group preserve-backup" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-install-runtime.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-install-migration.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-standard-chain-readiness-gate.sh" "$full_plan" "full plan"
@@ -155,9 +169,14 @@ assert_not_contains "test-install-runtime-audit.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tools/validate-contracts.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-entry-doc-source-contract.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-test-assertion-boundary-contract.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-standard-chain-validator-stack.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-standard-chain-field-consumption-contract.sh" "$quick_plan" "quick plan"
+assert_not_contains "test-standard-chain-validator-stack.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-standard-chain-validator-stack.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-standard-chain-validator-stack.sh" "$release_plan" "release plan"
 assert_contains "bash $ROOT/tests/test-context-contract-validator.sh" "$quick_plan" "quick plan"
-assert_contains "bash $ROOT/tests/test-skill-output-and-gate-contract.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-skill-output-and-gate-contract.sh --scope static" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-skill-output-and-gate-contract.sh --scope runtime" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-skill-output-and-gate-contract.sh --scope runtime" "$release_plan" "release plan"
 assert_contains "bash $ROOT/tests/test-skill-runtime-surface-contract.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-skill-eval-contracts.sh" "$quick_plan" "quick plan"
 assert_not_contains "test-design-dogfood-e2e.sh" "$quick_plan" "quick plan"
@@ -173,8 +192,22 @@ assert_contains "bash $ROOT/tests/test-stage2-test-design-package.sh" "$full_pla
 assert_contains "bash $ROOT/tests/test-stage2-tech-lead-package.sh" "$full_plan" "full plan"
 
 for release_heavy_test in \
-  "tests/test-install-core.sh" \
-  "tests/test-install-safety.sh" \
+  "tests/test-install-core.sh --group basic" \
+  "tests/test-install-core.sh --group runtime-noise" \
+  "tests/test-install-core.sh --group runtime-idempotent" \
+  "tests/test-install-core.sh --group runtime-product-split" \
+  "tests/test-install-core.sh --group claude-agents" \
+  "tests/test-install-core.sh --group codex-agent-model-config" \
+  "tests/test-install-core.sh --group codex-agent-config-file" \
+  "tests/test-install-core.sh --group codex-agent-file-contracts" \
+  "tests/test-install-core.sh --group codex-local-edit" \
+  "tests/test-install-safety.sh --group backup-and-conflict" \
+  "tests/test-install-safety.sh --group external-codex" \
+  "tests/test-install-safety.sh --group external-claude" \
+  "tests/test-install-safety.sh --group rollback" \
+  "tests/test-install-safety.sh --group codex-hooks" \
+  "tests/test-install-safety.sh --group state-cleanup" \
+  "tests/test-install-safety.sh --group preserve-backup" \
   "tests/test-install-runtime.sh" \
   "tests/test-install-migration.sh" \
   "tests/test-install-retired-skill-cleanup.sh" \

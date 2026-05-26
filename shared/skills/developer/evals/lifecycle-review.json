@@ -7,7 +7,7 @@
   "evidence_refs": [
     "shared/skills/developer/SKILL.md",
     "shared/skills/developer/evals/evals.json",
-    "shared/skills/skill-refiner/references/quality-dimensions.md",
+    "shared/skills/skill-quality-audit/references/audit-dimensions.md",
     "tests/test-developer-contract-alignment.sh",
     "tests/test-developer-process-compliance-contract.sh",
     "tests/test-developer-effectiveness-review-evals.sh"
@@ -15,9 +15,9 @@
   "next_action": "Run redesigned with-skill / without-skill evals that measure TDD implementation fidelity, scope discipline, self-testing evidence, and report usability.",
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "with_avg": 1.0,
-    "without_avg": 1.0,
-    "uplift": 0.0,
+    "with_avg": 1,
+    "without_avg": 1,
+    "uplift": 0,
     "grader_dimensions": [
       "tdd_evidence",
       "scope_control",
@@ -37,7 +37,7 @@
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
     "eval_count": 7,
-    "fidelity": 1.0,
+    "fidelity": 1,
     "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 3,
     "anchor_passed": 9,
@@ -101,20 +101,20 @@
     "with_skill": {
       "summary_ref": "tools/eval/results/skill-lifecycle-empirical-batch-2-20260423/developer-with-skill/summary.json",
       "sample_size": 3,
-      "avg_pass_rate": 1.0,
+      "avg_pass_rate": 1,
       "infra_failures": 0,
       "anchor_passed": 9,
       "anchor_total": 9,
-      "anchor_fidelity": 1.0
+      "anchor_fidelity": 1
     },
     "without_skill": {
       "summary_ref": "tools/eval/results/skill-lifecycle-empirical-batch-2-20260423/developer-without-skill/summary.json",
       "sample_size": 3,
-      "avg_pass_rate": 1.0,
+      "avg_pass_rate": 1,
       "infra_failures": 0,
       "anchor_passed": 9,
       "anchor_total": 9,
-      "anchor_fidelity": 1.0
+      "anchor_fidelity": 1
     },
     "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
   }

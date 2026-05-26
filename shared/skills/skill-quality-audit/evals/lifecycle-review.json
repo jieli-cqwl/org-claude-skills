@@ -1,0 +1,37 @@
+{
+  "skill_name": "skill-quality-audit",
+  "eval_type": "mixed",
+  "review_date": "2026-05-26",
+  "decision": "optimize",
+  "decision_label": "New audit-only Skill pending field use",
+  "evidence_refs": [
+    "shared/skills/skill-quality-audit/SKILL.md",
+    "shared/skills/skill-quality-audit/evals/evals.json",
+    "shared/skills/skill-quality-audit/test-prompts.json",
+    "tests/test-skill-quality-audit-report-contract.sh",
+    "tests/test-skill-quality-audit-runtime-contract.sh",
+    "tests/test-skill-quality-audit-instruction-contract.sh"
+  ],
+  "next_action": "Use the Skill on real Skill reviews before considering retain.",
+  "capability_uplift": {
+    "measurement_status": "needs_empirical_baseline",
+    "with_avg": null,
+    "without_avg": null,
+    "uplift": null,
+    "grader_dimensions": [
+      "read_only_boundary",
+      "instruction_contract",
+      "runtime_surface_coverage",
+      "evidence_backed_findings",
+      "repair_handoff_precision"
+    ],
+    "next_run": "Run with_skill and without_skill audits against real Skill review tasks before retain."
+  },
+  "encoded_preference": {
+    "measurement_status": "anchors_defined_needs_fidelity_run",
+    "anchor_count": 6,
+    "eval_count": 4,
+    "fidelity": null,
+    "next_run": "Grade expected_anchors across audit outputs before retain."
+  }
+}

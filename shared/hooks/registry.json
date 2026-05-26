@@ -2,26 +2,6 @@
   "version": 1,
   "skill_completion_gates": [
     {
-      "skill": "skill-refiner",
-      "handler_rel": "skills/skill-refiner/scripts/completion_check.sh",
-      "timeout_sec": 15,
-      "owner": "skill-refiner",
-      "allowed_args": [
-        "hook payload via stdin only",
-        "--help",
-        "-h"
-      ],
-      "output_root": ".",
-      "failure_state": "SKILL_REFINER_COMPLETION_GATE_FAILED",
-      "claude": {
-        "supported": true,
-        "event": "Stop"
-      },
-      "codex": {
-        "supported": true
-      }
-    },
-    {
       "skill": "product-director",
       "handler_rel": "skills/product-director/scripts/completion_check.sh",
       "timeout_sec": 15,

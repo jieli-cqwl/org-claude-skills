@@ -144,9 +144,9 @@ if data["status"] != "static_pass" or data["finding_count"] != 0:
 print("[PASS] retain_gate_passed static audit")
 PY
 
-python3 "$CHECKER" "$ROOT/shared/skills/skill-refiner" >"$TMP_DIR/skill-refiner.json"
+python3 "$CHECKER" "$ROOT/shared/skills/skill-quality-audit" >"$TMP_DIR/skill-quality-audit.json"
 python3 "$CHECKER" "$ROOT/shared/skills/developer" >"$TMP_DIR/developer.json"
-python3 - "$TMP_DIR/skill-refiner.json" "$TMP_DIR/developer.json" <<'PY'
+python3 - "$TMP_DIR/skill-quality-audit.json" "$TMP_DIR/developer.json" <<'PY'
 import json
 import sys
 

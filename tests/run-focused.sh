@@ -17,7 +17,7 @@ Usage:
 Profiles:
   design           Design skill, design handoff, and standard-chain pilot checks.
   research         Research skill and related eval contract checks.
-  skill-refiner    Skill refiner package and eval contract checks.
+  skill-quality-audit Skill quality audit package and report contract checks.
   standard-chain   Standard-chain validators, contracts, and readiness checks.
   product-stage2   Product and Stage 2 handoff package checks.
   install-runtime  Install/runtime surface checks.

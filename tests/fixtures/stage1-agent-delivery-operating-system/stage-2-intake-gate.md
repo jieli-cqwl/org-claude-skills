@@ -112,7 +112,7 @@ package 必须包含：
 - `brief`: 保留 Director lock，并补齐 PM-owned acceptance criteria、design handoff 决策、非功能要求、review closure 和 delivery confirmation。
 - `phase_prd`: 保留 Director lock，并补齐业务流程、用户路径、规则映射、UNIT 索引、优先级、结构化 design decision candidates、review closure 和 issue ledger。
 - `units`: 至少一个闭环 `unit-definition`，每个 UNIT 必须有 `closure_definition`、Integration Context、AC 示例、Verification Plan、排除项、优先级和待 design 决策。
-- `product_manager_ledger`: 覆盖 `M-S1 -> M-S9` 的 finalized co-creation ledger。
+- `issue_ledger` / `review_conclusion` / `delivery_confirmation`: 关闭 PM 阻断、评审和用户接受状态。
 - `decision_boundary.blocked_actions`: 继续阻断 `language_selection`、`architecture_finalization`、`code_changes`、`commit`、`deploy`、`auto_send`、`business_risk_acceptance`。
 
 通过后只表示 `product_manager_prd_ready_for_design`，下一角色是 `design`。它仍不授权语言选型、架构定版、代码修改、提交、上线、自动外发或业务风险接受；这些必须继续由 design、test-design、tech-lead 和 delivery-owner 后续门禁裁决。
@@ -179,7 +179,7 @@ package 必须包含：
 python3 tools/eval/scripts/run_stage1_eval_checks.py
 ```
 
-总入口会验证 `stage-2-intake-facts.example.json` 不能生成 handoff，并用一份带 human/source refs 的真实 candidate 验证 handoff 结构可生成；随后验证 confirmed brief package 能保留 product-director lock、阻断 PM-owned 字段和继续保留 code changes 禁区；再验证 product-manager package 能补齐业务流程、UNIT、AC、Verification Plan、PM ledger 和 review closure，并只能路由到 `design`；继续验证 design package 能补齐 canonical design、review digest、reference integrity、design ledger 和实现禁区，并只能路由到 `test-design`；继续验证 test-design package 能补齐 canonical test-cases、review digest、semantic integrity、typed gap 阻断和 tech-lead 边界，并只能路由到 `tech-lead`；最后验证 tech-lead package 能补齐 canonical plan/tasks、artifact registry、planning preflight、standard-chain semantic integrity、delivery-owner intake 和执行禁区，并只能路由到 `delivery-owner`。
+总入口会验证 `stage-2-intake-facts.example.json` 不能生成 handoff，并用一份带 human/source refs 的真实 candidate 验证 handoff 结构可生成；随后验证 confirmed brief package 能保留 product-director lock、阻断 PM-owned 字段和继续保留 code changes 禁区；再验证 product-manager package 能补齐业务流程、UNIT、AC、Verification Plan、review closure、issue ledger 和 delivery confirmation，并只能路由到 `design`；继续验证 design package 能补齐 canonical design、review digest、reference integrity、design ledger 和实现禁区，并只能路由到 `test-design`；继续验证 test-design package 能补齐 canonical test-cases、review digest、semantic integrity、typed gap 阻断和 tech-lead 边界，并只能路由到 `tech-lead`；最后验证 tech-lead package 能补齐 canonical plan/tasks、artifact registry、planning preflight、standard-chain semantic integrity、delivery-owner intake 和执行禁区，并只能路由到 `delivery-owner`。
 
 ## 边界
 

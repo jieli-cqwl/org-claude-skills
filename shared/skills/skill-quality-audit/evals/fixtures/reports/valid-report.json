@@ -1,0 +1,148 @@
+{
+  "artifact_type": "skill-audit-report",
+  "target_skill": "shared/skills/example",
+  "verdict": "fit",
+  "overall_score": 8.5,
+  "verdict_reason": "No P0/P1 findings remain and core dimensions meet the fit floor.",
+  "scope_evidence": [
+    {
+      "surface": "SKILL.md",
+      "status": "checked",
+      "evidence": "shared/skills/example/SKILL.md"
+    },
+    {
+      "surface": "agents/openai.yaml",
+      "status": "checked",
+      "evidence": "shared/skills/example/agents/openai.yaml"
+    },
+    {
+      "surface": "references",
+      "status": "checked",
+      "evidence": "shared/skills/example/references/"
+    },
+    {
+      "surface": "scripts",
+      "status": "checked",
+      "evidence": "shared/skills/example/scripts/"
+    },
+    {
+      "surface": "templates",
+      "status": "absent",
+      "evidence": "No templates directory in target package."
+    },
+    {
+      "surface": "contracts",
+      "status": "checked",
+      "evidence": "shared/skills/example/contracts/"
+    },
+    {
+      "surface": "test prompts",
+      "status": "checked",
+      "evidence": "shared/skills/example/test-prompts.json"
+    },
+    {
+      "surface": "evals",
+      "status": "checked",
+      "evidence": "shared/skills/example/evals/"
+    },
+    {
+      "surface": "fixtures",
+      "status": "checked",
+      "evidence": "shared/skills/example/evals/fixtures/"
+    },
+    {
+      "surface": "runtime surface",
+      "status": "checked",
+      "evidence": "contracts/skill-runtime-surface.json"
+    },
+    {
+      "surface": "install hooks",
+      "status": "checked",
+      "evidence": "install.sh runtime staging checks"
+    },
+    {
+      "surface": "gate plan",
+      "status": "checked",
+      "evidence": "tests/gate-plan.json"
+    },
+    {
+      "surface": "run-all",
+      "status": "checked",
+      "evidence": "tests/run-all.sh"
+    },
+    {
+      "surface": "focused runner",
+      "status": "checked",
+      "evidence": "tests/run-focused.sh"
+    },
+    {
+      "surface": "README",
+      "status": "absent",
+      "evidence": "No target-specific README."
+    },
+    {
+      "surface": "downstream consumers",
+      "status": "checked",
+      "evidence": "tests and runtime surface consume the package."
+    }
+  ],
+  "dimension_scores": [
+    {
+      "dimension": "Real Use Capability",
+      "score": 9,
+      "evidence_level": "E3",
+      "reason": "Real scenario and consumer are explicit."
+    },
+    {
+      "dimension": "Trigger And Routing",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Trigger is narrow enough for manual use."
+    },
+    {
+      "dimension": "Instruction Contract",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Instructions are executable."
+    },
+    {
+      "dimension": "Workflow Causality",
+      "score": 7,
+      "evidence_level": "E3",
+      "reason": "Workflow order maps evidence before verdict."
+    },
+    {
+      "dimension": "Output And Handoff",
+      "score": 7,
+      "evidence_level": "E3",
+      "reason": "Output fields and repair handoff are present."
+    },
+    {
+      "dimension": "Determinism And Validation",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Report contract is validated by script and tests."
+    },
+    {
+      "dimension": "Runtime Integration",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Runtime surface and adapter match the intended invocation."
+    },
+    {
+      "dimension": "Evidence And Evals",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Tests cover main behavior."
+    },
+    {
+      "dimension": "Noise And Maintainability",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "No blocking stale references remain in active scope."
+    }
+  ],
+  "findings": [],
+  "repair_handoff": [],
+  "residual_risk": []
+}

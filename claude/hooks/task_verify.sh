@@ -29,6 +29,19 @@ CODE_DIFF=$({
 
 FAILURES=""
 
+code_diff_files_matching() {
+    local pattern="$1"
+    local file
+
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        [ -f "$file" ] || continue
+        if printf '%s\n' "$file" | grep -qE "$pattern"; then
+            printf '%s\n' "$file"
+        fi
+    done <<< "$CODE_DIFF"
+}
+
 # ========== 测试 ==========
 
 run_tests() {
@@ -109,10 +122,18 @@ run_tests
 
 run_lint() {
     # Python
-    if echo "$CODE_DIFF" | grep -qE '\.py$'; then
+    local py_files
+    py_files=$(code_diff_files_matching '\.py$')
+    if [ -n "$py_files" ]; then
         if command -v ruff >/dev/null 2>&1; then
-            LINT_OUTPUT=$(ruff check . 2>&1)
-            if [ $? -ne 0 ]; then
+            local file
+            local -a py_arr=()
+            while IFS= read -r file; do
+                [ -z "$file" ] && continue
+                py_arr+=("$file")
+            done <<< "$py_files"
+
+            if ! LINT_OUTPUT=$(ruff check "${py_arr[@]}" 2>&1); then
                 FAILURES+="Lint 失败（ruff）:\n$(echo "$LINT_OUTPUT" | head -20)\n\n"
             fi
         fi
@@ -160,7 +181,7 @@ run_lint
 
 run_bare_except_check() {
     local py_files
-    py_files=$(echo "$CODE_DIFF" | grep -E '\.py$' || true)
+    py_files=$(code_diff_files_matching '\.py$')
     [ -z "$py_files" ] && return
 
     if ! command -v ruff >/dev/null 2>&1; then
@@ -186,7 +207,7 @@ run_bare_except_check
 
 run_dead_code_check() {
     local py_files
-    py_files=$(echo "$CODE_DIFF" | grep -E '\.py$' || true)
+    py_files=$(code_diff_files_matching '\.py$')
     [ -z "$py_files" ] && return
 
     if ! command -v ruff >/dev/null 2>&1; then

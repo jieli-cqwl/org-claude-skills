@@ -12,7 +12,7 @@ Date: 2026-05-24
 
 1. 先用本报告固定能力矩阵和评分口径。
 2. 再把 `episode package` 定位为“run-level 证据索引”，只索引，不替代已有 artifact。
-3. 然后选择一个窄试点：`developer` 或 `skill-refiner` 的一次真实 run。
+3. 然后选择一个窄试点：`developer` 的一次真实 run。
 4. 试点能减少复验成本或暴露真实缺口，再进入自动生成 episode package；否则停止。
 
 ## 范围与成功标准
@@ -111,7 +111,7 @@ Date: 2026-05-24
 
 - 不建议直接接 Hermes 替换当前链路。Hermes 是完整 agent runtime；本仓是 Claude/Codex skill/rule/hook/runtime 管理仓。
 - 不建议用 revfactory/harness 生成或覆盖本仓 agents/skills。当前 first-party 链路已有合同和测试锁定，生成器会制造不可控漂移。
-- 不建议新增独立 Skill 承载。`tests/test-skill-refiner-legacy-dependency-cleanup.sh` 明确防止历史依赖回流。
+- 不建议新增独立 Skill 承载。当前 cleanup gate 明确防止历史依赖回流。
 
 建议吸收：
 
@@ -172,8 +172,6 @@ review / verify / qa / human 快速判断一次 run 是否可信
 建议对象：
 
 - 首选 `developer`，因为已有 `developer-report.schema.json`、`fresh_proof`、`failure_contract` 和 `tests/test-developer-runtime-proof-contract.sh`。
-- 备选 `skill-refiner`，因为它有独立 result schema、completion gate 和 eval evidence。
-
 最小步骤：
 
 1. 选择一个已经存在的 developer-report fixture 或下一次真实 developer run。当前选择 `tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/unit-1/tasks/T1/developer-report.json`。
@@ -290,7 +288,7 @@ review / verify / qa / human 快速判断一次 run 是否可信
 - `tests/test-standard-chain-local-eval-runner.sh`：local eval runner behavior。
 - `tests/test-developer-runtime-proof-contract.sh`：developer fresh proof / failure contract gate。
 - `tests/test-review-evidence-integrity-contract.sh`：review evidence integrity contract。
-- `tests/test-skill-refiner-legacy-dependency-cleanup.sh`：防止旧目录回流。
+- `tests/test-skill-quality-audit-old-refiner-cleanup.sh`：防止旧目录回流。
 - `tests/fixtures/stage1-agent-delivery-operating-system/role-capability-cards.md`：Stage 1 role capability evidence。
 - `tests/fixtures/stage1-agent-delivery-operating-system/skill-growth-cards.md`：Stage 1 skill growth and externalized checks。
 - `tests/fixtures/standard-chain-foundation/golden-pilot/`：golden standard-chain pilot fixture。

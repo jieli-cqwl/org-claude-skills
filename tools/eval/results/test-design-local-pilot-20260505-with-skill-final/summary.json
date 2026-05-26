@@ -113,6 +113,6 @@
   "retention_policy": {
     "kept": "summary-level evidence only",
     "omitted": "detailed run directories and logs",
-    "rerun_command_ref": "skill-refiner-result.json#verification_commands"
+    "rerun_command_ref": "archived verification command records"
   }
 }

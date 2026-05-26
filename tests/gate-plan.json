@@ -24,15 +24,6 @@
         "release-only"
       ]
     },
-    "skill-refiner": {
-      "areas": [
-        "skill-refiner",
-        "skill-evals"
-      ],
-      "exclude_tags": [
-        "release-only"
-      ]
-    },
     "standard-chain": {
       "areas": [
         "standard-chain",
@@ -73,6 +64,15 @@
         "runtime-surface"
       ],
       "exclude_tags": []
+    },
+    "skill-quality-audit": {
+      "areas": [
+        "skill-quality-audit",
+        "skill-evals"
+      ],
+      "exclude_tags": [
+        "release-only"
+      ]
     }
   },
   "steps": [
@@ -123,10 +123,140 @@
       "timeout_sec": 60
     },
     {
-      "id": "install-core",
+      "id": "install-core-basic",
       "command": [
         "bash",
-        "tests/test-install-core.sh"
+        "tests/test-install-core.sh",
+        "--group",
+        "basic"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-core-runtime-noise",
+      "command": [
+        "bash",
+        "tests/test-install-core.sh",
+        "--group",
+        "runtime-noise"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-core-runtime-idempotent",
+      "command": [
+        "bash",
+        "tests/test-install-core.sh",
+        "--group",
+        "runtime-idempotent"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-core-runtime-product-split",
+      "command": [
+        "bash",
+        "tests/test-install-core.sh",
+        "--group",
+        "runtime-product-split"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-core-claude-agents",
+      "command": [
+        "bash",
+        "tests/test-install-core.sh",
+        "--group",
+        "claude-agents"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-core-codex-agent-model-config",
+      "command": [
+        "bash",
+        "tests/test-install-core.sh",
+        "--group",
+        "codex-agent-model-config"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-core-codex-agent-config-file",
+      "command": [
+        "bash",
+        "tests/test-install-core.sh",
+        "--group",
+        "codex-agent-config-file"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-core-codex-agent-file-contracts",
+      "command": [
+        "bash",
+        "tests/test-install-core.sh",
+        "--group",
+        "codex-agent-file-contracts"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-core-codex-local-edit",
+      "command": [
+        "bash",
+        "tests/test-install-core.sh",
+        "--group",
+        "codex-local-edit"
       ],
       "area": "install-runtime",
       "tier": "full",
@@ -165,10 +295,108 @@
       "timeout_sec": 300
     },
     {
-      "id": "install-safety",
+      "id": "install-safety-backup-and-conflict",
       "command": [
         "bash",
-        "tests/test-install-safety.sh"
+        "tests/test-install-safety.sh",
+        "--group",
+        "backup-and-conflict"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-safety-external-codex",
+      "command": [
+        "bash",
+        "tests/test-install-safety.sh",
+        "--group",
+        "external-codex"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-safety-external-claude",
+      "command": [
+        "bash",
+        "tests/test-install-safety.sh",
+        "--group",
+        "external-claude"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-safety-rollback",
+      "command": [
+        "bash",
+        "tests/test-install-safety.sh",
+        "--group",
+        "rollback"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-safety-codex-hooks",
+      "command": [
+        "bash",
+        "tests/test-install-safety.sh",
+        "--group",
+        "codex-hooks"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-safety-state-cleanup",
+      "command": [
+        "bash",
+        "tests/test-install-safety.sh",
+        "--group",
+        "state-cleanup"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 300
+    },
+    {
+      "id": "install-safety-preserve-backup",
+      "command": [
+        "bash",
+        "tests/test-install-safety.sh",
+        "--group",
+        "preserve-backup"
       ],
       "area": "install-runtime",
       "tier": "full",
@@ -631,12 +859,31 @@
       "id": "skill-output-and-gate-contract",
       "command": [
         "bash",
-        "tests/test-skill-output-and-gate-contract.sh"
+        "tests/test-skill-output-and-gate-contract.sh",
+        "--scope",
+        "static"
       ],
       "area": "hooks-manifest",
       "tier": "quick",
       "tags": [
         "canary",
+        "hooks-manifest"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
+      "id": "skill-output-runtime-gates",
+      "command": [
+        "bash",
+        "tests/test-skill-output-and-gate-contract.sh",
+        "--scope",
+        "runtime"
+      ],
+      "area": "hooks-manifest",
+      "tier": "full",
+      "tags": [
+        "full-only",
         "hooks-manifest"
       ],
       "parallel_safe": true,
@@ -798,18 +1045,18 @@
       "timeout_sec": 180
     },
     {
-      "id": "research-skill-refiner-eval",
+      "id": "research-skill-quality-audit-eval",
       "command": [
         "bash",
-        "tests/test-research-skill-refiner-eval.sh"
+        "tests/test-research-skill-quality-audit-eval.sh"
       ],
       "area": "skill-evals",
-      "tier": "full",
+      "tier": "quick",
       "tags": [
         "skill-evals"
       ],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 120
     },
     {
       "id": "research-skill-creator-deep-audit",
@@ -830,10 +1077,10 @@
         "tests/test-research-skill-retain-gate.sh"
       ],
       "area": "research",
-      "tier": "full",
+      "tier": "quick",
       "tags": [],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 120
     },
     {
       "id": "deep-research-skill-contract",
@@ -1221,157 +1468,6 @@
       "timeout_sec": 180
     },
     {
-      "id": "skill-refiner-completion-gate",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-completion-gate.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
-      "id": "skill-refiner-legacy-dependency-cleanup",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-legacy-dependency-cleanup.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
-      "id": "skill-refiner-effect-evidence",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-effect-evidence.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
-      "id": "skill-refiner-live-baseline-pilot",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-live-baseline-pilot.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [
-        "full-only",
-        "live"
-      ],
-      "parallel_safe": false,
-      "timeout_sec": 180
-    },
-    {
-      "id": "skill-refiner-retain-gate",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-retain-gate.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
-      "id": "skill-refiner-pre-f1-closure-gate",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-pre-f1-closure-gate.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
-      "id": "skill-refiner-self-dogfood-flow",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-self-dogfood-flow.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [
-        "dogfood"
-      ],
-      "parallel_safe": false,
-      "timeout_sec": 300
-    },
-    {
-      "id": "skill-refiner-sr-s2-fielded-dogfood",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-sr-s2-fielded-dogfood.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [
-        "dogfood"
-      ],
-      "parallel_safe": false,
-      "timeout_sec": 300
-    },
-    {
-      "id": "skill-refiner-tech-lead-shadow-flow",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-tech-lead-shadow-flow.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
-      "id": "skill-refiner-closure-audit",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-closure-audit.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
-      "id": "skill-refiner-github-radar-external-practice",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-github-radar-external-practice.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
-      "id": "skill-refiner-supersedes-drift-gate",
-      "command": [
-        "bash",
-        "tests/test-skill-refiner-supersedes-drift-gate.sh"
-      ],
-      "area": "skill-refiner",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
       "id": "github-repo-radar-contract",
       "command": [
         "bash",
@@ -1753,15 +1849,31 @@
       "timeout_sec": 180
     },
     {
+      "id": "standard-chain-field-consumption-contract",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-field-consumption-contract.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "contract",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
       "id": "standard-chain-validator-stack",
       "command": [
         "bash",
         "tests/test-standard-chain-validator-stack.sh"
       ],
       "area": "standard-chain",
-      "tier": "quick",
+      "tier": "full",
       "tags": [
-        "canary",
+        "full-only",
         "standard-chain"
       ],
       "parallel_safe": true,
@@ -2063,6 +2175,54 @@
       ],
       "parallel_safe": true,
       "timeout_sec": 90
+    },
+    {
+      "id": "skill-quality-audit-report-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-report-contract.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
+      "id": "skill-quality-audit-runtime-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-runtime-contract.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
+      "id": "skill-quality-audit-old-refiner-cleanup",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-old-refiner-cleanup.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
+      "id": "skill-quality-audit-instruction-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-instruction-contract.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
     }
   ]
 }

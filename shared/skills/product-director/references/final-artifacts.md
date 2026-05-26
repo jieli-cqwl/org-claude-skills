@@ -13,7 +13,7 @@
 
 | 产物 | 职责 | 模板 / 验证 |
 |------|------|-------------|
-| `docs/{feature}/product-director-ledger.json` | 记录已确认基线、`supersedes` 和 `finalization_basis` | `tools/community/validate_co_creation_ledger.py --producer product-director --require-finalized` |
+| `docs/{feature}/product-director-ledger.json` | 只记录 Director finalization 前的确认检查点、漂移恢复、输出引用和最终确认依据；不得承载 PM 产品模型、AC、设计决策、实现细节或下游需求 | `tools/community/validate_co_creation_ledger.py --producer product-director --require-finalized` |
 | `docs/{feature}/brief.json` | 记录根问题、用户画像、业务目标、投入边界、范围、约束、风险、决策理由和 Phase 计划 | `shared/skills/product-director/templates/brief.template.json` |
 | `docs/{feature}/phase-{N}/phase-prd.json` | 记录对应 Phase 的目标、入口条件和出口条件 | `shared/skills/product-director/templates/phase-prd.template.json` |
 

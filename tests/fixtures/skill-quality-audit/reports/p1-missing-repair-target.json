@@ -1,0 +1,158 @@
+{
+  "artifact_type": "skill-audit-report",
+  "target_skill": "shared/skills/example",
+  "verdict": "conditional",
+  "overall_score": 7.2,
+  "verdict_reason": "One P1 finding remains; Instruction Contract is above the conditional floor.",
+  "scope_evidence": [
+    {
+      "surface": "SKILL.md",
+      "status": "checked",
+      "evidence": "shared/skills/example/SKILL.md"
+    },
+    {
+      "surface": "agents/openai.yaml",
+      "status": "checked",
+      "evidence": "shared/skills/example/agents/openai.yaml"
+    },
+    {
+      "surface": "references",
+      "status": "checked",
+      "evidence": "shared/skills/example/references/"
+    },
+    {
+      "surface": "scripts",
+      "status": "checked",
+      "evidence": "shared/skills/example/scripts/"
+    },
+    {
+      "surface": "templates",
+      "status": "absent",
+      "evidence": "No templates directory in target package."
+    },
+    {
+      "surface": "contracts",
+      "status": "checked",
+      "evidence": "shared/skills/example/contracts/"
+    },
+    {
+      "surface": "test prompts",
+      "status": "checked",
+      "evidence": "shared/skills/example/test-prompts.json"
+    },
+    {
+      "surface": "evals",
+      "status": "checked",
+      "evidence": "shared/skills/example/evals/"
+    },
+    {
+      "surface": "fixtures",
+      "status": "checked",
+      "evidence": "shared/skills/example/evals/fixtures/"
+    },
+    {
+      "surface": "runtime surface",
+      "status": "checked",
+      "evidence": "contracts/skill-runtime-surface.json"
+    },
+    {
+      "surface": "install hooks",
+      "status": "checked",
+      "evidence": "install.sh runtime staging checks"
+    },
+    {
+      "surface": "gate plan",
+      "status": "checked",
+      "evidence": "tests/gate-plan.json"
+    },
+    {
+      "surface": "run-all",
+      "status": "checked",
+      "evidence": "tests/run-all.sh"
+    },
+    {
+      "surface": "focused runner",
+      "status": "checked",
+      "evidence": "tests/run-focused.sh"
+    },
+    {
+      "surface": "README",
+      "status": "absent",
+      "evidence": "No target-specific README."
+    },
+    {
+      "surface": "downstream consumers",
+      "status": "checked",
+      "evidence": "tests and runtime surface consume the package."
+    }
+  ],
+  "dimension_scores": [
+    {
+      "dimension": "Real Use Capability",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Scenario and consumer are explicit."
+    },
+    {
+      "dimension": "Trigger And Routing",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Trigger is narrow enough for manual use."
+    },
+    {
+      "dimension": "Instruction Contract",
+      "score": 7,
+      "evidence_level": "E3",
+      "reason": "Main workflow is executable, with one handoff gap."
+    },
+    {
+      "dimension": "Workflow Causality",
+      "score": 7,
+      "evidence_level": "E3",
+      "reason": "Workflow order maps evidence before verdict."
+    },
+    {
+      "dimension": "Output And Handoff",
+      "score": 7,
+      "evidence_level": "E3",
+      "reason": "Output fields and repair handoff are present."
+    },
+    {
+      "dimension": "Determinism And Validation",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Report contract is validated by script and tests."
+    },
+    {
+      "dimension": "Runtime Integration",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Runtime surface and adapter match the intended invocation."
+    },
+    {
+      "dimension": "Evidence And Evals",
+      "score": 7,
+      "evidence_level": "E3",
+      "reason": "Contract tests cover the main report shape."
+    },
+    {
+      "dimension": "Noise And Maintainability",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "No blocking stale references remain in active scope."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "severity": "P1",
+      "title": "Missing repair target",
+      "evidence": "shared/skills/example/SKILL.md:10",
+      "impact": "Repair cannot be assigned.",
+      "repair_target": "",
+      "verification_hint": "Run validator."
+    }
+  ],
+  "repair_handoff": [],
+  "residual_risk": []
+}

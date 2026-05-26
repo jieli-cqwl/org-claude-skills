@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-PRODUCERS = {"product-director", "product-manager", "design"}
+PRODUCERS = {"product-director"}
 REQUIRED_STEPS = {
     "product-director": (
         "问题澄清",
@@ -19,32 +19,6 @@ REQUIRED_STEPS = {
         "风险与未知项",
         "Phase 规划",
         "Director Finalization",
-    ),
-    "product-manager": (
-        "Handoff gate",
-        "Evidence and AS-IS",
-        "TO-BE product model",
-        "Feature inventory and risk",
-        "Pre-UNIT gate",
-        "UNIT split",
-        "AC",
-        "Verification Plan",
-        "Design handoff",
-        "Self-check",
-        "Review digest",
-        "Agent review",
-        "PM handoff gate",
-        "Delivery",
-    ),
-    "design": (
-        "stakeholders-and-concerns",
-        "architecture-significant-requirements",
-        "current-state-evidence",
-        "complexity-model",
-        "decision-discovery",
-        "option-tradeoff",
-        "design-synthesis",
-        "finalize-design",
     ),
 }
 LEGACY_REQUIRED_STEPS = {
@@ -62,9 +36,14 @@ RESOLVED_SUPERSEDES = {
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--artifact", type=Path, required=True)
-    parser.add_argument("--producer", choices=sorted(PRODUCERS))
+    parser.add_argument("--producer")
     parser.add_argument("--require-finalized", action="store_true")
     return parser.parse_args()
+
+
+def validate_producer_argument(producer: str | None) -> None:
+    if producer is not None and producer not in PRODUCERS:
+        raise ValueError(f"unsupported co-creation ledger producer: {producer}")
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -73,7 +52,9 @@ def load_json(path: Path) -> dict[str, Any]:
     except FileNotFoundError as exc:
         raise ValueError(f"ledger not found: {path}") from exc
     except json.JSONDecodeError as exc:
-        raise ValueError(f"invalid ledger JSON at line {exc.lineno}: {exc.msg}") from exc
+        raise ValueError(
+            f"invalid ledger JSON at line {exc.lineno}: {exc.msg}"
+        ) from exc
     if not isinstance(data, dict):
         raise ValueError("ledger must be a JSON object")
     return data
@@ -115,7 +96,9 @@ def validate_current_state(data: dict[str, Any]) -> None:
         raise ValueError("current_state.next_step must be substantive")
 
 
-def validate_confirmations(data: dict[str, Any], producer: str, require_finalized: bool) -> set[str]:
+def validate_confirmations(
+    data: dict[str, Any], producer: str, require_finalized: bool
+) -> set[str]:
     confirmations = data.get("confirmations")
     if not isinstance(confirmations, list) or not confirmations:
         raise ValueError("confirmations must be a non-empty array")
@@ -151,7 +134,9 @@ def validate_confirmations(data: dict[str, Any], producer: str, require_finalize
         raise ValueError("confirmations checkpoint_id values must be unique")
     latest = data.get("latest_checkpoint_id")
     if latest != checkpoint_ids[-1]:
-        raise ValueError("latest_checkpoint_id must match the last confirmation checkpoint_id")
+        raise ValueError(
+            "latest_checkpoint_id must match the last confirmation checkpoint_id"
+        )
     if require_finalized:
         required_steps = set(REQUIRED_STEPS[producer])
         missing_steps = sorted(required_steps - steps)
@@ -164,7 +149,9 @@ def validate_confirmations(data: dict[str, Any], producer: str, require_finalize
     return set(checkpoint_ids)
 
 
-def validate_supersedes(data: dict[str, Any], checkpoint_ids: set[str], require_finalized: bool) -> None:
+def validate_supersedes(
+    data: dict[str, Any], checkpoint_ids: set[str], require_finalized: bool
+) -> None:
     supersedes = data.get("supersedes")
     if not isinstance(supersedes, list):
         raise ValueError("supersedes must be an array")
@@ -187,30 +174,47 @@ def validate_supersedes(data: dict[str, Any], checkpoint_ids: set[str], require_
         if require_finalized and item.get("status") not in RESOLVED_SUPERSEDES:
             raise ValueError(f"{path}.status must be resolved before finalization")
         if item.get("drifted_from_checkpoint_id") not in checkpoint_ids:
-            raise ValueError(f"{path}.drifted_from_checkpoint_id must reference a confirmation")
+            raise ValueError(
+                f"{path}.drifted_from_checkpoint_id must reference a confirmation"
+            )
 
 
-def validate_finalization(data: dict[str, Any], checkpoint_ids: set[str], require_finalized: bool) -> None:
+def validate_finalization(
+    data: dict[str, Any], checkpoint_ids: set[str], require_finalized: bool
+) -> None:
     finalization = data.get("finalization_basis")
     if not isinstance(finalization, dict):
         raise ValueError("finalization_basis must be an object")
     if not require_finalized:
         return
-    require_fields(finalization, ("status", "confirmed_at", "summary", "accepted_checkpoint_ids"), "finalization_basis")
+    require_fields(
+        finalization,
+        ("status", "confirmed_at", "summary", "accepted_checkpoint_ids"),
+        "finalization_basis",
+    )
     if finalization.get("status") != "confirmed":
         raise ValueError("finalization_basis.status must be confirmed")
     parse_timestamp(finalization.get("confirmed_at"), "finalization_basis.confirmed_at")
     if not nonempty_string(finalization.get("summary")):
         raise ValueError("finalization_basis.summary must be substantive")
     accepted = finalization.get("accepted_checkpoint_ids")
-    if not string_list(accepted):
-        raise ValueError("finalization_basis.accepted_checkpoint_ids must be a non-empty string array")
-    unknown = sorted(set(accepted) - checkpoint_ids)
+    if not isinstance(accepted, list) or not all(
+        nonempty_string(item) for item in accepted
+    ):
+        raise ValueError(
+            "finalization_basis.accepted_checkpoint_ids must be a non-empty string array"
+        )
+    accepted_ids = [str(item) for item in accepted]
+    unknown = sorted(set(accepted_ids) - checkpoint_ids)
     if unknown:
-        raise ValueError(f"finalization_basis.accepted_checkpoint_ids unknown: {', '.join(unknown)}")
+        raise ValueError(
+            f"finalization_basis.accepted_checkpoint_ids unknown: {', '.join(unknown)}"
+        )
 
 
-def validate(data: dict[str, Any], expected_producer: str | None, require_finalized: bool) -> None:
+def validate(
+    data: dict[str, Any], expected_producer: str | None, require_finalized: bool
+) -> None:
     require_fields(
         data,
         (
@@ -249,9 +253,14 @@ def validate(data: dict[str, Any], expected_producer: str | None, require_finali
 
 def main() -> None:
     args = parse_args()
+    validate_producer_argument(args.producer)
     data = load_json(args.artifact)
     validate(data, args.producer, args.require_finalized)
-    print(json.dumps({"status": "PASS", "artifact": str(args.artifact)}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {"status": "PASS", "artifact": str(args.artifact)}, ensure_ascii=False
+        )
+    )
 
 
 if __name__ == "__main__":

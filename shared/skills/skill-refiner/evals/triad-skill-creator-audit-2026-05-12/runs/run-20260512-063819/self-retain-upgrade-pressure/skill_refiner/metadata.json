@@ -1,9 +1,0 @@
-{
-  "scenario_id": "self-retain-upgrade-pressure",
-  "arm": "skill_refiner",
-  "returncode": 0,
-  "started_at": "2026-05-12T13:47:13.625320+00:00",
-  "finished_at": "2026-05-12T13:47:59.656354+00:00",
-  "duration_seconds": 46.031034,
-  "response_file": "self-retain-upgrade-pressure/skill_refiner/response.json"
-}

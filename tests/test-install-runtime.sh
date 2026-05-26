@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 . "$ROOT/tests/lib/install-test-env.sh"
 
 install_test_init
-INSTALL_TEST_REPO_FINGERPRINT_PROBE="$ROOT/shared/skills/skill-refiner/evals/.runtime-fingerprint-probe"
+INSTALL_TEST_REPO_FINGERPRINT_PROBE="$ROOT/shared/skills/skill-quality-audit/evals/.runtime-fingerprint-probe"
 INSTALL_TEST_REPO_WORKSPACE_PROBE="$ROOT/shared/skills/runtime-fingerprint-workspace"
 install_test_cleanup_with_repo_probe() {
   rm -rf "$INSTALL_TEST_REPO_FINGERPRINT_PROBE"

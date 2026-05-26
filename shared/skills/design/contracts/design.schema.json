@@ -771,56 +771,6 @@
             "minLength": 1
           }
         },
-        "co_creation_summary": {
-          "description": "设计协作摘要；stage_id 使用语义阶段 id，记录 question / response / decision_refs",
-          "type": "array",
-          "minItems": 7,
-          "items": {
-            "type": "object",
-            "required": [
-              "stage_id",
-              "stage_name",
-              "question_or_focus",
-              "user_response_summary",
-              "decision_refs"
-            ],
-            "properties": {
-              "stage_id": {
-                "type": "string",
-                "enum": [
-                  "stakeholders-and-concerns",
-                  "architecture-significant-requirements",
-                  "current-state-evidence",
-                  "complexity-model",
-                  "decision-discovery",
-                  "option-tradeoff",
-                  "design-synthesis"
-                ]
-              },
-              "stage_name": {
-                "type": "string",
-                "minLength": 1
-              },
-              "question_or_focus": {
-                "type": "string",
-                "minLength": 1
-              },
-              "user_response_summary": {
-                "type": "string",
-                "minLength": 1
-              },
-              "decision_refs": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              }
-            },
-            "additionalProperties": true
-          }
-        },
         "constraint_inheritance_confirmation": {
           "description": "约束继承确认：Constitution / ADR / 遗留设计 / 口头约束的用户确认记录",
           "type": "object",
@@ -1027,12 +977,57 @@
             }
           },
           "additionalProperties": true
+        },
+        "design_stage_confirmations": {
+          "description": "设计阶段确认索引；只记录会改变或冻结设计义务的确认，详细设计事实属于 key_decisions、option_analysis、runtime_facts、interfaces、verification_mapping 和 risk_response 等字段",
+          "type": "array",
+          "minItems": 7,
+          "items": {
+            "type": "object",
+            "required": [
+              "stage_id",
+              "confirmation_focus",
+              "user_confirmation_summary",
+              "design_refs"
+            ],
+            "properties": {
+              "stage_id": {
+                "type": "string",
+                "enum": [
+                  "stakeholders-and-concerns",
+                  "architecture-significant-requirements",
+                  "current-state-evidence",
+                  "complexity-model",
+                  "decision-discovery",
+                  "option-tradeoff",
+                  "design-synthesis"
+                ]
+              },
+              "confirmation_focus": {
+                "type": "string",
+                "minLength": 1
+              },
+              "user_confirmation_summary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "design_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "additionalProperties": false
+          }
         }
       },
       "required": [
         "artifact_type",
         "input_analysis",
-        "co_creation_summary",
+        "design_stage_confirmations",
         "constraint_inheritance_confirmation",
         "review_closure",
         "final_confirmation",

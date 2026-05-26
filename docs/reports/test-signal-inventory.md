@@ -23,7 +23,6 @@ Every test starts as a delete candidate. A test is kept only when it protects a 
 | `tests/test-standard-chain-readiness-gate.sh` | Keep | quick/full/release | Standard-chain closeout passes with missing or failed artifacts | Runs readiness gate against golden and mutated fixtures | Keep in quick |
 | `tests/test-release-metadata.sh` | Move | full/release | Release metadata, changelog, version, or notes drift | Runs release metadata validator | Exclude from quick; keep in full/release |
 | `tests/test-doc-management-rule-contract.sh` | Delete | none | Not proven | Freezes rule-document prose with no executable validator path | Delete file and runner references |
-| `tests/test-skill-refiner-agent-loop.sh` | Delete | none | Not proven | Freezes skill-refiner prose while harder completion/evidence gates exist | Delete file and runner references |
 | `tests/test-product-capability-structure-redesign.sh` | Delete | none | Not proven | Duplicates product role/stability structure through broad prose checks | Delete file and runner references |
 | `tests/test-product-eval-contract.sh` | Move | full/release | Eval assets or runner output contract drift | Useful static/eval asset check, not a quick user-path gate | Exclude from quick |
 | `tests/test-product-context-signal-quality.sh` | Move | full/release | Product prompt signal quality drift | Mostly prose/noise scan; not quick-critical | Exclude from quick pending rewrite/delete |

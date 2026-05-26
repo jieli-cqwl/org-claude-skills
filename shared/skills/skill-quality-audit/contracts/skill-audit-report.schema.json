@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill Audit Report",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "target_skill",
+    "verdict",
+    "overall_score",
+    "scope_evidence",
+    "dimension_scores",
+    "findings",
+    "repair_handoff"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "artifact_type": {
+      "const": "skill-audit-report"
+    },
+    "target_skill": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verdict": {
+      "enum": ["fit", "conditional", "unfit", "blocked"]
+    },
+    "overall_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "verdict_reason": {
+      "type": "string"
+    },
+    "scope_evidence": {
+      "type": "array",
+      "minItems": 16,
+      "allOf": [
+        { "contains": { "properties": { "surface": { "const": "SKILL.md" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "agents/openai.yaml" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "references" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "scripts" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "templates" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "contracts" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "test prompts" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "evals" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "fixtures" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "runtime surface" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "install hooks" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "gate plan" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "run-all" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "focused runner" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "README" } }, "required": ["surface"] } },
+        { "contains": { "properties": { "surface": { "const": "downstream consumers" } }, "required": ["surface"] } }
+      ],
+      "items": {
+        "type": "object",
+        "required": ["surface", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "surface": {
+            "enum": [
+              "SKILL.md",
+              "agents/openai.yaml",
+              "references",
+              "scripts",
+              "templates",
+              "contracts",
+              "test prompts",
+              "evals",
+              "fixtures",
+              "runtime surface",
+              "install hooks",
+              "gate plan",
+              "run-all",
+              "focused runner",
+              "README",
+              "downstream consumers"
+            ]
+          },
+          "status": {
+            "enum": ["checked", "absent", "blocked"]
+          },
+          "evidence": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "dimension_scores": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "allOf": [
+        { "contains": { "properties": { "dimension": { "const": "Real Use Capability" } }, "required": ["dimension"] } },
+        { "contains": { "properties": { "dimension": { "const": "Trigger And Routing" } }, "required": ["dimension"] } },
+        { "contains": { "properties": { "dimension": { "const": "Instruction Contract" } }, "required": ["dimension"] } },
+        { "contains": { "properties": { "dimension": { "const": "Workflow Causality" } }, "required": ["dimension"] } },
+        { "contains": { "properties": { "dimension": { "const": "Output And Handoff" } }, "required": ["dimension"] } },
+        { "contains": { "properties": { "dimension": { "const": "Determinism And Validation" } }, "required": ["dimension"] } },
+        { "contains": { "properties": { "dimension": { "const": "Runtime Integration" } }, "required": ["dimension"] } },
+        { "contains": { "properties": { "dimension": { "const": "Evidence And Evals" } }, "required": ["dimension"] } },
+        { "contains": { "properties": { "dimension": { "const": "Noise And Maintainability" } }, "required": ["dimension"] } }
+      ],
+      "items": {
+        "type": "object",
+        "required": ["dimension", "score", "evidence_level", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "dimension": {
+            "enum": [
+              "Real Use Capability",
+              "Trigger And Routing",
+              "Instruction Contract",
+              "Workflow Causality",
+              "Output And Handoff",
+              "Determinism And Validation",
+              "Runtime Integration",
+              "Evidence And Evals",
+              "Noise And Maintainability"
+            ]
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "evidence_level": {
+            "enum": ["E0", "E1", "E2", "E3", "E4"]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "title", "evidence", "impact", "repair_target", "verification_hint"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": ["P0", "P1", "P2", "P3"]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "impact": {
+            "type": "string",
+            "minLength": 1
+          },
+          "repair_target": {
+            "type": "string"
+          },
+          "verification_hint": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "repair_handoff": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "action", "owner"],
+        "additionalProperties": false,
+        "properties": {
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "residual_risk": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

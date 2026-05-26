@@ -1,0 +1,37 @@
+{
+  "artifact_type": "artifact-registry",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-1.artifact-registry",
+  "schema_version": "1.0.0",
+  "producer": "artifact-registry-writer",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.scope_ref",
+    "$.registry_revision",
+    "$.active_revision_id",
+    "$.revisions"
+  ],
+  "scope_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+  "registry_revision": "bootstrap-r1",
+  "active_revision_id": "bootstrap-r1",
+  "revisions": [
+    {
+      "revision_id": "bootstrap-r1",
+      "appended_at": "2026-05-26T00:00:00Z",
+      "entries": [
+        {
+          "scope_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+          "artifact_id": "quanfangtong-homepage-entry-center.phase-1.tasks",
+          "artifact_type": "tasks",
+          "version": "tasks-bootstrap-r1",
+          "artifact_path": "tasks.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "tech-lead",
+          "restore_basis_refs": []
+        }
+      ]
+    }
+  ]
+}

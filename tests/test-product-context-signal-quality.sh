@@ -137,6 +137,92 @@ if missing:
 PY
 }
 
+assert_director_evaluator_rejects_missing_phase_goal() {
+  local evaluator="$1"
+  python3 - "$evaluator" <<'PY'
+import sys
+from pathlib import Path
+
+script_dir = Path(sys.argv[1]).parent
+sys.path.insert(0, str(script_dir))
+
+from evaluate_content_quality import evaluate  # noqa: E402
+
+brief = {
+    "root_problem": "finance operations specialist misses invoice follow-ups because status is split, causing delayed collection cost and rework.",
+    "user_profile": [{"who": "finance operations specialist"}],
+    "business_goals": [
+        "reduce missed overdue follow-ups from 5 per week to zero in a 30-day observation window"
+    ],
+    "appetite": {"investment_scale": "single focused phase"},
+    "scope_boundaries": ["daily queue", "owner acknowledgement", "overdue invoice visibility"],
+    "non_goals": ["customer messages", "invoice rule changes", "analytics dashboards"],
+    "feasibility_constraints": [
+        {
+            "type": "data",
+            "constraint": "daily export",
+            "impact_scope": "phase-1",
+            "handling": "daily queue visibility",
+        }
+    ],
+    "risks_and_unknowns": [
+        {
+            "item": "export cadence",
+            "impact": "phase scope remains bounded",
+            "mitigation": "keep daily visibility",
+            "status": "RESOLVED",
+        }
+    ],
+    "decision_rationale": [
+        {
+            "decision": "daily queue first",
+            "choice": "visibility before automation",
+            "rationale": "closes the missed follow-up loop",
+            "excluded_options": "customer messaging and analytics",
+        }
+    ],
+    "delivery_plan": [
+        {"phase_id": "phase-1", "goal": "daily follow-up baseline", "iteration_timebox_days": 10}
+    ],
+}
+phase_prd = {
+    "entry_conditions": ["finance owns the daily invoice review"],
+    "exit_conditions": ["finance can review overdue invoices before outreach"],
+}
+steps = [
+    "问题澄清",
+    "目标、成功标准与投入边界",
+    "业务语义收口",
+    "范围、本期不做、可行性约束与决策理由",
+    "风险与未知项",
+    "Phase 规划",
+    "Director Finalization",
+]
+confirmations = [
+    {
+        "checkpoint_id": f"PD-{index:02d}",
+        "step": step,
+        "decision_summary": "confirmed reduce missed follow-ups from 5 per week to zero in a 30-day window",
+    }
+    for index, step in enumerate(steps, start=1)
+]
+ledger = {
+    "confirmations": confirmations,
+    "handoff_refs": ["docs/sample/brief.json", "docs/sample/phase-1/phase-prd.json"],
+    "finalization_basis": {
+        "status": "confirmed",
+        "accepted_checkpoint_ids": [item["checkpoint_id"] for item in confirmations],
+    },
+}
+result = evaluate(brief, phase_prd, ledger, min_score=12)
+if result["verdict"] != "FAIL":
+    raise SystemExit("missing phase_goal must fail even when ledger is complete")
+failures = "\n".join(result["failures"])
+if "phase-prd.json.phase_goal must be a non-empty string" not in failures:
+    raise SystemExit(f"missing phase_goal failure was not explicit: {failures}")
+PY
+}
+
 assert_manager_fail_rerun_contract() {
   local file="$1"
   python3 - "$file" <<'PY'
@@ -163,6 +249,7 @@ DIRECTOR_SCOPE_GUIDE="$ROOT/shared/skills/product-director/references/scope-cons
 DIRECTOR_RISKS_GUIDE="$ROOT/shared/skills/product-director/references/risks-unknowns.md"
 DIRECTOR_PHASE_GUIDE="$ROOT/shared/skills/product-director/references/phase-planning.md"
 DIRECTOR_FINAL_GUIDE="$ROOT/shared/skills/product-director/references/final-artifacts.md"
+DIRECTOR_CONTENT_EVALUATOR="$ROOT/shared/skills/product-director/scripts/evaluate_content_quality.py"
 MANAGER_REVIEW="$ROOT/shared/skills/product-manager/references/review-orchestration.md"
 PRD_REVIEWER="$ROOT/shared/skills/product-manager/references/prd-reviewer-prompt.md"
 ARCHITECT_REVIEWER="$ROOT/shared/skills/product-manager/references/architect-reviewer-prompt.md"
@@ -182,6 +269,7 @@ test -f "$DIRECTOR_SCOPE_GUIDE" || fail "missing director scope/constraints guid
 test -f "$DIRECTOR_RISKS_GUIDE" || fail "missing director risks/unknowns guide: $DIRECTOR_RISKS_GUIDE"
 test -f "$DIRECTOR_PHASE_GUIDE" || fail "missing director phase guide: $DIRECTOR_PHASE_GUIDE"
 test -f "$DIRECTOR_FINAL_GUIDE" || fail "missing director final-artifacts guide: $DIRECTOR_FINAL_GUIDE"
+test -f "$DIRECTOR_CONTENT_EVALUATOR" || fail "missing director content evaluator: $DIRECTOR_CONTENT_EVALUATOR"
 test -f "$MANAGER_REVIEW" || fail "missing manager review orchestration: $MANAGER_REVIEW"
 test -f "$PRD_REVIEWER" || fail "missing PRD reviewer prompt: $PRD_REVIEWER"
 test -f "$ARCHITECT_REVIEWER" || fail "missing architect reviewer prompt: $ARCHITECT_REVIEWER"
@@ -227,6 +315,7 @@ PY
 assert_section_absent "$DIRECTOR_SKILL" "## HARD-GATE" 'director_confirmation|locked_field_digest' "director runtime-lock noise"
 assert_absent 'digest|locked_field|director_confirmation' "$DIRECTOR_FINAL_GUIDE" "director runtime-lock finalization noise"
 assert_present 'product-director-ledger\.json' "$DIRECTOR_FINAL_GUIDE" "director ledger artifact boundary"
+assert_director_evaluator_rejects_missing_phase_goal "$DIRECTOR_CONTENT_EVALUATOR"
 
 
 

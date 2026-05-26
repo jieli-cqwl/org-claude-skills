@@ -129,7 +129,6 @@ assert_present 'NO FAIL item without stable issue identity' "$QA_SKILL"
 assert_present 'valid `failure_class` and owner-level disposition' "$FIX_SKILL"
 
 assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized' "$DIRECTOR_SKILL"
-assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/product-manager-ledger.json" --producer product-manager --require-finalized' "$MANAGER_SKILL"
 assert_absent 'design-ledger.json' "$DESIGN_SKILL"
 assert_present 'bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"' "$DESIGN_SKILL"
 assert_present '`scope_item_refs` 说明范围来源；实际变更范围由 developer 在执行阶段自主分析确定。' "$TECH_LEAD_SKILL"

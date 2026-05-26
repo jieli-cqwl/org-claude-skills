@@ -32,22 +32,32 @@ co_creation_ledgers:
       producer: product-director
       path: docs/{feature}/product-director-ledger.json
       scope: feature
+      purpose: pre_finalization_recovery_and_confirmation
+      downstream_canonical_source: false
+      allowed_content:
+        - checkpoint
+        - subject_ref
+        - user_confirmed_decision_summary
+        - source_refs
+        - output_refs
+        - open_questions
+        - supersedes
+        - handoff_refs
+        - finalization_basis
+      forbidden_content:
+        - full_baseline_copy
+        - pm_product_model
+        - acceptance_criteria
+        - design_decisions
+        - implementation_details
+        - downstream_requirements
       checkpoint_steps: [问题澄清, 目标、成功标准与投入边界, 业务语义收口, 范围、本期不做、可行性约束与决策理由, 风险与未知项, Phase 规划, Director Finalization]
       canonical_outputs:
         - docs/{feature}/brief.json
         - docs/{feature}/phase-{N}/phase-prd.json
       consumer: product-director
-    product-manager:
-      artifact_type: co-creation-ledger
-      producer: product-manager
-      path: docs/{feature}/phase-{N}/product-manager-ledger.json
-      scope: phase
-      checkpoint_steps: [Handoff gate, Evidence and AS-IS, TO-BE product model, Feature inventory and risk, Pre-UNIT gate, UNIT split, AC, Verification Plan, Design handoff, Self-check, Review digest, Agent review, PM handoff gate, Delivery]
-      canonical_outputs:
-        - docs/{feature}/brief.json
-        - docs/{feature}/phase-{N}/phase-prd.json
-        - docs/{feature}/phase-{N}/units/UNIT-{N}.json
-      consumer: product-manager
+      control_input: false
+      note: Product Manager and Design do not have co-creation ledger artifacts.
   validation:
     command: python3 tools/community/validate_co_creation_ledger.py --artifact <ledger.json> --producer <producer> --require-finalized
     unresolved_supersedes_blocks_finalization: true

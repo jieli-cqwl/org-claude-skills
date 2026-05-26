@@ -20,9 +20,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 - 上游稳定：Director locked fields、Phase 目标、入口、出口、范围、非目标、可行性、风险和时间盒未漂移。
 - 顺序稳定：当前节点只消费原始输入和前序已写字段。
 - UNIT 前置稳定：证据、AS-IS、TO-BE、流程图、功能清单、入口场景、业务对象、状态、权限、规则和风险足以拆 UNIT。
-- 恢复状态稳定：如果已有 PM 工作草稿、`product-manager-ledger.json` 过程账本或 `delivery_confirmation`，先处理未关闭 FAIL、未承接 WARN、过期 digest、未解决 supersedes、历史 open question 或已确认交付后的漂移。
+- 恢复状态稳定：如果已有 PM 工作草稿、`review_conclusion`、`issue_ledger` 或 `delivery_confirmation`，先处理未关闭 FAIL、未承接 WARN、过期 digest、历史 open question 或已确认交付后的漂移。
 
-任一不成立：记录 owner、阻断事实、影响产物、回流节点和恢复条件。用户要求 HOW 层方案时，先改写为 WHAT 层约束；仍无法落到 WHAT 时写入 `product-manager-ledger.json.open_questions`，标明需要的下游角色和裁决事实，不写 PM 产品结论。
+任一不成立：记录 owner、阻断事实、影响产物、回流节点和恢复条件。用户要求 HOW 层方案时，先改写为 WHAT 层约束；仍无法落到 WHAT 时写入对应 JSON 的 `issue_ledger`，标明需要的下游角色和裁决事实，不写 PM 产品结论。
 
 ## 正确产出
 
@@ -31,7 +31,7 @@ PM 的正确产出是结构化业务事实和产品判断包；JSON 承载下游
 - `phase-prd.json` 写 Phase 产品模型：现状、目标、入口、出口、角色在何条件下可触发/执行/审批/查看/撤销、对象状态变化、用户可见状态、范围边界、业务态/端/路径覆盖、风险落点、技术证据输入、设计决策候选和发布口径。
 - `units/UNIT-*.json` 回答交付切片：每个 UNIT 的触发、核心行为、可观察结果、优先级依据、依赖、排除项、Integration Context、AC、Verification Plan 和功能/流程/风险/规则追溯。
 - `brief.json` 写交付闭合：PM issue、review digest、review conclusion 和 delivery confirmation 是否已经关闭。
-- `product-manager-ledger.json` 记录过程控制：checkpoint、open question、supersedes 和 finalization；不写产品事实，不作为下游需求来源。
+- PM 过程状态写入正式 JSON：阻断、WARN、漂移和 open question 写 `issue_ledger`；评审 digest、reviewer verdict 和收敛证据写 `review_conclusion`；用户接受后写 `delivery_confirmation`。
 - 用户给方案词时，改写为业务行为、业务约束、可观察结果、风险或设计交接；技术实现路径、接口字段、组件方案和测试实现留给下游。
 
 ## Checklist
@@ -84,14 +84,14 @@ digraph product_manager_flow {
 
 执行规则：读取 `templates/*.template.json` 创建目标 JSON；模板只提供结构起点，复制后立即替换所有样例业务值，目标 JSON 残留 `sample-feature`、`request review`、`Requester` 或 `Reviewer` 等样例文本即失败；用 `contracts/*.schema.json` 限定合法字段；用 scripts/gates 判定完成。后续节点发现缺字段时，回到字段拥有节点补齐。
 
-过程账本：`product-manager-ledger.json` 按 `contracts/co-creation-ledgers.yaml` 的 product-manager 合同写；每次 checkpoint confirmation 写 `step`、`subject_ref`、`decision_summary`、`source_refs` 和 `output_refs`。ledger 只记录协作确认、问题和漂移，不写产品事实。
+PM 状态字段：不生成 PM co-creation ledger。阻断、open question、WARN 和漂移写入拥有该问题的 `issue_ledger`；评审 digest、reviewer verdict 和收敛证据写入 `review_conclusion`；用户接受后写入 `brief.json.delivery_confirmation`。
 
-**Handoff gate**：读取 `brief.json`、当前 `phase-prd.json` 和既有 `product-manager-ledger.json`（如存在）；运行 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`。
+**Handoff gate**：读取 `brief.json` 和当前 `phase-prd.json`；运行 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`。
 - 确认 Director baseline 已通过、Phase 边界一致、时间盒未超过 14 天、锁定字段未漂移。
 - 扫描歧义定义、范围灰区、输入缺口和语义冲突。
 - 把缺口分为 PM 可收口、需要用户裁决、必须回 Director 三类。
 - PM 可收口项带入后续对应字段。
-- 需要用户或 Director 的项写入 `product-manager-ledger.json.open_questions`，并停在 Handoff gate。
+- 需要用户或 Director 的项写入对应 JSON 的 `issue_ledger`，并停在 Handoff gate。
 - Director locked fields 需要改变时，记录漂移并停止。
 
 **Evidence and AS-IS**：读取 `brief.json`、当前 `phase-prd.json`、入口截图、录屏、页面描述、接口请求/响应、数据前后值、审计日志、测试记录、流程文档、用户反馈或用户裁决。
@@ -205,13 +205,13 @@ digraph product_manager_flow {
 - 关闭 FAIL；WARN 写入 owner 和承接目标。
 
 **PM handoff gate**：复核评审、风险、issue、digest 和最终 JSON 一致性。
-- 运行完成校验中的 digest、preflight、`product-manager-ledger.json`、standard-chain 和 closure 命令。
+- 运行完成校验中的 digest、preflight、standard-chain 和 closure 命令。
 - 任一项不一致，回到对应步骤修正。
 
-**Delivery**：确认没有 `NEEDS_DECISION`、`OPEN/BLOCKED` 风险、未关闭 FAIL、未承接 WARN、过期 digest 或未解决 supersedes。
+**Delivery**：确认没有 `NEEDS_DECISION`、`OPEN/BLOCKED` 风险、未关闭 FAIL、未承接 WARN、过期 digest 或未关闭 `issue_ledger` 漂移项。
 - 向用户确认一个会改变交付结论的业务事实。
 - 用户接受 PM 交付后，写 `brief.json.delivery_confirmation.status=confirmed` 和 `confirmed_at`。
-- `product-manager-ledger.json.supersedes` 保持无未解决漂移。
+- 所有 `issue_ledger` 项均已关闭或有明确下游承接。
 - 最终报告列出 JSON artifact：`brief.json`、`phase-prd.json`、`units/UNIT-*.json`。
 
 ## 用户协作
@@ -233,14 +233,12 @@ digraph product_manager_flow {
 - `docs/{feature}/brief.json`：承载 PM issue、评审结论和交付确认；用户接受后写 `delivery_confirmation`。
 - `docs/{feature}/phase-{N}/phase-prd.json`：Handoff gate 通过后作为工作草稿；逐环节写 PM 产品模型、功能清单、风险、UNIT 索引、设计交接和评审字段。
 - `docs/{feature}/phase-{N}/units/UNIT-*.json`：UNIT split 后作为工作草稿；写 UNIT 闭环、优先级、Integration Context、AC、Verification Plan、依赖和排除项。
-- `docs/{feature}/phase-{N}/product-manager-ledger.json`：记录 PM 过程控制信息：checkpoint、open question、supersedes 和 finalization；不承载产品模型、AC、Verification Plan、风险结论或下游需求事实，不替代 `brief.json`、`phase-prd.json` 和 `units/UNIT-*.json`。
-- `shared/skills/product-manager/templates/brief.template.json`、`phase-prd.template.json` 和 `unit-definition.template.json` 提供 JSON 结构起点；读取模板后写入目标 `docs/{feature}/...json`。
-- `review_conclusion` 在 review digest 和 Agent review 完成后写；`delivery_confirmation` 在用户接受后写。
+- `review_conclusion` 在 review digest 和 Agent review 完成后写；`issue_ledger` 记录阻断、open question、WARN 和漂移；`delivery_confirmation` 在用户接受后写。
 
 ## 完成校验
 
 - [ ] Director handoff 通过，Director-owned 字段未改变。
-- [ ] 目标 JSON 无模板样例业务文本，`product-manager-ledger.json` 只记录协作过程，不承载产品事实。
+- [ ] 目标 JSON 无模板样例业务文本，评审、issue 和交付字段只承载 PM 闭环状态，不替代产品事实。
 - [ ] 证据、AS-IS、TO-BE、业务流程图、功能清单、入口场景、业务对象、状态、权限、规则、覆盖矩阵、技术证据输入、发布口径和风险已闭合或明确 N/A。
 - [ ] Director 目标、成功标准、范围、非目标、风险、Phase 入口/出口和输入表格/清单/验收项已逐条映射或明确 N/A/边界。
 - [ ] `NEEDS_DECISION`、开放风险和预评审阻断均已关闭，再进入 UNIT 拆分。
@@ -258,6 +256,5 @@ digraph product_manager_flow {
   - `python3 shared/skills/product-manager/scripts/review_digest.py --phase-dir "$PHASE_DIR" --check-artifact "$(dirname "$PHASE_DIR")/brief.json"`
   - `python3 shared/skills/product-manager/scripts/review_digest.py --phase-dir "$PHASE_DIR" --check-artifact "$PHASE_DIR/phase-prd.json"`
   - `bash shared/skills/product-manager/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`
-  - `python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/product-manager-ledger.json" --producer product-manager --require-finalized`
   - `python3 tools/community/validate_standard_chain_phase.py --phase-dir "$PHASE_DIR"`
   - `python3 tools/community/validate_product_closure.py --artifact "$(dirname "$PHASE_DIR")/brief.json" --require-review --require-delivery`

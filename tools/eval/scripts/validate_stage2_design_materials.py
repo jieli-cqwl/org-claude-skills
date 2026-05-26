@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any
 
 from render_stage2_product_director_handoff import render
-from validate_stage2_confirmed_brief_materials import build_package as build_confirmed_package
+from validate_stage2_confirmed_brief_materials import (
+    build_package as build_confirmed_package,
+)
 from validate_stage2_design_package import (
     DESIGN_ALLOWED_ACTIONS,
     DESIGN_BLOCKED_ACTIONS,
@@ -35,25 +37,27 @@ def reviewed_design_digest(payload: dict[str, Any]) -> str:
     return digest(reviewed_design)
 
 
-def co_creation_summary() -> list[dict[str, Any]]:
+def design_stage_confirmations() -> list[dict[str, Any]]:
     rows = [
-        ("stakeholders-and-concerns", "干系人与关注点", "确认设计消费者和关注点"),
-        ("architecture-significant-requirements", "架构显著需求", "确认 PM 冻结范围、不自动外发和失败可接管约束"),
-        ("current-state-evidence", "现状证据", "确认现有 qft-pai 主流程证据边界"),
-        ("complexity-model", "复杂度模型", "确认先设计单渠道文本消息闭环"),
-        ("decision-discovery", "决策识别", "确认消息建议回复包的输入输出和错误模式"),
-        ("option-tradeoff", "方案取舍", "确认单入口状态机优先于分入口汇聚"),
-        ("design-synthesis", "设计合成", "确认可观测性、幂等、失败接管和 test-design 交接义务"),
+        ("stakeholders-and-concerns", "确认设计消费者和关注点"),
+        (
+            "architecture-significant-requirements",
+            "确认 PM 冻结范围、不自动外发和失败可接管约束",
+        ),
+        ("current-state-evidence", "确认现有 qft-pai 主流程证据边界"),
+        ("complexity-model", "确认先设计单渠道文本消息闭环"),
+        ("decision-discovery", "确认消息建议回复包的输入输出和错误模式"),
+        ("option-tradeoff", "确认单入口状态机优先于分入口汇聚"),
+        ("design-synthesis", "确认可观测性、幂等、失败接管和 test-design 交接义务"),
     ]
     return [
         {
             "stage_id": stage_id,
-            "stage_name": stage_name,
-            "question_or_focus": focus,
-            "user_response_summary": f"{focus} 已基于 PM package 确认",
-            "decision_refs": ["design.json#key_decisions[0].decision_id"],
+            "confirmation_focus": focus,
+            "user_confirmation_summary": f"{focus} 已基于 PM package 确认",
+            "design_refs": ["design.json#key_decisions[0].decision_id"],
         }
-        for stage_id, stage_name, focus in rows
+        for stage_id, focus in rows
     ]
 
 
@@ -119,7 +123,11 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
                 "interface_id": "IF-001",
                 "owner": "MOD-001",
                 "contract_summary": "输入三方文本消息回调和租户/会话标识，输出建议回复包、trace_id、上下文摘要和人工确认状态。",
-                "error_modes": ["validation_error", "context_missing", "agent_dispatch_failed"],
+                "error_modes": [
+                    "validation_error",
+                    "context_missing",
+                    "agent_dispatch_failed",
+                ],
                 "input_params": [
                     {
                         "name": "message_payload",
@@ -152,12 +160,16 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
                 ],
             }
         ],
-        "interface_boundary": ["third_party_callback -> IF-001 -> MOD-001: 不自动外发，所有输出先进入人工确认。"],
+        "interface_boundary": [
+            "third_party_callback -> IF-001 -> MOD-001: 不自动外发，所有输出先进入人工确认。"
+        ],
         "quality_attributes": [
             {
                 "attribute": "operability",
                 "priority": "P0",
-                "key_scenarios": ["客服需要定位任意建议回复来自哪条消息、哪些上下文和哪次 agent 调度"],
+                "key_scenarios": [
+                    "客服需要定位任意建议回复来自哪条消息、哪些上下文和哪次 agent 调度"
+                ],
                 "target_metrics": ["每次处理必须生成 trace_id 并保留上下文来源摘要"],
                 "tradeoff_points": ["暂不追求多渠道吞吐，优先保证单闭环可观测"],
                 "verification_refs": ["VP-001"],
@@ -174,15 +186,39 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
         ],
         "data_architecture": {
             "summary": "单闭环围绕 message_id、tenant_id、conversation_id 和 trace_id 建立状态记录；建议回复只作为待确认数据。",
-            "storage_decisions": ["保留原始回调摘要、上下文来源摘要、agent 调度结果和人工确认状态"],
-            "data_flows": ["third_party_callback -> MOD-001 -> manual_confirmation_queue"],
+            "storage_decisions": [
+                "保留原始回调摘要、上下文来源摘要、agent 调度结果和人工确认状态"
+            ],
+            "data_flows": [
+                "third_party_callback -> MOD-001 -> manual_confirmation_queue"
+            ],
             "consistency_strategy": "以 message_id 和 tenant_id 做幂等键，重复回调返回同一 trace 状态。",
         },
         "cross_cutting_concerns": [
-            {"concern": "auth", "decision": "按租户隔离消息处理和人工确认视图。", "owner": "MOD-001", "verification_refs": ["VP-001"]},
-            {"concern": "error", "decision": "上下文不足或调度失败必须进入人工接管。", "owner": "MOD-001", "verification_refs": ["VP-001"]},
-            {"concern": "log", "decision": "每次处理输出 trace_id、上下文来源和调度结果摘要。", "owner": "MOD-001", "verification_refs": ["VP-001"]},
-            {"concern": "config", "decision": "自动外发开关在本阶段固定关闭。", "owner": "MOD-001", "verification_refs": ["VP-001"]},
+            {
+                "concern": "auth",
+                "decision": "按租户隔离消息处理和人工确认视图。",
+                "owner": "MOD-001",
+                "verification_refs": ["VP-001"],
+            },
+            {
+                "concern": "error",
+                "decision": "上下文不足或调度失败必须进入人工接管。",
+                "owner": "MOD-001",
+                "verification_refs": ["VP-001"],
+            },
+            {
+                "concern": "log",
+                "decision": "每次处理输出 trace_id、上下文来源和调度结果摘要。",
+                "owner": "MOD-001",
+                "verification_refs": ["VP-001"],
+            },
+            {
+                "concern": "config",
+                "decision": "自动外发开关在本阶段固定关闭。",
+                "owner": "MOD-001",
+                "verification_refs": ["VP-001"],
+            },
         ],
         "verification_mapping": [
             {
@@ -192,22 +228,79 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
                 "evidence_ref": "VP-001",
             }
         ],
-        "unit_coverage": [{"unit_id": unit["unit_id"], "ac_refs": ["AC-U1-01"], "design_refs": ["MOD-001", "IF-001"]}],
-        "impact_scope": [{"scope_item_id": "SCOPE-001", "affected_modules": ["MOD-001"], "impact": "新增消息建议回复编排边界，保护不自动外发和失败接管。", "verification_refs": ["VP-001"]}],
-        "planning_constraints": [{"constraint_id": "PLAN-CON-001", "constraint_type": "sequencing", "description": "test-design 先验收设计义务，再由 tech-lead 拆实现任务。", "owner": "tech-lead"}],
-        "product_handoff": {"status": "READY", "accepted_refs": ["brief.json#delivery_confirmation", "phase-prd.json#review_conclusion"], "open_failures": [], "warn_followups": []},
-        "risks": [{"risk_id": "R-001", "description": "上下文不足时建议回复可能误导客服。", "severity": "medium", "source_ref": "phase-prd.json#exit_conditions"}],
-        "risk_response": [{"risk_id": "R-001", "architecture_response": "上下文不足时不生成自动外发结果，只生成接管原因和补充上下文提示。", "verification_refs": ["VP-001"]}],
-        "migration_plan": ["Stage 2 只定义设计包，不修改 qft-pai 代码；实现迁移由 tech-lead 后续拆解。"],
-        "verification_plan": ["test-design 使用 VP-001 派生成功、上下文缺失和调度失败用例。"],
-        "rollback_plan": ["实现阶段若 trace 或人工确认缺失，停止进入部署并回到 design 修正接口边界。"],
-        "co_creation_summary": co_creation_summary(),
+        "unit_coverage": [
+            {
+                "unit_id": unit["unit_id"],
+                "ac_refs": ["AC-U1-01"],
+                "design_refs": ["MOD-001", "IF-001"],
+            }
+        ],
+        "impact_scope": [
+            {
+                "scope_item_id": "SCOPE-001",
+                "affected_modules": ["MOD-001"],
+                "impact": "新增消息建议回复编排边界，保护不自动外发和失败接管。",
+                "verification_refs": ["VP-001"],
+            }
+        ],
+        "planning_constraints": [
+            {
+                "constraint_id": "PLAN-CON-001",
+                "constraint_type": "sequencing",
+                "description": "test-design 先验收设计义务，再由 tech-lead 拆实现任务。",
+                "owner": "tech-lead",
+            }
+        ],
+        "product_handoff": {
+            "status": "READY",
+            "accepted_refs": [
+                "brief.json#delivery_confirmation",
+                "phase-prd.json#review_conclusion",
+            ],
+            "open_failures": [],
+            "warn_followups": [],
+        },
+        "risks": [
+            {
+                "risk_id": "R-001",
+                "description": "上下文不足时建议回复可能误导客服。",
+                "severity": "medium",
+                "source_ref": "phase-prd.json#exit_conditions",
+            }
+        ],
+        "risk_response": [
+            {
+                "risk_id": "R-001",
+                "architecture_response": "上下文不足时不生成自动外发结果，只生成接管原因和补充上下文提示。",
+                "verification_refs": ["VP-001"],
+            }
+        ],
+        "migration_plan": [
+            "Stage 2 只定义设计包，不修改 qft-pai 代码；实现迁移由 tech-lead 后续拆解。"
+        ],
+        "verification_plan": [
+            "test-design 使用 VP-001 派生成功、上下文缺失和调度失败用例。"
+        ],
+        "rollback_plan": [
+            "实现阶段若 trace 或人工确认缺失，停止进入部署并回到 design 修正接口边界。"
+        ],
+        "design_stage_confirmations": design_stage_confirmations(),
         "constraint_inheritance_confirmation": {
             "status": "confirmed",
             "confirmed_at": "2026-05-14T02:10:00Z",
-            "source_refs": ["brief.json#delivery_confirmation", "phase-prd.json#review_conclusion"],
-            "inherited_constraints": ["不自动外发", "失败可人工接管", "单渠道文本消息优先"],
-            "rejected_constraints": ["本阶段不承诺多渠道统一接入", "本阶段不进入代码实现"],
+            "source_refs": [
+                "brief.json#delivery_confirmation",
+                "phase-prd.json#review_conclusion",
+            ],
+            "inherited_constraints": [
+                "不自动外发",
+                "失败可人工接管",
+                "单渠道文本消息优先",
+            ],
+            "rejected_constraints": [
+                "本阶段不承诺多渠道统一接入",
+                "本阶段不进入代码实现",
+            ],
             "confirmation_summary": "PM 冻结的 WHAT 和非目标全部继承，design 只冻结 HOW 边界。",
         },
     }
@@ -216,9 +309,24 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
         "reviewed_design_digest": reviewed_digest,
         "reviewed_at": "2026-05-14T02:20:00Z",
         "reviewers": [
-            {"reviewer": "architecture", "verdict": "PASS", "reviewed_design_digest": reviewed_digest, "finding_refs": []},
-            {"reviewer": "product", "verdict": "PASS", "reviewed_design_digest": reviewed_digest, "finding_refs": []},
-            {"reviewer": "test", "verdict": "PASS", "reviewed_design_digest": reviewed_digest, "finding_refs": []},
+            {
+                "reviewer": "architecture",
+                "verdict": "PASS",
+                "reviewed_design_digest": reviewed_digest,
+                "finding_refs": [],
+            },
+            {
+                "reviewer": "product",
+                "verdict": "PASS",
+                "reviewed_design_digest": reviewed_digest,
+                "finding_refs": [],
+            },
+            {
+                "reviewer": "test",
+                "verdict": "PASS",
+                "reviewed_design_digest": reviewed_digest,
+                "finding_refs": [],
+            },
         ],
         "resolved_failures": [],
         "warn_followups": [],
@@ -255,10 +363,17 @@ def build_design_package(pm_package: dict[str, Any]) -> dict[str, Any]:
 
 def validate_materials(repo_root: Path) -> dict[str, Any]:
     example_payload = load_json(repo_root / DEFAULT_INTAKE.relative_to(ROOT))
-    handoff, handoff_exit = render(make_real_candidate(example_payload), Path("real-stage2-intake-facts.json"))
+    handoff, handoff_exit = render(
+        make_real_candidate(example_payload), Path("real-stage2-intake-facts.json")
+    )
     failures: list[str] = []
     if handoff_exit != 0:
-        return {"status": "fail", "failed_checks": ["real intake candidate did not render product-director handoff"]}
+        return {
+            "status": "fail",
+            "failed_checks": [
+                "real intake candidate did not render product-director handoff"
+            ],
+        }
 
     pm_package = build_pm_package(build_confirmed_package(handoff))
     package = build_design_package(pm_package)
@@ -268,7 +383,9 @@ def validate_materials(repo_root: Path) -> dict[str, Any]:
 
     broken = copy.deepcopy(package)
     broken["decision_boundary"]["blocked_actions"] = [
-        action for action in broken["decision_boundary"]["blocked_actions"] if action != "code_changes"
+        action
+        for action in broken["decision_boundary"]["blocked_actions"]
+        if action != "code_changes"
     ]
     broken["decision_boundary"]["allowed_actions"].append("code_changes")
     if validate(broken)["status"] == "pass":

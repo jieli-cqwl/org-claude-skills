@@ -43,12 +43,12 @@ SYNTAX_SHELL_FILES=(
   "tests/test-install-runtime-quick-canary.sh"
   "tests/test-install-runtime-smoke.sh"
   "tests/test-standard-chain-validator-stack.sh"
+  "tests/test-standard-chain-field-consumption-contract.sh"
   "tests/test-context-contract-validator.sh"
   "tests/test-skill-output-and-gate-contract.sh"
   "tests/test-managed-doc-output-contract.sh"
   "shared/skills/research/scripts/completion_check.sh"
   "shared/skills/delivery-owner/scripts/completion_check.sh"
-  "shared/skills/skill-refiner/scripts/completion_check.sh"
   "shared/skills/delivery-owner/scripts/intake_preflight_check.sh"
   "shared/skills/delivery-owner/scripts/task_packet_check.sh"
 )
@@ -74,6 +74,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"
   python3 -m py_compile "$ROOT/tools/community/update_active_doc_scope.py"
   python3 -m py_compile "$ROOT/tools/community/validate_co_creation_ledger.py"
+  python3 -m py_compile "$ROOT/tools/community/validate_standard_chain_field_consumption.py"
   python3 -m py_compile "$ROOT/tools/community/check_test_signal_assertions.py"
   python3 -m py_compile "$ROOT/tools/community/gate_plan.py"
   python3 -m py_compile "$ROOT/tools/community/validate_episode_package.py"
@@ -86,9 +87,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/shared/skills/product-manager/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT/shared/skills/verify/scripts/preflight_check.py"
   python3 -m py_compile "$ROOT"/shared/skills/delivery-estimator/scripts/*.py
-  python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_refinement_result.py"
-  python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_effect_evidence.py"
-  python3 -m py_compile "$ROOT/shared/skills/skill-refiner/scripts/validate_retain_evidence.py"
+  python3 -m py_compile "$ROOT/shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py"
   python3 -m py_compile "$ROOT/shared/skills/research/scripts/validate_retain_evidence.py"
 }
 

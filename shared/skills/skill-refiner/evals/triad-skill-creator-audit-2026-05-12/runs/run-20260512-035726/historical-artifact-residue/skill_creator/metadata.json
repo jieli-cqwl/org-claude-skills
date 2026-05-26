@@ -1,9 +1,0 @@
-{
-  "scenario_id": "historical-artifact-residue",
-  "arm": "skill_creator",
-  "returncode": 0,
-  "started_at": "2026-05-12T11:00:32.131338+00:00",
-  "finished_at": "2026-05-12T11:01:55.963495+00:00",
-  "duration_seconds": 83.832157,
-  "response_file": "historical-artifact-residue/skill_creator/response.json"
-}

@@ -1,9 +1,0 @@
-{
-  "scenario_id": "new-skill-from-scratch",
-  "arm": "skill_refiner",
-  "returncode": 0,
-  "started_at": "2026-05-12T13:46:25.577863+00:00",
-  "finished_at": "2026-05-12T13:47:16.381454+00:00",
-  "duration_seconds": 50.803591,
-  "response_file": "new-skill-from-scratch/skill_refiner/response.json"
-}

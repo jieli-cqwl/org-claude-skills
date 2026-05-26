@@ -5,9 +5,44 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=tests/lib/install-test-env.sh
 . "$ROOT/tests/lib/install-test-env.sh"
 
+GROUP="all"
+
+usage() {
+  cat <<'USAGE'
+Usage: bash tests/test-install-safety.sh [--group all|backup-and-conflict|external-codex|external-claude|rollback|codex-hooks|state-cleanup|preserve-backup]
+USAGE
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --group)
+      [ "$#" -ge 2 ] || install_test_fail "--group 缺少参数"
+      GROUP="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      install_test_fail "未知参数: $1"
+      ;;
+  esac
+done
+
+case "$GROUP" in
+  all|backup-and-conflict|external-codex|external-claude|rollback|codex-hooks|state-cleanup|preserve-backup) ;;
+  *) install_test_fail "未知 install-safety group: $GROUP" ;;
+esac
+
+should_run_group() {
+  [ "$GROUP" = "all" ] || [ "$GROUP" = "$1" ]
+}
+
 install_test_init
 
-install_test_case_start "safety: uninstall refuses missing backup manifest"
+if should_run_group backup-and-conflict; then
+  install_test_case_start "safety: uninstall refuses missing backup manifest"
 home_dir="$(install_test_new_home safety-missing-backup)"
 state_root="$(install_test_state_root "$home_dir")"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-missing-backup-install)" --target claude --force --check quick
@@ -35,8 +70,10 @@ install_test_assert_file_contains "$log_file" "codex 检测到旧路径 ~/.codex
 install_test_assert_file_not_contains "$log_file" "unbound variable" "legacy codex conflict should not crash under nounset"
 install_test_assert_file_contains "$home_dir/.codex/skills/local-legacy/SKILL.md" "local legacy skill" "legacy skill should remain unchanged when install is refused"
 install_test_case_pass "safety: codex legacy skill conflict reports usable error without force"
+fi
 
-install_test_case_start "safety: codex external runtime skill survives reinstall"
+if should_run_group external-codex; then
+  install_test_case_start "safety: codex external runtime skill survives reinstall"
 home_dir="$(install_test_new_home safety-codex-external-runtime-skill)"
 state_root="$(install_test_state_root "$home_dir")"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-codex-external-runtime-skill-1)" --target codex --force --check quick
@@ -64,8 +101,10 @@ install_test_run_install "$home_dir" "$(install_test_log_path safety-codex-exter
 install_test_assert_file_contains "$home_dir/.agents/skills/cc/SKILL.md" "External QFT command panel" "external codex skill should survive org uninstall"
 install_test_assert_file_contains "$home_dir/.agents/skills/cc/references/cc-routes.md" "external routes" "external codex skill child file should survive org uninstall"
 install_test_case_pass "safety: codex external runtime skill survives reinstall"
+fi
 
-install_test_case_start "safety: claude external runtime skill survives reinstall"
+if should_run_group external-claude; then
+  install_test_case_start "safety: claude external runtime skill survives reinstall"
 home_dir="$(install_test_new_home safety-claude-external-runtime-skill)"
 state_root="$(install_test_state_root "$home_dir")"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-claude-external-runtime-skill-1)" --target claude --force --check quick
@@ -93,8 +132,10 @@ install_test_run_install "$home_dir" "$(install_test_log_path safety-claude-exte
 install_test_assert_file_contains "$home_dir/.claude/skills/cc/SKILL.md" "External QFT command panel" "external claude skill should survive org uninstall"
 install_test_assert_file_contains "$home_dir/.claude/skills/cc/references/cc-routes.md" "external routes" "external claude skill child file should survive org uninstall"
 install_test_case_pass "safety: claude external runtime skill survives reinstall"
+fi
 
-install_test_case_start "safety: install failure rolls back managed files"
+if should_run_group rollback; then
+  install_test_case_start "safety: install failure rolls back managed files"
 home_dir="$(install_test_new_home safety-rollback)"
 state_root="$(install_test_state_root "$home_dir")"
 mkdir -p "$home_dir/.claude/reference"
@@ -108,8 +149,10 @@ install_test_assert_failure "$rc" "install should fail when reference dir is rea
 install_test_assert_path_absent "$home_dir/.claude/agents/code-reviewer.md" "rollback should remove managed agent file"
 install_test_assert_path_absent "$state_root/claude/installed-version" "rollback should not leave version metadata"
 install_test_case_pass "safety: install failure rolls back managed files"
+fi
 
-install_test_case_start "safety: codex uninstall preserves user hooks and restores config"
+if should_run_group codex-hooks; then
+  install_test_case_start "safety: codex uninstall preserves user hooks and restores config"
 home_dir="$(install_test_new_home safety-codex-user-hooks)"
 mkdir -p "$home_dir/bin"
 mkdir -p "$home_dir/.codex/hooks/managed-old"
@@ -185,8 +228,10 @@ install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"SessionStart"'
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/bin/session_notify.sh" "supported SessionStart command should be restored after uninstall"
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/" "managed codex hooks should not remain after restoring supported baseline"
 install_test_case_pass "safety: codex uninstall restores supported hook baseline"
+fi
 
-install_test_case_start "safety: uninstall removes external state dirs"
+if should_run_group state-cleanup; then
+  install_test_case_start "safety: uninstall removes external state dirs"
 home_dir="$(install_test_new_home safety-state-cleanup)"
 state_root="$(install_test_state_root "$home_dir")"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-state-cleanup-install)" --target all --force --check quick
@@ -194,8 +239,10 @@ install_test_run_install "$home_dir" "$(install_test_log_path safety-state-clean
 install_test_assert_path_absent "$state_root/claude" "claude state dir should be removed after uninstall"
 install_test_assert_path_absent "$state_root/codex" "codex state dir should be removed after uninstall"
 install_test_case_pass "safety: uninstall removes external state dirs"
+fi
 
-install_test_case_start "safety: repeated force install preserves original restore baseline"
+if should_run_group preserve-backup; then
+  install_test_case_start "safety: repeated force install preserves original restore baseline"
 home_dir="$(install_test_new_home safety-preserve-backup)"
 mkdir -p "$home_dir/.claude/hooks"
 printf 'user original hook\n' > "$home_dir/.claude/hooks/block_dangerous.sh"
@@ -205,5 +252,6 @@ install_test_run_install "$home_dir" "$(install_test_log_path safety-preserve-ba
 grep -Fxq 'user original hook' "$home_dir/.claude/hooks/block_dangerous.sh" \
   || install_test_fail "uninstall should restore the original user file after repeated force installs"
 install_test_case_pass "safety: repeated force install preserves original restore baseline"
+fi
 
 printf '\nInstall safety tests passed: %d\n' "$INSTALL_TEST_CASE_COUNT"

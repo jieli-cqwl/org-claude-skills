@@ -4,7 +4,7 @@
 - failed expectations: 0
 - infra failures: 0
 - pass rate: 1.00
-- retention: summary-level evidence only; detailed run directories and logs are reproducible via `skill-refiner-result.json` verification commands
+- retention: summary-level evidence only; detailed run directories and logs are reproducible via archived verification command records
 
 ## Runs
 - test-design / missing-design-blocks-test-design: 5/5 passed

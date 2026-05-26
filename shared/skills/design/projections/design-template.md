@@ -16,7 +16,7 @@
 
 | 阶段 | 本节回答 | 设计引用 |
 | --- | --- | --- |
-| Stakeholders & Concerns | 谁消费设计，关注什么。 | `co_creation_summary` |
+| Stakeholders & Concerns | 谁消费设计，关注什么。 | `design_stage_confirmations` |
 | Architecture-Significant Requirements | 哪些需求会改变架构。 | `input_analysis` |
 | Current-State Evidence | 哪些事实支撑决策。 | `runtime_facts` |
 | Complexity Model | 复杂度来自哪里，为什么不加多余结构。 | `input_analysis`、`co_creation_summary` |

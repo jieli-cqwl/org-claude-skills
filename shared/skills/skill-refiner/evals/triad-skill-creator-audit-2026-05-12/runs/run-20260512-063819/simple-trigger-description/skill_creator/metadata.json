@@ -1,9 +1,0 @@
-{
-  "scenario_id": "simple-trigger-description",
-  "arm": "skill_creator",
-  "returncode": 0,
-  "started_at": "2026-05-12T13:42:00.945979+00:00",
-  "finished_at": "2026-05-12T13:42:52.582631+00:00",
-  "duration_seconds": 51.636652,
-  "response_file": "simple-trigger-description/skill_creator/response.json"
-}

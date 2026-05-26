@@ -1,0 +1,597 @@
+{
+  "artifact_type": "phase-prd",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-1.prd",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.phase_goal",
+    "$.entry_conditions",
+    "$.exit_conditions",
+    "$.evidence_sources",
+    "$.as_is_flows",
+    "$.to_be_flows",
+    "$.business_process_graphs",
+    "$.feature_inventory",
+    "$.module_capability_matrix",
+    "$.entry_scene_inventory",
+    "$.business_objects",
+    "$.state_transitions",
+    "$.role_permission_matrix",
+    "$.risk_ledger",
+    "$.coverage_matrix",
+    "$.technical_evidence_requirements",
+    "$.release_readiness",
+    "$.business_flows",
+    "$.user_paths",
+    "$.rule_mappings",
+    "$.unit_index",
+    "$.unit_priority_order",
+    "$.design_decision_candidates",
+    "$.director_confirmation",
+    "$.pre_review_issue_ledger",
+    "$.issue_ledger"
+  ],
+  "phase_goal": "deliver a prototype-only homepage entry center that makes login, renewal, download, support, announcement, and responsive behavior reviewable without claiming production integration",
+  "entry_conditions": [
+    "feature context is registered under docs/feature--quanfangtong-homepage-entry-center",
+    "current homepage evidence refs QFT-ASIS-001, QFT-ASIS-002, and QFT-ASIS-003 are available or explicitly tracked as evidence prerequisites"
+  ],
+  "exit_conditions": [
+    "UNIT-1 acceptance criteria cover login method switching, renewal prompt, download entry, support entry, announcement display, and desktop/mobile response",
+    "all criteria touching real backend, payment, download, support, auth, tracking, release, or rollback are marked prototype_only or not_integrated",
+    "downstream design, test-design, implementation, QA, and delivery-owner can consume the artifacts without changing product scope"
+  ],
+  "unit_index": [
+    "UNIT-1"
+  ],
+  "unit_priority_order": [
+    {
+      "unit_id": "UNIT-1",
+      "priority": "P0",
+      "priority_basis": "the entry center prototype is the only phase unit and carries all visible acceptance criteria"
+    }
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-05-26T00:00:00Z",
+    "locked_field_digest": "sha256:5421190fd7c50260d020ba3be437807a19f4f722ee57caeb10c33c1516846c07",
+    "locked_fields": {
+      "phase_goal": "deliver a prototype-only homepage entry center that makes login, renewal, download, support, announcement, and responsive behavior reviewable without claiming production integration",
+      "entry_conditions": [
+        "feature context is registered under docs/feature--quanfangtong-homepage-entry-center",
+        "current homepage evidence refs QFT-ASIS-001, QFT-ASIS-002, and QFT-ASIS-003 are available or explicitly tracked as evidence prerequisites"
+      ],
+      "exit_conditions": [
+        "UNIT-1 acceptance criteria cover login method switching, renewal prompt, download entry, support entry, announcement display, and desktop/mobile response",
+        "all criteria touching real backend, payment, download, support, auth, tracking, release, or rollback are marked prototype_only or not_integrated",
+        "downstream design, test-design, implementation, QA, and delivery-owner can consume the artifacts without changing product scope"
+      ]
+    }
+  },
+  "evidence_sources": [
+    {
+      "evidence_id": "QFT-ASIS-001",
+      "source_type": "screenshot",
+      "source_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/desktop-homepage.png",
+      "screenshot_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/desktop-homepage.png",
+      "captured_at": "TBD_BY_TASK_2",
+      "entry_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json#QFT-ASIS-001",
+      "status": "ASSUMPTION",
+      "gap_reason": "Task 3 artifact generation references the planned evidence id; the capture pack is produced by Task 2.",
+      "required_evidence": [
+        "desktop-homepage.png entry in capture-manifest.json"
+      ],
+      "blocks_fields": [
+        "final_signoff.as_is_desktop_fact"
+      ],
+      "supports": [
+        "ASIS-1",
+        "ENTRY-1",
+        "COV-RESP-DESKTOP"
+      ]
+    },
+    {
+      "evidence_id": "QFT-ASIS-002",
+      "source_type": "screenshot",
+      "source_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/mobile-homepage.png",
+      "screenshot_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/mobile-homepage.png",
+      "captured_at": "TBD_BY_TASK_2",
+      "entry_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json#QFT-ASIS-002",
+      "status": "ASSUMPTION",
+      "gap_reason": "Task 3 artifact generation references the planned evidence id; the capture pack is produced by Task 2.",
+      "required_evidence": [
+        "mobile-homepage.png entry in capture-manifest.json"
+      ],
+      "blocks_fields": [
+        "final_signoff.as_is_mobile_fact"
+      ],
+      "supports": [
+        "ASIS-1",
+        "COV-RESP-MOBILE"
+      ]
+    },
+    {
+      "evidence_id": "QFT-ASIS-003",
+      "source_type": "page_description",
+      "source_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/page-text.md",
+      "entry_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json#QFT-ASIS-003",
+      "status": "ASSUMPTION",
+      "gap_reason": "Task 3 artifact generation references the planned evidence id; the capture pack is produced by Task 2.",
+      "required_evidence": [
+        "page-text.md entry in capture-manifest.json"
+      ],
+      "blocks_fields": [
+        "final_signoff.as_is_text_fact"
+      ],
+      "supports": [
+        "ASIS-1",
+        "RULE-1",
+        "TOBE-1"
+      ]
+    },
+    {
+      "evidence_id": "PD-SPEC-001",
+      "source_type": "director_baseline",
+      "source_ref": "docs/superpowers/specs/2026-05-26--quanfangtong-homepage-entry-center--standard-chain-dogfood-design.md",
+      "status": "USER_DECISION",
+      "supports": [
+        "TOBE-1",
+        "FEAT-1",
+        "RISK-1",
+        "BOUNDARY-1"
+      ]
+    }
+  ],
+  "as_is_flows": [
+    {
+      "flow_id": "ASIS-1",
+      "evidence_refs": [
+        "QFT-ASIS-001",
+        "QFT-ASIS-002",
+        "QFT-ASIS-003"
+      ],
+      "actors": [
+        "公寓管理系统用户",
+        "需要续费、下载、客服或公告入口的访问者"
+      ],
+      "trigger": "用户打开当前全房通首页",
+      "steps": [
+        "用户识别当前页面品牌和登录入口",
+        "用户查看到期提醒和自助续费入口",
+        "用户寻找扫码登录、忘记密码、客服联系、客户端下载或公告提示"
+      ],
+      "observed_state": "当前页面聚合登录、续费、下载、客服和公告类入口，但入口中心定位和响应式信息层级需要被原型化验证",
+      "pain_points": [
+        "业务入口关系需要更明确",
+        "移动端和桌面端的信息优先级需要统一验证",
+        "真实后端能力边界必须避免被原型验收混淆"
+      ]
+    }
+  ],
+  "to_be_flows": [
+    {
+      "flow_id": "TOBE-1",
+      "goal_ref": "phase_goal",
+      "actors": [
+        "公寓管理系统用户"
+      ],
+      "trigger": "用户进入首页入口中心原型",
+      "steps": [
+        "用户选择密码、验证码或扫码登录方式",
+        "用户处理续费提示",
+        "用户查看下载、客服和公告入口",
+        "用户在桌面或移动视口下完成同一入口识别"
+      ],
+      "expected_outcome": "用户能清楚识别入口中心的核心操作和未集成边界，且所有真实能力仅作为 prototype_only/not_integrated 行为展示",
+      "branch_coverage": [
+        "password login tab selected",
+        "verification-code login tab selected",
+        "QR login tab selected",
+        "renewal prompt acknowledged or collapsed",
+        "download entry clicked with prototype_only feedback",
+        "support entry clicked with prototype_only feedback",
+        "announcement content visible",
+        "desktop layout reviewed",
+        "mobile layout reviewed"
+      ]
+    }
+  ],
+  "business_process_graphs": [
+    {
+      "graph_id": "BPG-1",
+      "flow_ref": "TOBE-1",
+      "nodes": [
+        {
+          "step_id": "S1",
+          "label": "Open entry center",
+          "actor": "公寓管理系统用户",
+          "object_state": "entry center visible"
+        },
+        {
+          "step_id": "S2",
+          "label": "Choose entry intent",
+          "actor": "公寓管理系统用户",
+          "object_state": "selected prototype entry"
+        },
+        {
+          "step_id": "S3",
+          "label": "Observe prototype feedback",
+          "actor": "公寓管理系统用户",
+          "object_state": "prototype_only or not_integrated feedback visible"
+        }
+      ],
+      "edges": [
+        {
+          "from_step": "S1",
+          "to_step": "S2",
+          "condition": "user selects login, renewal, download, support, or announcement entry",
+          "actor": "公寓管理系统用户",
+          "object_state_change": "entry center visible -> selected prototype entry",
+          "risk_refs": [
+            "RISK-1"
+          ]
+        },
+        {
+          "from_step": "S2",
+          "to_step": "S3",
+          "condition": "selected entry depends on real backend or external system",
+          "actor": "公寓管理系统用户",
+          "object_state_change": "selected prototype entry -> prototype boundary visible",
+          "risk_refs": [
+            "RISK-2"
+          ]
+        }
+      ]
+    }
+  ],
+  "feature_inventory": [
+    {
+      "feature_id": "FEAT-1",
+      "capability": "homepage entry center prototype",
+      "business_goal_ref": "business_goals[0]",
+      "actor_or_scenario": "user chooses a homepage entry intent",
+      "entry_or_trigger": "open homepage entry center prototype",
+      "core_behavior": "present login method switching, renewal prompt, download entry, support entry, announcement display, and responsive shell",
+      "observable_result": "entry intent and prototype-only boundary are visible",
+      "scope_status": "IN_SCOPE",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "risk_refs": [
+        "RISK-1",
+        "RISK-2"
+      ]
+    }
+  ],
+  "module_capability_matrix": [
+    {
+      "module": "entry center shell",
+      "capability": "organize homepage entry intents for prototype review",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "protected_behaviors": [
+        "do not claim real login, payment, download, support, backend, auth, tracking, release, or rollback integration"
+      ]
+    }
+  ],
+  "entry_scene_inventory": [
+    {
+      "entry_id": "ENTRY-1",
+      "entry_type": "homepage",
+      "scenario": "user opens the homepage entry center and chooses a business entry",
+      "evidence_refs": [
+        "QFT-ASIS-001",
+        "QFT-ASIS-002",
+        "QFT-ASIS-003"
+      ],
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "business_objects": [
+    {
+      "object_name": "entry intent",
+      "definition": "the user-facing intent selected from the homepage entry center prototype",
+      "key_fields": [
+        "login method",
+        "renewal prompt state",
+        "download entry",
+        "support entry",
+        "announcement entry",
+        "viewport"
+      ],
+      "lifecycle_states": [
+        "visible",
+        "selected",
+        "prototype_feedback_shown",
+        "not_integrated"
+      ]
+    }
+  ],
+  "state_transitions": [
+    {
+      "object_name": "entry intent",
+      "from": "visible",
+      "trigger": "user selects a login method or auxiliary entry",
+      "to": "prototype_feedback_shown",
+      "observable_result": "prototype displays selected state or boundary feedback without invoking real backend capability",
+      "rule_refs": [
+        "RULE-1",
+        "RULE-2"
+      ]
+    }
+  ],
+  "role_permission_matrix": [
+    {
+      "role": "prototype user",
+      "permissions": [
+        "switch login method in the prototype",
+        "acknowledge or collapse renewal prompt in the prototype",
+        "open download, support, and announcement prototype entries"
+      ],
+      "constraints": [
+        "no production authentication, payment, download, support, telemetry, release, or rollback capability is granted"
+      ],
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "ac_id": "AC-LOGIN-SWITCH",
+      "description": "用户可以在密码登录、验证码登录和扫码登录之间切换，并看到对应的原型状态。",
+      "capability_boundary": "prototype_only",
+      "integration_status": "not_integrated",
+      "backend_capability": "real login is not integrated"
+    },
+    {
+      "ac_id": "AC-RENEWAL-PROMPT",
+      "description": "用户可以看到续费提示，并能在原型中确认或收起提示。",
+      "capability_boundary": "prototype_only",
+      "integration_status": "not_integrated",
+      "backend_capability": "real renewal payment is not integrated"
+    },
+    {
+      "ac_id": "AC-DOWNLOAD-ENTRY",
+      "description": "用户可以识别客户端下载入口，点击后看到原型反馈。",
+      "capability_boundary": "prototype_only",
+      "integration_status": "not_integrated",
+      "backend_capability": "real client download is not integrated"
+    },
+    {
+      "ac_id": "AC-SUPPORT-ENTRY",
+      "description": "用户可以识别联系客服入口，点击后看到原型反馈。",
+      "capability_boundary": "prototype_only",
+      "integration_status": "not_integrated",
+      "backend_capability": "real support system is not integrated"
+    },
+    {
+      "ac_id": "AC-ANNOUNCEMENT-DISPLAY",
+      "description": "用户可以看到公告或提示入口的基础展示。",
+      "capability_boundary": "prototype_only",
+      "integration_status": "not_integrated",
+      "backend_capability": "real announcement backend is not integrated"
+    },
+    {
+      "ac_id": "AC-RESPONSIVE",
+      "description": "入口中心在桌面和移动视口下都能保持核心入口可识别。",
+      "capability_boundary": "prototype_only",
+      "integration_status": "not_integrated",
+      "backend_capability": "production responsive release is not integrated"
+    }
+  ],
+  "risk_ledger": [
+    {
+      "risk_id": "RISK-1",
+      "source": "current homepage evidence dependency",
+      "risk_type": "evidence",
+      "trigger_condition": "QFT-ASIS evidence pack is missing or incomplete",
+      "affected_units": [
+        "UNIT-1"
+      ],
+      "impact": "AS-IS statements cannot be treated as observed facts for final signoff",
+      "pm_decision": "keep evidence refs explicit and transfer final AS-IS evidence closure to Task 2 capture and delivery-owner signoff",
+      "mitigation_or_owner": "Task 2 evidence capture and delivery-owner final check",
+      "verification_target": "phase-prd.evidence_sources and capture-manifest.json",
+      "status": "TRANSFERRED"
+    },
+    {
+      "risk_id": "RISK-2",
+      "source": "prototype-only delivery boundary",
+      "risk_type": "scope",
+      "trigger_condition": "downstream reviewer treats prototype feedback as production capability",
+      "affected_units": [
+        "UNIT-1"
+      ],
+      "impact": "false release readiness conclusion",
+      "pm_decision": "mark all backend-facing criteria prototype_only or not_integrated",
+      "mitigation_or_owner": "design, test-design, QA, and delivery-owner must preserve the marker",
+      "verification_target": "UNIT-1.acceptance_criteria / QA result / signoff package",
+      "status": "MITIGATED"
+    }
+  ],
+  "pre_review_issue_ledger": [],
+  "issue_ledger": [],
+  "business_flows": [
+    "User opens the homepage entry center prototype, selects a login or auxiliary entry, and observes clear prototype-only feedback.",
+    "User reviews the same entry-center hierarchy under desktop and mobile viewport constraints."
+  ],
+  "user_paths": [
+    "Password, verification-code, and QR login switching path.",
+    "Renewal prompt acknowledgement or collapse path.",
+    "Download, support, and announcement entry discovery path.",
+    "Desktop and mobile responsive review path."
+  ],
+  "rule_mappings": [
+    "RULE-1: PM artifacts may describe WHAT behavior only; design owns layout and implementation decisions.",
+    "RULE-2: any real backend, payment, download, support, auth, tracking, release, or rollback capability must be marked prototype_only or not_integrated."
+  ],
+  "design_decision_candidates": [
+    {
+      "decision_name": "entry center information hierarchy",
+      "options": [
+        "login-first layout with auxiliary action rail",
+        "task-centered dashboard grouping login, renewal, download, support, and announcement equally"
+      ],
+      "constraints": "must preserve prototype_only and not_integrated boundaries while keeping desktop and mobile entry recognition clear",
+      "impacted_units": [
+        "UNIT-1"
+      ],
+      "design_handoff": "choose layout and interaction states without adding production backend integration"
+    }
+  ],
+  "coverage_matrix": [
+    {
+      "coverage_id": "COV-LOGIN",
+      "scenario_ref": "TOBE-1",
+      "business_type": "entry intent",
+      "platform": "prototype desktop and mobile",
+      "action_or_path": "switch login method",
+      "support_status": "CONDITIONAL",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "ac_refs": [
+        "AC-LOGIN-SWITCH"
+      ],
+      "evidence_refs": [
+        "QFT-ASIS-001",
+        "QFT-ASIS-002"
+      ],
+      "evidence_targets": [
+        "prototype screenshot",
+        "browser interaction record"
+      ],
+      "decision_or_boundary_ref": "prototype_only; not_integrated"
+    },
+    {
+      "coverage_id": "COV-RENEWAL",
+      "scenario_ref": "TOBE-1",
+      "business_type": "renewal prompt",
+      "platform": "prototype desktop and mobile",
+      "action_or_path": "acknowledge or collapse renewal prompt",
+      "support_status": "CONDITIONAL",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "ac_refs": [
+        "AC-RENEWAL-PROMPT"
+      ],
+      "evidence_refs": [
+        "QFT-ASIS-003"
+      ],
+      "evidence_targets": [
+        "prototype interaction record"
+      ],
+      "decision_or_boundary_ref": "prototype_only; not_integrated"
+    },
+    {
+      "coverage_id": "COV-DOWNLOAD-SUPPORT-ANNOUNCEMENT",
+      "scenario_ref": "TOBE-1",
+      "business_type": "auxiliary entries",
+      "platform": "prototype desktop and mobile",
+      "action_or_path": "open download, support, and announcement entries",
+      "support_status": "CONDITIONAL",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "ac_refs": [
+        "AC-DOWNLOAD-ENTRY",
+        "AC-SUPPORT-ENTRY",
+        "AC-ANNOUNCEMENT-DISPLAY"
+      ],
+      "evidence_refs": [
+        "QFT-ASIS-003"
+      ],
+      "evidence_targets": [
+        "prototype interaction record"
+      ],
+      "decision_or_boundary_ref": "prototype_only; not_integrated"
+    },
+    {
+      "coverage_id": "COV-RESP-DESKTOP",
+      "scenario_ref": "TOBE-1",
+      "business_type": "responsive surface",
+      "platform": "desktop",
+      "action_or_path": "review desktop entry center hierarchy",
+      "support_status": "CONDITIONAL",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "ac_refs": [
+        "AC-RESPONSIVE"
+      ],
+      "evidence_refs": [
+        "QFT-ASIS-001"
+      ],
+      "evidence_targets": [
+        "desktop browser screenshot"
+      ],
+      "decision_or_boundary_ref": "prototype_only"
+    },
+    {
+      "coverage_id": "COV-RESP-MOBILE",
+      "scenario_ref": "TOBE-1",
+      "business_type": "responsive surface",
+      "platform": "mobile",
+      "action_or_path": "review mobile entry center hierarchy",
+      "support_status": "CONDITIONAL",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "ac_refs": [
+        "AC-RESPONSIVE"
+      ],
+      "evidence_refs": [
+        "QFT-ASIS-002"
+      ],
+      "evidence_targets": [
+        "mobile browser screenshot"
+      ],
+      "decision_or_boundary_ref": "prototype_only"
+    }
+  ],
+  "technical_evidence_requirements": [
+    {
+      "requirement_id": "TECH-1",
+      "domain": "other",
+      "business_invariant": "Prototype interactions must never be interpreted as real login, payment, download, support, backend, auth, tracking, release, or rollback integration.",
+      "required_downstream_proof": "Design, test-design, QA, and signoff must preserve prototype_only or not_integrated markers for all backend-facing behavior.",
+      "unit_refs": [
+        "UNIT-1"
+      ],
+      "risk_refs": [
+        "RISK-2"
+      ],
+      "status": "REQUIRED"
+    }
+  ],
+  "release_readiness": {
+    "supported_platforms": [],
+    "conditional_platforms": [
+      "desktop prototype",
+      "mobile prototype"
+    ],
+    "unsupported_platforms": [
+      "production 全房通 web application",
+      "real backend services",
+      "payment, download, support, telemetry, auth, release, and rollback paths"
+    ],
+    "residual_risks": [
+      {
+        "risk_id": "RISK-1",
+        "description": "QFT-ASIS evidence pack must exist before final AS-IS claims are accepted.",
+        "owner": "delivery-owner",
+        "target_resolution": "final signoff package",
+        "status": "TRANSFERRED"
+      }
+    ]
+  }
+}

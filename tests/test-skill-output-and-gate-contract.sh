@@ -3,14 +3,48 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-# shellcheck source=tests/lib/test-env.sh
-. "$ROOT/tests/lib/test-env.sh"
-ensure_test_rg
+SCOPE="all"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
   exit 1
 }
+
+usage() {
+  cat <<'USAGE'
+Usage: bash tests/test-skill-output-and-gate-contract.sh [--scope all|static|runtime]
+USAGE
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --scope)
+      [ "$#" -ge 2 ] || fail "--scope 缺少参数"
+      SCOPE="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      fail "未知参数: $1"
+      ;;
+  esac
+done
+
+case "$SCOPE" in
+  all|static|runtime) ;;
+  *) fail "未知 skill output gate scope: $SCOPE" ;;
+esac
+
+should_run_scope() {
+  [ "$SCOPE" = "all" ] || [ "$SCOPE" = "$1" ]
+}
+
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 
 assert_present() {
   local pattern="$1"
@@ -894,17 +928,22 @@ assert_canonical_hooks_pass() {
   }
 }
 
-assert_refactor_gate_ignores_non_refactor_context
-assert_refactor_gate_ignores_placeholder_transcript_candidates
-assert_standard_chain_control_contract
-assert_canonical_runtime_artifacts
-assert_canonical_only_scripts
-assert_completion_gate_registry_manifest_alignment
-assert_completion_gate_handlers_help
-assert_completion_gate_handlers_syntax
-assert_hook_registry_renderable
-assert_tech_lead_runtime_control_contract
-assert_planning_projection_context_contract
-assert_canonical_hooks_pass
+if should_run_scope static; then
+  assert_refactor_gate_ignores_non_refactor_context
+  assert_refactor_gate_ignores_placeholder_transcript_candidates
+  assert_standard_chain_control_contract
+  assert_canonical_runtime_artifacts
+  assert_canonical_only_scripts
+  assert_completion_gate_registry_manifest_alignment
+  assert_completion_gate_handlers_help
+  assert_completion_gate_handlers_syntax
+  assert_hook_registry_renderable
+  assert_tech_lead_runtime_control_contract
+  assert_planning_projection_context_contract
+fi
+
+if should_run_scope runtime; then
+  assert_canonical_hooks_pass
+fi
 
 printf '[PASS] skill output and gate contract\n'

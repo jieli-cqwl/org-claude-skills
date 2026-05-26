@@ -24,8 +24,8 @@
     "tools/eval/results/delivery-owner-behavior-20260430-findings-closed-rerun1/summary.json",
     "tools/eval/results/delivery-owner-behavior-20260430-status-boundary-rerun1/summary.json",
     "tools/eval/scripts/standard_chain_local_eval/workspace.py",
-    "shared/skills/skill-refiner/references/quality-dimensions.md",
-    "shared/skills/skill-refiner/references/examples/developer-optimization-case.md"
+    "shared/skills/skill-quality-audit/references/audit-dimensions.md",
+    "shared/skills/skill-quality-audit/references/benchmark-mechanism-alignment.md"
   ],
   "next_action": "Review active SOP behavior with the user; next evidence step is live role-agent dispatch plus larger comparative blind samples before any retain decision.",
   "active_rebuild": {
@@ -34,7 +34,7 @@
     "creation_basis": [
       "skill-creator: capture intent, draft focused skill, add realistic evals, iterate",
       "quality-dimensions: true professional workflow, progressive disclosure, consumer-backed resources, evidence loop",
-      "skill-refiner success pattern: return to real work process, delete unconsumed noise, keep deterministic checks in scripts"
+      "skill-quality-audit pattern: return to real use capability, delete unconsumed noise, keep deterministic checks in scripts"
     ],
     "current_capability_anchors": [
       "tech-lead frozen plan intake",
@@ -82,9 +82,9 @@
       "low-context-fix-invalidates-evidence",
       "low-context-stalled-followup-pause"
     ],
-    "anchor_fidelity": 1.0,
+    "anchor_fidelity": 1,
     "next_run": "Run live role-agent dispatch and larger comparative blind samples across more delivery plans before promoting optimize to retain.",
-    "fidelity": 1.0,
+    "fidelity": 1,
     "anchor_passed": 6,
     "anchor_total": 6,
     "summary_refs": [
@@ -93,7 +93,7 @@
   },
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "with_avg": 1.0,
+    "with_avg": 1,
     "without_avg": 0.2698,
     "uplift": 0.7302,
     "grader_dimensions": [
@@ -130,11 +130,11 @@
     "with_skill": {
       "summary_ref": "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-with-skill-final/summary.json",
       "sample_size": 3,
-      "avg_pass_rate": 1.0,
+      "avg_pass_rate": 1,
       "infra_failures": 0,
       "anchor_passed": 6,
       "anchor_total": 6,
-      "anchor_fidelity": 1.0
+      "anchor_fidelity": 1
     },
     "without_skill": {
       "summary_ref": "tools/eval/results/delivery-owner-behavior-20260430-low-context-blind-without-skill-rerun1/summary.json",

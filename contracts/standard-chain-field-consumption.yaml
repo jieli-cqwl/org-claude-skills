@@ -1,0 +1,1006 @@
+# Source: contracts/standard-chain.yaml key_fields for product-director, product-manager, and design.
+# Exemption: pure contract mapping may exceed normal file line guidance; validated by tools/community/validate_standard_chain_field_consumption.py.
+version: 1
+artifacts:
+  - path: docs/{feature}/brief.json
+    producer: product-director
+    fields:
+      root_problem:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: derive PM problem traceability and phase obligations
+            consume_mode: handoff
+        required_when: brief.json is handed to product-manager
+        failure_effect: product-manager cannot prove the product work solves the confirmed problem
+      user_profile:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: constrain personas, scenes, and acceptance language
+            consume_mode: handoff
+        required_when: brief.json is handed to product-manager
+        failure_effect: product-manager cannot bind flows or priorities to the intended user
+      business_goals:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: derive measurable PM outcomes and delivery confirmation
+            consume_mode: handoff
+          - consumer: delivery-owner
+            consumed_for: gate final delivery decisions against Director business outcomes preserved by PM
+            consume_mode: gate
+        required_when: brief.json is handed to product-manager
+        failure_effect: downstream phases cannot trace work to business outcome
+      appetite:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: bound scope, sequencing, and acceptable solution depth
+            consume_mode: reference
+        required_when: phase planning or scope tradeoff is needed
+        failure_effect: product-manager cannot justify what depth belongs in the phase
+      scope_boundaries:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: prevent PM from expanding beyond confirmed scope
+            consume_mode: gate
+        required_when: product-manager refines scope or splits units
+        failure_effect: scope creep cannot be detected before downstream handoff
+      non_goals:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: keep out-of-scope behavior out of PRD and units
+            consume_mode: gate
+        required_when: feature inventory or unit exclusions are written
+        failure_effect: downstream teams may implement explicitly excluded work
+      feasibility_constraints:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: preserve confirmed feasibility limits in product requirements
+            consume_mode: handoff
+        required_when: PM writes phase constraints and design candidates
+        failure_effect: design and tech planning may be based on invalid constraints
+      risks_and_unknowns:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: seed PM risk ledger and evidence collection
+            consume_mode: transform
+        required_when: PM builds risk ledger and release readiness
+        failure_effect: unresolved risk cannot be carried into QA or delivery review
+      decision_rationale:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: preserve why scope and phase choices were accepted
+            consume_mode: reference
+        required_when: PM must explain scope or priority choices
+        failure_effect: downstream challenge cannot distinguish accepted decision from omission
+      delivery_plan:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: seed phase sequencing and PM delivery confirmation
+            consume_mode: handoff
+          - consumer: delivery-owner
+            consumed_for: compare PM delivery confirmation with Director delivery plan
+            consume_mode: gate
+        required_when: PM derives phase and unit delivery order
+        failure_effect: phase sequencing loses its confirmed Director basis
+      acceptance_criteria:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: reference user-visible behavior constraints while designing
+            consume_mode: reference
+          - consumer: test-design
+            consumed_for: transform product acceptance criteria into test coverage
+            consume_mode: transform
+          - consumer: qa
+            consumed_for: gate release evidence against promised behavior
+            consume_mode: gate
+        required_when: brief.json is refined by product-manager
+        failure_effect: test-design and QA cannot prove behavior closure
+      design_decisions:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: hand off product-level decisions that architecture must respect
+            consume_mode: handoff
+          - consumer: tech-lead
+            consumed_for: preserve product choices while planning technical work
+            consume_mode: reference
+        required_when: PM has confirmed product decisions that constrain design
+        failure_effect: design may rediscover or contradict accepted product decisions
+      non_functional_requirements:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: transform product quality requirements into architecture qualities
+            consume_mode: transform
+          - consumer: qa
+            consumed_for: gate release risk and residual quality gaps
+            consume_mode: gate
+        required_when: PM identifies quality, security, performance, or operability obligations
+        failure_effect: quality obligations may be absent from design and QA evidence
+      review_conclusion:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: confirm PM review closure before design starts
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: prove product stage review did not leave unresolved blockers
+            consume_mode: gate
+        required_when: PM package is handed to downstream stages
+        failure_effect: downstream stages may consume an unreviewed PM package
+      issue_ledger:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: inspect resolved or outstanding PM review issues
+            consume_mode: reference
+          - consumer: qa
+            consumed_for: check release risk and unresolved product issues
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: decide whether product-stage blockers remain
+            consume_mode: gate
+        required_when: PM review or delivery closure reports issues
+        failure_effect: unresolved product issues lose owner and disposition
+      delivery_confirmation:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: gate design intake on PM delivery closure
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: prove PM handoff is complete before later delivery control
+            consume_mode: gate
+        required_when: PM hands the package to design or delivery tracking
+        failure_effect: downstream stages cannot prove PM handoff completeness
+
+  - path: docs/{feature}/phase-{N}/phase-prd.json
+    producer: product-director
+    fields:
+      phase_goal:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: anchor PM phase refinement to Director phase purpose
+            consume_mode: handoff
+          - consumer: design
+            consumed_for: preserve Director phase purpose through PM refinement into design input analysis
+            consume_mode: reference
+        required_when: phase-prd.json is handed to product-manager
+        failure_effect: phase refinement cannot prove the phase solves the intended goal
+      entry_conditions:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: gate PM work on confirmed phase entry readiness
+            consume_mode: gate
+          - consumer: design
+            consumed_for: confirm inherited entry constraints before design intake
+            consume_mode: gate
+        required_when: product-manager starts phase refinement
+        failure_effect: PM may start from unconfirmed or missing prerequisites
+      exit_conditions:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: define the phase completion contract PM must preserve
+            consume_mode: handoff
+          - consumer: delivery-owner
+            consumed_for: compare PM release readiness with Director exit conditions
+            consume_mode: gate
+        required_when: PM defines release readiness and delivery closure
+        failure_effect: phase completion cannot be judged against Director intent
+      evidence_sources:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: reference product evidence behind design assumptions
+            consume_mode: reference
+          - consumer: qa
+            consumed_for: assess evidence gaps in release risk
+            consume_mode: reference
+        required_when: PM uses external or current-state evidence
+        failure_effect: downstream teams cannot distinguish evidence from assumption
+      as_is_flows:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: transform current flows into architecture input analysis
+            consume_mode: transform
+          - consumer: test-design
+            consumed_for: identify regression and transition coverage
+            consume_mode: reference
+        required_when: existing behavior affects the target phase
+        failure_effect: design and tests may miss preserved current-state behavior
+      to_be_flows:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: transform target product flows into architecture behavior
+            consume_mode: transform
+          - consumer: test-design
+            consumed_for: derive scenario and path coverage
+            consume_mode: transform
+        required_when: phase behavior changes user or system flows
+        failure_effect: target behavior cannot be traced into design or tests
+      business_process_graphs:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: reference cross-step product process dependencies
+            consume_mode: reference
+          - consumer: tech-lead
+            consumed_for: plan implementation order around process dependencies
+            consume_mode: reference
+        required_when: phase behavior spans multiple process steps
+        failure_effect: cross-step dependencies may be lost during design and planning
+      feature_inventory:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: identify feature obligations that design must cover
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: track feature coverage through delivery
+            consume_mode: gate
+        required_when: PM splits or inventories feature work
+        failure_effect: feature coverage cannot be audited downstream
+      module_capability_matrix:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: map product capabilities to design modules
+            consume_mode: transform
+          - consumer: tech-lead
+            consumed_for: plan capability implementation ownership
+            consume_mode: reference
+        required_when: capabilities map to modules or ownership boundaries
+        failure_effect: module planning may omit required product capabilities
+      entry_scene_inventory:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: preserve entry scenes in interaction and architecture design
+            consume_mode: reference
+          - consumer: test-design
+            consumed_for: derive scene coverage
+            consume_mode: transform
+        required_when: user or system entry scenes are part of the phase
+        failure_effect: tests and design may miss entry-specific behavior
+      business_objects:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: transform product objects into data architecture
+            consume_mode: transform
+          - consumer: tech-lead
+            consumed_for: plan data model and task ownership
+            consume_mode: reference
+        required_when: phase introduces or changes business objects
+        failure_effect: design cannot prove object semantics and lifecycle coverage
+      state_transitions:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: transform product state changes into runtime design
+            consume_mode: transform
+          - consumer: test-design
+            consumed_for: derive state transition tests
+            consume_mode: transform
+        required_when: behavior depends on lifecycle or status changes
+        failure_effect: invalid state changes may pass through design and tests
+      role_permission_matrix:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: transform product roles into access boundaries
+            consume_mode: transform
+          - consumer: qa
+            consumed_for: gate permission and isolation release risk
+            consume_mode: gate
+        required_when: behavior differs by role or permission
+        failure_effect: access boundaries may be missing or unverifiable
+      risk_ledger:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: reference product risks that require design response
+            consume_mode: reference
+          - consumer: qa
+            consumed_for: gate release residual risk
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: decide delivery control around unresolved product risk
+            consume_mode: gate
+        required_when: PM identifies product, release, or operational risks
+        failure_effect: residual risk cannot be carried to QA or delivery decisions
+      coverage_matrix:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: test-design
+            consumed_for: transform PM coverage obligations into test coverage
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: audit downstream coverage closure
+            consume_mode: gate
+        required_when: PM maps requirements to coverage obligations
+        failure_effect: downstream coverage gaps cannot be detected reliably
+      technical_evidence_requirements:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: request architecture evidence needed to satisfy product risk
+            consume_mode: handoff
+          - consumer: tech-lead
+            consumed_for: plan proof tasks for required technical evidence
+            consume_mode: reference
+        required_when: product decisions depend on technical proof
+        failure_effect: design and planning may omit evidence required for product confidence
+      release_readiness:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: qa
+            consumed_for: gate QA release judgment against PM readiness
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: decide whether phase can enter delivery closure
+            consume_mode: gate
+        required_when: PM declares phase readiness or remaining conditions
+        failure_effect: release decisions cannot prove product readiness basis
+      business_flows:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: reference business-level flows during design synthesis
+            consume_mode: reference
+          - consumer: test-design
+            consumed_for: derive flow-based test obligations
+            consume_mode: transform
+        required_when: phase behavior depends on business flow ordering
+        failure_effect: flow obligations may be split inconsistently across stages
+      user_paths:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: preserve user path expectations in architecture decisions
+            consume_mode: reference
+          - consumer: test-design
+            consumed_for: derive user-path coverage
+            consume_mode: transform
+        required_when: user-visible journeys are in scope
+        failure_effect: downstream coverage cannot prove user journey closure
+      rule_mappings:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: transform product rules into design constraints
+            consume_mode: transform
+          - consumer: test-design
+            consumed_for: derive rule coverage and negative tests
+            consume_mode: transform
+        required_when: phase behavior depends on business rules
+        failure_effect: business rules may be implemented or tested inconsistently
+      unit_index:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: reference PM unit boundaries during design coverage
+            consume_mode: reference
+          - consumer: tech-lead
+            consumed_for: plan implementation by unit boundary
+            consume_mode: reference
+        required_when: PM splits phase work into units
+        failure_effect: design and planning cannot align on unit boundaries
+      unit_priority_order:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: tech-lead
+            consumed_for: plan task sequencing from PM priority
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: control delivery order against product priority
+            consume_mode: gate
+        required_when: units have different delivery priority
+        failure_effect: downstream execution order may contradict product priority
+      design_decision_candidates:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: hand off product-significant design decisions to evaluate
+            consume_mode: handoff
+          - consumer: tech-lead
+            consumed_for: preserve accepted design candidates during planning
+            consume_mode: reference
+        required_when: PM identifies design choices that affect product obligations
+        failure_effect: design may miss candidate choices required by product context
+      review_conclusion:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: confirm phase PRD review closure before design intake
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: prove phase PRD has no unresolved PM blockers
+            consume_mode: gate
+        required_when: phase PRD is handed to downstream stages
+        failure_effect: downstream stages may consume unreviewed phase PRD content
+      issue_ledger:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: inspect phase-level PM issues and resolutions
+            consume_mode: reference
+          - consumer: qa
+            consumed_for: gate unresolved product issue risk
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: decide whether product issues block delivery
+            consume_mode: gate
+        required_when: phase PRD review or handoff records issues
+        failure_effect: issue ownership and resolution can drift across stages
+
+  - path: docs/{feature}/phase-{N}/units/UNIT-{N}.json
+    producer: product-manager
+    fields:
+      unit_id:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: align design coverage to PM unit identity
+            consume_mode: reference
+          - consumer: tech-lead
+            consumed_for: plan implementation tasks by unit identity
+            consume_mode: reference
+        required_when: a unit definition is created
+        failure_effect: downstream artifacts cannot trace work to a stable unit
+      closure_definition:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: test-design
+            consumed_for: transform unit closure into test closure criteria
+            consume_mode: transform
+          - consumer: tech-lead
+            consumed_for: plan implementation completion boundaries
+            consume_mode: reference
+        required_when: a unit is handed to design or test-design
+        failure_effect: unit completion cannot be verified consistently
+      trigger:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: preserve trigger semantics in runtime design
+            consume_mode: transform
+          - consumer: test-design
+            consumed_for: derive trigger and event test cases
+            consume_mode: transform
+        required_when: unit behavior starts from an event, action, or condition
+        failure_effect: design and tests may start behavior from the wrong trigger
+      core_behavior:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: transform product behavior into design responsibilities
+            consume_mode: transform
+          - consumer: test-design
+            consumed_for: derive behavior coverage
+            consume_mode: transform
+        required_when: unit defines user-visible or system-visible behavior
+        failure_effect: core behavior cannot be traced into design or tests
+      observable_result:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: test-design
+            consumed_for: transform observable outcome into expected test results
+            consume_mode: transform
+          - consumer: qa
+            consumed_for: gate evidence against observable product result
+            consume_mode: gate
+        required_when: unit behavior has a user or system observable result
+        failure_effect: verification may assert implementation details instead of product result
+      feature_refs:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: trace unit work back to feature obligations
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: audit feature closure by unit
+            consume_mode: gate
+        required_when: unit implements one or more features
+        failure_effect: feature-to-unit traceability is lost
+      flow_refs:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: trace unit behavior to product flows
+            consume_mode: reference
+          - consumer: test-design
+            consumed_for: derive flow coverage for the unit
+            consume_mode: transform
+        required_when: unit belongs to a PM-defined flow
+        failure_effect: flow obligations can be missed in unit design or tests
+      risk_refs:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: identify unit risks requiring design response
+            consume_mode: reference
+          - consumer: qa
+            consumed_for: gate unit evidence against PM risk
+            consume_mode: gate
+        required_when: unit is linked to risk ledger items
+        failure_effect: risk controls may be absent from design and QA evidence
+      rule_refs:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: transform referenced rules into design constraints
+            consume_mode: transform
+          - consumer: test-design
+            consumed_for: derive rule-based unit tests
+            consume_mode: transform
+        required_when: unit depends on business rules
+        failure_effect: business-rule coverage may be incomplete or untraceable
+      integration_context:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: identify integration boundaries and assumptions
+            consume_mode: handoff
+          - consumer: tech-lead
+            consumed_for: plan implementation dependencies
+            consume_mode: reference
+        required_when: unit interacts with other systems, modules, or data flows
+        failure_effect: integration assumptions may be invented downstream
+      acceptance_criteria:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: test-design
+            consumed_for: transform unit AC into test cases and coverage matrix
+            consume_mode: transform
+          - consumer: qa
+            consumed_for: gate QA evidence for unit acceptance
+            consume_mode: gate
+        required_when: unit has acceptance obligations
+        failure_effect: unit acceptance cannot be tested or signed off
+      verification_plan:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: test-design
+            consumed_for: transform PM verification intent into executable test design
+            consume_mode: transform
+          - consumer: tech-lead
+            consumed_for: preserve required proof while planning implementation
+            consume_mode: reference
+        required_when: unit requires verification beyond acceptance text
+        failure_effect: test-design cannot prove PM verification obligations are covered
+      design_decision_candidates:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: hand off unit-specific design choices for evaluation
+            consume_mode: handoff
+          - consumer: tech-lead
+            consumed_for: preserve selected design decisions in implementation planning
+            consume_mode: reference
+        required_when: unit exposes architecture-significant options
+        failure_effect: design may omit unit-level product tradeoffs
+      exclusions:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: prevent design from adding excluded unit behavior
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: avoid writing tests for excluded behavior
+            consume_mode: gate
+        required_when: unit boundary excludes related behavior
+        failure_effect: downstream work may expand unit scope incorrectly
+      priority:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: tech-lead
+            consumed_for: sequence implementation work
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: control delivery order
+            consume_mode: gate
+        required_when: unit delivery order matters
+        failure_effect: execution order may contradict product priority
+      priority_basis:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: tech-lead
+            consumed_for: understand why priority is assigned
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: defend delivery sequencing decisions
+            consume_mode: reference
+        required_when: priority is not self-evident from the unit order
+        failure_effect: downstream may reorder work without product rationale
+      dependencies:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: design
+            consumed_for: reflect unit dependencies in design sequencing
+            consume_mode: reference
+          - consumer: tech-lead
+            consumed_for: plan implementation dependency order
+            consume_mode: reference
+        required_when: unit depends on another unit, system, or condition
+        failure_effect: downstream sequencing may break required dependency order
+
+  - path: docs/{feature}/phase-{N}/design.json
+    producer: design
+    fields:
+      input_analysis:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: understand design interpretation of product inputs
+            consume_mode: reference
+          - consumer: tech-lead
+            consumed_for: plan from design assumptions and constraints
+            consume_mode: reference
+        required_when: design consumes PM inputs
+        failure_effect: downstream cannot see how product inputs shaped design
+      design_stage_confirmations:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: derive tests from confirmed design obligation checkpoints
+            consume_mode: reference
+          - consumer: tech-lead
+            consumed_for: plan implementation from confirmed design obligation checkpoints
+            consume_mode: reference
+        required_when: design freezes confirmation checkpoints that affect downstream obligations
+        failure_effect: downstream cannot prove which design obligations were confirmed
+      constraint_inheritance_confirmation:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: verify inherited PM and Director constraints remain covered
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: preserve inherited constraints in plan
+            consume_mode: reference
+        required_when: design inherits product or Director constraints
+        failure_effect: inherited constraints may be dropped downstream
+      review_closure:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: gate test design intake on design review closure
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: gate planning on reviewed design
+            consume_mode: gate
+        required_when: design is ready for downstream handoff
+        failure_effect: downstream stages may consume unreviewed design
+      final_confirmation:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: gate downstream consumption on final design confirmation
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: confirm implementation basis is final design
+            consume_mode: gate
+        required_when: design hands off to test-design or implementation path
+        failure_effect: downstream work may start from draft design
+      key_decisions:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: derive tests for accepted architecture decisions
+            consume_mode: reference
+          - consumer: tech-lead
+            consumed_for: plan implementation around selected decisions
+            consume_mode: transform
+          - consumer: developer
+            consumed_for: implement according to selected decisions
+            consume_mode: handoff
+        required_when: design selects an approach or rejects alternatives
+        failure_effect: implementation and tests may follow an unapproved design path
+      option_analysis:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: understand tradeoffs and avoid reopening rejected options
+            consume_mode: reference
+          - consumer: developer
+            consumed_for: preserve selected option rationale during implementation
+            consume_mode: reference
+        required_when: design chooses between viable options
+        failure_effect: downstream may relitigate or contradict accepted tradeoffs
+      runtime_facts:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: plan against verified runtime constraints
+            consume_mode: reference
+          - consumer: developer
+            consumed_for: implement against observed runtime facts
+            consume_mode: handoff
+        required_when: design depends on current runtime behavior or constraints
+        failure_effect: implementation may be based on stale or invented runtime assumptions
+      interfaces:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: derive interface test coverage
+            consume_mode: transform
+          - consumer: tech-lead
+            consumed_for: plan interface implementation tasks
+            consume_mode: transform
+          - consumer: developer
+            consumed_for: implement interface contracts
+            consume_mode: handoff
+        required_when: design defines module, API, event, or data interfaces
+        failure_effect: downstream cannot implement or test boundary contracts
+      interface_boundary:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: plan ownership and dependency boundaries
+            consume_mode: reference
+          - consumer: developer
+            consumed_for: keep implementation within defined boundaries
+            consume_mode: gate
+        required_when: interfaces cross module or ownership boundaries
+        failure_effect: implementation may violate design ownership boundaries
+      quality_attributes:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: derive quality attribute tests where applicable
+            consume_mode: transform
+          - consumer: qa
+            consumed_for: assess quality-related release risk
+            consume_mode: gate
+        required_when: design carries quality obligations
+        failure_effect: quality obligations may lack verification or release risk treatment
+      modules:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: plan implementation tasks by module
+            consume_mode: transform
+          - consumer: developer
+            consumed_for: implement module responsibilities
+            consume_mode: handoff
+        required_when: design decomposes responsibilities into modules
+        failure_effect: task planning cannot map responsibilities to code changes
+      data_architecture:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: derive data integrity and migration tests
+            consume_mode: reference
+          - consumer: tech-lead
+            consumed_for: plan data model and migration tasks
+            consume_mode: transform
+          - consumer: developer
+            consumed_for: implement data model changes
+            consume_mode: handoff
+        required_when: design changes data shape, storage, or flow
+        failure_effect: data changes may be implemented without architecture contract
+      cross_cutting_concerns:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: derive cross-cutting verification obligations
+            consume_mode: transform
+          - consumer: tech-lead
+            consumed_for: plan shared concern implementation
+            consume_mode: reference
+        required_when: concerns span multiple modules or units
+        failure_effect: shared concerns may be split or omitted downstream
+      verification_mapping:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: transform design obligations into test-design traceability
+            consume_mode: transform
+          - consumer: developer
+            consumed_for: understand proof expected from implementation
+            consume_mode: reference
+        required_when: design is ready for verification planning
+        failure_effect: test-design cannot prove design coverage
+      unit_coverage:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: prove design covers PM units
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: plan tasks against covered units
+            consume_mode: reference
+        required_when: design maps to PM unit definitions
+        failure_effect: uncovered PM units may proceed without design
+      impact_scope:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: plan affected files, modules, and dependencies
+            consume_mode: transform
+          - consumer: developer
+            consumed_for: bound implementation impact analysis
+            consume_mode: reference
+        required_when: design identifies implementation impact
+        failure_effect: planning may miss affected areas or over-expand scope
+      planning_constraints:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: gate technical plan against design constraints
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: keep implementation inside planning constraints
+            consume_mode: gate
+        required_when: design imposes sequencing, tooling, or boundary constraints
+        failure_effect: downstream plan may violate design constraints
+      product_handoff:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: trace design back to product handoff obligations
+            consume_mode: reference
+          - consumer: tech-lead
+            consumed_for: preserve product-to-design handoff during planning
+            consume_mode: reference
+        required_when: design finalizes interpretation of PM inputs
+        failure_effect: downstream cannot prove design stayed aligned to PM handoff
+      risks:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: derive risk-based verification
+            consume_mode: transform
+          - consumer: qa
+            consumed_for: assess design residual risk
+            consume_mode: gate
+        required_when: design identifies architecture or delivery risks
+        failure_effect: risk verification and QA release judgment may omit design risk
+      risk_response:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: verify mitigations and accepted risks
+            consume_mode: transform
+          - consumer: qa
+            consumed_for: gate release residual risk treatment
+            consume_mode: gate
+        required_when: design risks require mitigation, acceptance, or monitoring
+        failure_effect: risks may have no downstream disposition
+      migration_plan:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: plan migration implementation tasks
+            consume_mode: transform
+          - consumer: developer
+            consumed_for: implement migration steps and guards
+            consume_mode: handoff
+          - consumer: delivery-owner
+            consumed_for: control release readiness for migration risk
+            consume_mode: gate
+        required_when: design changes persisted data, deployment state, or migration-sensitive behavior
+        failure_effect: migration work may ship without ordered plan or rollback basis
+      verification_plan:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: test-design
+            consumed_for: transform design verification intent into test plan
+            consume_mode: transform
+          - consumer: developer
+            consumed_for: produce implementation evidence expected by design
+            consume_mode: reference
+        required_when: design defines proof required for implementation readiness
+        failure_effect: verification may not cover architecture obligations
+      rollback_plan:
+        producer: design
+        authority: design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: plan rollback-aware implementation tasks
+            consume_mode: transform
+          - consumer: developer
+            consumed_for: implement rollback or recovery paths
+            consume_mode: handoff
+          - consumer: delivery-owner
+            consumed_for: decide release control and fallback readiness
+            consume_mode: gate
+        required_when: design has migration, deployment, or state-change risk
+        failure_effect: delivery cannot prove recovery path before release

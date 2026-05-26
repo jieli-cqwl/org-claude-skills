@@ -1307,9 +1307,11 @@ build_allowed_codex_rule_names() {
 
 retired_runtime_skills() {
   local skill_auditor_retired="skill-auditor" # should not install
+  local skill_refiner_retired="skill-refiner" # replaced by skill-quality-audit
 
   printf '%s\n' \
     "$skill_auditor_retired" \
+    "$skill_refiner_retired" \
     "ai-cli-updater" \
     "new-skills" \
     "project-agents-init" \
@@ -2185,6 +2187,7 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/self-improving-agent/SKILL.md" ] || return 1
     grep -Fq 'disable-model-invocation: true' "$target_dir/skills/self-improving-agent/SKILL.md" || return 1
     [ ! -e "$target_dir/skills/skill-auditor" ] || return 1
+    [ ! -e "$target_dir/skills/skill-refiner" ] || return 1
     [ ! -e "$target_dir/skills/new-skills" ] || return 1
     [ -f "$target_dir/skills/mcp-builder/SKILL.md" ] || return 1
     [ ! -e "$target_dir/skills/review-fix-loop" ] || return 1
@@ -2232,6 +2235,7 @@ runtime_target_complete() {
     [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || return 1
     [ ! -e "$codex_skills_dir/skill-auditor" ] || return 1
+    [ ! -e "$codex_skills_dir/skill-refiner" ] || return 1
     [ ! -e "$codex_skills_dir/new-skills" ] || return 1
     [ -f "$codex_skills_dir/agent-browser/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/agent-browser/agents/openai.yaml" ] || return 1
@@ -2334,6 +2338,13 @@ install_to_target() {
   local version_file="$state_dir/installed-version"
   local manifest_file="$state_dir/installed-manifest"
   local backup_manifest_file="$state_dir/backup-manifest"
+
+  if [ "$DRY_RUN" -eq 0 ]; then
+    prune_runtime_noise "$target_dir"
+    if [ "$name" = "codex" ]; then
+      prune_runtime_noise "$HOME/.agents"
+    fi
+  fi
 
   if [ "$FORCE" -eq 0 ] && [ "$DRY_RUN" -eq 0 ] \
     && [ -f "$version_file" ] && [ -f "$manifest_file" ] && [ -f "$backup_manifest_file" ] \
@@ -2700,6 +2711,7 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/architecture/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/architecture/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/mermaid-diagrams/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mermaid-diagrams/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/skill-auditor" ] || fail "Quick Check 失败: ~/.claude/skills/skill-auditor 不应存在"
+    [ ! -e "$CLAUDE_DIR/skills/skill-refiner" ] || fail "Quick Check 失败: ~/.claude/skills/skill-refiner 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/new-skills" ] || fail "Quick Check 失败: ~/.claude/skills/new-skills 不应存在"
     [ -f "$CLAUDE_DIR/skills/mcp-builder/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mcp-builder/SKILL.md 不存在"
     [ ! -e "$CLAUDE_DIR/skills/review-fix-loop" ] || fail "Quick Check 失败: ~/.claude/skills/review-fix-loop 不应存在"
@@ -2750,6 +2762,7 @@ quick_check() {
     [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/feishu-docs/SKILL.md 不存在"
     [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/deep-research/SKILL.md 不存在"
     [ ! -e "$codex_skills_dir/skill-auditor" ] || fail "Quick Check 失败: ~/.agents/skills/skill-auditor 不应存在"
+    [ ! -e "$codex_skills_dir/skill-refiner" ] || fail "Quick Check 失败: ~/.agents/skills/skill-refiner 不应存在"
     [ ! -e "$codex_skills_dir/new-skills" ] || fail "Quick Check 失败: ~/.agents/skills/new-skills 不应存在"
     runtime_probe_skills_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应残留 runtime 探针 skill"
     runtime_internal_skill_roots_absent "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 不应暴露 evals/fixtures/examples/selves/workspace 内部文件"

@@ -58,7 +58,7 @@ jq -e '
 ' "$EVIDENCE" >/dev/null || fail "research retain evidence summary below threshold"
 
 for command in \
-  "bash tests/test-research-skill-refiner-eval.sh" \
+  "bash tests/test-research-skill-quality-audit-eval.sh" \
   "bash tests/test-research-skill-contract.sh" \
   "bash tests/test-deep-research-skill-contract.sh" \
   "bash tests/test-github-repo-radar-contract.sh"; do

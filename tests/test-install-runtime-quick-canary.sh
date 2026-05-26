@@ -20,4 +20,21 @@ install_test_assert_file_exists "$codex_skills_dir/product-manager/SKILL.md" "co
 install_test_assert_file_exists "$home_dir/.codex/hooks.json" "codex runtime should include hooks.json"
 install_test_case_pass "runtime-quick-canary: codex install exposes managed runtime entry"
 
+install_test_case_start "runtime-quick-canary: task verify ruff lint is scoped to changed files"
+workspace="$INSTALL_TEST_TMP_ROOT/task-verify-scope-workspace"
+mkdir -p "$workspace/vendor"
+(
+  cd "$workspace"
+  git init -q
+  printf '%s\n' 'print(f"upstream lint debt")' > vendor/upstream.py
+  printf '%s\n' 'print("clean")' > changed.py
+  git add .
+  git -c user.name=test -c user.email=test@example.com commit -q -m init
+  printf '%s\n' 'print("clean changed")' > changed.py
+)
+verify_log="$(install_test_log_path runtime-quick-canary-task-verify-scope)"
+printf '{"cwd":"%s"}' "$workspace" | COMMENT_CHECK_MODE=warn bash "$ROOT/claude/hooks/task_verify.sh" >"$verify_log" 2>&1 || install_test_fail "task verify should ignore unchanged upstream lint debt"
+install_test_assert_file_not_contains "$verify_log" "vendor/upstream.py" "task verify should not lint unchanged Python files"
+install_test_case_pass "runtime-quick-canary: task verify ruff lint is scoped to changed files"
+
 printf '\nInstall runtime quick canary passed: %d\n' "$INSTALL_TEST_CASE_COUNT"

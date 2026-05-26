@@ -1,9 +1,0 @@
-{
-  "scenario_id": "split-monolith-skill",
-  "arm": "skill_refiner",
-  "returncode": 0,
-  "started_at": "2026-05-12T13:33:01.021125+00:00",
-  "finished_at": "2026-05-12T13:34:06.182383+00:00",
-  "duration_seconds": 65.161258,
-  "response_file": "split-monolith-skill/skill_refiner/response.json"
-}

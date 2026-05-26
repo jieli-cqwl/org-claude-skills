@@ -1,0 +1,113 @@
+{
+  "skill_name": "skill-quality-audit",
+  "eval_type": "mixed",
+  "preference_anchors": [
+    {
+      "id": "SQA-01",
+      "anchor": "Audits remain read-only and never modify the target Skill."
+    },
+    {
+      "id": "SQA-02",
+      "anchor": "Findings include severity, evidence, impact, repair target, and verification hint."
+    },
+    {
+      "id": "SQA-03",
+      "anchor": "Instruction Contract is scored with sentence-level evidence."
+    },
+    {
+      "id": "SQA-04",
+      "anchor": "Runtime, install, gate, eval, and downstream surfaces are included in scope evidence."
+    },
+    {
+      "id": "SQA-05",
+      "anchor": "Strong Skills are used as mechanism benchmarks, not wording templates."
+    },
+    {
+      "id": "SQA-06",
+      "anchor": "Old active Skill names are treated as runtime residue unless explicitly historical."
+    }
+  ],
+  "grader_dimensions": [
+    "read_only_boundary",
+    "instruction_contract",
+    "runtime_surface_coverage",
+    "evidence_backed_findings",
+    "repair_handoff_precision"
+  ],
+  "evals": [
+    {
+      "id": "read-only-audit",
+      "prompt": "Audit shared/skills/skill-quality-audit/evals/fixtures/target-skills/modifier-skill. Do not edit files.",
+      "files": [
+        "shared/skills/skill-quality-audit/evals/fixtures/target-skills/modifier-skill/SKILL.md"
+      ],
+      "expectations": [
+        "Flags target modification authority as a runtime safety defect.",
+        "Returns repair targets for a separate implementation window."
+      ],
+      "expected_anchors": [
+        "SQA-01",
+        "SQA-02"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "instruction-contract",
+      "prompt": "Audit shared/skills/skill-quality-audit/evals/fixtures/target-skills/unclear-instruction-skill for vague instructions.",
+      "files": [
+        "shared/skills/skill-quality-audit/evals/fixtures/target-skills/unclear-instruction-skill/SKILL.md"
+      ],
+      "expectations": [
+        "Identifies vague action, broad object, hidden condition, and missing verification criteria.",
+        "Caps the verdict below fit when Instruction Contract is weak."
+      ],
+      "expected_anchors": [
+        "SQA-02",
+        "SQA-03"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "old-name-residue",
+      "prompt": "Audit a Skill replacement where old runtime, install, test, and eval paths still mention the retired Skill name.",
+      "files": [],
+      "expectations": [
+        "Classifies active old-name references as residue.",
+        "Separates active consumers from historical snapshots."
+      ],
+      "expected_anchors": [
+        "SQA-04",
+        "SQA-06"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "benchmark-mechanism",
+      "prompt": "Compare a target Skill with brainstorming without copying its structure.",
+      "files": [
+        "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md"
+      ],
+      "expectations": [
+        "Extracts mechanism lessons such as hard gates, terminal states, and confirmation points.",
+        "Rejects section-copying as the quality target."
+      ],
+      "expected_anchors": [
+        "SQA-03",
+        "SQA-05"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    }
+  ]
+}

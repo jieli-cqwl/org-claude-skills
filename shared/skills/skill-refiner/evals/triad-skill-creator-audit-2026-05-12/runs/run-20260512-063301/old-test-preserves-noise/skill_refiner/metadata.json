@@ -1,9 +1,0 @@
-{
-  "scenario_id": "old-test-preserves-noise",
-  "arm": "skill_refiner",
-  "returncode": 0,
-  "started_at": "2026-05-12T13:33:01.020415+00:00",
-  "finished_at": "2026-05-12T13:34:00.164050+00:00",
-  "duration_seconds": 59.143635,
-  "response_file": "old-test-preserves-noise/skill_refiner/response.json"
-}

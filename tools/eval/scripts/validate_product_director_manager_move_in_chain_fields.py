@@ -1,0 +1,33 @@
+"""Phase manager field builders for the move-in Director-to-PM eval."""
+
+from __future__ import annotations
+
+from typing import Any
+
+
+def build_phase_manager_fields() -> dict[str, Any]:
+    evidence_types = ["screenshot", "screen_recording", "api_request_response", "data_before_after", "audit_log", "test_record"]
+    evidence = [{"evidence_id": f"EV-{index}", "source_type": source_type, "source_ref": f"move-in-evidence#{source_type}", "status": "FACT", "supports": ["AC1", "AC2", "coverage_matrix"]} for index, source_type in enumerate(evidence_types, start=1)]
+    evidence[0].update({"screenshot_ref": "assets/move-in-entry.png", "captured_at": "2026-05-24T12:20:00Z", "entry_ref": "room-list.row-action"})
+    coverage_rows = [("COV-1", "整租", "PC", "登记租客"), ("COV-2", "合租", "App", "办理入住"), ("COV-3", "集中", "PC", "合同动作"), ("COV-4", "通用", "PC", "将搬入管理"), ("COV-5", "通用", "H5", "查看跳转"), ("COV-6", "通用", "HarmonyOS", "作废"), ("COV-7", "身份", "小程序", "小程序身份边界")]
+    tech_domains = ["api_contract", "data_model_state_machine", "business_type_difference", "transaction_boundary", "idempotency_concurrency", "permission_audit", "tenant_identity", "async_offline_task", "release_rollback"]
+    return {
+        "evidence_sources": evidence,
+        "as_is_flows": [{"flow_id": "ASIS-1", "evidence_refs": ["EV-1"], "actors": ["租务运营"], "trigger": "当前租客未退房但需要登记下一任", "steps": ["线下记录", "等待退房", "再登记"], "observed_state": "未来租约缺少系统承载", "pain_points": ["入住准备无法提前闭环", "容易误改当前在租"]}],
+        "to_be_flows": [{"flow_id": "TOBE-REGISTER", "goal_ref": "phase_goal", "actors": ["租务运营"], "trigger": "登记下一任租客", "steps": ["创建将搬入", "合同动作", "将搬入管理"], "expected_outcome": "当前在租不变且未来租约可管理", "branch_coverage": ["成功", "无权限", "租期冲突"]}, {"flow_id": "TOBE-CHECKIN", "goal_ref": "phase_goal", "actors": ["租务运营"], "trigger": "办理入住", "steps": ["重读校验", "唯一激活", "同步权益"], "expected_outcome": "将搬入成为当前租客", "branch_coverage": ["前任未退房", "非最早合同", "并发重复"]}, {"flow_id": "TOBE-IDENTITY", "goal_ref": "phase_goal", "actors": ["下一任租客"], "trigger": "小程序登录", "steps": ["身份过滤", "权益拦截", "入住后放行"], "expected_outcome": "未入住不获得正式权益", "branch_coverage": ["未入住", "已入住"]}],
+        "business_process_graphs": [{"graph_id": "BPG-MOVE-IN", "flow_ref": "TOBE-REGISTER", "nodes": [{"step_id": "S1", "label": "登记将搬入", "actor": "租务运营", "object_state": "future_contract_created"}, {"step_id": "S2", "label": "办理入住", "actor": "租务运营", "object_state": "current_tenant_activated"}, {"step_id": "S3", "label": "作废将搬入", "actor": "租务运营", "object_state": "future_contract_voided"}], "edges": [{"from_step": "S1", "to_step": "S2", "condition": "前任释放且材料满足且为最早有效合同", "object_state_change": "future_contract_created -> current_tenant_activated", "risk_refs": ["RISK-ORDER"]}, {"from_step": "S1", "to_step": "S3", "condition": "未入住且账款状态允许作废", "object_state_change": "future_contract_created -> future_contract_voided", "risk_refs": ["RISK-FINANCE"]}]}],
+        "feature_inventory": [{"feature_id": f"FEAT-{name}", "capability": name, "business_goal_ref": "phase_goal", "actor_or_scenario": "租务运营", "entry_or_trigger": name, "core_behavior": name, "observable_result": "有证据可验", "scope_status": "IN_SCOPE", "unit_refs": ["UNIT-1"], "risk_refs": ["RISK-CURRENT-TENANT"]} for name in ["REGISTER", "LIST", "CHECKIN", "VOID", "IDENTITY", "PLATFORM"]],
+        "module_capability_matrix": [{"module": "租务", "capability": "将搬入管理", "unit_refs": ["UNIT-1", "UNIT-2", "UNIT-3"], "protected_behaviors": ["当前在租不变", "未入住无正式权益"]}],
+        "entry_scene_inventory": [{"entry_id": f"ENTRY-{i}", "entry_type": platform, "scenario": action, "evidence_refs": ["EV-1"], "unit_refs": ["UNIT-1"]} for i, (_, _, platform, action) in enumerate(coverage_rows, start=1)],
+        "business_objects": [{"object_name": "当前在租", "definition": "已办理入住租客生命周期", "key_fields": ["房态", "租客", "权益"], "lifecycle_states": ["active"]}, {"object_name": "将搬入", "definition": "下一任租客未来租约承载", "key_fields": ["租期", "合同", "状态"], "lifecycle_states": ["pending", "checked_in", "voided"]}],
+        "state_transitions": [{"object_name": "将搬入", "from": "pending", "trigger": "办理入住", "to": "checked_in", "observable_result": "激活为当前在租", "rule_refs": ["BR-EARLIEST"]}, {"object_name": "将搬入", "from": "pending", "trigger": "作废", "to": "voided", "observable_result": "释放未来租期", "rule_refs": ["BR-FINANCE"]}],
+        "role_permission_matrix": [{"role": "租务运营", "permissions": ["登记租客", "办理入住", "作废", "查看"], "constraints": ["服务端按状态和权限拒绝绕过调用"], "unit_refs": ["UNIT-1", "UNIT-2"]}],
+        "risk_ledger": [{"risk_id": f"RISK-{i}", "source": "accepted PRD rubric", "risk_type": "business", "trigger_condition": term, "affected_units": ["UNIT-1", "UNIT-2", "UNIT-3"], "impact": term, "pm_decision": f"用 AC 和证据保护 {term}", "mitigation_or_owner": "PM AC / Verification Plan / downstream evidence", "verification_target": "coverage_matrix / verification_plan", "status": "MITIGATED"} for i, term in enumerate(["当前在租污染", "状态混淆", "未来租约顺序", "财务流水误删", "正式租客身份提前开放", "端范围虚报", "异步任务误消费未来租约"], start=1)],
+        "coverage_matrix": [{"coverage_id": cid, "scenario_ref": "TOBE-REGISTER", "business_type": bt, "platform": platform, "action_or_path": action, "support_status": "CONDITIONAL" if platform in {"H5", "HarmonyOS"} else "SUPPORTED", "unit_refs": ["UNIT-1", "UNIT-2", "UNIT-3"], "ac_refs": ["AC1", "AC2", "AC6", "AC9", "AC10"], "evidence_refs": ["EV-1", "EV-3", "EV-4", "EV-5", "EV-6"], "evidence_targets": evidence_types, "decision_or_boundary_ref": "release_readiness"} for cid, bt, platform, action in coverage_rows],
+        "technical_evidence_requirements": [{"requirement_id": f"TER-{i}", "domain": domain, "business_invariant": f"{domain} 必须证明当前在租不变、将搬入状态独立、服务端拒绝非法状态", "required_downstream_proof": "design/test-design/tech-lead 必须给出可复验接口、状态、事务、审计或回滚证据", "unit_refs": ["UNIT-1", "UNIT-2", "UNIT-3"], "risk_refs": ["RISK-CURRENT-TENANT"], "status": "REQUIRED"} for i, domain in enumerate(tech_domains, start=1)],
+        "release_readiness": {"supported_platforms": ["PC", "App", "小程序身份边界"], "conditional_platforms": ["H5", "HarmonyOS"], "unsupported_platforms": [], "residual_risks": [{"risk_id": "RISK-H5-HMOS", "description": "H5 / HarmonyOS 需独立验收后才声明支持", "owner": "test-design", "target_resolution": "发布准入前", "status": "TRANSFERRED"}]},
+        "business_flows": ["登记租客 -> 将搬入管理 -> 合同动作 -> 办理入住 / 作废 -> 发布验收"],
+        "user_paths": ["运营从已租房行登记下一任，当前租客动作仍只作用当前在租"],
+        "rule_mappings": ["AC1-AC10 映射入口、状态、权限、账款、身份、多端和证据要求"],
+        "design_decision_candidates": [{"decision_name": "将搬入状态和当前在租状态的界面区分", "options": ["列表标签", "详情分区"], "constraints": "不得混淆当前租客动作和将搬入动作", "impacted_units": ["UNIT-1"], "design_handoff": "design 决定视觉表达"}],
+    }

@@ -1,9 +1,0 @@
-{
-  "scenario_id": "new-skill-from-scratch",
-  "arm": "baseline",
-  "returncode": 0,
-  "started_at": "2026-05-12T13:45:46.317327+00:00",
-  "finished_at": "2026-05-12T13:46:28.121000+00:00",
-  "duration_seconds": 41.803673,
-  "response_file": "new-skill-from-scratch/baseline/response.json"
-}

@@ -8,8 +8,7 @@
       "shared/skills/research/SKILL.md",
       "shared/skills/research/test-prompts.json",
       "shared/skills/research/evals/evals.json",
-      "shared/skills/research/evals/skill-refiner-audit-2026-05-12/skill-refiner-result.json",
-      "tests/test-research-skill-refiner-eval.sh",
+      "tests/test-research-skill-quality-audit-eval.sh",
       "tests/test-research-skill-retain-gate.sh"
     ]
   },
@@ -28,7 +27,7 @@
       "id": "quick-advisory-no-report",
       "claim": "research now has a low-cost advisory path that does not force report artifacts.",
       "current_score": 4.8,
-      "baseline_score": 2.0,
+      "baseline_score": 2,
       "winner": "current",
       "critical_failure": false,
       "current_evidence_terms": [
@@ -40,7 +39,7 @@
       "evidence_refs": [
         "shared/skills/research/SKILL.md",
         "shared/skills/research/test-prompts.json",
-        "tests/test-research-skill-refiner-eval.sh"
+        "tests/test-research-skill-quality-audit-eval.sh"
       ]
     },
     {
@@ -85,7 +84,7 @@
       "id": "formal-report-completion-gate",
       "claim": "Formal report completion remains strict while quick advisory remains light.",
       "current_score": 4.5,
-      "baseline_score": 3.0,
+      "baseline_score": 3,
       "winner": "current",
       "critical_failure": false,
       "current_evidence_terms": [
@@ -104,7 +103,7 @@
       "id": "agent-browser-discovery-audit",
       "claim": "Discovery audit remains covered by name normalization, candidate exclusion, and audit presentation.",
       "current_score": 4.4,
-      "baseline_score": 3.0,
+      "baseline_score": 3,
       "winner": "current",
       "critical_failure": false,
       "current_evidence_terms": [
@@ -116,14 +115,14 @@
       "evidence_refs": [
         "shared/skills/research/test-prompts.json",
         "shared/skills/research/evals/evals.json",
-        "tests/test-research-skill-refiner-eval.sh"
+        "tests/test-research-skill-quality-audit-eval.sh"
       ]
     },
     {
       "id": "multi-agent-selection",
       "claim": "Selection mode still defaults to decision and TOP 3 after the triage change.",
       "current_score": 4.3,
-      "baseline_score": 3.0,
+      "baseline_score": 3,
       "winner": "current",
       "critical_failure": false,
       "current_evidence_terms": [
@@ -141,7 +140,7 @@
       "id": "skill-doc-detail-analysis",
       "claim": "Analysis mode still supports understanding-oriented claim challenge.",
       "current_score": 4.3,
-      "baseline_score": 3.0,
+      "baseline_score": 3,
       "winner": "current",
       "critical_failure": false,
       "current_evidence_terms": [
@@ -158,7 +157,7 @@
   ],
   "contract_checks": [
     {
-      "command": "bash tests/test-research-skill-refiner-eval.sh",
+      "command": "bash tests/test-research-skill-quality-audit-eval.sh",
       "status": "pass",
       "evidence": "Research refinement contract passes."
     },
@@ -181,17 +180,12 @@
       "command": "bash tests/test-github-repo-radar-contract.sh",
       "status": "pass",
       "evidence": "GitHub repo radar adjacent contract remains intact."
-    },
-    {
-      "command": "python3 shared/skills/skill-refiner/scripts/validate_refinement_result.py shared/skills/research/evals/skill-refiner-audit-2026-05-12/skill-refiner-result.json",
-      "status": "pass",
-      "evidence": "Research skill-refiner result validates against v3 contract."
     }
   ],
   "verification_commands": [
     "python3 shared/skills/research/scripts/validate_retain_evidence.py shared/skills/research/evals/retain-gate-2026-05-12/research-retain-evidence.json",
     "bash tests/test-research-skill-retain-gate.sh",
-    "bash tests/test-research-skill-refiner-eval.sh",
+    "bash tests/test-research-skill-quality-audit-eval.sh",
     "bash tests/test-research-skill-contract.sh",
     "bash tests/test-deep-research-skill-contract.sh",
     "bash tests/test-github-repo-radar-contract.sh"

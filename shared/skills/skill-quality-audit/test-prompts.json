@@ -1,0 +1,17 @@
+{
+  "skill": "skill-quality-audit",
+  "prompts": [
+    {
+      "id": "readiness-review",
+      "prompt": "Audit shared/skills/research for team-use readiness. Do not edit files; return findings with severity, evidence, repair targets, and verification hints."
+    },
+    {
+      "id": "old-name-cleanup",
+      "prompt": "Audit whether a retired Skill name still appears in active runtime, install, gate, test, eval, or downstream consumer paths. Do not modify files."
+    },
+    {
+      "id": "instruction-contract",
+      "prompt": "Review a Skill line by line for vague instructions, broad objects, hidden conditions, and missing failure handling. Return a 10-point Instruction Contract score."
+    }
+  ]
+}

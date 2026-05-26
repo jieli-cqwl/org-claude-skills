@@ -11,14 +11,14 @@
     "shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/anchor-fidelity.json",
     "tools/eval/results/product-manager-live-20260430/with-skill/summary.json",
     "tools/eval/results/product-manager-live-20260430/without-skill/summary.json",
-    "shared/skills/skill-refiner/references/quality-dimensions.md"
+    "shared/skills/skill-quality-audit/references/audit-dimensions.md"
   ],
   "next_action": "Rerun live with/without plus dogfood checks after the PM capability, schema, pre-unit gate, and risk-closure changes.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 21,
     "eval_count": 19,
-    "fidelity": 1.0,
+    "fidelity": 1,
     "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 5,
     "anchor_passed": 13,
@@ -34,11 +34,11 @@
     "with_skill": {
       "summary_ref": "tools/eval/results/product-manager-live-20260430/with-skill/summary.json",
       "sample_size": 5,
-      "avg_pass_rate": 1.0,
+      "avg_pass_rate": 1,
       "infra_failures": 0,
       "anchor_passed": 13,
       "anchor_total": 13,
-      "anchor_fidelity": 1.0
+      "anchor_fidelity": 1
     },
     "without_skill": {
       "summary_ref": "tools/eval/results/product-manager-live-20260430/without-skill/summary.json",
@@ -58,10 +58,10 @@
     "without_skill_summary_ref": "tools/eval/results/product-manager-live-20260430/without-skill/summary.json",
     "sample_size": 5,
     "with_skill": {
-      "avg_pass_rate": 1.0,
+      "avg_pass_rate": 1,
       "anchor_passed": 13,
       "anchor_total": 13,
-      "anchor_fidelity": 1.0,
+      "anchor_fidelity": 1,
       "infra_failures": 0
     },
     "without_skill": {
@@ -103,7 +103,7 @@
       }
     ],
     "retain_gate": {
-      "encoded_preference_fidelity": 1.0,
+      "encoded_preference_fidelity": 1,
       "with_skill_anchor_passed": 13,
       "with_skill_anchor_total": 13,
       "without_skill_anchor_passed": 9,

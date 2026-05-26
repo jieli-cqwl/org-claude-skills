@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from content_quality_canonical import canonical_field_quality
 from content_quality_common import (
     CAUSE_TERMS,
     COST_TERMS,
@@ -153,7 +154,9 @@ def risk_judgment_quality(brief: dict[str, Any]) -> dict[str, Any]:
     if closed:
         evidence.append("risks are resolved or bounded before finalization")
     else:
-        issues.append("risks must be resolved or explicitly bounded before finalization")
+        issues.append(
+            "risks must be resolved or explicitly bounded before finalization"
+        )
     if impact_is_bounded:
         evidence.append("risk impact is tied to phase, scope, or baseline")
     else:
@@ -215,9 +218,7 @@ def phase_value_slice_quality(
     )
 
 
-def finalization_trace_quality(
-    brief: dict[str, Any], phase: dict[str, Any], ledger: dict[str, Any]
-) -> dict[str, Any]:
+def finalization_trace_quality(ledger: dict[str, Any]) -> dict[str, Any]:
     refs = as_list(ledger.get("handoff_refs"))
     raw_basis = ledger.get("finalization_basis")
     basis: dict[str, Any] = raw_basis if isinstance(raw_basis, dict) else {}
@@ -304,12 +305,13 @@ def evaluate(
     brief: dict[str, Any], phase: dict[str, Any], ledger: dict[str, Any], min_score: int
 ) -> dict[str, Any]:
     dimensions = [
+        canonical_field_quality(brief, phase),
         root_problem_quality(brief),
         success_standard_quality(brief, ledger),
         scope_tradeoff_quality(brief),
         risk_judgment_quality(brief),
         phase_value_slice_quality(brief, phase),
-        finalization_trace_quality(brief, phase, ledger),
+        finalization_trace_quality(ledger),
         language_and_noise_quality(brief, phase, ledger),
     ]
     score = sum(item["score"] for item in dimensions)

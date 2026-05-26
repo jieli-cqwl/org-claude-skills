@@ -61,14 +61,20 @@ def add_failure(failures: list[str], field: str, reason: str) -> None:
 
 
 def make_check(name: str, failures: list[str]) -> dict[str, Any]:
-    return {"check": name, "status": "fail" if failures else "pass", "failures": failures}
+    return {
+        "check": name,
+        "status": "fail" if failures else "pass",
+        "failures": failures,
+    }
 
 
 def is_substantive_string(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-def require_object(payload: dict[str, Any], key: str, failures: list[str]) -> dict[str, Any] | None:
+def require_object(
+    payload: dict[str, Any], key: str, failures: list[str]
+) -> dict[str, Any] | None:
     value = payload.get(key)
     if not isinstance(value, dict):
         add_failure(failures, key, "must be object")
@@ -77,12 +83,16 @@ def require_object(payload: dict[str, Any], key: str, failures: list[str]) -> di
 
 
 def first_output_line(completed: subprocess.CompletedProcess[str]) -> str:
-    detail = (completed.stderr or completed.stdout or f"exit={completed.returncode}").strip()
+    detail = (
+        completed.stderr or completed.stdout or f"exit={completed.returncode}"
+    ).strip()
     return next((line for line in detail.splitlines() if line.strip()), detail)
 
 
 def run_command(args: list[str]) -> str | None:
-    completed = subprocess.run(args, cwd=ROOT, text=True, capture_output=True, check=False)
+    completed = subprocess.run(
+        args, cwd=ROOT, text=True, capture_output=True, check=False
+    )
     if completed.returncode == 0:
         return None
     return first_output_line(completed)
@@ -96,7 +106,9 @@ def check_package_envelope(package: dict[str, Any]) -> dict[str, Any]:
     if package.get("status") != "pass":
         add_failure(failures, "status", "must be pass")
     if package.get("input_origin") != "stage-2-product-manager-prd-package":
-        add_failure(failures, "input_origin", "must be stage-2-product-manager-prd-package")
+        add_failure(
+            failures, "input_origin", "must be stage-2-product-manager-prd-package"
+        )
     if package.get("handoff_to") != "test-design":
         add_failure(failures, "handoff_to", "must be test-design")
     if package.get("resume_condition") != "test_design_stage2_ready":
@@ -136,14 +148,24 @@ def check_design_shape(package: dict[str, Any]) -> dict[str, Any]:
     if design.get("producer") != "design":
         add_failure(failures, "design.producer", "must be design")
     pm_brief = pm_package.get("brief") if isinstance(pm_package, dict) else None
-    pm_digest = pm_brief.get("chain_registry_digest") if isinstance(pm_brief, dict) else None
+    pm_digest = (
+        pm_brief.get("chain_registry_digest") if isinstance(pm_brief, dict) else None
+    )
     if design.get("chain_registry_digest") != pm_digest:
         add_failure(failures, "design.chain_registry_digest", "must match PM package")
     product_handoff = design.get("product_handoff")
-    product_handoff_status = product_handoff.get("status") if isinstance(product_handoff, dict) else None
+    product_handoff_status = (
+        product_handoff.get("status") if isinstance(product_handoff, dict) else None
+    )
     if product_handoff_status != "READY":
         add_failure(failures, "design.product_handoff.status", "must be READY")
-    for field in ("co_creation_summary", "review_closure", "final_confirmation", "unit_coverage", "verification_mapping"):
+    for field in (
+        "design_stage_confirmations",
+        "review_closure",
+        "final_confirmation",
+        "unit_coverage",
+        "verification_mapping",
+    ):
         if field not in design:
             add_failure(failures, f"design.{field}", "missing")
     return make_check("design_artifact", failures)
@@ -196,7 +218,9 @@ def write_package_files(package: dict[str, Any], root: Path) -> tuple[Path, Path
     return feature_dir, phase_dir
 
 
-def check_design_review_digest(package: dict[str, Any], phase_dir: Path) -> dict[str, Any]:
+def check_design_review_digest(
+    package: dict[str, Any], phase_dir: Path
+) -> dict[str, Any]:
     failures: list[str] = []
     if "design" not in package:
         return make_check("design_review_digest", ["design: missing"])
@@ -230,7 +254,10 @@ def check_design_reference_integrity(phase_dir: Path) -> dict[str, Any]:
         ],
         [
             sys.executable,
-            str(ROOT / "shared/skills/design/scripts/check_design_reference_integrity.py"),
+            str(
+                ROOT
+                / "shared/skills/design/scripts/check_design_reference_integrity.py"
+            ),
             "--phase-dir",
             str(phase_dir),
         ],
@@ -246,7 +273,9 @@ def check_authorization_boundary(package: dict[str, Any]) -> dict[str, Any]:
     failures: list[str] = []
     boundary = package.get("decision_boundary")
     if not isinstance(boundary, dict):
-        return make_check("authorization_boundary", ["decision_boundary: must be object"])
+        return make_check(
+            "authorization_boundary", ["decision_boundary: must be object"]
+        )
     allowed = boundary.get("allowed_actions")
     blocked = boundary.get("blocked_actions")
     if not isinstance(allowed, list):
@@ -257,12 +286,20 @@ def check_authorization_boundary(package: dict[str, Any]) -> dict[str, Any]:
         blocked = []
     for action in DESIGN_ALLOWED_ACTIONS:
         if action not in allowed:
-            add_failure(failures, "decision_boundary.allowed_actions", f"must include {action}")
+            add_failure(
+                failures, "decision_boundary.allowed_actions", f"must include {action}"
+            )
     for action in DESIGN_BLOCKED_ACTIONS:
         if action not in blocked:
-            add_failure(failures, "decision_boundary.blocked_actions", f"must include {action}")
+            add_failure(
+                failures, "decision_boundary.blocked_actions", f"must include {action}"
+            )
         if action in allowed:
-            add_failure(failures, "decision_boundary.allowed_actions", f"must not include {action}")
+            add_failure(
+                failures,
+                "decision_boundary.allowed_actions",
+                f"must not include {action}",
+            )
     return make_check("authorization_boundary", failures)
 
 
@@ -296,7 +333,9 @@ def validate(package: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--package", required=True, type=Path, help="Stage 2 design package JSON.")
+    parser.add_argument(
+        "--package", required=True, type=Path, help="Stage 2 design package JSON."
+    )
     args = parser.parse_args()
 
     payload = validate(load_json(args.package))

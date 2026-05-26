@@ -8,7 +8,7 @@
     "shared/skills/design/SKILL.md",
     "shared/skills/design/evals/evals.json",
     "tests/test-design-dogfood-e2e.sh",
-    "shared/skills/skill-refiner/references/quality-dimensions.md"
+    "shared/skills/skill-quality-audit/references/audit-dimensions.md"
   ],
   "next_action": "Run empirical with-skill / without-skill evals against the full senior architect matrix before changing the value signal.",
   "capability_uplift": {

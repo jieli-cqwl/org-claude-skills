@@ -56,7 +56,9 @@ def assert_allowed_output(path: Path, cwd: Path) -> None:
     allowed_roots.append(Path("/tmp").resolve())
     if not any(is_relative_to(resolved, root) for root in allowed_roots):
         allowed = ", ".join(str(root) for root in allowed_roots)
-        raise SystemExit(f"output path is outside allowed roots: {resolved}; allowed roots: {allowed}")
+        raise SystemExit(
+            f"output path is outside allowed roots: {resolved}; allowed roots: {allowed}"
+        )
 
 
 def write_text_file(path: Path, content: str) -> None:
@@ -100,69 +102,118 @@ def section(title: str, body: list[str]) -> str:
 
 def render_design_markdown(payload: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
     sections: list[tuple[str, str, list[str], list[str]]] = [
-        ("input", "背景、证据与约束", [
-            "$.input_analysis",
-            "$.runtime_facts",
-            "$.constraint_inheritance_confirmation",
-        ], [
-            object_line("产品基线", payload.get("input_analysis"), "$.input_analysis"),
-            *bullet_list(payload.get("runtime_facts"), "$.runtime_facts"),
-            object_line(
-                "约束继承",
-                payload.get("constraint_inheritance_confirmation"),
+        (
+            "input",
+            "背景、证据与约束",
+            [
+                "$.input_analysis",
+                "$.runtime_facts",
                 "$.constraint_inheritance_confirmation",
-            ),
-        ]),
-        ("co_creation", "协作确认", ["$.co_creation_summary"], [
-            *bullet_list(payload.get("co_creation_summary"), "$.co_creation_summary"),
-        ]),
-        ("decisions", "关键决策与取舍", ["$.key_decisions", "$.option_analysis"], [
-            *bullet_list(payload.get("key_decisions"), "$.key_decisions"),
-            *bullet_list(payload.get("option_analysis"), "$.option_analysis"),
-        ]),
-        ("boundary", "边界与接口", [
-            "$.modules",
-            "$.data_architecture",
-            "$.cross_cutting_concerns",
-            "$.interfaces",
-            "$.interface_boundary",
-            "$.unit_coverage",
-        ], [
-            *bullet_list(payload.get("modules"), "$.modules"),
-            object_line("数据架构", payload.get("data_architecture"), "$.data_architecture"),
-            *bullet_list(payload.get("cross_cutting_concerns"), "$.cross_cutting_concerns"),
-            *bullet_list(payload.get("interfaces"), "$.interfaces"),
-            *bullet_list(payload.get("interface_boundary"), "$.interface_boundary"),
-            *bullet_list(payload.get("unit_coverage"), "$.unit_coverage"),
-        ]),
-        ("quality", "质量、迁移、验证、回滚", [
-            "$.quality_attributes",
-            "$.migration_plan",
-            "$.verification_plan",
-            "$.rollback_plan",
-            "$.verification_mapping",
-        ], [
-            *bullet_list(payload.get("quality_attributes"), "$.quality_attributes"),
-            *bullet_list(payload.get("migration_plan"), "$.migration_plan"),
-            *bullet_list(payload.get("verification_plan"), "$.verification_plan"),
-            *bullet_list(payload.get("verification_mapping"), "$.verification_mapping"),
-            *bullet_list(payload.get("rollback_plan"), "$.rollback_plan"),
-        ]),
-        ("handoff", "风险与交接", [
-            "$.risks",
-            "$.risk_response",
-            "$.impact_scope",
-            "$.planning_constraints",
-            "$.product_handoff",
-            "$.final_confirmation",
-        ], [
-            *bullet_list(payload.get("risks"), "$.risks"),
-            *bullet_list(payload.get("risk_response"), "$.risk_response"),
-            *bullet_list(payload.get("impact_scope"), "$.impact_scope"),
-            *bullet_list(payload.get("planning_constraints"), "$.planning_constraints"),
-            object_line("产品交接", payload.get("product_handoff"), "$.product_handoff"),
-            object_line("最终确认", payload.get("final_confirmation"), "$.final_confirmation"),
-        ]),
+            ],
+            [
+                object_line(
+                    "产品基线", payload.get("input_analysis"), "$.input_analysis"
+                ),
+                *bullet_list(payload.get("runtime_facts"), "$.runtime_facts"),
+                object_line(
+                    "约束继承",
+                    payload.get("constraint_inheritance_confirmation"),
+                    "$.constraint_inheritance_confirmation",
+                ),
+            ],
+        ),
+        (
+            "design_confirmations",
+            "设计确认",
+            ["$.design_stage_confirmations"],
+            [
+                *bullet_list(
+                    payload.get("design_stage_confirmations"),
+                    "$.design_stage_confirmations",
+                ),
+            ],
+        ),
+        (
+            "decisions",
+            "关键决策与取舍",
+            ["$.key_decisions", "$.option_analysis"],
+            [
+                *bullet_list(payload.get("key_decisions"), "$.key_decisions"),
+                *bullet_list(payload.get("option_analysis"), "$.option_analysis"),
+            ],
+        ),
+        (
+            "boundary",
+            "边界与接口",
+            [
+                "$.modules",
+                "$.data_architecture",
+                "$.cross_cutting_concerns",
+                "$.interfaces",
+                "$.interface_boundary",
+                "$.unit_coverage",
+            ],
+            [
+                *bullet_list(payload.get("modules"), "$.modules"),
+                object_line(
+                    "数据架构", payload.get("data_architecture"), "$.data_architecture"
+                ),
+                *bullet_list(
+                    payload.get("cross_cutting_concerns"), "$.cross_cutting_concerns"
+                ),
+                *bullet_list(payload.get("interfaces"), "$.interfaces"),
+                *bullet_list(payload.get("interface_boundary"), "$.interface_boundary"),
+                *bullet_list(payload.get("unit_coverage"), "$.unit_coverage"),
+            ],
+        ),
+        (
+            "quality",
+            "质量、迁移、验证、回滚",
+            [
+                "$.quality_attributes",
+                "$.migration_plan",
+                "$.verification_plan",
+                "$.rollback_plan",
+                "$.verification_mapping",
+            ],
+            [
+                *bullet_list(payload.get("quality_attributes"), "$.quality_attributes"),
+                *bullet_list(payload.get("migration_plan"), "$.migration_plan"),
+                *bullet_list(payload.get("verification_plan"), "$.verification_plan"),
+                *bullet_list(
+                    payload.get("verification_mapping"), "$.verification_mapping"
+                ),
+                *bullet_list(payload.get("rollback_plan"), "$.rollback_plan"),
+            ],
+        ),
+        (
+            "handoff",
+            "风险与交接",
+            [
+                "$.risks",
+                "$.risk_response",
+                "$.impact_scope",
+                "$.planning_constraints",
+                "$.product_handoff",
+                "$.final_confirmation",
+            ],
+            [
+                *bullet_list(payload.get("risks"), "$.risks"),
+                *bullet_list(payload.get("risk_response"), "$.risk_response"),
+                *bullet_list(payload.get("impact_scope"), "$.impact_scope"),
+                *bullet_list(
+                    payload.get("planning_constraints"), "$.planning_constraints"
+                ),
+                object_line(
+                    "产品交接", payload.get("product_handoff"), "$.product_handoff"
+                ),
+                object_line(
+                    "最终确认",
+                    payload.get("final_confirmation"),
+                    "$.final_confirmation",
+                ),
+            ],
+        ),
     ]
     manifest = [
         {"section_id": section_id, "title": title, "json_pointers": pointers}
@@ -181,11 +232,15 @@ def render_design_markdown(payload: dict[str, Any]) -> tuple[str, list[dict[str,
 def manifest_path_for(output_path: Path) -> Path:
     name = output_path.name
     if name.endswith(".projection.md"):
-        return output_path.with_name(name.replace(".projection.md", ".projection-manifest.json"))
+        return output_path.with_name(
+            name.replace(".projection.md", ".projection-manifest.json")
+        )
     return output_path.with_suffix(output_path.suffix + ".manifest.json")
 
 
-def write_design_projection(payload: dict[str, Any], output_path: Path) -> dict[str, Any]:
+def write_design_projection(
+    payload: dict[str, Any], output_path: Path
+) -> dict[str, Any]:
     markdown, sections = render_design_markdown(payload)
     manifest_path = manifest_path_for(output_path)
     write_text_file(output_path, markdown)
@@ -223,7 +278,9 @@ def options_by_decision(payload: dict[str, Any]) -> dict[str, list[dict[str, Any
 
 
 def table_row(cells: list[Any]) -> str:
-    return "| " + " | ".join(one_line(cell).replace("|", "\\|") for cell in cells) + " |"
+    return (
+        "| " + " | ".join(one_line(cell).replace("|", "\\|") for cell in cells) + " |"
+    )
 
 
 def render_option_table(options: list[dict[str, Any]]) -> list[str]:
@@ -233,26 +290,43 @@ def render_option_table(options: list[dict[str, Any]]) -> list[str]:
     ]
     for option in options:
         rows.append(
-            table_row([
-                option.get("option_id"),
-                option.get("verdict"),
-                option.get("tradeoff"),
-                option.get("fact_refs"),
-            ])
+            table_row(
+                [
+                    option.get("option_id"),
+                    option.get("verdict"),
+                    option.get("tradeoff"),
+                    option.get("fact_refs"),
+                ]
+            )
         )
     return rows
 
 
-def render_adr(decision: dict[str, Any], options: list[dict[str, Any]], constraints: Any, index: int) -> str:
+def render_adr(
+    decision: dict[str, Any],
+    options: list[dict[str, Any]],
+    constraints: Any,
+    index: int,
+) -> str:
     decision_id = one_line(decision.get("decision_id")) or f"D-{index:03d}"
     title = one_line(decision.get("summary")) or decision_id
     selected = next(
-        (option for option in options if option.get("option_id") == decision.get("option_ref")),
+        (
+            option
+            for option in options
+            if option.get("option_id") == decision.get("option_ref")
+        ),
         None,
     )
-    selected_summary = one_line(selected.get("summary")) if selected else one_line(decision.get("option_ref"))
+    selected_summary = (
+        one_line(selected.get("summary"))
+        if selected
+        else one_line(decision.get("option_ref"))
+    )
     tradeoff = one_line(selected.get("tradeoff")) if selected else ""
-    fact_refs = decision.get("fact_refs") if isinstance(decision.get("fact_refs"), list) else []
+    fact_refs = (
+        decision.get("fact_refs") if isinstance(decision.get("fact_refs"), list) else []
+    )
     constraint_lines = bullet_list(constraints, "$.planning_constraints")
     return "\n".join(
         [
@@ -292,7 +366,9 @@ def write_adrs(payload: dict[str, Any], output_dir: Path) -> list[str]:
         decision_id_raw = one_line(decision.get("decision_id")) or f"D-{index:03d}"
         decision_options = grouped_options.get(decision_id_raw, [])
         path = output_dir / f"ADR-{index:03d}.md"
-        write_text_file(path, render_adr(decision, decision_options, constraints, index))
+        write_text_file(
+            path, render_adr(decision, decision_options, constraints, index)
+        )
         outputs.append(str(path))
     return outputs
 
@@ -301,7 +377,9 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         description="Render design projection files from a validated design.json."
     )
-    parser.add_argument("--design", required=True, help="Path to validated phase design.json.")
+    parser.add_argument(
+        "--design", required=True, help="Path to validated phase design.json."
+    )
     parser.add_argument("--design-output", help="Path for views/design.projection.md.")
     parser.add_argument("--adr-dir", help="Directory for generated ADR markdown files.")
     args = parser.parse_args(argv)

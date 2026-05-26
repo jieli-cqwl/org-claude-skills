@@ -107,8 +107,8 @@ fi
 rg -q "unit_coverage|unit_not_covered_by_design|UNIT-1" "$TMP_ROOT/broken-coverage-output.json" \
   || fail "UNIT coverage failure should be explicit"
 
-BROKEN_CO_CREATION="$TMP_ROOT/broken-co-creation.json"
-python3 - "$PACKAGE" "$BROKEN_CO_CREATION" <<'PY'
+BROKEN_CONFIRMATIONS="$TMP_ROOT/broken-confirmations.json"
+python3 - "$PACKAGE" "$BROKEN_CONFIRMATIONS" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -117,10 +117,10 @@ payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 payload["design"].pop("co_creation_summary", None)
 Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
-if python3 "$SCRIPT" --package "$BROKEN_CO_CREATION" >"$TMP_ROOT/broken-co-creation-output.json"; then
+if python3 "$SCRIPT" --package "$BROKEN_CONFIRMATIONS" >"$TMP_ROOT/broken-confirmations-output.json"; then
   fail "design package must reject design without co_creation_summary"
 fi
-rg -q "co_creation_summary" "$TMP_ROOT/broken-co-creation-output.json" \
+rg -q "co_creation_summary" "$TMP_ROOT/broken-confirmations-output.json" \
   || fail "co_creation_summary failure should be explicit"
 
 BAD_BOUNDARY="$TMP_ROOT/bad-boundary.json"

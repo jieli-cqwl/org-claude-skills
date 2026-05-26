@@ -71,7 +71,7 @@ digraph product_director_flow {
 
 ## 输出
 
-- 所有基线事实闭合且收到用户明确回复 `产品总监确认` 后，按 `references/final-artifacts.md` 写入或更新 `product-director-ledger.json`、`brief.json` 和每个 `phase-{N}/phase-prd.json`；交付前必须通过 finalized ledger、Director result、content-quality 和 hook gate。
+- 所有基线事实闭合且收到用户明确回复 `产品总监确认` 后，按 `references/final-artifacts.md` 写入或更新 `product-director-ledger.json`、`brief.json` 和每个 `phase-{N}/phase-prd.json`；`product-director-ledger.json` 只用于 Director finalization 前的确认检查点与漂移恢复，下游只消费 canonical JSON；交付前必须通过 finalized ledger、Director result、content-quality 和 hook gate。
 - 执行：`python3 shared/skills/product-director/scripts/render_projection.py --feature-dir "docs/{feature}"`
 
 ## 完成校验

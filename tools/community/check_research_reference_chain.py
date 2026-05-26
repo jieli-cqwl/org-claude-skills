@@ -182,7 +182,7 @@ def check_essence_evidence(path: Path) -> None:
         "shared/skills/research/SKILL.md",
         "shared/skills/research/references/",
         "shared/skills/research/projections/",
-        "tests/test-research-skill-refiner-eval.sh",
+        "tests/test-research-skill-quality-audit-eval.sh",
     ]
     missing_refs = [
         fragment
@@ -197,7 +197,7 @@ def check_essence_evidence(path: Path) -> None:
         for item in data.get("verification_commands", [])
     }
     for command in [
-        "bash tests/test-research-skill-refiner-eval.sh",
+        "bash tests/test-research-skill-quality-audit-eval.sh",
         "bash tests/test-research-skill-contract.sh",
     ]:
         if commands.get(command, {}).get("status") != "pass":

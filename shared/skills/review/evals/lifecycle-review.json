@@ -7,7 +7,7 @@
   "evidence_refs": [
     "shared/skills/review/SKILL.md",
     "shared/skills/review/evals/evals.json",
-    "shared/skills/skill-refiner/references/quality-dimensions.md"
+    "shared/skills/skill-quality-audit/references/audit-dimensions.md"
   ],
   "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
   "capability_uplift": {

@@ -8,7 +8,7 @@
       "shared/skills/research/SKILL.md",
       "shared/skills/research/references/*.md",
       "shared/skills/research/projections/research-report-template.md",
-      "tests/test-research-skill-refiner-eval.sh"
+      "tests/test-research-skill-quality-audit-eval.sh"
     ],
     "out_of_scope": [
       "shared/skills/design/**",
@@ -96,7 +96,7 @@
       "requirement": "research 入口不是 brainstorming 外形复制，而是具备硬门禁、反模式、顺序 checklist、用户确认和终态停止。",
       "status": "pass",
       "evidence_refs": [
-        "tests/test-research-skill-refiner-eval.sh#assert_research_brainstorming_parity_contract"
+        "tests/test-research-skill-quality-audit-eval.sh#assert_research_brainstorming_parity_contract"
       ]
     },
     {
@@ -104,7 +104,7 @@
       "requirement": "references 承接入口流程，明确使用边界、输出合同、失败状态和不得越权行为。",
       "status": "pass",
       "evidence_refs": [
-        "tests/test-research-skill-refiner-eval.sh#assert_research_reference_chain_contract",
+        "tests/test-research-skill-quality-audit-eval.sh#assert_research_reference_chain_contract",
         "shared/skills/research/references/analysis-frameworks.md",
         "shared/skills/research/references/evidence-package-guide.md",
         "shared/skills/research/references/report-presentation-framework.md"
@@ -115,7 +115,7 @@
       "requirement": "projections 收敛为单一行为约束模板，不再保留分裂模板或省略号式含糊占位。",
       "status": "pass",
       "evidence_refs": [
-        "tests/test-research-skill-refiner-eval.sh#projection_requirements",
+        "tests/test-research-skill-quality-audit-eval.sh#projection_requirements",
         "shared/skills/research/projections/research-report-template.md"
       ]
     },
@@ -141,7 +141,7 @@
       "requirement": "research 真实使用场景明确限定为团队可能基于外部信息行动前的采用、选型、观点拆解、对象识别、判断复核和外部方案理解。",
       "status": "pass",
       "evidence_refs": [
-        "tests/test-research-skill-refiner-eval.sh#assert_research_real_use_contract",
+        "tests/test-research-skill-quality-audit-eval.sh#assert_research_real_use_contract",
         "shared/skills/research/SKILL.md#When-to-Use"
       ]
     },
@@ -150,7 +150,7 @@
       "requirement": "资料/对象精准定位先于判断校准，正式报告模板也必须先输出 Source Targeting Package 和 Evidence Qualification。",
       "status": "pass",
       "evidence_refs": [
-        "tests/test-research-skill-refiner-eval.sh#assert_research_source_targeting_contract",
+        "tests/test-research-skill-quality-audit-eval.sh#assert_research_source_targeting_contract",
         "tools/community/check_research_reference_chain.py#check_projections",
         "shared/skills/research/projections/research-report-template.md#Source-Targeting-Package"
       ]
@@ -158,7 +158,7 @@
   ],
   "verification_commands": [
     {
-      "command": "bash tests/test-research-skill-refiner-eval.sh",
+      "command": "bash tests/test-research-skill-quality-audit-eval.sh",
       "status": "pass"
     },
     {
@@ -175,7 +175,7 @@
       "status": "pass"
     },
     {
-      "command": "git diff --check -- shared/skills/research tests/test-research-skill-refiner-eval.sh tests/test-research-skill-contract.sh tools/community/check_research_reference_chain.py",
+      "command": "git diff --check -- shared/skills/research tests/test-research-skill-quality-audit-eval.sh tests/test-research-skill-contract.sh tools/community/check_research_reference_chain.py",
       "status": "pass"
     },
     {

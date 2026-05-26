@@ -3,9 +3,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-STANDARD="$ROOT/shared/skills/skill-refiner/references/quality-dimensions.md"
-REFINER="$ROOT/shared/skills/skill-refiner/SKILL.md"
-QUALITY_DIMENSIONS="$ROOT/shared/skills/skill-refiner/references/quality-dimensions.md"
+STANDARD="$ROOT/shared/skills/skill-quality-audit/references/audit-dimensions.md"
+AUDIT_SKILL="$ROOT/shared/skills/skill-quality-audit/SKILL.md"
+QUALITY_DIMENSIONS="$ROOT/shared/skills/skill-quality-audit/references/audit-dimensions.md"
 SCAN_RULES="$ROOT/shared/skills/scan/references/skills-scan-rules.md"
 SCAN_SKILL="$ROOT/shared/skills/scan/SKILL.md"
 TOOL_MANIFEST="$ROOT/tools/skill_quality/manifest.json"
@@ -22,7 +22,7 @@ fail() {
 
 required_files=(
   "$STANDARD"
-  "$REFINER"
+  "$AUDIT_SKILL"
   "$QUALITY_DIMENSIONS"
   "$SCAN_RULES"
   "$SCAN_SKILL"

@@ -146,7 +146,7 @@ validate_no_review_wrapper_fields() {
     fi
 }
 
-validate_co_creation_stages() {
+validate_design_confirmation_stages() {
     local target="$1"
     local missing_stages
 
@@ -160,13 +160,13 @@ validate_co_creation_stages() {
             "option-tradeoff",
             "design-synthesis"
         ] as $required
-        | (.co_creation_summary | if type == "array" then . else [] end) as $rows
+        | (.design_stage_confirmations | if type == "array" then . else [] end) as $rows
         | ($rows | map(select(type == "object") | .stage_id) | unique) as $seen
         | [$required[] as $stage | select(($seen | index($stage)) == null) | $stage]
         | join(", ")
     ' "$target")"
     if [ -n "$missing_stages" ]; then
-        add_failure "design.json missing required co-creation stages: $missing_stages"
+        add_failure "design.json design_stage_confirmations missing required stages: $missing_stages"
         output_failures "Canonical design gate failed" "$target"
     fi
 }
@@ -186,7 +186,7 @@ validate_design_artifact() {
     fi
 
     validate_no_review_wrapper_fields "$target"
-    validate_co_creation_stages "$target"
+    validate_design_confirmation_stages "$target"
     validate_product_inputs "$target"
     validate_phase_contract "$target"
     validate_reference_integrity "$target"

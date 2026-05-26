@@ -72,7 +72,7 @@
       "evidence_refs": [
         "shared/skills/research/evals/evals.json",
         "shared/skills/research/test-prompts.json",
-        "tests/test-research-skill-refiner-eval.sh",
+        "tests/test-research-skill-quality-audit-eval.sh",
         "tests/test-research-skill-retain-gate.sh"
       ],
       "decision": "Coverage is enough for bounded retain."
@@ -124,9 +124,9 @@
       "evidence": "[PASS] research retain gate"
     },
     {
-      "command": "bash tests/test-research-skill-refiner-eval.sh",
+      "command": "bash tests/test-research-skill-quality-audit-eval.sh",
       "status": "pass",
-      "evidence": "[PASS] research skill-refiner eval"
+      "evidence": "[PASS] research skill-quality-audit eval"
     }
   ],
   "retain_assessment": {

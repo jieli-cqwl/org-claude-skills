@@ -104,7 +104,7 @@
       "type": "string",
       "enum": [
         "developer",
-        "skill-refiner"
+        "skill-quality-audit"
       ]
     },
     "task_spec_refs": {

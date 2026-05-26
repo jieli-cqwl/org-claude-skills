@@ -17,15 +17,15 @@
       "owner": "community",
       "reason": "Authenticated web/social workflows should be explicit."
     },
-    "architecture": {
-      "mode": "manual",
-      "owner": "community",
-      "reason": "HTML/CSS architecture diagram generation is a specialized document workflow and must be explicitly invoked."
-    },
     "algorithmic-art": {
       "mode": "manual",
       "owner": "community",
       "reason": "Generative art workflows are specialized and low-frequency."
+    },
+    "architecture": {
+      "mode": "manual",
+      "owner": "community",
+      "reason": "HTML/CSS architecture diagram generation is a specialized document workflow and must be explicitly invoked."
     },
     "baoyu-markdown-to-html": {
       "mode": "manual",
@@ -65,21 +65,15 @@
       "owner": "first-party",
       "reason": "CLI update checks are explicit maintenance operations."
     },
-    "code-to-prd": {
-      "mode": "manual",
-      "owner": "community",
-      "reason": "从历史代码反向生成 PRD 会影响产品事实源且可能生成大量本地产物，必须由用户显式触发。"
-    },
     "code-review-fix": {
       "mode": "manual",
       "owner": "claude-only",
       "reason": "Claude-only fix loop should be explicitly invoked."
     },
-    "dot-skill": {
+    "code-to-prd": {
       "mode": "manual",
       "owner": "community",
-      "source_dir": "colleague-skill",
-      "reason": "Persona/community workflows should be explicit."
+      "reason": "从历史代码反向生成 PRD 会影响产品事实源且可能生成大量本地产物，必须由用户显式触发。"
     },
     "commit": {
       "mode": "manual",
@@ -91,6 +85,12 @@
       "owner": "first-party",
       "reason": "Cross-artifact consistency audits are high-cost and explicit."
     },
+    "create-yourself": {
+      "mode": "manual",
+      "owner": "community",
+      "source_dir": "yourself-skill",
+      "reason": "Persona building should be explicit."
+    },
     "darwin-skill": {
       "mode": "manual",
       "owner": "community",
@@ -101,15 +101,15 @@
       "owner": "first-party",
       "reason": "Deep research is expensive and intentionally manual."
     },
-    "delivery-owner": {
-      "mode": "manual",
-      "owner": "first-party",
-      "reason": "Delivery owner orchestration starts after explicit handoff."
-    },
     "delivery-estimator": {
       "mode": "manual",
       "owner": "first-party",
       "reason": "需求排期、交付窗口、投入时长和风险承诺需要用户显式触发。"
+    },
+    "delivery-owner": {
+      "mode": "manual",
+      "owner": "first-party",
+      "reason": "Delivery owner orchestration starts after explicit handoff."
     },
     "design": {
       "mode": "manual",
@@ -141,6 +141,12 @@
       "mode": "manual",
       "owner": "community",
       "reason": "Word document manipulation is specialized and explicit."
+    },
+    "dot-skill": {
+      "mode": "manual",
+      "owner": "community",
+      "source_dir": "colleague-skill",
+      "reason": "Persona/community workflows should be explicit."
     },
     "executing-plans": {
       "mode": "auto",
@@ -188,10 +194,11 @@
       "owner": "community",
       "reason": "Graphify 会扫描目录、写入 graphify-out，并可安装/调用 Python graphifyy 与外部集成，必须由用户显式触发。"
     },
-    "mermaid-diagrams": {
+    "huashu-nuwa": {
       "mode": "manual",
       "owner": "community",
-      "reason": "Mermaid 图表生成是专门的文档/架构图工作流，避免抢占普通架构讨论或文档编辑，必须由用户显式触发。"
+      "source_dir": "nuwa-skill",
+      "reason": "Persona generation should be explicit."
     },
     "humanizer-zh": {
       "mode": "manual",
@@ -208,6 +215,11 @@
       "owner": "community",
       "reason": "MCP server construction is specialized and should be explicit."
     },
+    "mermaid-diagrams": {
+      "mode": "manual",
+      "owner": "community",
+      "reason": "Mermaid 图表生成是专门的文档/架构图工作流，避免抢占普通架构讨论或文档编辑，必须由用户显式触发。"
+    },
     "midas-skill": {
       "mode": "manual",
       "owner": "community",
@@ -217,12 +229,6 @@
       "mode": "manual",
       "owner": "community",
       "reason": "NotebookLM browser workflows require explicit user intent."
-    },
-    "huashu-nuwa": {
-      "mode": "manual",
-      "owner": "community",
-      "source_dir": "nuwa-skill",
-      "reason": "Persona generation should be explicit."
     },
     "overview": {
       "mode": "auto",
@@ -336,10 +342,10 @@
       "owner": "first-party",
       "reason": "External Skill source updates should be explicit."
     },
-    "skill-refiner": {
+    "skill-quality-audit": {
       "mode": "manual",
       "owner": "first-party",
-      "reason": "Skill refinement architecture work should be explicitly invoked."
+      "reason": "Skill quality audits are high-cost and should be explicitly invoked."
     },
     "slack-gif-creator": {
       "mode": "manual",
@@ -450,12 +456,6 @@
       "mode": "manual",
       "owner": "community",
       "reason": "Spreadsheet workflows are specialized and explicit."
-    },
-    "create-yourself": {
-      "mode": "manual",
-      "owner": "community",
-      "source_dir": "yourself-skill",
-      "reason": "Persona building should be explicit."
     }
   }
 }

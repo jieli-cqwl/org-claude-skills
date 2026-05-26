@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Validate first-party skill script manifest contracts."""
+
 from __future__ import annotations
 
 import argparse
@@ -7,6 +9,9 @@ import shlex
 import sys
 from pathlib import Path
 from typing import Any, NoReturn
+
+
+Script = dict[str, Any]
 
 
 REQUIRED_SCRIPT_FIELDS = {
@@ -33,21 +38,20 @@ REQUIRED_DENIED_ARGS = {"--exec", "--shell", "--network", ";", "&&", "|"}
 VERIFICATION_PATH_PREFIXES = ("tests/", "shared/skills/", "tools/")
 
 
-class ManifestError(ValueError):
-    pass
-
-
 def parse_args() -> argparse.Namespace:
+    """Parse validator command-line arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     return parser.parse_args()
 
 
 def fail(message: str) -> NoReturn:
-    raise ManifestError(message)
+    """Raise a manifest validation error with a stable message."""
+    raise ValueError(message)
 
 
 def load_json(path: Path) -> dict[str, Any]:
+    """Read a manifest JSON object from disk."""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
@@ -58,6 +62,7 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def assert_field_types(script: dict[str, Any]) -> None:
+    """Check required and optional field types for one script entry."""
     script_id = script.get("id", "<unknown>")
     for field, expected_type in REQUIRED_SCRIPT_FIELDS.items():
         if field not in script:
@@ -69,9 +74,8 @@ def assert_field_types(script: dict[str, Any]) -> None:
             fail(f"script {script_id}: {field} must be {expected_type.__name__}")
 
 
-def assert_string_list(
-    script: dict[str, Any], field: str, *, allow_empty: bool = True
-) -> None:
+def assert_string_list(script: Script, field: str, *, allow_empty: bool = True) -> None:
+    """Check that a list field contains only non-empty strings."""
     value = script[field]
     script_id = script["id"]
     if not allow_empty and not value:
@@ -81,6 +85,7 @@ def assert_string_list(
 
 
 def assert_lists(script: dict[str, Any]) -> None:
+    """Check list-shaped security and dependency fields."""
     for field in ("allowed_args", "denied_args", "external_commands"):
         assert_string_list(script, field, allow_empty=False)
     assert_string_list(script, "allowed_input_roots")
@@ -89,6 +94,7 @@ def assert_lists(script: dict[str, Any]) -> None:
 
 
 def assert_path_inside_skill(skill_dir: Path, script: dict[str, Any]) -> None:
+    """Check that script paths stay within their skill directory."""
     script_path = script["path"]
     if script_path.startswith("/") or ".." in Path(script_path).parts:
         fail(f"script {script['id']}: path must stay inside skill directory")
@@ -97,12 +103,14 @@ def assert_path_inside_skill(skill_dir: Path, script: dict[str, Any]) -> None:
 
 
 def assert_numbers(script: dict[str, Any]) -> None:
+    """Check numeric resource limits."""
     for field in ("timeout_seconds", "output_limit_bytes"):
         if script[field] <= 0:
             fail(f"script {script['id']}: {field} must be positive")
 
 
 def assert_exit_codes(script: dict[str, Any]) -> None:
+    """Check exit-code documentation shape."""
     meanings = script["exit_code_meanings"]
     if "0" not in meanings:
         fail(f"script {script['id']}: exit_code_meanings must include 0")
@@ -118,12 +126,14 @@ def assert_exit_codes(script: dict[str, Any]) -> None:
 
 
 def assert_denied_args(script: dict[str, Any]) -> None:
+    """Check that dangerous shell-like arguments are explicitly denied."""
     missing = sorted(REQUIRED_DENIED_ARGS - set(script["denied_args"]))
     if missing:
         fail(f"script {script['id']}: denied_args missing {missing}")
 
 
 def assert_verification_command(repo_root: Path, script: dict[str, Any]) -> None:
+    """Check verification commands reference existing repo paths."""
     command = script["verification_command"]
     if not command.strip():
         fail(f"script {script['id']}: verification_command must not be empty")
@@ -140,6 +150,7 @@ def assert_verification_command(repo_root: Path, script: dict[str, Any]) -> None
 
 
 def validate_script(repo_root: Path, skill_dir: Path, script: Any) -> None:
+    """Validate one script entry against the shared manifest contract."""
     if not isinstance(script, dict):
         fail("scripts entries must be objects")
     assert_field_types(script)
@@ -156,6 +167,7 @@ def validate_script(repo_root: Path, skill_dir: Path, script: Any) -> None:
 
 
 def validate_manifest(repo_root: Path, path: Path) -> list[str]:
+    """Validate a manifest file and return stable error strings."""
     errors: list[str] = []
     try:
         data = load_json(path)
@@ -167,12 +179,13 @@ def validate_manifest(repo_root: Path, path: Path) -> list[str]:
         if not isinstance(scripts, list) or not scripts:
             fail("scripts must be a non-empty list")
         validate_scripts(repo_root, path.parents[1], scripts)
-    except ManifestError as exc:
+    except ValueError as exc:
         errors.append(f"{path}: {exc}")
     return errors
 
 
 def validate_scripts(repo_root: Path, skill_dir: Path, scripts: list[Any]) -> None:
+    """Validate all script entries and reject duplicate ids."""
     seen_ids: set[str] = set()
     for script in scripts:
         validate_script(repo_root, skill_dir, script)
@@ -183,6 +196,7 @@ def validate_scripts(repo_root: Path, skill_dir: Path, scripts: list[Any]) -> No
 
 
 def main() -> int:
+    """Validate every first-party skill script manifest."""
     args = parse_args()
     root = args.repo_root.resolve()
     manifests = sorted((root / "shared" / "skills").glob("*/scripts/manifest.json"))

@@ -1,0 +1,15 @@
+{
+  "artifact_type": "tasks",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-1.tasks",
+  "schema_version": "1.0.0",
+  "producer": "tech-lead",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.plan_version",
+    "$.tasks"
+  ],
+  "plan_version": "tasks-bootstrap-r1",
+  "tasks": []
+}

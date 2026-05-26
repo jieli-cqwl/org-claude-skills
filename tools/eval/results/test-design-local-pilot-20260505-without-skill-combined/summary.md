@@ -8,4 +8,4 @@
 - failed expectations: 14
 - infra failures: 0
 - pass rate: 0.50
-- retention: combined summary-level evidence only; source run directories and logs are reproducible via `skill-refiner-result.json` verification commands
+- retention: combined summary-level evidence only; source run directories and logs are reproducible via archived verification command records

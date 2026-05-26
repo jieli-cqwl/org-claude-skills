@@ -1,9 +1,0 @@
-{
-  "scenario_id": "batch-optimize-many-skills",
-  "arm": "baseline",
-  "returncode": 0,
-  "started_at": "2026-05-12T10:47:33.984061+00:00",
-  "finished_at": "2026-05-12T10:48:05.338533+00:00",
-  "duration_seconds": 31.354472,
-  "response_file": "batch-optimize-many-skills/baseline/response.json"
-}

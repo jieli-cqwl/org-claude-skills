@@ -42,7 +42,7 @@ chain:
       optional: [constitution.md]
     outputs:
       - artifact: "phase-{N}/design.json"
-        key_fields: [input_analysis, co_creation_summary, constraint_inheritance_confirmation, review_closure, final_confirmation, key_decisions, option_analysis, runtime_facts, interfaces, interface_boundary, quality_attributes, modules, data_architecture, cross_cutting_concerns, verification_mapping, unit_coverage, impact_scope, planning_constraints, product_handoff, risks, risk_response, migration_plan, verification_plan, rollback_plan]
+        key_fields: [input_analysis, design_stage_confirmations, constraint_inheritance_confirmation, review_closure, final_confirmation, key_decisions, option_analysis, runtime_facts, interfaces, interface_boundary, quality_attributes, modules, data_architecture, cross_cutting_concerns, verification_mapping, unit_coverage, impact_scope, planning_constraints, product_handoff, risks, risk_response, migration_plan, verification_plan, rollback_plan]
         consumers: [test-design, tech-lead, developer]
 
   - name: test-design
@@ -154,16 +154,13 @@ chain:
 co_creation_ledgers:
   contract: contracts/co-creation-ledgers.yaml
   control_input: false
+  downstream_canonical_source: false
   purpose: preserve co-creation checkpoints for context recovery without replacing canonical JSON handoff artifacts
   artifacts:
     product-director:
       path: docs/{feature}/product-director-ledger.json
       scope: feature
       producer: product-director
-    product-manager:
-      path: docs/{feature}/phase-{N}/product-manager-ledger.json
-      scope: phase
-      producer: product-manager
 
 context_handoff:
   scope_registry: contracts/active-doc-scope.yaml

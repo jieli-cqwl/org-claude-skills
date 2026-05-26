@@ -20,11 +20,15 @@ fail() {
 mkdir -p \
   "$TMP_HOME/.claude/skills/skill-auditor/scripts" \
   "$TMP_HOME/.codex/skills/skill-auditor/scripts" \
+  "$TMP_HOME/.claude/skills/skill-refiner/scripts" \
+  "$TMP_HOME/.codex/skills/skill-refiner/scripts" \
   "$TMP_HOME/.claude/skills/ai-cli-updater/scripts" \
   "$TMP_HOME/.codex/skills/ai-cli-updater/scripts"
 touch \
   "$TMP_HOME/.claude/skills/skill-auditor/SKILL.md" \
   "$TMP_HOME/.codex/skills/skill-auditor/SKILL.md" \
+  "$TMP_HOME/.claude/skills/skill-refiner/SKILL.md" \
+  "$TMP_HOME/.codex/skills/skill-refiner/SKILL.md" \
   "$TMP_HOME/.claude/skills/ai-cli-updater/SKILL.md" \
   "$TMP_HOME/.codex/skills/ai-cli-updater/SKILL.md"
 
@@ -40,12 +44,18 @@ env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1
 
 test ! -e "$TMP_HOME/.claude/skills/skill-auditor" || fail "claude retired skill-auditor should be cleaned"
 test ! -e "$TMP_HOME/.codex/skills/skill-auditor" || fail "codex retired skill-auditor should be cleaned"
+test ! -e "$TMP_HOME/.claude/skills/skill-refiner" || fail "claude retired skill-refiner should be cleaned"
+test ! -e "$TMP_HOME/.codex/skills/skill-refiner" || fail "codex retired skill-refiner should be cleaned"
 test ! -e "$TMP_HOME/.claude/skills/ai-cli-updater" || fail "claude retired ai-cli-updater should be cleaned"
 test ! -e "$TMP_HOME/.codex/skills/ai-cli-updater" || fail "codex retired ai-cli-updater should be cleaned"
 find "$STATE_ROOT/claude/unexpected-artifacts" -path '*/skills/skill-auditor/SKILL.md' -print -quit | grep -q . \
   || fail "claude retired skill-auditor should be archived"
 find "$STATE_ROOT/codex/unexpected-artifacts" -path '*/skills/skill-auditor/SKILL.md' -print -quit | grep -q . \
   || fail "codex retired skill-auditor should be archived"
+find "$STATE_ROOT/claude/unexpected-artifacts" -path '*/skills/skill-refiner/SKILL.md' -print -quit | grep -q . \
+  || fail "claude retired skill-refiner should be archived"
+find "$STATE_ROOT/codex/unexpected-artifacts" -path '*/skills/skill-refiner/SKILL.md' -print -quit | grep -q . \
+  || fail "codex retired skill-refiner should be archived"
 find "$STATE_ROOT/claude/unexpected-artifacts" -path '*/skills/ai-cli-updater/SKILL.md' -print -quit | grep -q . \
   || fail "claude retired ai-cli-updater should be archived"
 find "$STATE_ROOT/codex/unexpected-artifacts" -path '*/skills/ai-cli-updater/SKILL.md' -print -quit | grep -q . \

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-STANDARD="$ROOT/shared/skills/skill-refiner/references/quality-dimensions.md"
+STANDARD="$ROOT/shared/skills/skill-quality-audit/references/audit-dimensions.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -36,7 +36,7 @@ expected = {
     "delivery-owner": "mixed",
     "fix": "mixed",
     "consistency-audit": "mixed",
-    "skill-refiner": "mixed",
+    "skill-quality-audit": "mixed",
 }
 allowed_decisions = {"retain", "optimize", "retire"}
 

@@ -1,9 +1,0 @@
-{
-  "scenario_id": "noisy-implementation-skill",
-  "arm": "skill_creator",
-  "returncode": 0,
-  "started_at": "2026-05-12T13:39:11.991097+00:00",
-  "finished_at": "2026-05-12T13:40:16.329486+00:00",
-  "duration_seconds": 64.338389,
-  "response_file": "noisy-implementation-skill/skill_creator/response.json"
-}

@@ -16,4 +16,10 @@ record_contract:
     status: management_status
     owner: context_owner
     primary_workset_relpath: bootstrap_dated_workset
-scope_entries: []
+scope_entries:
+  - feature_path: docs/feature--quanfangtong-homepage-entry-center
+    mode: standard-chain
+    management_status: managed
+    layout: phase-tree
+    entry_ref: worklog.md
+    context_owner: delivery-owner

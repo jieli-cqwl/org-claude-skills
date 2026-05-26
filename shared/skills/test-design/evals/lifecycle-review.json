@@ -22,7 +22,7 @@
   },
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "with_avg": 1.0,
+    "with_avg": 1,
     "without_avg": 0.5405,
     "uplift": 0.4595,
     "grader_dimensions": [
@@ -45,7 +45,7 @@
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
     "eval_count": 6,
-    "fidelity": 1.0,
+    "fidelity": 1,
     "sample_size": 6,
     "anchor_passed": 11,
     "anchor_total": 11,
@@ -61,11 +61,11 @@
     "with_skill": {
       "summary_ref": "tools/eval/results/test-design-local-pilot-20260505-with-skill-final/summary.json",
       "sample_size": 6,
-      "avg_pass_rate": 1.0,
+      "avg_pass_rate": 1,
       "infra_failures": 0,
       "anchor_passed": 11,
       "anchor_total": 11,
-      "anchor_fidelity": 1.0
+      "anchor_fidelity": 1
     },
     "without_skill": {
       "summary_ref": "tools/eval/results/test-design-local-pilot-20260505-without-skill-combined/summary.json",

@@ -6,7 +6,7 @@ Date: 2026-05-24
 
 原始误写不是可稳定定位的社区对象；按公开证据和语境，应归一化为 `harness / harness engineering`，另一个相近但不同的候选是 `Hermes Agent`。本仓库和 `harness engineering` 强相关：当前 `standard-chain/v1` 已经是一个面向 Claude Code 与 Codex 的 agent harness 控制平面。
 
-当前建议：不直接引入 Hermes，不新增独立 Skill 承载，不让社区 meta-harness 生成器改写本仓结构。先做一个最小试点：把 `standard-chain` 的 harness 能力显性化为 condition sheet，并为 `developer` 或 `skill-refiner` 定义一次 run 的 episode package 证据包。
+当前建议：不直接引入 Hermes，不新增独立 Skill 承载，不让社区 meta-harness 生成器改写本仓结构。先做一个最小试点：把 `standard-chain` 的 harness 能力显性化为 condition sheet，并为 `developer` 定义一次 run 的 episode package 证据包。
 
 ## 范围
 
@@ -84,13 +84,13 @@ Date: 2026-05-24
 
 ### 建议切入点
 
-优先选择 `developer` 或 `skill-refiner`。
+优先选择 `developer`。
 
 选择理由：
 
-- 两者都有明确输入、输出、completion gate 与 eval 证据。
-- 两者都容易暴露“自评偏乐观、证据不足、上下文漂移、完成口径不稳”的 harness 问题。
-- 两者都不需要先动产品链路全局合同。
+- `developer` 有明确输入、输出、completion gate 与 eval 证据。
+- `developer` 容易暴露“自评偏乐观、证据不足、上下文漂移、完成口径不稳”的 harness 问题。
+- `developer` 不需要先动产品链路全局合同。
 
 ### Episode package 草案
 
@@ -224,7 +224,7 @@ git diff --no-index --stat -- /dev/null docs/reports/standard-chain-harness-audi
 - 当前仓库 standard-chain contract: `contracts/standard-chain.yaml`
 - 当前仓库 runtime surface: `contracts/skill-runtime-surface.json`
 - 当前仓库 hooks registry: `shared/hooks/registry.json`
-- 旧目录回流反证: `tests/test-skill-refiner-legacy-dependency-cleanup.sh`, `tests/test-skill-effectiveness-eval-framework.sh`
+- 旧目录回流反证: `tests/test-skill-quality-audit-old-refiner-cleanup.sh`, `tests/test-skill-effectiveness-eval-framework.sh`
 
 ## 复检记录
 
