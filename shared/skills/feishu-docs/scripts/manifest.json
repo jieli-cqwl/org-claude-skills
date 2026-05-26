@@ -1,22 +1,61 @@
 {
-  "name": "feishu_doc",
-  "entrypoint": "scripts/feishu_doc.py",
-  "timeout_seconds": 60,
-  "official_cli": "lark-cli",
-  "safe_by_default": true,
-  "requires_confirmation_for": [
-    "create",
-    "append",
-    "replace_range",
-    "insert_before",
-    "insert_after",
-    "overwrite",
-    "delete_range",
-    "delete_file"
-  ],
-  "forbidden_fallbacks": [
-    "browser_cookie",
-    "reverse_engineered_api",
-    "unofficial_mcp"
+  "schema_version": "1.0.0",
+  "scripts": [
+    {
+      "id": "feishu-doc",
+      "path": "scripts/feishu_doc.py",
+      "owner": "feishu-docs",
+      "allowed_args": [
+        "doctor",
+        "redact",
+        "preview",
+        "--operation",
+        "--target",
+        "--target-title",
+        "--title",
+        "--markdown",
+        "--selection-by-title",
+        "--selection-with-ellipsis",
+        "--format",
+        "--folder-token",
+        "--wiki-node",
+        "--wiki-space",
+        "--file-type",
+        "--confirmed",
+        "--second-confirmation",
+        "--execute",
+        "--timeout",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
+      "external_commands": [
+        "python3",
+        "lark-cli"
+      ],
+      "timeout_seconds": 60,
+      "output_limit_bytes": 65536,
+      "allowed_input_roots": [
+        "$TMPDIR",
+        "/tmp",
+        "docs"
+      ],
+      "failure_state": "FEISHU_DOCS_WRAPPER_FAILED",
+      "failure_message": "feishu-docs lark-cli wrapper failed",
+      "exit_code_meanings": {
+        "0": "command preview, redaction, or doctor check succeeded",
+        "2": "unsupported operation, missing confirmation, invalid selection, or invalid invocation",
+        "3": "official lark-cli is unavailable; no fallback was used"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation; write and destructive operations require explicit confirmation",
+      "verification_command": "python3 tests/test-feishu-docs-wrapper.py"
+    }
   ]
 }

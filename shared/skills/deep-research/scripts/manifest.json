@@ -1,20 +1,86 @@
 {
-  "scripts": {
-    "arxiv_search.py": {
-      "purpose": "Query arxiv API and return structured JSON for relevant papers.",
-      "network": true,
+  "schema_version": "1.0.0",
+  "scripts": [
+    {
+      "id": "arxiv-search",
+      "path": "scripts/arxiv_search.py",
+      "owner": "deep-research",
+      "allowed_args": [
+        "--query",
+        "--max-results",
+        "--timeout",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
+      "external_commands": [
+        "python3"
+      ],
       "timeout_seconds": 20,
-      "inputs": ["query", "max-results"],
-      "outputs": ["JSON list of paper metadata"],
-      "failure_state": "Full completion is blocked when arxiv lookup is required and this script fails."
+      "output_limit_bytes": 65536,
+      "allowed_input_roots": [],
+      "failure_state": "DEEP_RESEARCH_ARXIV_SEARCH_FAILED",
+      "failure_message": "deep-research arxiv search failed",
+      "exit_code_meanings": {
+        "0": "arxiv search returned JSON metadata or help displayed",
+        "1": "arxiv query failed",
+        "2": "invalid invocation or argument value"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation; network restricted to fixed arxiv HTTPS endpoint",
+      "verification_command": "python3 tests/test-deep-research-scripts.py"
     },
-    "render_report.py": {
-      "purpose": "Render research-report.md into research-report.pdf without modifying the Markdown fact source.",
-      "network": false,
+    {
+      "id": "render-report",
+      "path": "scripts/render_report.py",
+      "owner": "deep-research",
+      "allowed_args": [
+        "markdown path",
+        "pdf path",
+        "--help",
+        "-h"
+      ],
+      "denied_args": [
+        "--exec",
+        "--shell",
+        "--network",
+        ";",
+        "&&",
+        "|"
+      ],
+      "external_commands": [
+        "python3",
+        "pandoc"
+      ],
       "timeout_seconds": 30,
-      "inputs": ["markdown path", "pdf path"],
-      "outputs": ["real PDF file"],
-      "failure_state": "Full completion is blocked when PDF rendering fails."
+      "output_limit_bytes": 65536,
+      "output_root": "$TMPDIR|/tmp|docs",
+      "allowed_output_roots": [
+        "$TMPDIR",
+        "/tmp",
+        "docs"
+      ],
+      "allowed_input_roots": [
+        "docs",
+        "$TMPDIR",
+        "/tmp"
+      ],
+      "failure_state": "DEEP_RESEARCH_PDF_RENDER_FAILED",
+      "failure_message": "deep-research PDF rendering failed",
+      "exit_code_meanings": {
+        "0": "PDF rendered successfully or help displayed",
+        "2": "input markdown was not found or invocation was invalid",
+        "3": "no PDF renderer is available",
+        "4": "renderer did not produce a valid PDF"
+      },
+      "shell_parameter_strategy": "argv only; no shell interpolation",
+      "verification_command": "python3 tests/test-deep-research-scripts.py"
     }
-  }
+  ]
 }
