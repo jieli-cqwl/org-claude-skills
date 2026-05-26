@@ -978,7 +978,7 @@
           },
           "additionalProperties": true
         },
-        "design_stage_confirmations": {
+        "co_creation_summary": {
           "description": "设计阶段确认索引；只记录会改变或冻结设计义务的确认，详细设计事实属于 key_decisions、option_analysis、runtime_facts、interfaces、verification_mapping 和 risk_response 等字段",
           "type": "array",
           "minItems": 7,
@@ -1027,7 +1027,7 @@
       "required": [
         "artifact_type",
         "input_analysis",
-        "design_stage_confirmations",
+        "co_creation_summary",
         "constraint_inheritance_confirmation",
         "review_closure",
         "final_confirmation",

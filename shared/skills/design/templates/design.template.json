@@ -9,7 +9,7 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.input_analysis",
-    "$.design_stage_confirmations",
+    "$.co_creation_summary",
     "$.constraint_inheritance_confirmation",
     "$.review_closure",
     "$.final_confirmation",
@@ -310,62 +310,69 @@
       "design.json#verification_plan"
     ]
   },
-  "design_stage_confirmations": [
+  "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "confirmation_focus": "确认设计消费者、架构显著关注点和责任边界",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Stakeholders and concerns",
+      "question_or_focus": "确认设计消费者、架构显著关注点和责任边界",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "confirmation_focus": "确认架构显著需求、质量属性和约束继承",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Architecture-significant requirements",
+      "question_or_focus": "确认架构显著需求、质量属性和约束继承",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "confirmation_focus": "确认当前系统事实、运行时证据和证据强度",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Current-state evidence",
+      "question_or_focus": "确认当前系统事实、运行时证据和证据强度",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "confirmation_focus": "确认复杂度来源、最小可行架构和演化边界",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Complexity model",
+      "question_or_focus": "确认复杂度来源、最小可行架构和演化边界",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#input_analysis",
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "confirmation_focus": "确认必须冻结的架构决策、遗漏风险和优先级",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Decision discovery",
+      "question_or_focus": "确认必须冻结的架构决策、遗漏风险和优先级",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "confirmation_focus": "确认候选方案取舍、失效条件和最终选择",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Option tradeoff",
+      "question_or_focus": "确认候选方案取舍、失效条件和最终选择",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "confirmation_focus": "确认设计合成结果和下游交接义务",
-      "user_confirmation_summary": "<confirmed user answer>",
-      "design_refs": [
+      "stage_name": "Design synthesis",
+      "question_or_focus": "确认设计合成结果和下游交接义务",
+      "user_response_summary": "<confirmed user answer>",
+      "decision_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",
