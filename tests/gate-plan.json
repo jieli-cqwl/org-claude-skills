@@ -643,6 +643,22 @@
       "timeout_sec": 90
     },
     {
+      "id": "skill-script-manifest-contracts",
+      "command": [
+        "bash",
+        "tests/test-skill-script-manifest-contracts.sh"
+      ],
+      "area": "hooks-manifest",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "hooks-manifest",
+        "manifest"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
       "id": "managed-doc-output-contract",
       "command": [
         "bash",
