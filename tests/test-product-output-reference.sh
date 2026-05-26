@@ -60,7 +60,6 @@ assert_present 'shared/skills/product-director/templates/brief\.template\.json' 
 assert_present 'docs/\{feature\}/phase-\{N\}/phase-prd\.json' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_present 'shared/skills/product-director/templates/phase-prd\.template\.json' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_absent 'brief\.lock\.json|prd\.lock\.json|contracts/product-artifacts\.yaml' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
-assert_absent 'UNIT-\*\.md|review\.md|交付确认' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 
 MANAGER_OUTPUT_SECTION="$(mktemp "${TMPDIR:-/tmp}/manager-output-section.XXXXXX")"
 extract_section "$MANAGER_SKILL" "## 写入位置" > "$MANAGER_OUTPUT_SECTION"

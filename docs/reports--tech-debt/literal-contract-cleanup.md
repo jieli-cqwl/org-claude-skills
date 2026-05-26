@@ -111,9 +111,9 @@
 
 同时在新增 skill 流程中强调"改 skill 文件前跑 eval，不是跑 grep"。
 
-本规则由 `tools/community/check_test_signal_assertions.py` 执行，并通过 `tests/test-test-assertion-boundary-contract.sh` 接入 `tests/run-all.sh`。历史遗留低信号断言冻结在 `tests/fixtures/test-assertion-boundary/low-signal-prose-assertions.baseline`；新增命中不得直接扩大基线，必须先证明它保护真实结构、运行时或边界风险，否则改为行为 eval、schema/fixture 断言或删除。
+本规则由 `tools/community/check_test_signal_assertions.py` 执行，并通过 `tests/test-test-assertion-boundary-contract.sh` 接入 `tests/run-all.sh`。checker 直接拒绝新增或存量低信号正文断言；命中项必须先证明它保护真实结构、运行时或边界风险，否则改为行为 eval、schema/fixture 断言或删除。
 
-2026-05-21 更新：checker 已覆盖短中文 `assert_absent` 和中文前缀包裹命令 token 的断言；当前 stricter baseline 冻结 113 条历史遗留项。
+2026-05-25 更新：baseline 豁免已清零，checker 覆盖 `assert_present` / `assert_absent` / `assert_any_present` / 直接 `grep` / `rg` 的 Skill Markdown 正文断言。
 
 ## 风险与不做项
 

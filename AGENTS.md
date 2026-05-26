@@ -20,8 +20,8 @@
 
 ## Testing
 - 行为/约束变更先补可失败测试，再做最小实现，最后跑 fresh proving command。
-- 测试断言边界：不得用 shell `assert_present` / `assert_absent` 锁定 Skill Markdown 自然语言正文。
-- 低信号断言由 `tools/community/check_test_signal_assertions.py` 拦截；不得用 baseline 放行新增或存量 Skill Markdown 自然语言正文断言。
+- 测试断言边界：不得用 shell `assert_present` / `assert_absent` / `assert_any_present` / 直接 `grep` / `rg` 锁定 Skill Markdown 自然语言正文。
+- 低信号断言由 `tools/community/check_test_signal_assertions.py` 直接拦截；不得用 baseline 放行新增或存量 Skill Markdown 自然语言正文断言。
 - 修改入口文档时，保持 `CLAUDE.md` 只 import `AGENTS.md`，避免双源漂移。
 
 ## Workflow

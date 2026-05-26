@@ -94,9 +94,6 @@ jq -e '
   )
 ' "$SCRIPT_MANIFEST" >/dev/null || fail "product-director manifest completion-check contract drift"
 
-assert_present '产品总监基线说明书' "$DIRECTOR_PROJECTION_TEMPLATE"
-assert_present '一句话结论|为什么现在要做|本期成功标准|本期范围|风险与未决项|Phase 规划|决策理由' "$DIRECTOR_PROJECTION_TEMPLATE"
-assert_present 'JSON 是唯一真源|不得作为下游控制输入|不得反向作为 runtime 真源' "$DIRECTOR_PROJECTION_TEMPLATE"
 assert_absent '^\| JSON Pointer \||Trigger:|Read:|Expect:|Consume:|Evidence:|Sync:' "$DIRECTOR_PROJECTION_TEMPLATE"
 
 jq -e '

@@ -198,16 +198,7 @@ for file in "$SKILL" "$VALIDATOR" "$CHECK" "$MANIFEST" "$SCHEMA" "$RESULT" "$SEL
 done
 
 # --- v3 SKILL.md absent assertions: old v2 patterns must not appear ---
-assert_absent '每个环节先读取对应标准' "$SKILL"
-assert_absent '已读取的环节标准' "$SKILL"
-assert_absent '脚本与 hook 门禁' "$SKILL"
-assert_absent '若 hooks 不可用' "$SKILL"
-assert_absent 'hooks 校验' "$SKILL"
-assert_absent '入口基线确认卡' "$SKILL"
-assert_absent '未采用官方/GitHub/社区来源' "$SKILL"
-assert_absent '整体策略最小决策包' "$SKILL"
 assert_absent 'digraph skill_refiner_flow' "$SKILL"
-assert_absent 'Skill 精修 owner' "$SKILL"
 assert_absent 'SR-S1~SR-V1' "$SKILL"
 assert_absent 'SR-F1' "$SKILL"
 assert_absent 'SR-R1~SR-R10' "$SKILL"
@@ -225,16 +216,6 @@ assert_present 'references/co-creation-protocol\.md' "$SKILL"
 assert_present 'refinement-ledger\.json' "$SKILL"
 assert_present 'skill-refiner-result\.json' "$SKILL"
 assert_present 'scripts/validate_refinement_result\.py' "$SKILL"
-assert_present '字段规则由 `contracts/skill-refiner-result.schema.json` 和 `scripts/validate_refinement_result.py` 承载' "$SKILL"
-assert_present '策略确认前除台账外不改目标文件' "$SKILL"
-assert_present '9 个诊断维度' "$SKILL"
-assert_present '承载定位' "$SKILL"
-assert_present '验收交付' "$SKILL"
-assert_present '最小决策包' "$SKILL"
-assert_present 'schema key.*台账字段.*rubric 术语不作为用户侧标题' "$SKILL"
-assert_present '进入流程后必须先创建可见计划' "$SKILL"
-assert_present '每完成一个阶段必须更新状态卡' "$SKILL"
-assert_present '禁止跳过、合并、重排流程阶段' "$SKILL"
 for rubric in trigger responsibility input flow output resource determinism eval runtime; do
   assert_present "rubrics/${rubric}\\.md" "$SKILL"
 done

@@ -26,7 +26,6 @@ test -f "$VALIDATOR" || fail "missing noisy fixture validator"
 test -f "$EXAMPLE" || fail "missing developer success example"
 test ! -e "$OLD_EXAMPLE" || fail "old developer optimization case path must be removed"
 
-assert_absent '环节队列循环' "$EXAMPLE"
 
 retired_skill_name="$(printf '%s-%s' skill harness)"
 retired_checker_name="$(printf 'check_%s_%s' skill harness)"

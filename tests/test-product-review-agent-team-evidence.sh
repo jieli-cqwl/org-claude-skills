@@ -150,8 +150,6 @@ assert_agent_team_runtime_tools() {
   assert_present 'PM owner 自检通过后' "$PM_EVALS"
   assert_present 'reviewed_bundle_digest' "$PM_SKILL"
   assert_present 'reviewed_bundle_digest' "$PM_REVIEW"
-  assert_absent '同一批冻结 JSON|上下文草稿|context 草稿' "$PM_SKILL"
-  assert_absent '同一批冻结 JSON|上下文草稿|context 草稿' "$PM_REVIEW"
 }
 
 assert_schema_requires_agent_team_review

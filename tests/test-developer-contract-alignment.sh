@@ -675,10 +675,6 @@ assert_absent \
   '^## 前置条件$' \
   "$DEV_SKILL"
 
-assert_absent \
-  "developer SKILL 不再把派发物存在性写成 LLM 职责说明" \
-  '只用于理解 AC|常用证据组包括|projections/developer-report-template\.md|你不负责：|scope registry|worklog\.md|canonical: active refs|确定性 preflight' \
-  "$DEV_SKILL"
 
 assert_absent \
   "developer SKILL 不再保留流程状态表" \

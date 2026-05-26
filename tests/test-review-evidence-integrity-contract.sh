@@ -23,11 +23,8 @@ assert_present() {
 
 [ -f "$REFERENCE" ] || fail "missing evidence integrity reference"
 
-assert_present '证据链完整性专项' "$REVIEW_SKILL"
 assert_present 'references/evidence-integrity-review\.md' "$REVIEW_SKILL"
 assert_present 'skill|eval|validator|artifact|installer|runtime gate' "$REVIEW_SKILL"
-assert_present '证据链完整性专项' "$TEMPLATE"
-assert_present '适用性.*适用 / 不适用' "$TEMPLATE"
 
 for marker in \
   '自证检测' \
@@ -45,8 +42,6 @@ do
 done
 
 assert_present 'observed.*expected' "$REFERENCE"
-assert_present 'PASS.*真实执行' "$REFERENCE"
-assert_present '失败.*PASS.*artifact' "$REFERENCE"
 assert_present 'seed eval.*live benchmark' "$REFERENCE"
 
 printf '[PASS] review evidence integrity contract\n'

@@ -72,7 +72,6 @@ assert_stage_absent() {
 for skill in design test-design tech-lead delivery-owner; do
   skill_file="$ROOT/shared/skills/$skill/SKILL.md"
   assert_no_subagent_chapter "$skill_file"
-  assert_absent '需要降噪时启用|必要时启用|复杂项目' "$skill_file"
 done
 
 assert_stage_absent 'delivery-owner' 'artifact: "phase-\{N\}/qa-report\.md"'
@@ -85,31 +84,23 @@ assert_absent 'metrics_log_template_ref' "$ROOT/contracts/standard-chain.yaml"
 
 assert_present "\`goal_fidelity_review\`" "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_absent '^[[:space:]]*##[[:space:]]+5\.1[[:space:]]+Traceability Draft Agent[[:space:]]*$' "$ROOT/shared/skills/tech-lead/SKILL.md"
-assert_absent '7\.1 补齐目标承接与执行度量|目标闭环与执行度量' "$ROOT/shared/skills/tech-lead/SKILL.md"
 for prompt in \
   "$ROOT/shared/skills/tech-lead/references/plan-reviewer-prompt.md" \
   "$ROOT/shared/skills/tech-lead/references/plan-product-reviewer-prompt.md" \
   "$ROOT/shared/skills/tech-lead/references/plan-test-reviewer-prompt.md"; do
   [ ! -e "$prompt" ] || fail "unexpected retained tech-lead reviewer prompt: ${prompt#"$ROOT"/}"
 done
-assert_absent '冻结版本锚点|草稿回收记录|RECOVERED' "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_present 'developer agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'verifier agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'qa agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'fixer agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_absent '主 Agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_absent '你只保留交付状态|对应 role agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
 assert_absent 'fact-scan-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
-assert_present '输入边界' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
-assert_present '证据锚点' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
-assert_present '禁止越权项' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
 assert_absent 'hypothesis-draft-template\.md|structure-draft-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/design/references/decision-templates.md"
 assert_present 'decision_state.*已冻结' "$ROOT/shared/skills/design/references/decision-templates.md"
 assert_absent 'decision_state.*draft / frozen' "$ROOT/shared/skills/design/references/decision-templates.md"
 assert_absent 'structure-draft-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/design/projections/adr-spec.md"
-assert_present '设计执行者负责从冻结设计转写 ADR' "$ROOT/shared/skills/design/projections/adr-spec.md"
-assert_present '不能把 draft 直接写为最终工件' "$ROOT/shared/skills/design/references/decision-templates.md"
 python3 - "$ROOT/shared/skills/design/SKILL.md" <<'PY'
 import sys
 from pathlib import Path
@@ -131,29 +122,20 @@ present = [term for term in forbidden if term in text]
 if present:
     raise SystemExit(f"unexpected design ledger finalization terms: {present}")
 PY
-assert_present "脚本只从已验证 \`design.json\` 派生 ADR 草稿" "$ROOT/shared/skills/design/SKILL.md"
-assert_present "投影视图、ADR 和模块视图只能从已验证 \`design.json\` 派生" "$ROOT/shared/skills/design/SKILL.md"
 
 ROUTING_REF="$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_absent 'synthesis-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROUTING_REF"
-assert_present '逻辑角色' "$ROUTING_REF"
 assert_present "Packet \`role\`" "$ROUTING_REF"
-assert_present "packet 只写逻辑 \`role\`，不写 runtime 专属文件路径" "$ROUTING_REF"
 assert_present '^task_ref:$' "$ROUTING_REF"
 assert_present '^expected_evidence:$' "$ROUTING_REF"
 assert_absent 'Status Synthesis Agent|Evidence Synthesis Agent' "$ROUTING_REF"
 assert_absent 'status-synthesis|evidence-synthesis' "$ROUTING_REF"
 assert_absent '^\| Synthesis \|' "$ROUTING_REF"
 DIRECTOR_PROBLEM_GUIDE="$ROOT/shared/skills/product-director/references/problem-clarification.md"
-assert_absent '^[[:space:]]*##[[:space:]]+静默降噪$' "$DIRECTOR_PROBLEM_GUIDE"
 assert_absent 'Context Scan Agent' "$DIRECTOR_PROBLEM_GUIDE"
 assert_absent 'Problem Hypothesis Agent' "$DIRECTOR_PROBLEM_GUIDE"
 assert_absent 'sub agent' "$DIRECTOR_PROBLEM_GUIDE"
 assert_absent 'subagent' "$DIRECTOR_PROBLEM_GUIDE"
-assert_absent '子代理' "$DIRECTOR_PROBLEM_GUIDE"
-assert_present '候选线索' "$DIRECTOR_PROBLEM_GUIDE"
-assert_present '主 Agent 直接进入正常共创节奏' "$DIRECTOR_PROBLEM_GUIDE"
-assert_present '必须验证冲突事实' "$DIRECTOR_PROBLEM_GUIDE"
 
 bash "$ROOT/tools/dev/validate-contracts.sh" >/tmp/org-validate-contracts.out 2>&1 || {
   cat /tmp/org-validate-contracts.out >&2

@@ -44,13 +44,22 @@ for idx, line in enumerate(lines, start=1):
     if line.startswith("## ") and line not in headings:
         headings[line] = idx
 
-def need(name: str) -> int:
-    if name not in headings:
-        raise SystemExit(f"{path}: missing section {name}")
-    return headings[name]
+def need_any(names: list[str]) -> tuple[str, int]:
+    for name in names:
+        if name in headings:
+            return name, headings[name]
+    raise SystemExit(f"{path}: missing section any of {names}")
 
-hard_gate = need("## HARD-GATE")
-completion = need("## 完成校验")
+def hard_gate_line() -> int:
+    if "## HARD-GATE" in headings:
+        return headings["## HARD-GATE"]
+    for idx, line in enumerate(lines, start=1):
+        if line.strip() == "<HARD-GATE>":
+            return idx
+    raise SystemExit(f"{path}: missing HARD-GATE marker")
+
+hard_gate = hard_gate_line()
+_, completion = need_any(["## 完成校验", "## Completion Check"])
 
 role = headings.get("## 角色")
 if role is not None and role <= hard_gate:
@@ -148,7 +157,6 @@ for skill in "${STANDARD_CHAIN_SKILLS[@]}"; do
   test -f "$skill_file" || fail "missing standard-chain skill: $skill_file"
 
   assert_absent "$OLD_RUNTIME_HEADING" "$skill_file"
-  assert_absent '^合同模板：$|^运行时输入：$|^运行时输出：$|^完成前必须运行：$' "$skill_file"
   assert_structural_order "$skill_file"
   assert_reference_use_point_contracts "$skill_file"
   assert_retired_runtime_lane_absent "$skill_file"
@@ -160,14 +168,7 @@ MANAGER="$ROOT/shared/skills/product-manager/SKILL.md"
 DEVELOPER="$ROOT/shared/skills/developer/SKILL.md"
 
 assert_absent '^\*\*.*references/.*\*\*$' "$DIRECTOR"
-assert_absent '^读取：`references/' "$DIRECTOR"
-assert_present '^\*\*问题澄清\*\*：读取 `references/problem-clarification\.md`' "$DIRECTOR"
-assert_present '^\*\*目标、成功标准与投入边界\*\*：读取 `references/success-investment-boundary\.md`' "$DIRECTOR"
-assert_present '^\*\*Phase 规划\*\*：读取 `references/phase-planning\.md`' "$DIRECTOR"
-assert_present '^\*\*Director Finalization（总监确认与写入）\*\*' "$DIRECTOR"
-assert_present '主动形成推荐判断并推进基线闭合；用户负责补充、确认或替换真实业务事实' "$DIRECTOR"
 assert_absent 'references/conversation-guide\.md' "$DIRECTOR"
-assert_absent '只提取' "$DIRECTOR"
 assert_present '`references/final-artifacts\.md`' "$DIRECTOR"
 assert_absent 'references/output\.md#' "$DIRECTOR"
 assert_present 'Director result gate' "$DIRECTOR"
@@ -207,10 +208,8 @@ assert_present 'completion_check\.sh' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_absent 'validate_canonical_schema.py' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 
-assert_absent '^运行边界：$' "$MANAGER"
 assert_present 'Handoff gate.*preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"|preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON".*Handoff gate' "$MANAGER"
 assert_absent 'references/conversation-guide\.md' "$MANAGER"
-assert_absent '只提取' "$MANAGER"
 assert_present 'references/self-check\.md' "$MANAGER"
 assert_absent 'references/pm-quality-guide\.md' "$MANAGER"
 [[ -f "$ROOT/shared/skills/product-manager/references/self-check.md" ]] || {

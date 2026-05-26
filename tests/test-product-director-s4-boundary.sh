@@ -63,7 +63,6 @@ sys.exit(1)
 PY
 
 # Layer 1b: business semantics reference must keep the final-artifact boundary clause intact.
-assert_present '该步骤只形成业务语义推荐口径和 Director 台账记录，不持久化到 Director 最终 `brief.json / phase-prd.json`。' "$DIRECTOR_BUSINESS_REFERENCE"
 assert_present 'phase-prd.json' "$DIRECTOR_BUSINESS_REFERENCE"
 
 # Layer 2: frozen artifacts — scan every brief.json under docs/ for banned

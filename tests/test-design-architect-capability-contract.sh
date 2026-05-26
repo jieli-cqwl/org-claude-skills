@@ -27,7 +27,6 @@ assert_absent() {
   fi
 }
 
-assert_present '高级交付型架构师|senior delivery architect' "$SKILL"
 python3 - "$SKILL" <<'PY'
 import sys
 from pathlib import Path
@@ -40,8 +39,6 @@ if "LLM 主导" not in text and "你负责主导" not in text:
 if missing:
     raise SystemExit(f"missing role boundary terms: {missing}")
 PY
-assert_present '脚本.*确定性|schema.*确定性|hook.*确定性' "$SKILL"
-assert_present '下游.*把活干对|downstream.*correctly execute' "$SKILL"
 assert_absent "boundary_behaviors\` 字段|只使用 \`input_params / output_params / error_codes / boundary_behaviors\` 字段" "$SKILL"
 assert_present 'boundary_behaviors' "$SCHEMA"
 assert_present 'boundary_behaviors' "$TEMPLATE"

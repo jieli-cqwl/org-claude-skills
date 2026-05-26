@@ -127,16 +127,12 @@ assert_hard_gate_terms "$DESIGN_SKILL" "design final confirmation gate" '冻结�
 assert_present 'NO task handoff when the task lacks traceable goal' "$TECH_LEAD_SKILL"
 assert_present 'NO FAIL item without stable issue identity' "$QA_SKILL"
 assert_present 'valid `failure_class` and owner-level disposition' "$FIX_SKILL"
-assert_present '角色执行必须有合格派发包' "$DELIVERY_OWNER_SKILL"
 
 assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized' "$DIRECTOR_SKILL"
 assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "$PHASE_DIR/product-manager-ledger.json" --producer product-manager --require-finalized' "$MANAGER_SKILL"
 assert_absent 'design-ledger.json' "$DESIGN_SKILL"
 assert_present 'bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"' "$DESIGN_SKILL"
 assert_present '`scope_item_refs` 说明范围来源；实际变更范围由 developer 在执行阶段自主分析确定。' "$TECH_LEAD_SKILL"
-assert_present '`FAIL` 项必须使用稳定 `issue_id=QAR-XXX`，并带完整 triage 字段。' "$QA_SKILL"
-assert_present '每个问题有 failure_class 标签（FIXABLE/DESIGN_ISSUE/ENV_ISSUE/REQUIREMENT_AMBIGUITY）' "$FIX_SKILL"
 assert_present 'task_packet_check.sh --packet "$TASK_PACKET_JSON_PATH"' "$DELIVERY_OWNER_SKILL"
-assert_present '每轮更新状态卡（字段按 `templates/status-card.template.md`）' "$DELIVERY_OWNER_SKILL"
 
 printf '[PASS] standard-chain hard-gate boundary contract\n'

@@ -52,17 +52,10 @@ assert_skill_flow_is_real_verifier_sop() {
   assert_present 'digraph verify_flow' "$SKILL"
   assert_present '`PHASE_DIR` 和 `TASK_ID` 优先来自用户或派发输入' "$SKILL"
   assert_present '\$PHASE_DIR/artifact-registry\.json' "$SKILL"
-  assert_present '"Preflight 判定" -> "建立 AC 证据矩阵" \[label="PASS"\]' "$SKILL"
-  assert_present '"Preflight 判定" -> "BLOCKED" \[label="FAIL: 输入不可验"\]' "$SKILL"
-  assert_present '建立 AC 证据矩阵' "$SKILL"
-  assert_present '反证 AC 与范围' "$SKILL"
-  assert_present '归因与路由' "$SKILL"
   assert_present 'shared/skills/verify/scripts/preflight_check\.sh --phase-dir "\$PHASE_DIR" --task-id "\$TASK_ID"' "$SKILL"
   assert_present 'shared/skills/verify/templates/verify-result\.template\.json' "$SKILL"
   assert_present 'shared/skills/verify/contracts/verify-result\.schema\.json' "$SKILL"
-  assert_absent '"运行 Preflight" ->' "$SKILL"
   assert_absent 'Trigger:|Read:|Expect:|Consume:|Evidence:|Sync:' "$SKILL"
-  assert_absent '流程表：|Canonical 必填摘要|运行时模板|projections/verify-report-template\.md' "$SKILL"
 }
 
 assert_references_are_consumable_rubrics() {

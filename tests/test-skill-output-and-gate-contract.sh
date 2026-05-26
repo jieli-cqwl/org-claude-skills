@@ -575,7 +575,6 @@ assert_standard_chain_control_contract() {
 
   assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
   assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
-  assert_present '独立质量判断 owner' "$ROOT/shared/skills/qa/SKILL.md"
   assert_present 'brief\.json\.review_conclusion' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
   assert_present 'issue_ledger' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
   assert_absent 'product-manager-review\.md' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
@@ -610,9 +609,7 @@ assert_canonical_runtime_artifacts() {
   assert_absent 'references/output\.md#' "$ROOT/shared/skills/product-director/SKILL.md"
   assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
   assert_present 'shared/skills/product-director/templates/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
-  assert_present '只按模板写结果 payload' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
   assert_absent 'artifact_type|chain_registry_digest|locked_field_digest|director_confirmation' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
-  assert_absent '历史 product-artifact 兼容校验' "$ROOT/shared/skills/product-director/SKILL.md"
 }
 
 assert_canonical_only_scripts() {
@@ -690,7 +687,6 @@ PY
   assert_absent 'projections/design-review-template.md' "$skill"
   [ ! -d "$ROOT/shared/skills/tech-lead/references/templates" ] \
     || fail "tech-lead human projection templates must not live under active references/"
-  assert_present '人类投影视图|运行时真源|机器真源' "$projection"
   assert_absent '^(Trigger|Read|Expect|Consume|Evidence|Sync):' "$projection"
   [ ! -e "$ROOT/codex/agents/tech-lead.toml" ] \
     || fail "tech-lead should remain a manual skill, not a delivery-owner dispatch agent"

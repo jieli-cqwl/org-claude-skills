@@ -175,7 +175,7 @@
       "status": "pass"
     },
     {
-      "command": "git diff --check -- shared/skills/research tests/test-research-skill-refiner-eval.sh tests/test-research-skill-contract.sh tests/fixtures/test-assertion-boundary/low-signal-prose-assertions.baseline tools/community/check_research_reference_chain.py",
+      "command": "git diff --check -- shared/skills/research tests/test-research-skill-refiner-eval.sh tests/test-research-skill-contract.sh tools/community/check_research_reference_chain.py",
       "status": "pass"
     },
     {
