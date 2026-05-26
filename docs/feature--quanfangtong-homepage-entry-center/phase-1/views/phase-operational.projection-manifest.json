@@ -1,0 +1,65 @@
+{
+  "artifact_type": "projection-manifest",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-1.phase-operational.projection-manifest",
+  "schema_version": "1.0.0",
+  "producer": "materialize-canonical-html",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.source_artifact_refs",
+    "$.section_source_map"
+  ],
+  "view_id": "phase-operational",
+  "source_artifact_refs": [
+    "artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state@blocked#phase-summary",
+    "artifact://signoff-package/quanfangtong-homepage-entry-center.phase-1.signoff@blocked#signoff-root",
+    "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root"
+  ],
+  "section_source_map": {
+    "phase-summary": {
+      "source_artifact_refs": [
+        "artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state@blocked#phase-summary"
+      ],
+      "json_pointers": [
+        "/summary_text",
+        "/current_stage",
+        "/control_action"
+      ]
+    },
+    "active-blocker": {
+      "source_artifact_refs": [
+        "artifact://signoff-package/quanfangtong-homepage-entry-center.phase-1.signoff@blocked#signoff-root",
+        "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root"
+      ],
+      "json_pointers": [
+        "/active_blocker",
+        "/findings"
+      ]
+    },
+    "decision-basis": {
+      "source_artifact_refs": [
+        "artifact://signoff-package/quanfangtong-homepage-entry-center.phase-1.signoff@blocked#signoff-root"
+      ],
+      "json_pointers": [
+        "/decision_basis_refs"
+      ]
+    },
+    "missing-prerequisites": {
+      "source_artifact_refs": [
+        "artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state@blocked#phase-summary"
+      ],
+      "json_pointers": [
+        "/missing_prerequisite_paths"
+      ]
+    }
+  },
+  "generated_at": "2026-05-26T00:00:00Z",
+  "renderer_version": "1.0.0",
+  "rendered_artifact_ref": "artifact://projection-manifest/quanfangtong-homepage-entry-center.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
+  "rendered_content_digest": "sha256:b918ee76959a24fc1729ac7fc5e443ce49f18d789f9ca9e0378ebcda1e3ab09e",
+  "materialize_owner": "delivery-owner",
+  "validate_owner": "consistency-auditor",
+  "output_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/views/phase-operational.html"
+}

@@ -1,0 +1,78 @@
+{
+  "artifact_type": "signoff-package",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-1.signoff",
+  "schema_version": "1.0.0",
+  "producer": "delivery-owner",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "signoff",
+  "authoritative_fields": [
+    "$.baseline_tasks_version_ref",
+    "$.active_tasks_version_ref",
+    "$.current_stage",
+    "$.release_recommendation",
+    "$.goal_closure",
+    "$.waiver_entries",
+    "$.sign_off_status",
+    "$.business_risk_acceptance_status",
+    "$.last_observed_at",
+    "$.runtime_snapshot",
+    "$.active_blocker",
+    "$.blocker_owner",
+    "$.takeover_note",
+    "$.decision_basis_refs"
+  ],
+  "baseline_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+  "active_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+  "current_stage": "BLOCKED",
+  "release_recommendation": "BLOCK",
+  "sign_off_status": "PENDING",
+  "business_risk_acceptance_status": "PENDING",
+  "last_observed_at": "2026-05-26T00:00:00Z",
+  "runtime_snapshot": "No prototype, developer-report, verify-result, code-review-result, qa-result, or QA screenshot evidence exists under phase-1.",
+  "active_blocker": "QFT-T8-BLOCK-001: missing evidence/design/test/plan/prototype/developer/verify/review/QA prerequisites.",
+  "blocker_owner": "delivery-owner routes to product/design/test-design/tech-lead/developer/review/verify/qa owners in Task order.",
+  "takeover_note": "Task 8 produced a blocking signoff package only; no user-decision.json is created without explicit user acceptance or risk waiver.",
+  "decision_basis_refs": [
+    "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root",
+    "artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state@blocked#phase-summary",
+    "artifact://phase-prd/quanfangtong-homepage-entry-center.phase-1.prd@v1#phase-goal",
+    "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry"
+  ],
+  "goal_closure": [
+    {
+      "goal_ref": "artifact://brief/quanfangtong-homepage-entry-center.brief@v1#product-brief",
+      "goal_source_ref": "artifact://brief/quanfangtong-homepage-entry-center.brief@v1#product-brief",
+      "execution_basis_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+      "evidence_ref": "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root",
+      "result": "NOT_MET",
+      "remaining_gap_text": "Current homepage evidence pack and prototype QA evidence are missing.",
+      "reason_code": "MISSING_EVIDENCE"
+    },
+    {
+      "goal_ref": "artifact://phase-prd/quanfangtong-homepage-entry-center.phase-1.prd@v1#phase-goal",
+      "goal_source_ref": "artifact://phase-prd/quanfangtong-homepage-entry-center.phase-1.prd@v1#phase-goal",
+      "execution_basis_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+      "evidence_ref": "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root",
+      "result": "NOT_MET",
+      "remaining_gap_text": "Design, test-design, plan, implementation, review, verify, and QA closure are missing.",
+      "reason_code": "MISSING_RUNTIME_CHAIN"
+    },
+    {
+      "goal_ref": "artifact://unit-definition/quanfangtong-homepage-entry-center.phase-1.unit-1@v1#unit-UNIT-1",
+      "goal_source_ref": "artifact://unit-definition/quanfangtong-homepage-entry-center.phase-1.unit-1@v1#unit-UNIT-1",
+      "execution_basis_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+      "evidence_ref": "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root",
+      "result": "NOT_MET",
+      "remaining_gap_text": "UNIT-1 AC have no browser QA or verifier evidence.",
+      "reason_code": "UNIT_NOT_VERIFIED"
+    }
+  ],
+  "waiver_entries": [],
+  "director_lock_digests": {
+    "brief": "sha256:c0c5c5e78193c01f5b36181a5700d7fa3dea8c43fb74ec5976e5ec1544da082e",
+    "phase-prd": "sha256:711106ef5bead14480963ddf98fb1739dc5f2bcc98faba48367b3a880cfd5c28"
+  },
+  "user_decision_boundary": "No user-decision.json was created because the conversation contains no explicit signoff, rejection, or risk acceptance decision for Task 8."
+}

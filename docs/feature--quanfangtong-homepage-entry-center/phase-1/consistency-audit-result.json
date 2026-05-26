@@ -1,0 +1,112 @@
+{
+  "artifact_type": "consistency-audit-result",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-1.consistency-audit",
+  "schema_version": "1.0.0",
+  "producer": "consistency-audit",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.decision_authority",
+    "$.consumer",
+    "$.audit_scope",
+    "$.mode",
+    "$.blocked_layers",
+    "$.skipped_layers",
+    "$.tool_warning",
+    "$.findings",
+    "$.required_owner_action",
+    "$.runtime_chain",
+    "$.active_tasks_version_ref",
+    "$.evidence_refs"
+  ],
+  "baseline_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+  "active_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+  "evidence_refs": [
+    "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root"
+  ],
+  "decision_authority": "advisory_only",
+  "consumer": "delivery-owner",
+  "audit_scope": "full",
+  "mode": "partial",
+  "blocked_layers": [
+    "L2",
+    "L4",
+    "L7"
+  ],
+  "skipped_layers": [
+    "L5",
+    "L6"
+  ],
+  "tool_warning": [],
+  "findings": [
+    {
+      "finding_id": "QFT-AUDIT-CRIT-001",
+      "severity": "CRITICAL",
+      "layer": "L7",
+      "file_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json",
+      "json_pointer": "/",
+      "content_evidence": "Missing file: docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json; Task 8 requires QA result before signoff.",
+      "impact": "release recommendation cannot be ALLOW or CONDITIONAL_ALLOW because QA obligations have no runtime evidence.",
+      "required_owner_action": "delivery-owner must route back to Task 7 QA/review/verify loop after Task 6 prototype evidence exists."
+    },
+    {
+      "finding_id": "QFT-AUDIT-CRIT-002",
+      "severity": "CRITICAL",
+      "layer": "L7",
+      "file_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json",
+      "json_pointer": "/",
+      "content_evidence": "Missing developer-report.json and verify-result.json for T1; current tasks.json is bootstrap-only with tasks: [].",
+      "impact": "implementation and verification chain is not closed; signoff would be unsupported.",
+      "required_owner_action": "tech-lead/developer must establish executable T1 and produce developer-report plus verifier result before QA."
+    },
+    {
+      "finding_id": "QFT-AUDIT-CRIT-003",
+      "severity": "CRITICAL",
+      "layer": "L4",
+      "file_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/test-cases.json",
+      "json_pointer": "/",
+      "content_evidence": "Missing design.json, test-cases.json, and plan.json; Task 8 cannot trace PM AC to design/test/plan obligations.",
+      "impact": "traceability from product requirements to executable test obligations is incomplete.",
+      "required_owner_action": "design, test-design, and tech-lead owners must complete Tasks 4 and 5 before Task 6/7/8 closure."
+    },
+    {
+      "finding_id": "QFT-AUDIT-CRIT-004",
+      "severity": "CRITICAL",
+      "layer": "L1",
+      "file_path": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json",
+      "json_pointer": "/",
+      "content_evidence": "Missing current homepage evidence pack; phase-prd.json evidence_sources mark QFT-ASIS-001/002/003 as ASSUMPTION and blocks_fields final_signoff.*.",
+      "impact": "AS-IS claims cannot be accepted as observed facts for final signoff.",
+      "required_owner_action": "Task 2 evidence capture must produce capture-manifest.json, desktop/mobile screenshots, and page-text before final signoff."
+    }
+  ],
+  "required_owner_action": [
+    "Complete Task 2 current homepage evidence pack.",
+    "Complete Tasks 4 and 5 design, test-design, plan, task registry, and projection manifest baseline.",
+    "Complete Task 6 prototype plus developer-report and Task 7 review/verify/QA evidence.",
+    "Re-run full consistency audit only after QA obligation evidence exists."
+  ],
+  "runtime_chain": {
+    "status": "BLOCKED",
+    "checked_refs": [
+      "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry"
+    ],
+    "uncovered_obligation_ids": [
+      "QFT-ASIS-001",
+      "QFT-ASIS-002",
+      "QFT-ASIS-003",
+      "AC-LOGIN-SWITCH",
+      "AC-RENEWAL-PROMPT",
+      "AC-DOWNLOAD-ENTRY",
+      "AC-SUPPORT-ENTRY",
+      "AC-ANNOUNCEMENT-DISPLAY",
+      "AC-RESPONSIVE"
+    ],
+    "notes": [
+      "Full mode was requested, but runtime artifacts are absent.",
+      "No user decision artifact is produced because no explicit user signoff or risk acceptance was provided."
+    ]
+  }
+}

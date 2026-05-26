@@ -1,0 +1,79 @@
+{
+  "artifact_type": "delivery-state",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-1.delivery-state",
+  "schema_version": "1.0.0",
+  "producer": "delivery-owner",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.active_tasks_version_ref",
+    "$.current_stage",
+    "$.status",
+    "$.control_action",
+    "$.summary_text",
+    "$.kickoff",
+    "$.tasks",
+    "$.blocker_id",
+    "$.blocker_reason_code",
+    "$.blocker_basis_refs"
+  ],
+  "baseline_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+  "active_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+  "current_stage": "BLOCKED",
+  "status": "BLOCKED",
+  "control_action": "BLOCK",
+  "summary_text": "Task 8 signoff is blocked because required evidence, design/test/plan, prototype, developer, verifier, review, and QA artifacts are not present.",
+  "kickoff": {
+    "status": "BLOCKED",
+    "plan_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+    "preflight_evidence_ref": "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root",
+    "environment_ready": true,
+    "dependency_ready": false,
+    "risk_owner_ready": false,
+    "qa_handoff_ready": false,
+    "blocking_reason": "Missing prerequisites: docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json; docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/desktop-homepage.png; docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/mobile-homepage.png; docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/page-text.md; docs/feature--quanfangtong-homepage-entry-center/phase-1/design.json; docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/test-cases.json; docs/feature--quanfangtong-homepage-entry-center/phase-1/plan.json; docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/index.html; docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/styles.css; docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/app.js; docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json; docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json; docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json; docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json; docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png; docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png"
+  },
+  "tasks": [
+    {
+      "task_id": "T8",
+      "runtime_status": "BLOCKED",
+      "owner": "delivery-owner",
+      "attempt_count": 1,
+      "current_batch": 1,
+      "active_blocker": "Task 8 cannot sign off before Task 2, Tasks 4-7, and QA evidence are completed.",
+      "next_action": "Return to upstream owners to produce missing canonical and runtime artifacts.",
+      "latest_upstream_refs": [
+        "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+        "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root"
+      ]
+    }
+  ],
+  "blocker_id": "QFT-T8-BLOCK-001",
+  "blocker_reason_code": "MISSING_SIGNOFF_PREREQUISITES",
+  "blocker_basis_refs": [
+    "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root",
+    "artifact://phase-prd/quanfangtong-homepage-entry-center.phase-1.prd@v1#phase-goal",
+    "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry"
+  ],
+  "blocker_resolution_evidence_refs": [],
+  "missing_prerequisite_paths": [
+    "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json",
+    "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/desktop-homepage.png",
+    "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/mobile-homepage.png",
+    "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/page-text.md",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/design.json",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/test-cases.json",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/plan.json",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/index.html",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/styles.css",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/app.js",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png"
+  ]
+}
