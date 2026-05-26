@@ -126,12 +126,12 @@ def co_creation_missing_stages(
     missing: list[str], required: list[str], seen: list[str]
 ) -> str:
     return (
-        f"design_stage_confirmations missing stages: {missing}. "
-        f"Every design session must record one entry per required design confirmation stage "
+        f"co_creation_summary missing stages: {missing}. "
+        f"Every design session must record one entry per required co-creation stage "
         f"(required set: {required}). "
         f"Seen: {seen}. "
-        f"Add a design_stage_confirmations row for each missing stage with "
-        f"confirmation_focus, user_confirmation_summary and design_refs."
+        f"Add a co_creation_summary row for each missing stage with "
+        f"stage_name, question_or_focus, user_response_summary and decision_refs."
     )
 
 

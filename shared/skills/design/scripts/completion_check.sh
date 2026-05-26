@@ -160,13 +160,13 @@ validate_design_confirmation_stages() {
             "option-tradeoff",
             "design-synthesis"
         ] as $required
-        | (.design_stage_confirmations | if type == "array" then . else [] end) as $rows
+        | (.co_creation_summary | if type == "array" then . else [] end) as $rows
         | ($rows | map(select(type == "object") | .stage_id) | unique) as $seen
         | [$required[] as $stage | select(($seen | index($stage)) == null) | $stage]
         | join(", ")
     ' "$target")"
     if [ -n "$missing_stages" ]; then
-        add_failure "design.json design_stage_confirmations missing required stages: $missing_stages"
+        add_failure "design.json co_creation_summary missing required stages: $missing_stages"
         output_failures "Canonical design gate failed" "$target"
     fi
 }

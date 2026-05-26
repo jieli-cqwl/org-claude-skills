@@ -160,7 +160,7 @@ def check_design_shape(package: dict[str, Any]) -> dict[str, Any]:
     if product_handoff_status != "READY":
         add_failure(failures, "design.product_handoff.status", "must be READY")
     for field in (
-        "design_stage_confirmations",
+        "co_creation_summary",
         "review_closure",
         "final_confirmation",
         "unit_coverage",

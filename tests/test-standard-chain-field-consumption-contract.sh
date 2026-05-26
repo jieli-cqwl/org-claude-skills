@@ -115,10 +115,12 @@ import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
-if "design_stage_confirmations" not in text:
-    raise SystemExit("field contract must include design_stage_confirmations")
-if "co_creation_summary" in text:
-    raise SystemExit("field contract must not include co_creation_summary")
+expected_field = "co_creation_summary"
+legacy_field = "design" + "_stage_confirmations"
+if expected_field not in text:
+    raise SystemExit("field contract must include co_creation_summary")
+if legacy_field in text:
+    raise SystemExit("field contract must not include design_stage_confirmations")
 PY
 
 python3 - "$ROOT" "$VALIDATOR" "$CONTRACT" <<'PY'

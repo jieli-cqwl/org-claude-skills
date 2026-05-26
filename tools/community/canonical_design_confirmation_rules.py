@@ -65,33 +65,29 @@ def _assert_canonical_cleanup(payload: dict) -> None:
 
 
 def _assert_co_creation(payload: dict, top_level_ref_assert) -> None:
-    confirmations = _require_non_empty_list(
-        payload.get("design_stage_confirmations"), "design_stage_confirmations"
+    co_creation = _require_non_empty_list(
+        payload.get("co_creation_summary"), "co_creation_summary"
     )
     seen_stages: set[str] = set()
-    for index, row in enumerate(confirmations):
+    for index, row in enumerate(co_creation):
         if not isinstance(row, dict):
-            raise ValueError(
-                f"design design_stage_confirmations[{index}] must be an object"
-            )
+            raise ValueError(f"design co_creation_summary[{index}] must be an object")
         stage_id = row.get("stage_id")
-        _require_non_empty_string(
-            stage_id, f"design_stage_confirmations[{index}].stage_id"
-        )
+        _require_non_empty_string(stage_id, f"co_creation_summary[{index}].stage_id")
         if isinstance(stage_id, str):
             seen_stages.add(stage_id)
-        for field in ("confirmation_focus", "user_confirmation_summary"):
+        for field in ("stage_name", "question_or_focus", "user_response_summary"):
             _require_non_empty_string(
-                row.get(field), f"design_stage_confirmations[{index}].{field}"
+                row.get(field), f"co_creation_summary[{index}].{field}"
             )
         refs = _require_string_list(
-            row.get("design_refs"), f"design_stage_confirmations[{index}].design_refs"
+            row.get("decision_refs"), f"co_creation_summary[{index}].decision_refs"
         )
         for ref_index, ref in enumerate(refs):
             top_level_ref_assert(
                 ref,
                 payload,
-                f"design_stage_confirmations[{index}].design_refs[{ref_index}]",
+                f"co_creation_summary[{index}].decision_refs[{ref_index}]",
             )
     missing_stages = sorted(DESIGN_REQUIRED_CONFIRMATION_STAGES - seen_stages)
     if missing_stages:

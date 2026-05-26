@@ -174,8 +174,8 @@ Expected: all three commands PASS.
 
 - [ ] **Step 6: Stage-ready checkpoint**
 
-Run: `git diff -- contracts/active-doc-scope.yaml docs/feature--quanfangtong-homepage-entry-center/worklog.md docs/feature--quanfangtong-homepage-entry-center/standard-chain-dogfood-observation.md`
-Expected: diff only contains the scope entry and the two new context files. Do not commit unless the user explicitly authorizes a commit.
+Run: `git diff -- contracts/active-doc-scope.yaml docs/feature--quanfangtong-homepage-entry-center/worklog.md docs/feature--quanfangtong-homepage-entry-center/standard-chain-dogfood-observation.md docs/feature--quanfangtong-homepage-entry-center/phase-1/tasks.json docs/feature--quanfangtong-homepage-entry-center/phase-1/artifact-registry.json`
+Expected: diff only contains the scope entry, worklog handoff block, observation shell, bootstrap tasks registry, and bootstrap artifact registry. Do not commit unless the user explicitly authorizes a commit.
 
 ### Task 2: Current Homepage Evidence Pack
 

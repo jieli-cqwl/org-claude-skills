@@ -123,13 +123,13 @@ def render_design_markdown(payload: dict[str, Any]) -> tuple[str, list[dict[str,
             ],
         ),
         (
-            "design_confirmations",
-            "设计确认",
-            ["$.design_stage_confirmations"],
+            "co_creation",
+            "协作确认",
+            ["$.co_creation_summary"],
             [
                 *bullet_list(
-                    payload.get("design_stage_confirmations"),
-                    "$.design_stage_confirmations",
+                    payload.get("co_creation_summary"),
+                    "$.co_creation_summary",
                 ),
             ],
         ),

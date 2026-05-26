@@ -1389,7 +1389,7 @@ assert_design_projection_renderer_writes_manifest_and_adrs() {
   }
   jq -e '
     [.sections[].json_pointers[]] as $pointers
-    | ($pointers | index("$.design_stage_confirmations") != null)
+    | ($pointers | index("$.co_creation_summary") != null)
       and ($pointers | index("$.unit_coverage") != null)
       and ($pointers | index("$.verification_mapping") != null)
       and ($pointers | index("$.impact_scope") != null)
@@ -2265,7 +2265,7 @@ done
 
 progress "phase schema and required design field mutation checks"
 for field in \
-  design_stage_confirmations \
+  co_creation_summary \
   constraint_inheritance_confirmation \
   review_closure \
   final_confirmation \
@@ -2302,7 +2302,7 @@ assert_present 'key_decisions.*最终|最终.*key_decisions|key_decisions.*冻�
 assert_absent 'alternatives in `design\.json\.key_decisions`|方案.*`design\.json\.key_decisions`|`design\.json\.key_decisions`.*方案' "$DESIGN_SKILL"
 assert_present 'final_confirmation' "$DESIGN_SKILL"
 assert_present 'product_handoff' "$DESIGN_SKILL"
-assert_present 'design_stage_confirmations' "$DESIGN_SKILL"
+assert_present 'co_creation_summary' "$DESIGN_SKILL"
 assert_absent '`design\.json\.delivery_confirmation`|design\.json.*delivery_confirmation|delivery_confirmation.*design\.json' "$DESIGN_SKILL"
 assert_design_preflight_passes_ready_phase
 progress "design scripts and hook positive/negative checks"

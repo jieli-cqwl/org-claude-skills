@@ -9,7 +9,7 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.input_analysis",
-    "$.co_creation_summary",
+    "$.design_stage_confirmations",
     "$.constraint_inheritance_confirmation",
     "$.review_closure",
     "$.final_confirmation",
@@ -611,68 +611,61 @@
     "resolved_failures": [],
     "warn_followups": []
   },
-  "co_creation_summary": [
+  "design_stage_confirmations": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "stage_name": "Stakeholders and concerns",
-      "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
-      "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
-      "decision_refs": [
+      "confirmation_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
+      "user_confirmation_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "design_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "stage_name": "Architecture-significant requirements",
-      "question_or_focus": "confirm the feedback form scope and observable journey",
-      "user_response_summary": "User confirmed the pilot must prove form rendering, required-field failure, thanks-page rendering, escaping, and not-found behavior through real HTTP.",
-      "decision_refs": [
+      "confirmation_focus": "confirm the feedback form scope and observable journey",
+      "user_confirmation_summary": "User confirmed the pilot must prove form rendering, required-field failure, thanks-page rendering, escaping, and not-found behavior through real HTTP.",
+      "design_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "stage_name": "Current-state evidence",
-      "question_or_focus": "confirm repository facts that affect this pilot",
-      "user_response_summary": "User confirmed the second pilot reuses the isolated standard-library HTTP pattern while covering a different form-submission workflow.",
-      "decision_refs": [
+      "confirmation_focus": "confirm repository facts that affect this pilot",
+      "user_confirmation_summary": "User confirmed the second pilot reuses the isolated standard-library HTTP pattern while covering a different form-submission workflow.",
+      "design_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "stage_name": "Complexity model",
-      "question_or_focus": "choose the simplest architecture that still proves feedback continuity",
-      "user_response_summary": "User selected in-memory submission storage with opaque ids because the phase validates workflow continuity, not durable data.",
-      "decision_refs": [
+      "confirmation_focus": "choose the simplest architecture that still proves feedback continuity",
+      "user_confirmation_summary": "User selected in-memory submission storage with opaque ids because the phase validates workflow continuity, not durable data.",
+      "design_refs": [
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "stage_name": "Decision discovery",
-      "question_or_focus": "confirm module, interface, and boundary contracts",
-      "user_response_summary": "User confirmed the key decisions are runtime choice, submission storage, opaque id generation, escaping, and real HTTP verification.",
-      "decision_refs": [
+      "confirmation_focus": "confirm module, interface, and boundary contracts",
+      "user_confirmation_summary": "User confirmed the key decisions are runtime choice, submission storage, opaque id generation, escaping, and real HTTP verification.",
+      "design_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "stage_name": "Option tradeoff",
-      "question_or_focus": "confirm migration, verification, rollback, and risk response",
-      "user_response_summary": "User confirmed selected options keep the pilot isolated, protect submitted text, and preserve rollback by removing the example app and tests.",
-      "decision_refs": [
+      "confirmation_focus": "confirm migration, verification, rollback, and risk response",
+      "user_confirmation_summary": "User confirmed selected options keep the pilot isolated, protect submitted text, and preserve rollback by removing the example app and tests.",
+      "design_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "stage_name": "Design synthesis",
-      "question_or_focus": "confirm planning constraints and impact scope",
-      "user_response_summary": "User confirmed downstream consumers need concrete form, submit, thanks-page, verification, risk, and rollback contracts.",
-      "decision_refs": [
+      "confirmation_focus": "confirm planning constraints and impact scope",
+      "user_confirmation_summary": "User confirmed downstream consumers need concrete form, submit, thanks-page, verification, risk, and rollback contracts.",
+      "design_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",

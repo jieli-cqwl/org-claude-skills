@@ -37,7 +37,7 @@ def reviewed_design_digest(payload: dict[str, Any]) -> str:
     return digest(reviewed_design)
 
 
-def design_stage_confirmations() -> list[dict[str, Any]]:
+def co_creation_summary() -> list[dict[str, Any]]:
     rows = [
         ("stakeholders-and-concerns", "确认设计消费者和关注点"),
         (
@@ -53,9 +53,10 @@ def design_stage_confirmations() -> list[dict[str, Any]]:
     return [
         {
             "stage_id": stage_id,
-            "confirmation_focus": focus,
-            "user_confirmation_summary": f"{focus} 已基于 PM package 确认",
-            "design_refs": ["design.json#key_decisions[0].decision_id"],
+            "stage_name": stage_id,
+            "question_or_focus": focus,
+            "user_response_summary": f"{focus} 已基于 PM package 确认",
+            "decision_refs": ["design.json#key_decisions[0].decision_id"],
         }
         for stage_id, focus in rows
     ]
@@ -284,7 +285,7 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
         "rollback_plan": [
             "实现阶段若 trace 或人工确认缺失，停止进入部署并回到 design 修正接口边界。"
         ],
-        "design_stage_confirmations": design_stage_confirmations(),
+        "co_creation_summary": co_creation_summary(),
         "constraint_inheritance_confirmation": {
             "status": "confirmed",
             "confirmed_at": "2026-05-14T02:10:00Z",

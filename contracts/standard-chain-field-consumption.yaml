@@ -713,18 +713,18 @@ artifacts:
             consume_mode: reference
         required_when: design consumes PM inputs
         failure_effect: downstream cannot see how product inputs shaped design
-      design_stage_confirmations:
+      co_creation_summary:
         producer: design
         authority: design
         consumers:
           - consumer: test-design
-            consumed_for: derive tests from confirmed design obligation checkpoints
+            consumed_for: derive tests from confirmed design collaboration checkpoints
             consume_mode: reference
           - consumer: tech-lead
-            consumed_for: plan implementation from confirmed design obligation checkpoints
+            consumed_for: plan implementation from confirmed design collaboration checkpoints
             consume_mode: reference
-        required_when: design freezes confirmation checkpoints that affect downstream obligations
-        failure_effect: downstream cannot prove which design obligations were confirmed
+        required_when: design freezes collaboration checkpoints that affect downstream obligations
+        failure_effect: downstream cannot prove which design collaboration checkpoints were confirmed
       constraint_inheritance_confirmation:
         producer: design
         authority: design
