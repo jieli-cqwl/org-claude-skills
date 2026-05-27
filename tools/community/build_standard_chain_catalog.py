@@ -323,7 +323,13 @@ def run_bundle_drift_probe(root: Path, probe_target: str) -> None:
     expected = build_chain_registry_digest(root)
     with tempfile.TemporaryDirectory() as temp_dir:
         probe_root = Path(temp_dir) / "repo"
-        shutil.copytree(root, probe_root)
+        shutil.copytree(
+            root,
+            probe_root,
+            ignore=shutil.ignore_patterns(
+                ".git", ".claude", "__pycache__", ".pytest_cache"
+            ),
+        )
         probe_path = probe_root / probe_target
         if not probe_path.is_file():
             raise FileNotFoundError(probe_target)

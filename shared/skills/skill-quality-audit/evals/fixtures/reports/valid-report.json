@@ -1,9 +1,14 @@
 {
   "artifact_type": "skill-audit-report",
+  "audit_mode": "formal",
   "target_skill": "shared/skills/example",
   "verdict": "fit",
   "overall_score": 8.5,
   "verdict_reason": "No P0/P1 findings remain and core dimensions meet the fit floor.",
+  "artifact_paths": {
+    "report_json": "shared/skills/skill-quality-audit/evals/fixtures/reports/valid-report.json",
+    "summary_markdown": "shared/skills/skill-quality-audit/evals/fixtures/reports/valid-report.md"
+  },
   "scope_evidence": [
     {
       "surface": "SKILL.md",
@@ -83,7 +88,7 @@
     {
       "surface": "downstream consumers",
       "status": "checked",
-      "evidence": "tests and runtime surface consume the package."
+      "evidence": "contracts/skill-runtime-surface.json and tests/gate-plan.json consume the package."
     }
   ],
   "dimension_scores": [
@@ -144,5 +149,11 @@
   ],
   "findings": [],
   "repair_handoff": [],
+  "validation": {
+    "status": "PASS",
+    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/fixtures/reports/valid-report.json",
+    "output": "[PASS] skill audit report valid"
+  },
+  "executed_verification": [],
   "residual_risk": []
 }

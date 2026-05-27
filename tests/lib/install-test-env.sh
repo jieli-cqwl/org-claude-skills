@@ -400,7 +400,7 @@ install_test_run_installed_completion_check() {
     --arg fp "$file_path" \
     '{cwd:$cwd, session_id:$sid, transcript_path:$tp, tool_name:$tn, tool_input:{file_path:$fp}}')"
 
-  env HOME="$home_dir" bash "$script" <<<"$payload"
+  env HOME="$home_dir" CODEX_HOME="$home_dir/.codex" CLAUDE_HOME="$home_dir/.claude" bash "$script" <<<"$payload"
 }
 
 install_test_assert_installed_control_plane_gates() {

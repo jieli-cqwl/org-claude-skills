@@ -1512,9 +1512,11 @@
         "bash",
         "tests/test-release-metadata.sh"
       ],
-      "area": "other",
-      "tier": "full",
-      "tags": [],
+      "area": "release",
+      "tier": "release",
+      "tags": [
+        "release-only"
+      ],
       "parallel_safe": true,
       "timeout_sec": 180
     },

@@ -1,0 +1,197 @@
+{
+  "artifact_type": "skill-audit-report",
+  "audit_mode": "formal",
+  "target_skill": "shared/skills/design",
+  "verdict": "blocked",
+  "overall_score": 0,
+  "verdict_reason": "Formal audit scoring is blocked because the target design Skill package changed while the audit was being produced. The strengthened evidence_checks gate detected stale current-file evidence twice during this run. A team-readiness verdict would be unreliable until the design changes settle or the audit is run against a frozen branch/snapshot.",
+  "artifact_paths": {
+    "report_json": "shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json",
+    "summary_markdown": "shared/skills/skill-quality-audit/evals/dogfood/design-audit/audit-summary.md"
+  },
+  "scope_evidence": [
+    {
+      "surface": "SKILL.md",
+      "status": "blocked",
+      "evidence": "shared/skills/design/SKILL.md changed during the audit window; field evidence moved between co_creation_summary and design_stage_confirmations."
+    },
+    {
+      "surface": "agents/openai.yaml",
+      "status": "checked",
+      "evidence": "shared/skills/design/agents/openai.yaml:1 defines the OpenAI adapter."
+    },
+    {
+      "surface": "references",
+      "status": "checked",
+      "evidence": "shared/skills/design/references/design-reviewer-prompt.md:1 and shared/skills/design/references/runtime-fact-capture.md:1 are active design references."
+    },
+    {
+      "surface": "scripts",
+      "status": "checked",
+      "evidence": "shared/skills/design/scripts/completion_check.sh:1 and shared/skills/design/scripts/validate_design_architect_contract.py:1 are active design validators."
+    },
+    {
+      "surface": "templates",
+      "status": "blocked",
+      "evidence": "shared/skills/design/templates/design.template.json changed during the audit window; evidence_checks for the confirmation field became stale."
+    },
+    {
+      "surface": "contracts",
+      "status": "blocked",
+      "evidence": "shared/skills/design/contracts/design.schema.json changed during the audit window; evidence_checks for the schema field became stale."
+    },
+    {
+      "surface": "test prompts",
+      "status": "absent",
+      "evidence": "No shared/skills/design/test-prompts.json or shared/skills/design/test-prompts directory is present in the target package."
+    },
+    {
+      "surface": "evals",
+      "status": "checked",
+      "evidence": "shared/skills/design/evals/evals.json:1 defines design eval scenarios."
+    },
+    {
+      "surface": "fixtures",
+      "status": "absent",
+      "evidence": "No shared/skills/design/fixtures directory is present; examples exist under shared/skills/design/examples."
+    },
+    {
+      "surface": "runtime surface",
+      "status": "checked",
+      "evidence": "contracts/skill-runtime-surface.json:114 registers design as a manual first-party Skill."
+    },
+    {
+      "surface": "install hooks",
+      "status": "checked",
+      "evidence": "install.sh:639 copies runtime skill contracts and templates during install staging."
+    },
+    {
+      "surface": "gate plan",
+      "status": "checked",
+      "evidence": "tests/gate-plan.json:921 registers the active design-skill-governance-redesign gate."
+    },
+    {
+      "surface": "run-all",
+      "status": "checked",
+      "evidence": "tests/run-all.sh:156 delegates gate-plan execution for the selected mode."
+    },
+    {
+      "surface": "focused runner",
+      "status": "checked",
+      "evidence": "tests/run-focused.sh:18 documents the design focused profile."
+    },
+    {
+      "surface": "README",
+      "status": "absent",
+      "evidence": "No target-specific shared/skills/design/README.md is present."
+    },
+    {
+      "surface": "downstream consumers",
+      "status": "blocked",
+      "evidence": "contracts/standard-chain.yaml and tests/test-standard-chain-foundation-registry.sh changed relative to the field evidence observed during the audit window."
+    }
+  ],
+  "dimension_scores": [
+    {
+      "dimension": "Real Use Capability",
+      "score": 0,
+      "evidence_level": "E1",
+      "reason": "Score withheld because target evidence changed during the audit run."
+    },
+    {
+      "dimension": "Trigger And Routing",
+      "score": 0,
+      "evidence_level": "E1",
+      "reason": "Score withheld because target evidence changed during the audit run."
+    },
+    {
+      "dimension": "Instruction Contract",
+      "score": 0,
+      "evidence_level": "E1",
+      "reason": "Score withheld because target Skill instructions changed during the audit run."
+    },
+    {
+      "dimension": "Workflow Causality",
+      "score": 0,
+      "evidence_level": "E1",
+      "reason": "Score withheld because target evidence changed during the audit run."
+    },
+    {
+      "dimension": "Output And Handoff",
+      "score": 0,
+      "evidence_level": "E1",
+      "reason": "Score withheld because output-field evidence changed during the audit run."
+    },
+    {
+      "dimension": "Determinism And Validation",
+      "score": 0,
+      "evidence_level": "E1",
+      "reason": "Score withheld because contract and validator evidence changed during the audit run."
+    },
+    {
+      "dimension": "Runtime Integration",
+      "score": 0,
+      "evidence_level": "E1",
+      "reason": "Score withheld because runtime/downstream field evidence changed during the audit run."
+    },
+    {
+      "dimension": "Evidence And Evals",
+      "score": 0,
+      "evidence_level": "E1",
+      "reason": "Score withheld because eval and test evidence could not be scored against a stable target."
+    },
+    {
+      "dimension": "Noise And Maintainability",
+      "score": 0,
+      "evidence_level": "E1",
+      "reason": "Score withheld because the target package is actively changing."
+    }
+  ],
+  "findings": [],
+  "repair_handoff": [
+    {
+      "target": "shared/skills/design and downstream design field-contract consumers",
+      "action": "Finish or pause concurrent design-field-contract edits, then rerun the audit against the settled worktree or a frozen branch/snapshot.",
+      "owner": "audit coordinator"
+    }
+  ],
+  "validation": {
+    "status": "PASS",
+    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json",
+    "output": "[PASS] skill audit report valid"
+  },
+  "executed_verification": [
+    {
+      "id": "transcript-rejected",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py design审查结果.md",
+      "status": "PASS",
+      "output": "exit_code=1; [FAIL] design审查结果.md: invalid JSON: Expecting value: line 1 column 2 (char 1)",
+      "evidence": "design审查结果.md"
+    },
+    {
+      "id": "stale-evidence-check-detected-template-drift",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json",
+      "status": "PASS",
+      "output": "exit_code=1; [FAIL] P1 finding DESIGN-FORMAL-P1-001.evidence_checks[2] expected_snippet not found at shared/skills/design/templates/design.template.json:12",
+      "evidence": "shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json"
+    },
+    {
+      "id": "stale-evidence-check-detected-schema-drift",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json",
+      "status": "PASS",
+      "output": "exit_code=1; [FAIL] P1 finding DESIGN-FORMAL-P1-001.evidence_checks[4] expected_snippet not found at shared/skills/design/contracts/design.schema.json:981",
+      "evidence": "shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json"
+    },
+    {
+      "id": "final-blocked-report-validator",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json",
+      "status": "PASS",
+      "output": "[PASS] skill audit report valid",
+      "evidence": "shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json"
+    }
+  ],
+  "residual_risk": [
+    "This is a formal audit stability result, not a design quality score. Rerun the audit after the target design edits settle.",
+    "No target files under shared/skills/design were modified by this audit."
+  ]
+}

@@ -34,8 +34,8 @@ skill_creator_adapter = module.DEST_CODEX_SKILLS / "skill-creator"
 if not docx_adapter.is_file():
     raise SystemExit("expected adapter for regular Anthropic skill docx")
 
-if skill_creator_adapter.exists():
-    raise SystemExit("skill-creator must remain upstream-only and must not get a Codex adapter")
+if not (skill_creator_adapter / "agents" / "openai.yaml").is_file():
+    raise SystemExit("expected adapter for repository-managed skill-creator")
 PY
 
 echo "[PASS] anthropic skill sync adapter contract"

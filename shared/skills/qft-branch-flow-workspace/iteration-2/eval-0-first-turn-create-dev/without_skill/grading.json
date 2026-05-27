@@ -1,0 +1,54 @@
+{
+  "expectations": [
+    {
+      "text": "首次响应停在第 1 步确认操作场景。",
+      "passed": false,
+      "evidence": "缺少：第 1 步, 操作场景"
+    },
+    {
+      "text": "识别开发需求创建业务开发分支场景。",
+      "passed": false,
+      "evidence": "缺少：开发需求, 业务开发分支"
+    },
+    {
+      "text": "要求用户回复确认后再进入下一步。",
+      "passed": false,
+      "evidence": "缺少：确认"
+    },
+    {
+      "text": "没有提前展开确认后的完整操作计划。",
+      "passed": true,
+      "evidence": "所需片段均存在，禁用片段未出现。"
+    },
+    {
+      "text": "没有声称会直接执行真实 Git 命令。",
+      "passed": true,
+      "evidence": "所需片段均存在，禁用片段未出现。"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 3,
+    "total": 5,
+    "pass_rate": 0.4
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": 0,
+    "total_steps": 0,
+    "errors_encountered": 0,
+    "output_chars": 173,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "total_tokens": 0,
+    "duration_ms": 143355,
+    "total_duration_seconds": 143.355
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

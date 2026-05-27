@@ -502,7 +502,10 @@ path = Path(sys.argv[1])
 field = sys.argv[2]
 text = path.read_text(encoding="utf-8")
 for match in re.finditer(r"<<'PY'[^\n]*\n(.*?)\nPY", text, re.S):
-    module = ast.parse(match.group(1))
+    try:
+        module = ast.parse(match.group(1))
+    except SyntaxError:
+        continue
     for node in ast.walk(module):
         if not isinstance(node, ast.For):
             continue
@@ -1968,6 +1971,8 @@ assert_absent 'design-ledger\.json|validate_design_ledger|producer design' "$DES
 assert_present 'validate_standard_chain_phase\.py' "$DESIGN_CHECK"
 assert_present 'review_digest\.py' "$DESIGN_CHECK"
 assert_absent 'validate_design_semantics|validate_design_references|validate_schema\(|validate_design_cleanup|validate_product_handoff|check_product_closure_contract|missing canonical key decisions|traceability refs do not resolve|missing key decision contract' "$DESIGN_CHECK"
+assert_present 'co_creation_summary' "$DESIGN_CHECK"
+assert_absent 'design_stage_confirmations' "$DESIGN_CHECK"
 
 assert_absent 'hook-payload|completion_check\.sh <|写入并运行 gate' "$TEST_DESIGN_SKILL"
 assert_present 'digraph test_design_flow' "$TEST_DESIGN_SKILL"
@@ -2204,11 +2209,11 @@ assert_present '\{feature\}\.phase-\{N\}\.design' "$DESIGN_TEMPLATE"
 assert_absent '"stage_id": "S[0-9]+"' "$DESIGN_TEMPLATE"
 assert_absent '"S2"| "S3"| "S4"| "S5"| "S6"| "S7"| "S8"' "$DESIGN_SCHEMA"
 assert_present '"stage_id": "stakeholders-and-concerns"' "$DESIGN_TEMPLATE"
-assert_present '"confirmation_focus": "确认设计消费者、架构显著关注点和责任边界"' "$DESIGN_TEMPLATE"
+assert_present '"question_or_focus": "确认设计消费者、架构显著关注点和责任边界"' "$DESIGN_TEMPLATE"
 assert_present '"stage_id": "architecture-significant-requirements"' "$DESIGN_TEMPLATE"
-assert_present '"confirmation_focus": "确认架构显著需求、质量属性和约束继承"' "$DESIGN_TEMPLATE"
+assert_present '"question_or_focus": "确认架构显著需求、质量属性和约束继承"' "$DESIGN_TEMPLATE"
 assert_present '"stage_id": "design-synthesis"' "$DESIGN_TEMPLATE"
-assert_present '"confirmation_focus": "确认设计合成结果和下游交接义务"' "$DESIGN_TEMPLATE"
+assert_present '"question_or_focus": "确认设计合成结果和下游交接义务"' "$DESIGN_TEMPLATE"
 assert_present '"review_closure"' "$DESIGN_TEMPLATE"
 assert_present '"reviewed_design_digest": "sha256:[0-9a-f]{64}"' "$DESIGN_TEMPLATE"
 assert_present '"reviewed_design_digest": "sha256:[0-9a-f]{64}"' "$DESIGN_TEMPLATE"
@@ -2303,6 +2308,7 @@ assert_absent 'alternatives in `design\.json\.key_decisions`|方案.*`design\.js
 assert_present 'final_confirmation' "$DESIGN_SKILL"
 assert_present 'product_handoff' "$DESIGN_SKILL"
 assert_present 'co_creation_summary' "$DESIGN_SKILL"
+assert_absent 'design_stage_confirmations' "$DESIGN_SKILL"
 assert_absent '`design\.json\.delivery_confirmation`|design\.json.*delivery_confirmation|delivery_confirmation.*design\.json' "$DESIGN_SKILL"
 assert_design_preflight_passes_ready_phase
 progress "design scripts and hook positive/negative checks"

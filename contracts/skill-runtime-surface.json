@@ -54,10 +54,9 @@
       "reason": "Canvas design work is specialized and should be explicit."
     },
     "claude-api": {
-      "mode": "auto",
+      "mode": "manual",
       "owner": "first-party",
-      "auto_class": "high_frequency",
-      "reason": "Claude API and Anthropic SDK questions should route automatically.",
+      "reason": "Claude API and Anthropic SDK work is specialized and should be explicitly invoked.",
       "description": "Use for Claude API / Anthropic SDK code, prompt caching, tools, models, or migrations."
     },
     "cli-updater": {
@@ -160,10 +159,9 @@
       "reason": "Feishu document mutation requires explicit user intent."
     },
     "find-skills": {
-      "mode": "auto",
+      "mode": "manual",
       "owner": "community",
-      "auto_class": "high_frequency",
-      "reason": "Skill discovery requests should route automatically.",
+      "reason": "Skill discovery should be explicit to avoid hijacking ordinary Skill discussion.",
       "description": "Use only when finding, installing, updating, or comparing installable agent skills."
     },
     "finishing-a-development-branch": {
@@ -231,10 +229,9 @@
       "reason": "NotebookLM browser workflows require explicit user intent."
     },
     "overview": {
-      "mode": "auto",
+      "mode": "manual",
       "owner": "first-party",
-      "auto_class": "high_frequency",
-      "reason": "New project overview requests should route automatically."
+      "reason": "Project overview writes artifacts and requires confirmation, so it should be explicitly invoked."
     },
     "pdf": {
       "mode": "manual",
@@ -265,6 +262,16 @@
       "mode": "manual",
       "owner": "first-party",
       "reason": "Product manager work requires frozen director inputs."
+    },
+    "qft-branch-flow": {
+      "mode": "manual",
+      "owner": "first-party",
+      "reason": "全房通 Git 分支流程会影响仓库状态和推送边界，必须由用户显式触发。"
+    },
+    "qft-branch-management": {
+      "mode": "manual",
+      "owner": "first-party",
+      "reason": "全房通分支创建和推送会影响 Git 状态，必须由用户显式触发。"
     },
     "project-memory": {
       "mode": "manual",
@@ -299,10 +306,9 @@
       "reason": "Official Superpowers mirror; preserve upstream behavior."
     },
     "research": {
-      "mode": "auto",
+      "mode": "manual",
       "owner": "first-party",
-      "auto_class": "high_frequency",
-      "reason": "Research and option-discovery requests should route automatically.",
+      "reason": "Research workflows are broad and potentially high-cost, so they should be explicitly invoked.",
       "routing_boundary": "Use for evidence-backed research, option discovery, technical/product investigation, and solution comparison outside installable agent skill discovery."
     },
     "review": {
@@ -334,7 +340,7 @@
       "mode": "auto",
       "owner": "community",
       "auto_class": "high_frequency",
-      "reason": "Skill creation or editing requests should route automatically; Claude uses the vendored Anthropic skill and Codex uses its bundled system skill.",
+      "reason": "Skill creation or editing requests should route automatically; Claude and Codex both use the repository-managed vendored Anthropic skill.",
       "description": "Use when creating, editing, evaluating, or optimizing a Skill or trigger description."
     },
     "skill-pull": {

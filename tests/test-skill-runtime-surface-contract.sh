@@ -60,16 +60,12 @@ if len(auto_skills) > auto_limit:
 expected_auto = {
     "agent-browser",
     "brainstorming",
-    "claude-api",
     "dispatching-parallel-agents",
     "executing-plans",
-    "find-skills",
     "finishing-a-development-branch",
     "frontend-design",
-    "overview",
     "receiving-code-review",
     "requesting-code-review",
-    "research",
     "skill-creator",
     "subagent-driven-development",
     "systematic-debugging",
@@ -84,16 +80,12 @@ expected_auto = {
 expected_auto_class = {
     "agent-browser": "high_frequency",
     "brainstorming": "workflow_guardrail",
-    "claude-api": "high_frequency",
     "dispatching-parallel-agents": "conditional_coordination",
     "executing-plans": "workflow_guardrail",
-    "find-skills": "high_frequency",
     "finishing-a-development-branch": "workflow_guardrail",
     "frontend-design": "high_frequency",
-    "overview": "high_frequency",
     "receiving-code-review": "workflow_guardrail",
     "requesting-code-review": "workflow_guardrail",
-    "research": "high_frequency",
     "skill-creator": "high_frequency",
     "subagent-driven-development": "conditional_coordination",
     "systematic-debugging": "workflow_guardrail",
@@ -134,7 +126,20 @@ if "evaluating" in str(skills["find-skills"].get("description", "")).lower():
     raise SystemExit("find-skills description should not claim generic skill evaluation; route editing/optimization to skill-creator")
 if "docx" not in manual_skills:
     raise SystemExit("docx should be manual-only")
-for manual_name in ["architecture", "github-repo-radar", "mermaid-diagrams", "planning-with-files", "prompt", "refactor", "security", "ui-ux-pro-max"]:
+for manual_name in [
+    "architecture",
+    "claude-api",
+    "find-skills",
+    "github-repo-radar",
+    "mermaid-diagrams",
+    "overview",
+    "planning-with-files",
+    "prompt",
+    "refactor",
+    "research",
+    "security",
+    "ui-ux-pro-max",
+]:
     if manual_name not in manual_skills:
         raise SystemExit(f"{manual_name} should be manual-only")
 

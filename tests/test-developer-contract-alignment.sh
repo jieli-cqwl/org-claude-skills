@@ -541,6 +541,31 @@ assert_developer_preflight_passes() {
   fi
 }
 
+assert_developer_preflight_accepts_test_obligations_schema() {
+  local tmp_root phase_dir out
+
+  tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/developer-preflight-obligations.XXXXXX")"
+  out="$(mktemp "${TMPDIR:-/tmp}/developer-preflight-obligations.out.XXXXXX")"
+  cleanup_developer_preflight_obligations() {
+    rm -rf "$tmp_root" "$out"
+  }
+  trap cleanup_developer_preflight_obligations RETURN
+
+  mkdir -p "$tmp_root"
+  cp -R "$ROOT/docs/feature--quanfangtong-homepage-entry-center/phase-1" "$tmp_root/phase-1"
+  phase_dir="$tmp_root/phase-1"
+
+  if bash "$ROOT/shared/skills/developer/scripts/preflight_check.sh" --phase-dir "$phase_dir" --task-id T1 >"$out"; then
+    if rg -n '"status": "PASS".*"task_id": "T1"|\"task_id\": "T1".*\"status\": "PASS"' "$out" >/dev/null 2>&1; then
+      pass "developer preflight 接受 test_obligations/expected_result schema"
+    else
+      fail "developer preflight test_obligations 输出缺少 PASS/T1"
+    fi
+  else
+    cat "$out" >&2 || true
+    fail "developer preflight 应接受 test_obligations/expected_result schema"
+  fi
+}
 assert_developer_preflight_blocks_missing_registry() {
   local tmp_root phase_dir out
 
@@ -620,7 +645,7 @@ assert_present \
 
 assert_present \
   "developer SKILL 限定 preflight 为输入校验" \
-  '只校验 Task、Scope、design/test refs 和 `assertion_target`；失败则停止' \
+  '只校验 Task、Scope、design/test refs，以及 test-cases 中的 `assertion_target` 或 `expected_result`；失败则停止' \
   "$DEV_SKILL"
 
 test -x "$DEV_PREFLIGHT" || fail "developer preflight script must be executable"
@@ -637,7 +662,7 @@ assert_present \
 
 assert_present \
   "developer SKILL 将 test-cases 作为 TDD 输入而非运行面 gate" \
-  'test-cases\.json.*test_refs.*assertion_target' \
+  'test-cases\.json.*test_refs.*assertion_target.*expected_result|test-cases\.json.*test_refs.*expected_result.*assertion_target' \
   "$DEV_SKILL"
 
 assert_present \
@@ -795,6 +820,7 @@ assert_canonical_json_report_accepts_mutation \
   '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .blocked_reason = "canonical inputs are missing" | .missing_inputs = ["design.json"] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"canonical inputs are missing","owner":"delivery-owner","safe_to_continue":false,"next_action":"redispatch with canonical inputs","evidence_refs":["artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#blocked"],"user_message":"缺少 developer 前置输入，已阻断真实代码修改。"} | .self_testing.full_regression.status = "BLOCKED" | .self_testing.full_regression.reason = "canonical inputs are missing" | .self_testing.static_analysis.lint.status = "BLOCKED" | .self_testing.static_analysis.lint.reason = "canonical inputs are missing" | .self_testing.static_analysis.type_check.status = "BLOCKED" | .self_testing.static_analysis.type_check.reason = "canonical inputs are missing" | .self_testing.static_analysis.build.status = "BLOCKED" | .self_testing.static_analysis.build.reason = "canonical inputs are missing" | .tdd_evidence_index = []'
 assert_developer_manifest_contract
 assert_developer_preflight_passes
+assert_developer_preflight_accepts_test_obligations_schema
 assert_developer_preflight_blocks_missing_registry
 
 printf '\n── Summary ──\n'

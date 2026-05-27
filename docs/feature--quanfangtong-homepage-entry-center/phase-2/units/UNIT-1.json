@@ -1,0 +1,142 @@
+{
+  "artifact_type": "unit-definition",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-2.unit-1",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.unit_id",
+    "$.closure_definition",
+    "$.trigger",
+    "$.core_behavior",
+    "$.observable_result",
+    "$.feature_refs",
+    "$.flow_refs",
+    "$.risk_refs",
+    "$.rule_refs",
+    "$.integration_context",
+    "$.acceptance_criteria",
+    "$.verification_plan",
+    "$.design_decision_candidates",
+    "$.exclusions",
+    "$.priority",
+    "$.priority_basis",
+    "$.dependencies"
+  ],
+  "unit_id": "UNIT-1",
+  "closure_definition": "auxiliary feedback reset prototype: trigger=user clicks download/support feedback and reset controls; core behavior=increment, clear, and refresh-reset local counters; observable result=local feedback state is visible and never implies production integration",
+  "trigger": "user clicks download or support entry, then clicks the matching local clear control or refreshes the prototype page",
+  "core_behavior": "increment and clear local download/support feedback counters in the static prototype without persistence or external integration",
+  "observable_result": "download and support feedback counts are visible, resettable, and returned to default state after refresh",
+  "feature_refs": [
+    "FEAT-1"
+  ],
+  "flow_refs": [
+    "TOBE-1",
+    "BPG-1"
+  ],
+  "risk_refs": [
+    "RISK-1",
+    "RISK-2"
+  ],
+  "rule_refs": [
+    "RULE-1",
+    "RULE-2"
+  ],
+  "acceptance_criteria": [
+    {
+      "ac_id": "AC-DOWNLOAD-FEEDBACK-RESET",
+      "description": "用户重复点击客户端下载入口后，可以通过本地控件清零下载反馈次数。",
+      "example_input": "用户点击客户端下载入口两次，再点击下载反馈清零控件",
+      "expected_result": "下载状态先显示反馈 2 次，再回到默认或 0 次的本地反馈状态，并继续明确 not_integrated。",
+      "boundary_case": "清零后再次点击下载入口从 1 次重新累计，不触发真实下载或外部跳转。",
+      "failure_mode": "反馈无法清零、计数错乱，或触发真实下载/外部跳转。",
+      "capability_boundary": "prototype_only",
+      "integration_status": "not_integrated",
+      "backend_capability": "real client download is not integrated"
+    },
+    {
+      "ac_id": "AC-SUPPORT-FEEDBACK-RESET",
+      "description": "用户重复点击联系客服入口后，可以通过本地控件清零客服反馈次数。",
+      "example_input": "用户点击联系客服入口两次，再点击客服反馈清零控件",
+      "expected_result": "客服状态先显示反馈 2 次，再回到默认或 0 次的本地反馈状态，并继续明确 not_integrated。",
+      "boundary_case": "清零后再次点击客服入口从 1 次重新累计，不触发真实客服系统。",
+      "failure_mode": "反馈无法清零、计数错乱，或触发真实客服系统。",
+      "capability_boundary": "prototype_only",
+      "integration_status": "not_integrated",
+      "backend_capability": "real support system is not integrated"
+    },
+    {
+      "ac_id": "AC-REFRESH-DEFAULT-STATE",
+      "description": "用户刷新原型页面后，下载和客服反馈回到默认安全状态。",
+      "example_input": "用户点击下载和客服入口后刷新页面",
+      "expected_result": "页面刷新后下载和客服状态回到等待操作或 0 次反馈，不保留上次计数。",
+      "boundary_case": "刷新后立即点击任一入口，计数从 1 次开始。",
+      "failure_mode": "刷新后仍保留旧计数，或依赖持久化存储。",
+      "capability_boundary": "prototype_only",
+      "integration_status": "not_integrated",
+      "backend_capability": "no persistent storage or backend state is integrated"
+    }
+  ],
+  "exclusions": [
+    "UNIT-1 does not implement real client download, support integration, backend calls, telemetry, auth, deployment, release, or rollback",
+    "UNIT-1 does not create or modify phase-1 user-decision.json"
+  ],
+  "priority": "P0",
+  "priority_basis": "UNIT-1 is the only phase-2 unit and proves whether the clean-room chain can run a small real prototype increment",
+  "dependencies": [],
+  "integration_context": {
+    "business_modules": [
+      "download entry feedback",
+      "support entry feedback",
+      "local reset controls",
+      "refresh default state"
+    ],
+    "protected_behaviors": [
+      "the prototype must not perform real client download, real support integration, backend calls, telemetry, auth, release, rollback, or persistent storage",
+      "phase-1 signoff state and user decision boundary must remain untouched"
+    ],
+    "cross_unit_dependencies": [],
+    "business_constraints": [
+      "UNIT-1 remains a local static prototype increment",
+      "QA evidence must come from a real browser over the local prototype"
+    ]
+  },
+  "verification_plan": [
+    {
+      "verification_type": "browser-prototype",
+      "business_operation": "click download and support entries repeatedly, clear each counter, refresh the prototype, and inspect visible state",
+      "expected_observation": "each AC has visible local feedback and every backend-facing action remains prototype_only or not_integrated",
+      "evidence_target": "desktop and mobile browser interaction record plus screenshots",
+      "covers_refs": [
+        "AC-DOWNLOAD-FEEDBACK-RESET",
+        "AC-SUPPORT-FEEDBACK-RESET",
+        "AC-REFRESH-DEFAULT-STATE",
+        "RISK-1",
+        "RISK-2"
+      ],
+      "evidence_types": [
+        "screenshot",
+        "test_record",
+        "other"
+      ]
+    }
+  ],
+  "design_decision_candidates": [
+    {
+      "decision_name": "feedback reset interaction placement",
+      "options": [
+        "dedicated clear buttons near each auxiliary status",
+        "single shared reset control for both auxiliary statuses"
+      ],
+      "constraints": "must remain local, obvious in desktop/mobile browsers, and not introduce persistence or external integration",
+      "impacted_units": [
+        "UNIT-1"
+      ],
+      "design_handoff": "choose local reset controls and verification boundaries"
+    }
+  ]
+}

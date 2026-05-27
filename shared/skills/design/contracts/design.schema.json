@@ -979,16 +979,17 @@
           "additionalProperties": true
         },
         "co_creation_summary": {
-          "description": "设计阶段确认索引；只记录会改变或冻结设计义务的确认，详细设计事实属于 key_decisions、option_analysis、runtime_facts、interfaces、verification_mapping 和 risk_response 等字段",
+          "description": "设计共创确认索引；每个必需设计阶段记录确认阶段、问题焦点、用户回应摘要和决策引用。",
           "type": "array",
           "minItems": 7,
           "items": {
             "type": "object",
             "required": [
               "stage_id",
-              "confirmation_focus",
-              "user_confirmation_summary",
-              "design_refs"
+              "stage_name",
+              "question_or_focus",
+              "user_response_summary",
+              "decision_refs"
             ],
             "properties": {
               "stage_id": {
@@ -1003,15 +1004,19 @@
                   "design-synthesis"
                 ]
               },
-              "confirmation_focus": {
+              "stage_name": {
                 "type": "string",
                 "minLength": 1
               },
-              "user_confirmation_summary": {
+              "question_or_focus": {
                 "type": "string",
                 "minLength": 1
               },
-              "design_refs": {
+              "user_response_summary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "decision_refs": {
                 "type": "array",
                 "minItems": 1,
                 "items": {

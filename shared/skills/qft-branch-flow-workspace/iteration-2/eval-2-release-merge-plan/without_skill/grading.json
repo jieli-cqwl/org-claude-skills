@@ -1,0 +1,54 @@
+{
+  "expectations": [
+    {
+      "text": "进入分支信息确认阶段。",
+      "passed": false,
+      "evidence": "缺少：分支信息"
+    },
+    {
+      "text": "版本分支为 V.0301。",
+      "passed": false,
+      "evidence": "缺少：V.0301"
+    },
+    {
+      "text": "要求用户输入或选择各项目已有业务分支，而不是自行猜测业务分支。",
+      "passed": true,
+      "evidence": "所需片段均存在，禁用片段未出现。"
+    },
+    {
+      "text": "展示 qft-all、qft-app、qft-system 以及各自主分支。",
+      "passed": false,
+      "evidence": "缺少：3.0.0.MASTER, master"
+    },
+    {
+      "text": "说明业务分支合入 V.0301 的方向。",
+      "passed": false,
+      "evidence": "缺少：V.0301"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 4,
+    "total": 5,
+    "pass_rate": 0.2
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": 0,
+    "total_steps": 0,
+    "errors_encountered": 0,
+    "output_chars": 105,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "total_tokens": 0,
+    "duration_ms": 126890,
+    "total_duration_seconds": 126.89
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

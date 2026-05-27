@@ -147,11 +147,21 @@ def validate_test_ref(phase_dir: Path, entry: dict[str, Any]) -> None:
         for row in test_cases.get("ac_coverage_matrix", [])
         if isinstance(row, dict) and isinstance(row.get("ac_id"), str)
     }
+    known_ac.update(
+        row.get("source_ac_ref")
+        for row in test_cases.get("test_obligations", [])
+        if isinstance(row, dict) and isinstance(row.get("source_ac_ref"), str)
+    )
     known_cases = {
         row.get("case_id")
         for row in test_cases.get("test_cases", [])
         if isinstance(row, dict) and isinstance(row.get("case_id"), str)
     }
+    known_cases.update(
+        row.get("obligation_id")
+        for row in test_cases.get("test_obligations", [])
+        if isinstance(row, dict) and isinstance(row.get("obligation_id"), str)
+    )
     if anchor and anchor not in known_ac and anchor not in known_cases:
         raise PreflightFailure(
             "UNRESOLVED_REF", f"test_ref anchor not found: {entry.get('ref')}"
@@ -161,9 +171,14 @@ def validate_test_ref(phase_dir: Path, entry: dict[str, Any]) -> None:
         for row in test_cases.get("test_cases", [])
         if isinstance(row, dict)
     ]
+    assertions.extend(
+        row.get("expected_result")
+        for row in test_cases.get("test_obligations", [])
+        if isinstance(row, dict)
+    )
     if not any(isinstance(item, str) and item.strip() for item in assertions):
         raise PreflightFailure(
-            "MISSING_INPUT", "test-cases.json lacks assertion_target"
+            "MISSING_INPUT", "test-cases.json lacks assertion target or expected result"
         )
 
 

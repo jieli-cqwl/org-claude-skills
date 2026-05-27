@@ -1,0 +1,332 @@
+{
+  "metadata": {
+    "skill_name": "qft-branch-flow",
+    "skill_path": "/Users/lijieli/org-claude-skills/shared/skills",
+    "executor_model": "sonnet",
+    "analyzer_model": "manual-script",
+    "timestamp": "2026-05-26T00:00:00Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "eval_name": "create-dev-branch",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 185.697,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "输出按至少四个连续步骤推进，且场景确认早于项目确认。",
+          "passed": false,
+          "evidence": "缺少：第 2 步, 第 3 步, 第 4 步"
+        },
+        {
+          "text": "项目展示同时包含 qft-all、qft-app 以及各自主分支。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "目标业务分支为 3.0.0.DEV_QW_0001_0301。",
+          "passed": false,
+          "evidence": "缺少：3.0.0.DEV_QW_0001_0301"
+        },
+        {
+          "text": "本地 Git 写操作确认和 push 确认是分开的。",
+          "passed": false,
+          "evidence": "缺少：确认执行"
+        },
+        {
+          "text": "没有声称会直接执行真实 Git 命令。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "eval_name": "create-dev-branch",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 183.447,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "输出按至少四个连续步骤推进，且场景确认早于项目确认。",
+          "passed": false,
+          "evidence": "缺少：第 1 步, 第 2 步, 第 3 步, 第 4 步"
+        },
+        {
+          "text": "项目展示同时包含 qft-all、qft-app 以及各自主分支。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "目标业务分支为 3.0.0.DEV_QW_0001_0301。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "本地 Git 写操作确认和 push 确认是分开的。",
+          "passed": false,
+          "evidence": "缺少：确认执行, 确认推送"
+        },
+        {
+          "text": "没有声称会直接执行真实 Git 命令。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "release-merge",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 253.831,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "要求用户输入或选择各项目已有业务分支，而不是自行猜测业务分支。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "展示 qft-all、qft-app、qft-system 以及各自主分支。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "版本分支为 V.0301，且创建来源按各项目主分支。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "合并方向是业务分支到 V.0301。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "push 单独确认。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "release-merge",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 171.999,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "要求用户输入或选择各项目已有业务分支，而不是自行猜测业务分支。",
+          "passed": false,
+          "evidence": "缺少：业务分支"
+        },
+        {
+          "text": "展示 qft-all、qft-app、qft-system 以及各自主分支。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "版本分支为 V.0301，且创建来源按各项目主分支。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "合并方向是业务分支到 V.0301。",
+          "passed": false,
+          "evidence": "缺少：业务"
+        },
+        {
+          "text": "push 单独确认。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "bug-branch",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 136.019,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "展示 APP qft-harmonyos-vue3 和 H5 qft-universal.gitersal。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "来源版本分支为 V.0301。",
+          "passed": false,
+          "evidence": "缺少：V.0301"
+        },
+        {
+          "text": "目标 BUG 分支为 3.0.0.MASTER_BUG_0301。",
+          "passed": false,
+          "evidence": "缺少：3.0.0.MASTER_BUG_0301"
+        },
+        {
+          "text": "合并方向是 BUG 分支到 V.0301。",
+          "passed": false,
+          "evidence": "缺少：V.0301"
+        },
+        {
+          "text": "push 单独确认。",
+          "passed": false,
+          "evidence": "缺少：确认推送"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "bug-branch",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 116.452,
+        "tokens": 614,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "展示 APP qft-harmonyos-vue3 和 H5 qft-universal.gitersal。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "来源版本分支为 V.0301。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "目标 BUG 分支为 3.0.0.MASTER_BUG_0301。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "合并方向是 BUG 分支到 V.0301。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        },
+        {
+          "text": "push 单独确认。",
+          "passed": true,
+          "evidence": "所需片段均存在，禁用片段未出现。"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.5333333333333333,
+        "stddev": 0.33993463423951903,
+        "min": 0.2,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 191.84900000000002,
+        "stddev": 48.29287155126175,
+        "min": 136.019,
+        "max": 253.831
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.7333333333333334,
+        "stddev": 0.1885618083164127,
+        "min": 0.6,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 157.29933333333335,
+        "stddev": 29.259102929212002,
+        "min": 116.452,
+        "max": 183.447
+      },
+      "tokens": {
+        "mean": 204.66666666666666,
+        "stddev": 289.44237576569344,
+        "min": 0,
+        "max": 614
+      }
+    },
+    "delta": {
+      "pass_rate": "-0.20",
+      "time_seconds": "+34.5",
+      "tokens": "-205"
+    }
+  },
+  "notes": [
+    "评分脚本检查关键交互片段；人工评审仍需重点看逐步确认是否自然。",
+    "baseline 可能因 prompt 提供了部分规范而得分偏高，实际无 skill 风险会更大。"
+  ]
+}

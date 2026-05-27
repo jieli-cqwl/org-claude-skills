@@ -59,7 +59,17 @@ test ! -d "$ROOT/community/superpowers/agents" || fail "Superpowers agents tree 
 test -d "$ROOT/community/anthropic/skills" || fail "missing community/anthropic/skills directory"
 test -d "$ROOT/community/anthropic/codex/skills" || fail "missing community/anthropic/codex/skills directory"
 test -f "$ROOT/community/anthropic/skills/skill-creator/SKILL.md" || fail "missing Anthropic skill-creator source"
-test ! -e "$ROOT/community/anthropic/codex/skills/skill-creator" || fail "Anthropic skill-creator must be upstream-only; Codex adapter tree should not exist"
+test -f "$ROOT/community/anthropic/codex/skills/skill-creator/agents/openai.yaml" || fail "missing Anthropic skill-creator Codex adapter"
+noise_pattern='bundled (Codex )?''system skill|内置''系统 skill|Codex provides a bundled ''system skill|Codex 使用''内置系统'
+if rg -n "$noise_pattern" \
+  "$ROOT/README.md" \
+  "$ROOT/community/SOURCES.yaml" \
+  "$ROOT/contracts/skill-runtime-surface.json" \
+  "$ROOT/install.sh" \
+  "$ROOT/tests" >/tmp/org_skill_creator_noise.out 2>&1; then
+  cat /tmp/org_skill_creator_noise.out >&2
+  fail "active runtime sources must not describe skill-creator with retired Codex-system wording"
+fi
 test -d "$ROOT/community/vercel/skills" || fail "missing community/vercel/skills directory"
 test -d "$ROOT/community/vercel/codex/skills" || fail "missing community/vercel/codex/skills directory"
 test -d "$ROOT/community/alchaincyf/skills" || fail "missing community/alchaincyf/skills directory"

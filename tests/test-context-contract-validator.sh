@@ -176,4 +176,92 @@ if run_validator "$bad_ref" >"$TMP_DIR/bad-ref.out" 2>&1; then
 fi
 assert_present "reason: canonical_ref_unreachable" "$TMP_DIR/bad-ref.out"
 
+latest_valid="$TMP_DIR/latest-valid"
+cp -R "$valid" "$latest_valid"
+python3 - "$latest_valid/docs/feature--standard/worklog.md" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+older_invalid = """## 2026-05-08 10:00
+
+- actor: Codex
+- context_owner: standard-owner
+- mode: standard-chain
+- stage: SIGNOFF_READY
+- scope_ref: phase-1
+- handoff_status: doing
+- state_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/std.phase-1.tasks@tasks-v1#plan-version
+- next: Older invalid record
+- next_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/std.phase-1.tasks@tasks-v1#task-registry
+
+"""
+path.write_text(text.replace("# Standard Worklog\n\n", f"# Standard Worklog\n\n{older_invalid}", 1), encoding="utf-8")
+PY
+run_validator "$latest_valid" >"$TMP_DIR/latest-valid.out" \
+  || fail "latest valid worklog block should pass even if an older block is invalid"
+assert_present "[PASS] context contract" "$TMP_DIR/latest-valid.out"
+
+latest_invalid="$TMP_DIR/latest-invalid"
+cp -R "$valid" "$latest_invalid"
+python3 - "$latest_invalid/docs/feature--standard/worklog.md" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8").rstrip()
+latest_invalid = """## 2026-05-08 12:00
+
+- actor: Codex
+- context_owner: standard-owner
+- mode: standard-chain
+- stage: SIGNOFF_READY
+- scope_ref: phase-1
+- handoff_status: doing
+- state_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/std.phase-1.tasks@tasks-v1#plan-version
+- next: Latest invalid record
+- next_ref: canonical:phase-1/artifact-registry.json::artifact://tasks/std.phase-1.tasks@tasks-v1#task-registry
+"""
+path.write_text(f"{text}\n\n{latest_invalid}\n", encoding="utf-8")
+PY
+if run_validator "$latest_invalid" >"$TMP_DIR/latest-invalid.out" 2>&1; then
+  fail "invalid latest worklog block should fail"
+fi
+assert_present "reason: worklog_enum_invalid" "$TMP_DIR/latest-invalid.out"
+
+history_only_ref="$TMP_DIR/history-only-ref"
+cp -R "$valid" "$history_only_ref"
+python3 - "$history_only_ref/docs/feature--standard/phase-1/artifact-registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+registry = json.loads(path.read_text(encoding="utf-8"))
+registry["revisions"].append({
+    "revision_id": "rev-2",
+    "parent_revision_id": "rev-1",
+    "entries": [
+        {
+            "artifact_type": "plan",
+            "artifact_id": "std.phase-1.plan",
+            "version": "plan-v1",
+            "artifact_path": "plan.json",
+            "lifecycle_state": "FINALIZED",
+            "active_for_consumption": True,
+        }
+    ],
+})
+registry["active_revision_id"] = "rev-2"
+registry["registry_revision"] = "rev-2"
+path.write_text(json.dumps(registry, ensure_ascii=False, indent=2), encoding="utf-8")
+PY
+if run_validator "$history_only_ref" >"$TMP_DIR/history-only-ref.out" 2>&1; then
+  fail "canonical ref must not resolve from historical revisions"
+fi
+assert_present "reason: canonical_ref_unreachable" "$TMP_DIR/history-only-ref.out"
+assert_present "active revision rev-2" "$TMP_DIR/history-only-ref.out"
+assert_present "std.phase-1.tasks@tasks-v1" "$TMP_DIR/history-only-ref.out"
+
 echo "[PASS] context contract validator"

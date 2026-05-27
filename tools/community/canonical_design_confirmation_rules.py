@@ -64,12 +64,12 @@ def _assert_canonical_cleanup(payload: dict) -> None:
             raise ValueError(err.unresolved_bracket_token(value))
 
 
-def _assert_co_creation(payload: dict, top_level_ref_assert) -> None:
-    co_creation = _require_non_empty_list(
+def _assert_co_creation_summary(payload: dict, top_level_ref_assert) -> None:
+    confirmations = _require_non_empty_list(
         payload.get("co_creation_summary"), "co_creation_summary"
     )
     seen_stages: set[str] = set()
-    for index, row in enumerate(co_creation):
+    for index, row in enumerate(confirmations):
         if not isinstance(row, dict):
             raise ValueError(f"design co_creation_summary[{index}] must be an object")
         stage_id = row.get("stage_id")
@@ -81,7 +81,8 @@ def _assert_co_creation(payload: dict, top_level_ref_assert) -> None:
                 row.get(field), f"co_creation_summary[{index}].{field}"
             )
         refs = _require_string_list(
-            row.get("decision_refs"), f"co_creation_summary[{index}].decision_refs"
+            row.get("decision_refs"),
+            f"co_creation_summary[{index}].decision_refs",
         )
         for ref_index, ref in enumerate(refs):
             top_level_ref_assert(
@@ -92,7 +93,7 @@ def _assert_co_creation(payload: dict, top_level_ref_assert) -> None:
     missing_stages = sorted(DESIGN_REQUIRED_CONFIRMATION_STAGES - seen_stages)
     if missing_stages:
         raise ValueError(
-            err.co_creation_missing_stages(
+            err.co_creation_summary_missing_stages(
                 missing_stages,
                 sorted(DESIGN_REQUIRED_CONFIRMATION_STAGES),
                 sorted(seen_stages),
@@ -211,11 +212,16 @@ def _assert_warn_followups(review: dict, warn_finding_refs: set[str]) -> None:
             raise ValueError(
                 f"design review_closure.warn_followups[{index}] must be an object"
             )
-        for field in ("finding_id", "target", "summary"):
+        finding_id = row.get("finding_id")
+        _require_non_empty_string(
+            finding_id, f"review_closure.warn_followups[{index}].finding_id"
+        )
+        for field in ("target", "summary"):
             _require_non_empty_string(
                 row.get(field), f"review_closure.warn_followups[{index}].{field}"
             )
-        followup_ids.add(row.get("finding_id"))
+        if isinstance(finding_id, str):
+            followup_ids.add(finding_id)
         if row.get("target") not in DESIGN_WARN_TARGETS:
             raise ValueError(
                 err.warn_followup_target_invalid(
@@ -253,13 +259,13 @@ def _assert_final_confirmation(payload: dict, top_level_ref_assert) -> None:
 
 
 def assert_design_confirmations(payload: dict, top_level_ref_assert) -> None:
-    """Run cleanup + co-creation + inheritance + review + final checks.
+    """Run cleanup, design confirmation, inheritance, review, and final checks.
 
     top_level_ref_assert is injected to avoid circular imports with
     canonical_design_rules (which owns the design.json# ref matcher).
     """
     _assert_canonical_cleanup(payload)
-    _assert_co_creation(payload, top_level_ref_assert)
+    _assert_co_creation_summary(payload, top_level_ref_assert)
     _assert_constraint_inheritance(payload)
     _assert_review_closure(payload)
     _assert_final_confirmation(payload, top_level_ref_assert)

@@ -1,0 +1,253 @@
+{
+  "artifact_type": "skill-audit-report",
+  "audit_mode": "formal",
+  "target_skill": "shared/skills/overview",
+  "verdict": "conditional",
+  "overall_score": 6.8,
+  "verdict_reason": "The previous overview审查.md artifact is a transcript and its P0 premise that overview is auto-routed is contradicted by current runtime surface evidence. The target overview Skill remains conditionally usable because the runtime is manual and the use scene is clear, but script safety, executable eval coverage, and runtime-body noise need repair before broad team adoption.",
+  "artifact_paths": {
+    "report_json": "shared/skills/skill-quality-audit/evals/dogfood/overview-audit/skill-audit-report.json",
+    "summary_markdown": "shared/skills/skill-quality-audit/evals/dogfood/overview-audit/audit-summary.md"
+  },
+  "scope_evidence": [
+    {
+      "surface": "SKILL.md",
+      "status": "checked",
+      "evidence": "shared/skills/overview/SKILL.md:13 defines the overview completion boundary."
+    },
+    {
+      "surface": "agents/openai.yaml",
+      "status": "checked",
+      "evidence": "shared/skills/overview/agents/openai.yaml:1 defines the OpenAI adapter."
+    },
+    {
+      "surface": "references",
+      "status": "checked",
+      "evidence": "shared/skills/overview/references/mode-selection.md:1 and shared/skills/overview/references/agent-assignments.md:1 are active references."
+    },
+    {
+      "surface": "scripts",
+      "status": "checked",
+      "evidence": "shared/skills/overview/scripts/dir-tree.sh:1 and shared/skills/overview/scripts/project-detect.sh:1 are active scripts."
+    },
+    {
+      "surface": "templates",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/templates directory is present; the package uses shared/skills/overview/projections/project-overview-template.md."
+    },
+    {
+      "surface": "contracts",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/contracts directory is present."
+    },
+    {
+      "surface": "test prompts",
+      "status": "checked",
+      "evidence": "shared/skills/overview/test-prompts.json:1 defines overview prompt fixtures."
+    },
+    {
+      "surface": "evals",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/evals directory is present."
+    },
+    {
+      "surface": "fixtures",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/fixtures directory is present."
+    },
+    {
+      "surface": "runtime surface",
+      "status": "checked",
+      "evidence": "contracts/skill-runtime-surface.json:231 registers overview as a first-party Skill."
+    },
+    {
+      "surface": "install hooks",
+      "status": "checked",
+      "evidence": "install.sh:647 copies selected shared Skill resources into staging."
+    },
+    {
+      "surface": "gate plan",
+      "status": "checked",
+      "evidence": "tests/gate-plan.json:1 defines the active gate plan consumed by run-all."
+    },
+    {
+      "surface": "run-all",
+      "status": "checked",
+      "evidence": "tests/run-all.sh:156 delegates gate-plan execution for selected modes."
+    },
+    {
+      "surface": "focused runner",
+      "status": "checked",
+      "evidence": "tests/run-focused.sh:1 defines focused validation profiles."
+    },
+    {
+      "surface": "README",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/README.md file is present."
+    },
+    {
+      "surface": "downstream consumers",
+      "status": "checked",
+      "evidence": "contracts/skill-runtime-surface.json:232 consumes overview runtime mode and install.sh:1170 applies runtime surface."
+    }
+  ],
+  "dimension_scores": [
+    {
+      "dimension": "Real Use Capability",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "The use scene and output are explicit in shared/skills/overview/SKILL.md and the runtime surface marks it first-party."
+    },
+    {
+      "dimension": "Trigger And Routing",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Runtime routing is manual, which matches the artifact-writing workflow and rejects the prior auto-routing P0 premise."
+    },
+    {
+      "dimension": "Instruction Contract",
+      "score": 7,
+      "evidence_level": "E3",
+      "reason": "The workflow has ordered gates and completion checks, but runtime maintenance Sync text remains in the execution path."
+    },
+    {
+      "dimension": "Workflow Causality",
+      "score": 7,
+      "evidence_level": "E3",
+      "reason": "Scan, mode confirmation, overview execution, document generation, and user confirmation are causally ordered."
+    },
+    {
+      "dimension": "Output And Handoff",
+      "score": 7,
+      "evidence_level": "E3",
+      "reason": "The docs/项目概览.md output is explicit, but fixed-path behavior could be made more flexible for team workflows."
+    },
+    {
+      "dimension": "Determinism And Validation",
+      "score": 5,
+      "evidence_level": "E3",
+      "reason": "Two helper scripts exist, but dir-tree fallback uses eval and overview behavior is not covered by executable gates."
+    },
+    {
+      "dimension": "Runtime Integration",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Runtime surface, adapter, and install staging align on manual invocation."
+    },
+    {
+      "dimension": "Evidence And Evals",
+      "score": 5,
+      "evidence_level": "E2",
+      "reason": "The package has test prompts but no overview evals or fixtures directory."
+    },
+    {
+      "dimension": "Noise And Maintainability",
+      "score": 6,
+      "evidence_level": "E2",
+      "reason": "Runtime instructions include Sync maintenance text that is not an execution-time user deliverable."
+    }
+  ],
+  "findings": [
+    {
+      "id": "OVERVIEW-P1-001",
+      "severity": "P1",
+      "title": "dir-tree fallback uses eval with user-controlled project path context",
+      "evidence_level": "E3",
+      "evidence": "shared/skills/overview/scripts/dir-tree.sh:26 runs eval find with PROJECT_DIR, DEPTH, and dynamic EXCLUDES.",
+      "evidence_checks": [
+        {
+          "path": "shared/skills/overview/scripts/dir-tree.sh",
+          "line": 26,
+          "expected_snippet": "eval find \"$PROJECT_DIR\" -maxdepth \"$DEPTH\" -type d $EXCLUDES",
+          "claim": "The fallback path uses eval to build and execute the find command."
+        }
+      ],
+      "claim_review": {
+        "required_claims": [
+          "The fallback command is reachable when tree is unavailable.",
+          "The command line is constructed through eval.",
+          "The command includes project path and depth inputs from the overview invocation context."
+        ],
+        "refutation_check": "shared/skills/overview/scripts/dir-tree.sh:11 only checks that PROJECT_DIR is a directory; no direct refutation of eval-based command construction was found.",
+        "status": "supported"
+      },
+      "severity_calibration": {
+        "calibrated_severity": "P1",
+        "team_use_impact": "Overview is meant to inspect arbitrary project paths; unsafe fallback command construction can mislead or fail scans in team onboarding flows.",
+        "rationale": "The issue is major because it affects a helper script at the input boundary, but it is not P0 because it is limited to the fallback path when tree is unavailable."
+      },
+      "impact": "A project path or depth edge case can be interpreted by the shell during fallback scanning instead of being treated as data.",
+      "repair_target": "shared/skills/overview/scripts/dir-tree.sh",
+      "verification_hint": "Replace eval with an argv array, validate depth as a positive integer, and test paths containing spaces and shell metacharacters."
+    },
+    {
+      "id": "OVERVIEW-P2-001",
+      "severity": "P2",
+      "title": "Overview behavior is covered by prompt fixtures but not executable eval gates",
+      "evidence_level": "E2",
+      "evidence": "shared/skills/overview/test-prompts.json:5 stores expected behavior as natural-language text.",
+      "impact": "Mode confirmation, write refusal, Mermaid checks, and scan failure handling can regress without a deterministic gate.",
+      "repair_target": "shared/skills/overview/evals or tests/gate-plan.json",
+      "verification_hint": "Add executable overview evals or focused tests covering mode confirmation, scan failure, write refusal, and Mermaid completion checks."
+    },
+    {
+      "id": "OVERVIEW-P2-002",
+      "severity": "P2",
+      "title": "Execution path includes maintenance Sync instructions",
+      "evidence_level": "E2",
+      "evidence": "shared/skills/overview/SKILL.md:53 includes Sync maintenance text inside the runtime step contract.",
+      "impact": "Agents may treat maintainer synchronization work as part of an overview user request.",
+      "repair_target": "shared/skills/overview/SKILL.md and overview maintenance docs",
+      "verification_hint": "Move Sync maintenance notes out of runtime steps and keep only Trigger, Read, Expect, Consume, Evidence fields in the execution path."
+    }
+  ],
+  "repair_handoff": [
+    {
+      "target": "shared/skills/overview/scripts/dir-tree.sh",
+      "action": "Remove eval, build find arguments as an array, validate depth, and add shell edge-case tests.",
+      "owner": "separate implementation window"
+    },
+    {
+      "target": "shared/skills/overview/evals or tests/gate-plan.json",
+      "action": "Add executable coverage for overview behavior currently represented only in prompt fixtures.",
+      "owner": "separate implementation window"
+    },
+    {
+      "target": "shared/skills/overview/SKILL.md",
+      "action": "Move maintenance Sync text out of runtime workflow instructions.",
+      "owner": "separate implementation window"
+    }
+  ],
+  "validation": {
+    "status": "PASS",
+    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/overview-audit/skill-audit-report.json",
+    "output": "[PASS] skill audit report valid"
+  },
+  "executed_verification": [
+    {
+      "id": "overview-transcript-classified",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/classify_audit_artifact.py overview审查.md",
+      "status": "PASS",
+      "output": "artifact_type=transcript",
+      "evidence": "overview审查.md"
+    },
+    {
+      "id": "overview-runtime-auto-claim-refuted",
+      "command": "nl -ba contracts/skill-runtime-surface.json | sed -n '231,235p'",
+      "status": "PASS",
+      "output": "contracts/skill-runtime-surface.json:232 shows mode manual, not auto.",
+      "evidence": "contracts/skill-runtime-surface.json:232"
+    },
+    {
+      "id": "final-overview-report-validator",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/overview-audit/skill-audit-report.json",
+      "status": "PASS",
+      "output": "[PASS] skill audit report valid",
+      "evidence": "shared/skills/skill-quality-audit/evals/dogfood/overview-audit/skill-audit-report.json"
+    }
+  ],
+  "residual_risk": [
+    "This report audits overview as of the current worktree and intentionally does not modify shared/skills/overview.",
+    "The previous transcript's P0 auto-routing claim is rejected; future overview readiness decisions should use this formal audit pattern rather than transcript review."
+  ]
+}

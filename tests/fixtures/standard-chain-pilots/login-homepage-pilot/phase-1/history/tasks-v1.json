@@ -46,6 +46,9 @@
         "anonymous redirect",
         "login form",
         "invalid login error"
+      ],
+      "decision_refs": [
+        "artifact://design/login-homepage-pilot.phase-1.design@v1#IF-LOGIN-HANDLER"
       ]
     }
   ]

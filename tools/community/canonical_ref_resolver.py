@@ -43,18 +43,26 @@ def resolve_artifact_ref(ref: str, registry_path: Path) -> Path:
     registry = load_json(registry_path)
     artifact_type, artifact_id, version, _anchor = split_artifact_ref(ref)
     active_revision = get_active_revision(registry)
+    active_revision_id = active_revision.get(
+        "revision_id", registry.get("active_revision_id")
+    )
+    target = f"{artifact_type}/{artifact_id}@{version}"
     for entry in active_revision.get("entries", []):
         if not entry.get("active_for_consumption"):
             continue
         if entry.get("lifecycle_state") != "FINALIZED":
-            raise ValueError(f"active entry must be FINALIZED: {entry.get('artifact_id')}")
+            raise ValueError(
+                f"active entry must be FINALIZED: {entry.get('artifact_id')}"
+            )
         if (
             entry["artifact_type"] == artifact_type
             and entry["artifact_id"] == artifact_id
             and entry["version"] == version
         ):
             return Path(entry["artifact_path"])
-    raise FileNotFoundError(ref)
+    raise FileNotFoundError(
+        f"{target} not found in active revision {active_revision_id}"
+    )
 
 
 def parse_args() -> argparse.Namespace:

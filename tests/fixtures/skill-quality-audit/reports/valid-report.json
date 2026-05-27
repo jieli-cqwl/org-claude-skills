@@ -1,9 +1,14 @@
 {
   "artifact_type": "skill-audit-report",
+  "audit_mode": "formal",
   "target_skill": "shared/skills/example",
   "verdict": "conditional",
   "overall_score": 7.2,
   "verdict_reason": "One P1 finding remains; Instruction Contract is above the conditional floor.",
+  "artifact_paths": {
+    "report_json": "tests/fixtures/skill-quality-audit/reports/valid-report.json",
+    "summary_markdown": "tests/fixtures/skill-quality-audit/reports/valid-report.md"
+  },
   "scope_evidence": [
     {
       "surface": "SKILL.md",
@@ -83,7 +88,7 @@
     {
       "surface": "downstream consumers",
       "status": "checked",
-      "evidence": "tests and runtime surface consume the package."
+      "evidence": "contracts/skill-runtime-surface.json and tests/gate-plan.json consume the package."
     }
   ],
   "dimension_scores": [
@@ -147,7 +152,28 @@
       "id": "F-001",
       "severity": "P1",
       "title": "Handoff target is incomplete",
-      "evidence": "shared/skills/example/SKILL.md:44 names a repair output but no consumer.",
+      "evidence_level": "E3",
+      "evidence": "tests/fixtures/skill-quality-audit/evidence-target.md:2 names a repair output but no consumer.",
+      "evidence_checks": [
+        {
+          "path": "tests/fixtures/skill-quality-audit/evidence-target.md",
+          "line": 2,
+          "expected_snippet": "Handoff target: separate implementation window owns repair output.",
+          "claim": "The cited line names the repair output owner used by the P1 handoff finding."
+        }
+      ],
+      "claim_review": {
+        "required_claims": [
+          "The cited handoff target exists but does not name the downstream consumer that proves repair."
+        ],
+        "refutation_check": "tests/fixtures/skill-quality-audit/evidence-target.md:2 still lacks a downstream consumer, so no direct refutation was found.",
+        "status": "supported"
+      },
+      "severity_calibration": {
+        "calibrated_severity": "P1",
+        "team_use_impact": "The separate repair window may change the wrong file or miss the required verification path.",
+        "rationale": "The defect affects handoff reliability but does not make the Skill execute unsafe writes."
+      },
       "impact": "The editing window may not know which file or test proves repair.",
       "repair_target": "shared/skills/example/SKILL.md Output Contract",
       "verification_hint": "Run the target skill package quality checker after adding consumer and verification."
@@ -160,5 +186,11 @@
       "owner": "separate implementation window"
     }
   ],
+  "validation": {
+    "status": "PASS",
+    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py tests/fixtures/skill-quality-audit/reports/valid-report.json",
+    "output": "[PASS] skill audit report valid"
+  },
+  "executed_verification": [],
   "residual_risk": []
 }

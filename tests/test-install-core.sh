@@ -92,7 +92,7 @@ if should_run_group basic; then
   baseline_home="$INSTALL_TEST_BASELINE_HOME"
   install_test_assert_control_plane_runtime_files "$baseline_home/.claude" "claude baseline runtime"
   install_test_assert_control_plane_runtime_files "$baseline_home/.codex" "codex baseline runtime"
-  install_test_assert_path_absent "$baseline_home/.agents/skills/skill-creator" "Codex user runtime should defer skill-creator to the bundled Codex system skill"
+  install_test_assert_file_exists "$baseline_home/.agents/skills/skill-creator/SKILL.md" "Codex user runtime should install repository-managed skill-creator"
   install_test_case_pass "core: create baseline for installed-runtime repair cases"
 fi
 

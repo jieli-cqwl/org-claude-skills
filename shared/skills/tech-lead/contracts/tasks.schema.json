@@ -50,6 +50,7 @@
               "unit_refs",
               "scope_item_refs",
               "design_refs",
+              "decision_refs",
               "test_refs",
               "depends_on",
               "shared_files",
@@ -83,6 +84,14 @@
                 "minItems": 1
               },
               "design_refs": {
+                "allOf": [
+                  {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+                  }
+                ],
+                "minItems": 1
+              },
+              "decision_refs": {
                 "allOf": [
                   {
                     "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"

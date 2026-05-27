@@ -1,0 +1,546 @@
+{
+  "artifact_type": "design",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-2.design",
+  "schema_version": "1.0.0",
+  "producer": "design",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.input_analysis",
+    "$.co_creation_summary",
+    "$.constraint_inheritance_confirmation",
+    "$.review_closure",
+    "$.final_confirmation",
+    "$.key_decisions",
+    "$.interface_boundary",
+    "$.quality_attributes",
+    "$.option_analysis",
+    "$.runtime_facts",
+    "$.interfaces",
+    "$.modules",
+    "$.data_architecture",
+    "$.cross_cutting_concerns",
+    "$.verification_mapping",
+    "$.unit_coverage",
+    "$.impact_scope",
+    "$.planning_constraints",
+    "$.product_handoff",
+    "$.risks",
+    "$.risk_response",
+    "$.migration_plan",
+    "$.verification_plan",
+    "$.rollback_plan"
+  ],
+  "input_analysis": "Phase-2 只在 phase-2/prototype 中新增 download/support 本地反馈清零能力，继承 phase-1 静态原型和 brief 的 prototype_only / not_integrated 边界。PM 与 UNIT 要求重复点击可累计、对应清零控件可恢复默认态、刷新不持久化任何计数，并且不得触发真实下载、客服系统、后端、鉴权、遥测、发布或回滚路径。设计复杂度来自清零控件放置、局部状态所有权和真实浏览器验收边界；不新增持久化、共享状态或生产接口。",
+  "runtime_facts": [
+    "phase-1 原型已有 downloadClicks/supportClicks 本地计数，页面刷新后由 defaultState 重置；evidence=docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/app.js; observed_at=2026-05-26T00:00:00Z",
+    "phase-1 原型 download/support 入口只更新本页 status 文案，未接入真实下载、客服、后端或外部跳转；evidence=docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/index.html; observed_at=2026-05-26T00:00:00Z",
+    "phase-2 PM exit conditions 要求本地计数可累计、可清零、刷新回默认态，并保持 phase-1 用户决策边界不漂移；evidence=docs/feature--quanfangtong-homepage-entry-center/phase-2/phase-prd.json#/exit_conditions; observed_at=2026-05-26T00:00:00Z"
+  ],
+  "key_decisions": [
+    {
+      "decision_id": "D-AUX-RESET-PLACEMENT",
+      "summary": "为下载和客服状态分别放置独立本地清零按钮，靠近对应状态文案。",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-D-AUX-RESET-A",
+      "fact_refs": [
+        "design.json#runtime_facts[0]",
+        "design.json#runtime_facts[2]"
+      ],
+      "user_confirmation": "用户确认 phase-2 采用最小可验证切片，优先证明本地反馈清零链路而不扩展生产能力。"
+    },
+    {
+      "decision_id": "D-AUX-STATE-BOUNDARY",
+      "summary": "计数继续由单页内存状态拥有，不使用 localStorage、sessionStorage、Cookie、后端或遥测。",
+      "decision_state": "已冻结",
+      "verdict": "selected",
+      "option_ref": "OPT-D-AUX-STATE-A",
+      "fact_refs": [
+        "design.json#runtime_facts[0]",
+        "design.json#runtime_facts[1]"
+      ],
+      "user_confirmation": "用户确认本轮 dogfood 必须保留 prototype_only / not_integrated 边界，刷新后不保留计数。"
+    }
+  ],
+  "option_analysis": [
+    {
+      "option_id": "OPT-D-AUX-RESET-A",
+      "decision_ref": "D-AUX-RESET-PLACEMENT",
+      "summary": "在每个辅助状态附近提供独立清零按钮。",
+      "tradeoff": "用户和 QA 能直接验证下载与客服各自的 reset 路径；多一个小控件但避免共享 reset 带来的归因不清。",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#runtime_facts[2]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-AUX-RESET-B",
+      "decision_ref": "D-AUX-RESET-PLACEMENT",
+      "summary": "使用一个共享 reset 控件同时清零下载和客服反馈。",
+      "tradeoff": "界面更少按钮，但无法单独证明两个 AC 的边界行为，且清零后再次累计的归因较弱。",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[2]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-AUX-STATE-A",
+      "decision_ref": "D-AUX-STATE-BOUNDARY",
+      "summary": "继续使用单页内存状态保存计数。",
+      "tradeoff": "刷新天然回到默认态，能证明无持久化；代价是页面关闭后状态丢失，符合 prototype_only 目标。",
+      "verdict": "selected",
+      "fact_refs": [
+        "design.json#runtime_facts[0]"
+      ]
+    },
+    {
+      "option_id": "OPT-D-AUX-STATE-B",
+      "decision_ref": "D-AUX-STATE-BOUNDARY",
+      "summary": "使用 localStorage 持久化辅助反馈计数。",
+      "tradeoff": "演示跨刷新保留更直观，但违反刷新回默认态和无持久化要求，拒绝。",
+      "verdict": "rejected",
+      "fact_refs": [
+        "design.json#runtime_facts[2]"
+      ]
+    }
+  ],
+  "quality_attributes": [
+    {
+      "attribute": "functional-correctness",
+      "priority": "P0",
+      "key_scenarios": [
+        "用户重复点击下载入口后清零下载反馈",
+        "用户重复点击客服入口后清零客服反馈",
+        "用户刷新页面后两个反馈计数回默认态"
+      ],
+      "target_metrics": [
+        "下载和客服各自点击两次后显示反馈 2 次",
+        "对应清零按钮点击后状态回到等待操作或 0 次反馈",
+        "刷新后没有保留上次计数"
+      ],
+      "tradeoff_points": [
+        "独立清零按钮增加少量 UI，但提升 AC 与证据的一一对应性"
+      ],
+      "verification_refs": [
+        "VP-DOWNLOAD-RESET",
+        "VP-SUPPORT-RESET",
+        "VP-REFRESH-DEFAULT"
+      ]
+    },
+    {
+      "attribute": "scope-boundary",
+      "priority": "P0",
+      "key_scenarios": [
+        "辅助入口反馈被误解为真实下载或客服集成",
+        "phase-2 dogfood 污染 phase-1 用户决策边界"
+      ],
+      "target_metrics": [
+        "页面文案继续明确无外部跳转或真实集成",
+        "实现不创建 user-decision.json，不触发外部网络或真实下载"
+      ],
+      "tradeoff_points": [
+        "保留原型边界文案会牺牲产品真实感，但避免误判生产就绪"
+      ],
+      "verification_refs": [
+        "VP-CANONICAL-BOUNDARY"
+      ]
+    }
+  ],
+  "interfaces": [
+    {
+      "interface_id": "IF-AUX-FEEDBACK-CONTROLS",
+      "owner": "MOD-AUX-FEEDBACK",
+      "contract_summary": "静态原型中的下载/客服按钮和对应清零按钮只读写页面内存计数，并更新本页 aria-live 状态文案。",
+      "error_modes": [
+        "目标 DOM 元素不存在时原型脚本停止并暴露错误",
+        "用户重复点击或清零后再次点击时计数必须从当前内存状态计算"
+      ],
+      "input_params": [
+        {
+          "name": "click_target",
+          "type": "DOM button event",
+          "required": true,
+          "validation": "must be one of download-button, support-button, download-reset-button, support-reset-button",
+          "description": "用户在静态原型中点击的辅助入口或清零控件"
+        }
+      ],
+      "output_params": [
+        {
+          "name": "status_text",
+          "type": "DOM textContent",
+          "description": "对应辅助状态区域展示等待操作、反馈 N 次或清零后的本地状态"
+        }
+      ],
+      "error_codes": [
+        {
+          "code": "PROTOTYPE_DOM_MISSING",
+          "condition": "required data-testid element is absent",
+          "user_message": "原型结构缺少必要控件"
+        }
+      ],
+      "boundary_behaviors": [
+        {
+          "scenario": "download entry clicked twice then download reset clicked",
+          "expected_behavior": "download status reaches feedback 2 times, reset returns only download feedback to default or 0 without external navigation",
+          "verification_ref": "VP-DOWNLOAD-RESET"
+        },
+        {
+          "scenario": "support entry clicked twice then support reset clicked",
+          "expected_behavior": "support status reaches feedback 2 times, reset returns only support feedback to default or 0 without external support integration",
+          "verification_ref": "VP-SUPPORT-RESET"
+        },
+        {
+          "scenario": "page refreshed after feedback changes",
+          "expected_behavior": "download and support counters return to default memory state and next click starts from 1",
+          "verification_ref": "VP-REFRESH-DEFAULT"
+        }
+      ]
+    }
+  ],
+  "interface_boundary": [
+    "公寓管理系统用户 -> IF-AUX-FEEDBACK-CONTROLS -> MOD-AUX-FEEDBACK: 只更新本页原型状态，不调用外部系统",
+    "浏览器刷新 -> MOD-AUX-FEEDBACK: 重新加载 defaultState，反馈计数不持久化"
+  ],
+  "modules": [
+    {
+      "module_id": "MOD-AUX-FEEDBACK",
+      "name": "辅助入口反馈状态",
+      "responsibility": "维护下载和客服入口的本地点击计数、状态文案和 prototype_only 边界提示。",
+      "data_owner": "downloadClicks/supportClicks 单页内存状态",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    },
+    {
+      "module_id": "MOD-RESET-CONTROLS",
+      "name": "辅助反馈清零控件",
+      "responsibility": "提供下载和客服各自的本地清零触发点，并复用辅助状态渲染边界。",
+      "data_owner": "MOD-AUX-FEEDBACK",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    },
+    {
+      "module_id": "MOD-REFRESH-DEFAULT",
+      "name": "刷新默认状态",
+      "responsibility": "保持刷新后通过 defaultState 回到无持久化的安全默认态。",
+      "data_owner": "browser runtime memory only",
+      "unit_refs": [
+        "UNIT-1"
+      ]
+    }
+  ],
+  "data_architecture": {
+    "summary": "phase-2 不引入持久化数据结构；download/support 反馈计数仍是静态页面运行期内存状态。",
+    "storage_decisions": [
+      "download_feedback_count 和 support_feedback_count 只存在于 JavaScript 内存对象中",
+      "禁止使用 localStorage、sessionStorage、Cookie、backend API、telemetry 或文件写入保存反馈计数"
+    ],
+    "data_flows": [
+      "点击下载入口 -> 内存 downloadClicks +1 -> 渲染下载状态文案",
+      "点击下载清零 -> 内存 downloadClicks = 0 -> 渲染下载默认或 0 次状态",
+      "点击客服入口 -> 内存 supportClicks +1 -> 渲染客服状态文案",
+      "点击客服清零 -> 内存 supportClicks = 0 -> 渲染客服默认或 0 次状态",
+      "刷新页面 -> 重新加载 defaultState -> 两个计数回默认态"
+    ],
+    "consistency_strategy": "单页内存是唯一状态源；每次点击同步更新内存和对应 DOM 文案，无跨页面或跨刷新一致性要求。"
+  },
+  "cross_cutting_concerns": [
+    {
+      "concern": "auth",
+      "decision": "沿用原型无鉴权边界：本 phase 不新增登录、权限或会话能力。",
+      "owner": "MOD-AUX-FEEDBACK",
+      "verification_refs": [
+        "VP-CANONICAL-BOUNDARY"
+      ]
+    },
+    {
+      "concern": "error",
+      "decision": "缺失必要 DOM 元素时沿用 getRequiredElement 的 fail-fast 行为；不增加用户态错误恢复分支。",
+      "owner": "MOD-AUX-FEEDBACK",
+      "verification_refs": [
+        "VP-DOWNLOAD-RESET",
+        "VP-SUPPORT-RESET"
+      ]
+    },
+    {
+      "concern": "log",
+      "decision": "不新增 console、telemetry、埋点或外部日志；浏览器验收通过可见状态和网络检查证明边界。",
+      "owner": "MOD-AUX-FEEDBACK",
+      "verification_refs": [
+        "VP-CANONICAL-BOUNDARY"
+      ]
+    },
+    {
+      "concern": "config",
+      "decision": "不新增配置、环境变量或 feature flag；静态原型直接使用固定 data-testid 控件契约。",
+      "owner": "MOD-RESET-CONTROLS",
+      "verification_refs": [
+        "VP-REFRESH-DEFAULT"
+      ]
+    }
+  ],
+  "verification_mapping": [
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[0]",
+      "design_validation": "下载入口复用内存计数并新增对应清零控件，覆盖 AC-DOWNLOAD-FEEDBACK-RESET。",
+      "test_obligation": "真实浏览器点击下载入口两次，断言状态显示反馈 2 次；点击下载清零后断言回默认或 0 次，并继续 not_integrated。",
+      "evidence_ref": "VP-DOWNLOAD-RESET"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[1]",
+      "design_validation": "客服入口复用内存计数并新增对应清零控件，覆盖 AC-SUPPORT-FEEDBACK-RESET。",
+      "test_obligation": "真实浏览器点击客服入口两次，断言状态显示反馈 2 次；点击客服清零后断言回默认或 0 次，并继续 not_integrated。",
+      "evidence_ref": "VP-SUPPORT-RESET"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[2]",
+      "design_validation": "不引入持久化，刷新后重新加载 defaultState，覆盖 AC-REFRESH-DEFAULT-STATE。",
+      "test_obligation": "真实浏览器在产生下载和客服反馈后刷新页面，断言两项状态回到等待操作或 0 次，下一次点击从 1 开始。",
+      "evidence_ref": "VP-REFRESH-DEFAULT"
+    },
+    {
+      "manager_vp_ref": "phase-prd.exit_conditions[3]",
+      "design_validation": "phase-2 仅生成自身 canonical refs，不创建 phase-1 user-decision.json，不声称真实下载或客服集成。",
+      "test_obligation": "实现审查和浏览器网络检查证明无外部调用；canonical registry/delivery-state 证明 phase-1 用户决策边界未被 phase-2 修改。",
+      "evidence_ref": "VP-CANONICAL-BOUNDARY"
+    }
+  ],
+  "unit_coverage": [
+    {
+      "unit_id": "UNIT-1",
+      "ac_refs": [
+        "AC-DOWNLOAD-FEEDBACK-RESET",
+        "AC-SUPPORT-FEEDBACK-RESET",
+        "AC-REFRESH-DEFAULT-STATE"
+      ],
+      "design_refs": [
+        "MOD-AUX-FEEDBACK",
+        "MOD-RESET-CONTROLS",
+        "MOD-REFRESH-DEFAULT",
+        "IF-AUX-FEEDBACK-CONTROLS"
+      ]
+    }
+  ],
+  "impact_scope": [
+    {
+      "scope_item_id": "IS-PHASE2-PROTOTYPE-AUX-FEEDBACK",
+      "affected_modules": [
+        "MOD-AUX-FEEDBACK",
+        "MOD-RESET-CONTROLS",
+        "MOD-REFRESH-DEFAULT"
+      ],
+      "impact": "仅影响 phase-2/prototype 的辅助入口反馈和清零控件；不修改 phase-1 prototype、phase-1 signoff 或 production integration。",
+      "verification_refs": [
+        "VP-DOWNLOAD-RESET",
+        "VP-SUPPORT-RESET",
+        "VP-REFRESH-DEFAULT",
+        "VP-CANONICAL-BOUNDARY"
+      ]
+    }
+  ],
+  "planning_constraints": [
+    {
+      "constraint_id": "PC-PROTOTYPE-ONLY",
+      "constraint_type": "scope",
+      "description": "实现范围限于 phase-2/prototype 和对应 developer-report，不添加真实下载、客服、后端、鉴权、遥测、发布或回滚能力。",
+      "owner": "developer"
+    },
+    {
+      "constraint_id": "PC-REAL-BROWSER-EVIDENCE",
+      "constraint_type": "verification",
+      "description": "验收必须使用真实浏览器覆盖桌面和移动视口，并记录网络或实现审查证据证明无外部集成。",
+      "owner": "qa"
+    },
+    {
+      "constraint_id": "PC-PHASE1-DECISION-BOUNDARY",
+      "constraint_type": "process",
+      "description": "phase-2 不得创建或修改 phase-1 user-decision.json，不得改变 phase-1 的用户决策状态。",
+      "owner": "delivery-owner"
+    }
+  ],
+  "product_handoff": {
+    "status": "READY",
+    "accepted_refs": [
+      "brief.json#scope_boundaries",
+      "phase-prd.json#exit_conditions",
+      "phase-prd.json#risk_ledger"
+    ],
+    "open_failures": [],
+    "warn_followups": []
+  },
+  "risks": [
+    {
+      "risk_id": "RISK-AUX-REAL-INTEGRATION-MISREAD",
+      "description": "用户或下游把本地反馈清零误解为真实客户端下载或客服系统集成。",
+      "severity": "medium",
+      "source_ref": "phase-prd.json#risk_ledger[0]"
+    },
+    {
+      "risk_id": "RISK-PHASE1-DECISION-DRIFT",
+      "description": "phase-2 dogfood 误创建或修改 phase-1 用户决策状态。",
+      "severity": "high",
+      "source_ref": "phase-prd.json#risk_ledger[1]"
+    }
+  ],
+  "risk_response": [
+    {
+      "risk_id": "RISK-AUX-REAL-INTEGRATION-MISREAD",
+      "architecture_response": "状态文案和测试义务必须继续声明 prototype_only / not_integrated，并通过网络或实现审查证明无外部调用。",
+      "verification_refs": [
+        "VP-CANONICAL-BOUNDARY",
+        "VP-DOWNLOAD-RESET",
+        "VP-SUPPORT-RESET"
+      ],
+      "escalation_path": "如发现真实下载、客服或网络调用，立即 BLOCK 并回到 design 修正边界。"
+    },
+    {
+      "risk_id": "RISK-PHASE1-DECISION-DRIFT",
+      "architecture_response": "phase-2 使用独立 artifact registry 和 delivery-state；signoff 前只推进 phase-2，不创建 user-decision.json。",
+      "verification_refs": [
+        "VP-CANONICAL-BOUNDARY"
+      ],
+      "escalation_path": "如 phase-1 decision 状态漂移，停止 dogfood 并恢复 canonical 边界后再继续。"
+    }
+  ],
+  "migration_plan": [
+    "Step 1: 从 phase-1/prototype 复制静态原型到 phase-2/prototype，形成独立实现范围",
+    "Step 2: 在 phase-2/prototype 中新增下载和客服独立清零控件及本地状态处理",
+    "Step 3: 用真实浏览器在 desktop/mobile 验证点击、清零、刷新默认态和无外部集成"
+  ],
+  "verification_plan": [
+    "运行 phase canonical validator 证明 design/test/plan/tasks/delivery-state/artifact-registry 可被 standard-chain 消费",
+    "真实浏览器执行 TC-DOWNLOAD-RESET、TC-SUPPORT-RESET、TC-REFRESH-DEFAULT 并保存截图或交互记录",
+    "检查浏览器网络请求或实现代码，证明不调用真实下载、客服、后端、鉴权、遥测、发布或回滚路径"
+  ],
+  "rollback_plan": [
+    "无需生产回滚：phase-2 是独立静态原型增量，异常时停止推进 phase-2 signoff 并保留 phase-1 SIGNOFF_PENDING 状态不变。"
+  ],
+  "constraint_inheritance_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-05-26T00:00:00Z",
+    "source_refs": [
+      "brief.json#scope_boundaries",
+      "phase-prd.json#entry_conditions",
+      "phase-prd.json#release_readiness"
+    ],
+    "inherited_constraints": [
+      "所有后端面对行为必须保持 prototype_only 或 not_integrated",
+      "phase-2 不得创建 phase-1 user-decision.json",
+      "QA 证据必须来自本地原型的真实浏览器交互"
+    ],
+    "rejected_constraints": [],
+    "confirmation_summary": "用户确认第二轮 clean-room dogfood 采用 phase-2 最小原型切片，继承 phase-1 用户决策边界和原型-only 验收口径。"
+  },
+  "review_closure": {
+    "reviewed_design_digest": "sha256:7cc89d37f1f6674e788d01ec678e7b6322d5d0ac6b2ddf852eba565942594d38",
+    "reviewed_at": "2026-05-26T00:00:00Z",
+    "reviewers": [
+      {
+        "reviewer": "architecture",
+        "verdict": "PASS",
+        "reviewed_design_digest": "sha256:7cc89d37f1f6674e788d01ec678e7b6322d5d0ac6b2ddf852eba565942594d38",
+        "finding_refs": []
+      },
+      {
+        "reviewer": "product",
+        "verdict": "PASS",
+        "reviewed_design_digest": "sha256:7cc89d37f1f6674e788d01ec678e7b6322d5d0ac6b2ddf852eba565942594d38",
+        "finding_refs": []
+      },
+      {
+        "reviewer": "test",
+        "verdict": "PASS",
+        "reviewed_design_digest": "sha256:7cc89d37f1f6674e788d01ec678e7b6322d5d0ac6b2ddf852eba565942594d38",
+        "finding_refs": []
+      }
+    ],
+    "resolved_failures": [],
+    "warn_followups": []
+  },
+  "final_confirmation": {
+    "status": "confirmed",
+    "confirmed_by": "user",
+    "confirmed_at": "2026-05-26T00:00:00Z",
+    "summary": "用户确认 phase-2 设计只覆盖辅助入口本地反馈清零，并保持 prototype_only / not_integrated 边界，可交付 test-design 与 tech-lead。",
+    "accepted_refs": [
+      "design.json#key_decisions",
+      "design.json#verification_mapping",
+      "design.json#planning_constraints"
+    ]
+  },
+  "co_creation_summary": [
+    {
+      "stage_id": "stakeholders-and-concerns",
+      "stage_name": "stakeholders-and-concerns",
+      "question_or_focus": "确认 phase-2 设计消费者为 developer、verify、QA、consistency 和 signoff，关注原型清零行为与边界证据。",
+      "user_response_summary": "用户确认本轮目标是验证 standard-chain 可支撑 1 人 + agent 团队交付，而不是交付生产下载或客服能力。",
+      "decision_refs": [
+        "design.json#input_analysis"
+      ]
+    },
+    {
+      "stage_id": "architecture-significant-requirements",
+      "stage_name": "architecture-significant-requirements",
+      "question_or_focus": "确认下载/客服计数可累计、可独立清零、刷新不持久化、不得外部集成。",
+      "user_response_summary": "用户确认 phase-2 只承接辅助入口本地反馈清零，不扩大到真实后端、下载、客服或 user-decision。",
+      "decision_refs": [
+        "design.json#verification_mapping",
+        "design.json#planning_constraints"
+      ]
+    },
+    {
+      "stage_id": "current-state-evidence",
+      "stage_name": "current-state-evidence",
+      "question_or_focus": "确认 phase-1 prototype 已有本地计数和 defaultState，可作为 phase-2 baseline。",
+      "user_response_summary": "用户确认以 phase-1 静态原型为基线复制到 phase-2，不直接修改 phase-1 用户决策边界。",
+      "decision_refs": [
+        "design.json#runtime_facts"
+      ]
+    },
+    {
+      "stage_id": "complexity-model",
+      "stage_name": "complexity-model",
+      "question_or_focus": "确认复杂度限制在局部状态、两个清零控件和真实浏览器证据闭环。",
+      "user_response_summary": "用户确认采用最小实现，不引入持久化、共享状态或生产接口。",
+      "decision_refs": [
+        "design.json#quality_attributes",
+        "design.json#data_architecture"
+      ]
+    },
+    {
+      "stage_id": "decision-discovery",
+      "stage_name": "decision-discovery",
+      "question_or_focus": "确认需冻结清零控件放置和本地状态边界两个设计决策。",
+      "user_response_summary": "用户确认选择独立清零控件和单页内存状态。",
+      "decision_refs": [
+        "design.json#key_decisions"
+      ]
+    },
+    {
+      "stage_id": "option-tradeoff",
+      "stage_name": "option-tradeoff",
+      "question_or_focus": "确认独立清零优于共享 reset，内存状态优于 localStorage 持久化。",
+      "user_response_summary": "用户确认优先 AC 可验收性和 prototype_only 边界，拒绝共享 reset 与持久化方案。",
+      "decision_refs": [
+        "design.json#option_analysis"
+      ]
+    },
+    {
+      "stage_id": "design-synthesis",
+      "stage_name": "design-synthesis",
+      "question_or_focus": "确认模块、接口、验证映射、风险回应、规划约束和产品交接形成下游可消费闭环。",
+      "user_response_summary": "用户确认设计可交给 test-design、tech-lead 和后续真实浏览器验收链路。",
+      "decision_refs": [
+        "design.json#modules",
+        "design.json#interfaces",
+        "design.json#verification_plan",
+        "design.json#risk_response",
+        "design.json#product_handoff"
+      ]
+    }
+  ]
+}

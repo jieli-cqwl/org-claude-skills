@@ -122,12 +122,12 @@ def unresolved_bracket_token(value: str) -> str:
     )
 
 
-def co_creation_missing_stages(
+def co_creation_summary_missing_stages(
     missing: list[str], required: list[str], seen: list[str]
 ) -> str:
     return (
         f"co_creation_summary missing stages: {missing}. "
-        f"Every design session must record one entry per required co-creation stage "
+        f"Every design session must record one entry per required design co-creation stage "
         f"(required set: {required}). "
         f"Seen: {seen}. "
         f"Add a co_creation_summary row for each missing stage with "
@@ -266,11 +266,11 @@ def unit_ac_refs_unknown(
     )
 
 
-def unit_design_refs_unknown(index: int, unknown: list[str], known: list[str]) -> str:
+def unit_decision_refs_unknown(index: int, unknown: list[str], known: list[str]) -> str:
     return (
-        f"unit_coverage[{index}].design_refs contains ids not declared in this "
+        f"unit_coverage[{index}].decision_refs contains ids not declared in this "
         f"design.json: {unknown}. "
-        f"design_refs must only cite modules[*].module_id or "
+        f"decision_refs must only cite modules[*].module_id or "
         f"interfaces[*].interface_id. "
         f"Decision ids (D-*), verification ids, DB table names, and free "
         f"text are not allowed here. "

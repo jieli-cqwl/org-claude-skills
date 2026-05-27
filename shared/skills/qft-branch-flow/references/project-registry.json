@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "projects": [
+    {
+      "business_name": "全房通后端业务",
+      "repo": "qft-all",
+      "remote_url": "http://121.42.43.167:10010/qft/qft-all.git",
+      "main_branch": "3.0.0.MASTER"
+    },
+    {
+      "business_name": "全房通 PC 前端",
+      "repo": "qft-app",
+      "remote_url": "http://121.42.43.167:10010/qft-web/qft-app.git",
+      "main_branch": "master"
+    },
+    {
+      "business_name": "全房通 System 前端",
+      "repo": "qft-system",
+      "remote_url": "http://121.42.43.167:10010/qft-web/qft-system.git",
+      "main_branch": "master"
+    },
+    {
+      "business_name": "全房通 APP",
+      "repo": "qft-harmonyos-vue3",
+      "remote_url": "http://121.42.43.167:10010/qft-web/qft-harmonyos-vue3.git",
+      "main_branch": "master"
+    },
+    {
+      "business_name": "全房通租客端 H5",
+      "repo": "qft-universal.gitersal",
+      "remote_url": "http://121.42.43.167:10010/qft-web/qft-universal.gitersal.git",
+      "main_branch": "master"
+    },
+    {
+      "business_name": "全房通后端定时器",
+      "repo": "qft-job-executor",
+      "remote_url": "http://121.42.43.167:10010/qft/qft-job-executor.git",
+      "main_branch": "master"
+    },
+    {
+      "business_name": "全房通后端公共代码",
+      "repo": "qft-common",
+      "remote_url": "http://121.42.43.167:10010/qft/qft-common.git",
+      "main_branch": "master"
+    }
+  ]
+}

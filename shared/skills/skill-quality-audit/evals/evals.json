@@ -25,6 +25,30 @@
     {
       "id": "SQA-06",
       "anchor": "Old active Skill names are treated as runtime residue unless explicitly historical."
+    },
+    {
+      "id": "SQA-07",
+      "anchor": "Default audits produce a formal verdict, JSON report, validator PASS output, current-file evidence checks for P0/P1 findings, and a concise summary artifact with per-finding evidence, impact, repair target, and verification hint in one run."
+    },
+    {
+      "id": "SQA-08",
+      "anchor": "Light scans are allowed only when explicitly requested as non-final and do not issue fit, conditional, unfit, or blocked verdicts."
+    },
+    {
+      "id": "SQA-09",
+      "anchor": "Default audits choose report artifact paths automatically; missing user-provided parents fall back to /tmp instead of requiring a second user request."
+    },
+    {
+      "id": "SQA-10",
+      "anchor": "Light scans use unranked candidate risks only and do not emit P0/P1/P2/P3 severity labels."
+    },
+    {
+      "id": "SQA-11",
+      "anchor": "P0/P1 findings survive claim decomposition, current-file evidence verification, direct refutation checks, and severity calibration before entering the final report."
+    },
+    {
+      "id": "SQA-12",
+      "anchor": "Existing audit artifacts are classified before review; transcript artifacts are rejected as reports and used only as leads for a fresh formal audit."
     }
   ],
   "grader_dimensions": [
@@ -103,6 +127,78 @@
       "expected_anchors": [
         "SQA-03",
         "SQA-05"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "default-formal-audit-artifacts",
+      "prompt": "Audit shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill for team-use readiness. Do not edit the target Skill.",
+      "files": [
+        "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md"
+      ],
+      "expectations": [
+        "Produces a formal verdict in the same run without asking the user to choose a mode.",
+        "Chooses report artifact paths automatically when the user does not provide them.",
+        "Produces a machine-readable JSON report before or with the formal verdict.",
+        "Includes evidence_checks for every P0/P1 finding so the validator can verify the current cited file line.",
+        "Includes claim_review and severity_calibration for every P0/P1 finding.",
+        "Runs the skill audit report validator and includes PASS output in the final handoff.",
+        "Keeps any Markdown response as a summary, not the artifact of record.",
+        "Markdown summary and chat handoff are not title-only; each P0/P1 finding includes full path:line evidence, impact, repair target, and verification hint.",
+        "Does not include empty optional finding fields such as empty claim_review or severity_calibration objects."
+      ],
+      "expected_anchors": [
+        "SQA-01",
+        "SQA-07",
+        "SQA-09",
+        "SQA-11"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "explicit-light-scan",
+      "prompt": "Do a quick, non-final light scan of shared/skills/skill-quality-audit/evals/fixtures/target-skills/unclear-instruction-skill for likely issues.",
+      "files": [
+        "shared/skills/skill-quality-audit/evals/fixtures/target-skills/unclear-instruction-skill/SKILL.md"
+      ],
+      "expectations": [
+        "Labels the result non-final.",
+        "Uses unranked candidate risks instead of severity labels P0/P1/P2/P3.",
+        "Does not issue a formal fit, conditional, unfit, or blocked verdict.",
+        "Does not ask the user for report paths or a second request."
+      ],
+      "expected_anchors": [
+        "SQA-02",
+        "SQA-08",
+        "SQA-10"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "audit-artifact-triage",
+      "prompt": "Review whether overview审查.md is a valid skill-quality-audit result and whether its claims should be trusted.",
+      "files": [
+        "overview审查.md"
+      ],
+      "expectations": [
+        "Classifies the input artifact before judging content.",
+        "Rejects transcript artifacts as formal reports.",
+        "Treats transcript content only as leads for a fresh formal audit.",
+        "Does not accept high-priority claims from the transcript without current path:line evidence and claim review."
+      ],
+      "expected_anchors": [
+        "SQA-07",
+        "SQA-11",
+        "SQA-12"
       ],
       "run_modes": [
         "with_skill",

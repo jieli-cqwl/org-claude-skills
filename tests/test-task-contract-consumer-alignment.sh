@@ -34,6 +34,9 @@ import tempfile
 from pathlib import Path
 
 root = Path(sys.argv[1])
+sys.path.insert(0, str(root / "tools" / "community"))
+from runtime_yaml import load_yaml
+
 failures: list[str] = []
 
 
@@ -54,6 +57,44 @@ require(
     "not the writable implementation boundary" in properties["scope_item_refs"]["description"],
     "scope_item_refs description must deny writable-boundary semantics",
 )
+
+
+field_contract = load_yaml(root / "contracts" / "standard-chain-field-consumption.yaml")
+fields_by_path = {
+    artifact["path"]: artifact.get("fields", {})
+    for artifact in field_contract.get("artifacts", [])
+}
+
+
+def consumers_for(path: str, field: str) -> dict[str, str]:
+    consumers = fields_by_path[path][field]["consumers"]
+    return {entry["consumer"]: entry["consume_mode"] for entry in consumers}
+
+
+def require_consumer(path: str, field: str, consumer: str, mode: str) -> None:
+    consumers = consumers_for(path, field)
+    require(
+        consumers.get(consumer) == mode,
+        f"{path}#{field} must be consumed by {consumer} as {mode}",
+    )
+
+
+brief_path = "docs/{feature}/brief.json"
+phase_prd_path = "docs/{feature}/phase-{N}/phase-prd.json"
+unit_path = "docs/{feature}/phase-{N}/units/UNIT-{N}.json"
+design_path = "docs/{feature}/phase-{N}/design.json"
+
+require_consumer(brief_path, "acceptance_criteria", "test-design", "transform")
+require_consumer(unit_path, "verification_plan", "test-design", "transform")
+for field in ("risk_ledger", "release_readiness"):
+    require_consumer(phase_prd_path, field, "qa", "gate")
+    require_consumer(phase_prd_path, field, "delivery-owner", "gate")
+for field in ("design_decision_candidates", "technical_evidence_requirements"):
+    require_consumer(phase_prd_path, field, "design", "handoff")
+require_consumer(design_path, "verification_mapping", "test-design", "transform")
+for field in ("planning_constraints", "migration_plan", "rollback_plan"):
+    require_consumer(design_path, field, "tech-lead", "transform" if field != "planning_constraints" else "gate")
+    require_consumer(design_path, field, "delivery-owner", "gate")
 
 developer_report_schema = json.loads(
     (root / "shared/skills/developer/contracts/developer-report.schema.json").read_text(

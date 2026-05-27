@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "eval_name": "bug-branch",
+  "prompt": "线上有紧急 bug，帮我在 APP 和 H5 拉 bug 分支，版本 0301，修完要合到部署分支并推送。请只输出你会怎样和用户交互，不要真的执行 Git 命令。",
+  "assertions": [
+    "展示 APP qft-harmonyos-vue3 和 H5 qft-universal.gitersal。",
+    "来源版本分支为 V.0301。",
+    "目标 BUG 分支为 3.0.0.MASTER_BUG_0301。",
+    "合并方向是 BUG 分支到 V.0301。",
+    "push 单独确认。"
+  ]
+}

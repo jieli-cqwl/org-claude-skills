@@ -718,13 +718,13 @@ artifacts:
         authority: design
         consumers:
           - consumer: test-design
-            consumed_for: derive tests from confirmed design collaboration checkpoints
+            consumed_for: derive tests from confirmed design co-creation checkpoints
             consume_mode: reference
           - consumer: tech-lead
-            consumed_for: plan implementation from confirmed design collaboration checkpoints
+            consumed_for: plan implementation from confirmed design co-creation checkpoints
             consume_mode: reference
-        required_when: design freezes collaboration checkpoints that affect downstream obligations
-        failure_effect: downstream cannot prove which design collaboration checkpoints were confirmed
+        required_when: design freezes design co-creation checkpoints that affect downstream obligations
+        failure_effect: downstream cannot prove which design co-creation checkpoints were confirmed
       constraint_inheritance_confirmation:
         producer: design
         authority: design
@@ -924,6 +924,9 @@ artifacts:
           - consumer: developer
             consumed_for: keep implementation inside planning constraints
             consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: control delivery sequencing and sidecar dispatch against design constraints
+            consume_mode: gate
         required_when: design imposes sequencing, tooling, or boundary constraints
         failure_effect: downstream plan may violate design constraints
       product_handoff:
@@ -1004,3 +1007,499 @@ artifacts:
             consume_mode: gate
         required_when: design has migration, deployment, or state-change risk
         failure_effect: delivery cannot prove recovery path before release
+
+  - path: docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json
+    producer: developer
+    fields:
+      runtime_status:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: verify
+            consumed_for: block verification when implementation is not verified
+            consume_mode: gate
+        required_when: developer hands off a task report
+        failure_effect: blocked or partial implementation can be treated as verification-ready
+      evidence_refs:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: verify
+            consumed_for: verify implementation evidence against task ACs
+            consume_mode: gate
+        required_when: developer claims implementation evidence exists
+        failure_effect: verification cannot trace claims to proof
+      reviewable_anchor:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: review
+            consumed_for: locate the implementation surface for code review
+            consume_mode: handoff
+        required_when: review receives developer output
+        failure_effect: review may inspect the wrong surface or miss the implemented change
+      tdd_evidence_index:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: verify
+            consumed_for: confirm RED and GREEN evidence before accepting the task
+            consume_mode: gate
+        required_when: developer report is consumed by verify
+        failure_effect: verification can pass without TDD proof chain
+
+  - path: docs/{feature}/phase-{N}/code-review-result.json
+    producer: review
+    fields:
+      gate_result:
+        producer: review
+        authority: review
+        consumers:
+          - consumer: qa
+            consumed_for: gate QA on review outcome
+            consume_mode: gate
+        required_when: QA consumes review output
+        failure_effect: QA may continue after a failed or missing review gate
+      dimension_verdicts:
+        producer: review
+        authority: review
+        consumers:
+          - consumer: qa
+            consumed_for: inspect review coverage by dimension
+            consume_mode: reference
+        required_when: review reports dimension-level judgments
+        failure_effect: QA cannot distinguish covered dimensions from omissions
+      findings:
+        producer: review
+        authority: review
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: decide whether review findings block delivery control
+            consume_mode: gate
+        required_when: review finds issues or records none
+        failure_effect: delivery can miss unresolved review findings
+      excluded:
+        producer: review
+        authority: review
+        consumers:
+          - consumer: qa
+            consumed_for: understand review exclusions before QA judgment
+            consume_mode: reference
+        required_when: review excludes scope from inspection
+        failure_effect: QA may assume excluded areas were reviewed
+      review_conclusion:
+        producer: review
+        authority: review
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove review closure before signoff packaging
+            consume_mode: gate
+        required_when: delivery-owner consumes review output
+        failure_effect: delivery state can advance without review closure
+
+  - path: docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json
+    producer: verify
+    fields:
+      gate_result:
+        producer: verify
+        authority: verify
+        consumers:
+          - consumer: qa
+            consumed_for: gate QA on task verification outcome
+            consume_mode: gate
+        required_when: QA consumes verification output
+        failure_effect: QA may treat unverified tasks as verified
+      baseline_tasks_version_ref:
+        producer: verify
+        authority: verify
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: compare verification against the frozen task baseline
+            consume_mode: gate
+        required_when: delivery-owner consumes verify output
+        failure_effect: delivery cannot detect stale verification against an old task list
+      developer_report_ref:
+        producer: verify
+        authority: verify
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: trace verification back to the developer report it judged
+            consume_mode: reference
+        required_when: verification result is aggregated
+        failure_effect: delivery cannot prove which developer output was verified
+      phase_verdicts:
+        producer: verify
+        authority: verify
+        consumers:
+          - consumer: qa
+            consumed_for: inspect AC and code-quality verdicts before QA
+            consume_mode: reference
+        required_when: QA consumes verification result
+        failure_effect: QA may miss a failed verification dimension
+      ac_verification:
+        producer: verify
+        authority: verify
+        consumers:
+          - consumer: qa
+            consumed_for: map acceptance criteria to verification evidence
+            consume_mode: gate
+        required_when: QA checks requirement closure
+        failure_effect: acceptance criteria can lack verification proof
+      goal_closure:
+        producer: verify
+        authority: verify
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: aggregate task closure into phase delivery state
+            consume_mode: gate
+        required_when: delivery-owner prepares signoff package
+        failure_effect: phase closure can ignore failed task goals
+      evidence_refs:
+        producer: verify
+        authority: verify
+        consumers:
+          - consumer: qa
+            consumed_for: inspect verification proof during QA
+            consume_mode: reference
+        required_when: QA validates verification evidence
+        failure_effect: QA cannot trace verify verdicts to proof
+
+  - path: docs/{feature}/phase-{N}/qa-result.json
+    producer: qa
+    fields:
+      baseline_tasks_version_ref:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: compare QA judgment against the frozen task baseline
+            consume_mode: gate
+        required_when: delivery-owner consumes QA result
+        failure_effect: delivery cannot detect stale QA against an old baseline
+      current_stage:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: compare QA stage snapshot with delivery state
+            consume_mode: gate
+        required_when: delivery-owner consumes QA result
+        failure_effect: stage drift can be hidden at signoff packaging
+      gate_result:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: gate signoff packaging on QA verdict
+            consume_mode: gate
+        required_when: QA hands off phase result
+        failure_effect: failed QA can advance to signoff
+      release_recommendation:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: decide release recommendation in the signoff package
+            consume_mode: gate
+        required_when: delivery-owner prepares signoff package
+        failure_effect: signoff package can ignore QA release judgment
+      residual_risk:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: carry QA residual risk into signoff package
+            consume_mode: handoff
+        required_when: QA identifies residual release risk
+        failure_effect: user decision can miss known residual risk
+      uncovered_boundary:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: expose untested or uncovered delivery boundaries
+            consume_mode: handoff
+        required_when: QA cannot cover all relevant boundaries
+        failure_effect: delivery can present incomplete coverage as complete
+      conditional_release_basis:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: preserve conditions behind conditional release
+            consume_mode: handoff
+        required_when: QA recommendation is conditional
+        failure_effect: conditional release can lose its conditions
+      not_executed_reason:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: preserve skipped QA checks and reasons
+            consume_mode: handoff
+        required_when: QA does not execute an expected check
+        failure_effect: skipped QA work can be treated as passed
+      ruled_out_issues:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: preserve issues QA explicitly ruled out
+            consume_mode: reference
+        required_when: QA records non-issues
+        failure_effect: delivery may reopen or ignore QA exclusions
+      stage_results:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: aggregate QA stage outcomes into delivery summary
+            consume_mode: reference
+        required_when: delivery-owner prepares delivery state
+        failure_effect: delivery summary can flatten failed QA sub-stages
+      issue_ledger:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: route unresolved QA issues before signoff
+            consume_mode: gate
+        required_when: QA records issue ledger entries
+        failure_effect: unresolved QA issues can lose owner and disposition
+
+  - path: docs/{feature}/phase-{N}/delivery-state.json
+    producer: delivery-owner
+    fields:
+      active_tasks_version_ref:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: compare delivery state against active task registry
+            consume_mode: gate
+        required_when: delivery-state is consumed as phase status truth
+        failure_effect: task-state drift can go undetected
+      current_stage:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: compare stage truth with local stage snapshots
+            consume_mode: gate
+        required_when: delivery-state is consumed as stage truth
+        failure_effect: stage drift can go undetected
+      status:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: compare delivery status with signoff and worklog handoff state
+            consume_mode: gate
+        required_when: delivery-state is audited
+        failure_effect: delivery status can contradict downstream handoff
+      control_action:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: audit whether next control action matches current state
+            consume_mode: gate
+        required_when: delivery-state records the next control action
+        failure_effect: delivery can request an action inconsistent with state
+      summary_text:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: compare human summary against canonical status fields
+            consume_mode: reference
+        required_when: delivery-state includes a summary
+        failure_effect: summary can mislead handoff without contradicting machine fields
+      tasks:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: audit task status against canonical task artifacts
+            consume_mode: gate
+        required_when: delivery-state lists task states
+        failure_effect: task progress can drift from canonical task outputs
+      kickoff:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: audit kickoff state against phase readiness
+            consume_mode: reference
+        required_when: delivery-state records kickoff information
+        failure_effect: delivery readiness can be asserted without kickoff basis
+
+  - path: docs/{feature}/phase-{N}/artifact-registry.json
+    producer: delivery-owner
+    fields:
+      scope_ref:
+        producer: artifact-registry-writer
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: audit registry scope against phase scope
+            consume_mode: gate
+        required_when: registry is consumed by downstream roles
+        failure_effect: artifacts can be resolved under the wrong scope
+      registry_revision:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: audit registry revision identity
+            consume_mode: reference
+        required_when: registry is appended
+        failure_effect: registry updates cannot be ordered or diagnosed
+      active_revision_id:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: resolve active artifacts without using history fallback
+            consume_mode: gate
+        required_when: canonical refs are resolved
+        failure_effect: stale history artifacts can be consumed as current truth
+      revisions:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: audit append-only registry history and active revision contents
+            consume_mode: gate
+        required_when: registry is audited
+        failure_effect: active artifacts cannot be reconstructed or checked for drift
+
+  - path: docs/{feature}/phase-{N}/signoff-package.json
+    producer: delivery-owner
+    fields:
+      baseline_tasks_version_ref:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: show the frozen task baseline behind the signoff decision
+            consume_mode: reference
+        required_when: signoff package is presented for user decision
+        failure_effect: user cannot tell which task baseline is being signed off
+      active_tasks_version_ref:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: show the active task version behind the signoff decision
+            consume_mode: gate
+        required_when: signoff package is presented for user decision
+        failure_effect: user can approve a stale task state
+      current_stage:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: show whether the phase is waiting for user decision
+            consume_mode: gate
+        required_when: signoff package is presented for user decision
+        failure_effect: user decision can be requested at the wrong stage
+      release_recommendation:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: present delivery-owner release recommendation
+            consume_mode: handoff
+        required_when: user is asked to sign off, reject, or accept risk
+        failure_effect: user decision lacks the delivery recommendation
+      goal_closure:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: present closure against phase goals
+            consume_mode: gate
+        required_when: signoff package claims goal closure
+        failure_effect: user cannot judge whether goals were met
+      waiver_entries:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: present waivers or confirm none exist
+            consume_mode: handoff
+        required_when: signoff package includes waiver state
+        failure_effect: user may approve without seeing waived obligations
+      sign_off_status:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: show whether signoff is still pending or already recorded
+            consume_mode: gate
+        required_when: signoff package is consumed
+        failure_effect: repeated or premature signoff can occur
+      business_risk_acceptance_status:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: show whether business risk acceptance is required or pending
+            consume_mode: gate
+        required_when: signoff package carries business risk state
+        failure_effect: business risk can be accepted implicitly
+      last_observed_at:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: show freshness of the signoff snapshot
+            consume_mode: reference
+        required_when: signoff package is generated
+        failure_effect: stale observations can be presented as current
+      runtime_snapshot:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: summarize runtime evidence for decision
+            consume_mode: handoff
+        required_when: user decision needs delivery evidence
+        failure_effect: user cannot inspect runtime basis
+      active_blocker:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: show active blocker or confirm none exists
+            consume_mode: gate
+        required_when: signoff package reports blocker state
+        failure_effect: blocked delivery can be presented as ready
+      blocker_owner:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: identify who owns an active blocker
+            consume_mode: reference
+        required_when: active_blocker is populated
+        failure_effect: blocker resolution has no accountable owner
+      takeover_note:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: preserve handoff note for final decision
+            consume_mode: reference
+        required_when: delivery ownership or context handoff changed
+        failure_effect: user may miss handoff caveats
+      decision_basis_refs:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: link the artifacts supporting the requested decision
+            consume_mode: handoff
+        required_when: signoff package is presented for user decision
+        failure_effect: user cannot trace decision basis to canonical artifacts

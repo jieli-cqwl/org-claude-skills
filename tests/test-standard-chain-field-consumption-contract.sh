@@ -116,11 +116,11 @@ from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
 expected_field = "co_creation_summary"
-legacy_field = "design" + "_stage_confirmations"
+legacy_field = "design_stage" + "_confirmations"
 if expected_field not in text:
     raise SystemExit("field contract must include co_creation_summary")
 if legacy_field in text:
-    raise SystemExit("field contract must not include design_stage_confirmations")
+    raise SystemExit("field contract must not include legacy design_stage_confirmations field")
 PY
 
 python3 - "$ROOT" "$VALIDATOR" "$CONTRACT" <<'PY'
@@ -129,10 +129,26 @@ import sys
 import tempfile
 from pathlib import Path
 
+import yaml
+
 root = Path(sys.argv[1])
 validator = Path(sys.argv[2])
 contract = Path(sys.argv[3])
 standard_chain = root / "contracts" / "standard-chain.yaml"
+
+
+def write_yaml(path, data):
+    path.write_text(yaml.safe_dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
+
+def remove_contract_field(contract_path, target_path, field_name, output_path):
+    data = yaml.safe_load(contract_path.read_text(encoding="utf-8"))
+    for artifact in data["artifacts"]:
+        if artifact.get("path") == target_path:
+            artifact["fields"].pop(field_name, None)
+            write_yaml(output_path, data)
+            return
+    raise SystemExit(f"missing artifact in field consumption contract: {target_path}")
 
 
 def expect_validator_failure(standard_chain_path, field_consumption_path, expected):
@@ -158,6 +174,45 @@ def expect_validator_failure(standard_chain_path, field_consumption_path, expect
 
 with tempfile.TemporaryDirectory() as tmp:
     tmp_dir = Path(tmp)
+
+    missing_runtime_contract = tmp_dir / "missing-runtime-field-consumption.yaml"
+    remove_contract_field(
+        contract,
+        "docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json",
+        "runtime_status",
+        missing_runtime_contract,
+    )
+    expect_validator_failure(
+        standard_chain,
+        missing_runtime_contract,
+        "developer-report",
+    )
+
+    missing_qa_contract = tmp_dir / "missing-qa-field-consumption.yaml"
+    remove_contract_field(
+        contract,
+        "docs/{feature}/phase-{N}/qa-result.json",
+        "release_recommendation",
+        missing_qa_contract,
+    )
+    expect_validator_failure(
+        standard_chain,
+        missing_qa_contract,
+        "qa-result",
+    )
+
+    missing_signoff_contract = tmp_dir / "missing-signoff-field-consumption.yaml"
+    remove_contract_field(
+        contract,
+        "docs/{feature}/phase-{N}/signoff-package.json",
+        "active_tasks_version_ref",
+        missing_signoff_contract,
+    )
+    expect_validator_failure(
+        standard_chain,
+        missing_signoff_contract,
+        "signoff-package",
+    )
 
     mutated_contract = tmp_dir / "field-consumption.yaml"
     contract_text = contract.read_text(encoding="utf-8")

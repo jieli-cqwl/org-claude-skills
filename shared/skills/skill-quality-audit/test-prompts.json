@@ -3,7 +3,15 @@
   "prompts": [
     {
       "id": "readiness-review",
-      "prompt": "Audit shared/skills/research for team-use readiness. Do not edit files; return findings with severity, evidence, repair targets, and verification hints."
+      "prompt": "Audit shared/skills/research for team-use readiness. Do not edit the target Skill; choose report artifact paths automatically, include evidence_checks for every P0/P1 finding, write a Markdown summary with per-finding evidence, impact, repair target, and verification hint, run the report validator, and return a formal verdict in the same run."
+    },
+    {
+      "id": "explicit-light-scan",
+      "prompt": "Do a quick, non-final light scan of shared/skills/research for likely readiness issues. Return only unranked candidate risks; do not issue severity labels, readiness verdicts, report-path requests, or ask for a second request."
+    },
+    {
+      "id": "overview-transcript-triage",
+      "prompt": "Review whether overview审查.md is a valid skill-quality-audit result. Classify the artifact first; if it is a transcript, reject it as a report and treat its claims only as leads for a fresh formal audit."
     },
     {
       "id": "old-name-cleanup",

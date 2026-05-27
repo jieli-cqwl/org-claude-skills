@@ -702,7 +702,6 @@ community_anthropic_selected() {
 community_anthropic_adapter_selected() {
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
-    [ "$skill" != "skill-creator" ] || continue
     printf '%s\n' "$skill"
   done < <(community_anthropic_selected)
 }
@@ -1149,7 +1148,6 @@ build_staging_codex() {
   copy_tree_contents "$SHARED_SOURCE/skills" "$staging/skills"
   copy_selected_superpowers_skills "$staging/skills"
   copy_selected_anthropic_skills "$staging/skills"
-  rm -rf "$staging/skills/skill-creator"
   copy_selected_vercel_skills "$staging/skills"
   copy_selected_alchaincyf_skills "$staging/skills"
   copy_selected_nextlevelbuilder_skills "$staging/skills"
@@ -1380,6 +1378,12 @@ runtime_skill_name_for_path() {
   esac
 
   return 1
+}
+
+cleanup_legacy_codex_system_skill_creator() {
+  local codex_home="$1"
+
+  rm -rf "$codex_home/skills/.system/skill-creator"
 }
 
 external_runtime_skill_path() {
@@ -1639,6 +1643,41 @@ audit_runtime_probe_skills() {
   done < <(find "$skills_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' 2>/dev/null | sort)
 }
 
+audit_runtime_internal_skill_roots() {
+  local name="$1"
+  local target_dir="$2"
+  local state_dir="$3"
+  local skills_dir internal_path rel archive_root=""
+
+  skills_dir="$(runtime_skills_dir_for_target "$name" "$target_dir")"
+  [ -d "$skills_dir" ] || return 0
+
+  while IFS= read -r internal_path; do
+    [ -n "$internal_path" ] || continue
+    [ -e "$internal_path" ] || [ -L "$internal_path" ] || continue
+
+    RUNTIME_AUDIT_DIRTY=1
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "[dry-run] $name 将归档并清理 runtime skill 内部目录残留: $internal_path"
+      continue
+    fi
+
+    rel="${internal_path#"$skills_dir"/}"
+    [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
+    mkdir -p "$(dirname "$archive_root/skills/$rel")"
+    mv "$internal_path" "$archive_root/skills/$rel"
+    remove_if_empty "$(dirname "$internal_path")" "$skills_dir"
+    log "$name 已归档并清理 runtime skill 内部目录残留: $internal_path -> $archive_root/skills/$rel"
+  done < <(
+    {
+      find "$skills_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name '*-workspace' -print 2>/dev/null || true
+      find "$skills_dir" -mindepth 2 \( -type d -o -type l \) \
+        \( -name evals -o -name fixtures -o -name examples -o -name selves \) \
+        -prune -print 2>/dev/null || true
+    } | sort
+  )
+}
+
 audit_codex_legacy_skill_root() {
   local target_dir="$1"
   local staging_skills_dir="$2"
@@ -1700,7 +1739,14 @@ runtime_probe_skills_absent() {
 runtime_internal_skill_roots_absent() {
   local skills_dir="$1"
 
-  [ ! -d "$skills_dir" ] || [ -z "$(find "$skills_dir" \( -path "$skills_dir/*-workspace/*" -o -path '*/evals/*/SKILL.md' -o -path '*/fixtures/*/SKILL.md' -o -path '*/examples/*/SKILL.md' -o -path '*/selves/*/SKILL.md' \) -print -quit 2>/dev/null || true)" ]
+  [ ! -d "$skills_dir" ] || [ -z "$(
+    {
+      find "$skills_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name '*-workspace' -print -quit 2>/dev/null || true
+      find "$skills_dir" -mindepth 2 \( -type d -o -type l \) \
+        \( -name evals -o -name fixtures -o -name examples -o -name selves \) \
+        -print -quit 2>/dev/null || true
+    } | head -1
+  )" ]
 }
 
 runtime_noise_absent() {
@@ -2230,7 +2276,8 @@ runtime_target_complete() {
     runtime_probe_skills_absent "$codex_skills_dir" || return 1
     runtime_internal_skill_roots_absent "$codex_skills_dir" || return 1
     codex_runtime_surface_applied "$codex_skills_dir" || return 1
-    [ ! -e "$codex_skills_dir/skill-creator" ] || return 1
+    [ ! -e "$CODEX_DIR/skills/.system/skill-creator" ] || return 1
+    [ -f "$codex_skills_dir/skill-creator/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/$skill_pull_skill/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/feishu-docs/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/deep-research/SKILL.md" ] || return 1
@@ -2333,16 +2380,23 @@ install_to_target() {
   fi
   audit_retired_runtime_skills "$name" "$target_dir" "$state_dir"
   audit_runtime_probe_skills "$name" "$target_dir" "$state_dir"
+  audit_runtime_internal_skill_roots "$name" "$target_dir" "$state_dir"
   runtime_audit_dirty="$RUNTIME_AUDIT_DIRTY"
 
   local version_file="$state_dir/installed-version"
   local manifest_file="$state_dir/installed-manifest"
   local backup_manifest_file="$state_dir/backup-manifest"
+  local metadata_version_tag="$version_tag"
+
+  if [ "$runtime_audit_dirty" -ne 0 ] && [ -f "$version_file" ]; then
+    metadata_version_tag="$(trim < "$version_file")"
+  fi
 
   if [ "$DRY_RUN" -eq 0 ]; then
     prune_runtime_noise "$target_dir"
     if [ "$name" = "codex" ]; then
       prune_runtime_noise "$HOME/.agents"
+      cleanup_legacy_codex_system_skill_creator "$target_dir"
     fi
   fi
 
@@ -2485,7 +2539,7 @@ install_to_target() {
   done < "$staged_rel"
 
   prune_runtime_noise "$target_dir"
-  persist_metadata "$state_dir" "$manifest_tmp" "$backup_tmp" "$pruned_tmp" "$version_tag"
+  persist_metadata "$state_dir" "$manifest_tmp" "$backup_tmp" "$pruned_tmp" "$metadata_version_tag"
   cleanup_legacy_runtime_state "$target_dir"
 
   ROLLBACK_ACTIVE=0
@@ -2755,7 +2809,9 @@ quick_check() {
     [ ! -e "$codex_skills_dir/review-fix-loop" ] || fail "Quick Check 失败: ~/.agents/skills/review-fix-loop 不应存在"
     [ ! -e "$codex_skills_dir/codex-doc-review" ] || fail "Quick Check 失败: ~/.agents/skills/codex-doc-review 不应存在"
     codex_runtime_surface_applied "$codex_skills_dir" || fail "Quick Check 失败: ~/.agents/skills 未满足 contracts/skill-runtime-surface.json"
-    [ ! -e "$codex_skills_dir/skill-creator" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator 不应存在；Codex 使用内置系统 skill-creator"
+    [ -f "$codex_skills_dir/skill-creator/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/skill-creator/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/skill-creator/agents/openai.yaml 不存在"
+    [ ! -e "$CODEX_DIR/skills/.system/skill-creator" ] || fail "Quick Check 失败: ~/.codex/skills/.system/skill-creator 旧残留未清理"
     [ -f "$codex_skills_dir/find-skills/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/find-skills/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/webapp-testing/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/agent-reach/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/agent-reach/agents/openai.yaml 不存在"

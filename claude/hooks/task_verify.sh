@@ -28,6 +28,65 @@ CODE_DIFF=$({
 [ -z "$CODE_DIFF" ] && exit 0
 
 FAILURES=""
+WARNINGS=""
+REPORT_FILE=""
+
+ensure_report_file() {
+    if [ -n "$REPORT_FILE" ]; then
+        return 0
+    fi
+
+    local report_dir repo_name
+    report_dir="${CLAUDE_TASK_VERIFY_REPORT_DIR:-}"
+    if [ -z "$report_dir" ]; then
+        if [ -n "${HOME:-}" ]; then
+            report_dir="$HOME/.claude/task-verify-reports"
+        else
+            report_dir="${TMPDIR:-/tmp}/claude-task-verify-reports"
+        fi
+    fi
+
+    if ! mkdir -p "$report_dir" 2>/dev/null; then
+        report_dir="${TMPDIR:-/tmp}/claude-task-verify-reports"
+        mkdir -p "$report_dir" 2>/dev/null || return 1
+    fi
+
+    repo_name=$(basename "$CWD" | tr -c '[:alnum:]_.-' '_')
+    REPORT_FILE="$report_dir/$(date +%Y%m%d-%H%M%S)-${repo_name}-$$.log"
+    : > "$REPORT_FILE" 2>/dev/null || return 1
+}
+
+record_warning() {
+    local title="$1"
+    local hint="$2"
+    local details="$3"
+
+    if ensure_report_file; then
+        {
+            printf '%s\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            printf '%s\n' "$title"
+            printf '%s\n' "$hint"
+            printf '%s\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            printf '%b\n' "$details"
+            printf '\n'
+        } >> "$REPORT_FILE"
+        WARNINGS+="  - ${title}：${hint}\n"
+    else
+        WARNINGS+="  - ${title}：${hint}（完整报告写入失败）\n"
+    fi
+}
+
+emit_warnings() {
+    [ -n "$WARNINGS" ] || return
+
+    echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo -e "任务验证提醒（warn 模式，不阻断完成）：" >&2
+    echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo -e "$WARNINGS" >&2
+    if [ -n "$REPORT_FILE" ]; then
+        echo -e "完整报告：$REPORT_FILE" >&2
+    fi
+}
 
 code_diff_files_matching() {
     local pattern="$1"
@@ -289,12 +348,10 @@ complexity_report_violation() {
     if [ "$mode" = "enforce" ]; then
         FAILURES+="复杂度检查失败（${label}）:\n$(echo "$output" | head -30)\n\n"
     else
-        echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-        echo -e "复杂度提醒：${label}（warn 模式）" >&2
-        echo -e "可通过 COMPLEXITY_CHECK_MODE=enforce 启用硬拦截" >&2
-        echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-        echo -e "$(echo "$output" | head -30)" >&2
-        echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+        record_warning \
+            "复杂度提醒：${label}（warn 模式）" \
+            "可通过 COMPLEXITY_CHECK_MODE=enforce 启用硬拦截" \
+            "$(echo "$output" | head -30)"
     fi
 }
 
@@ -307,10 +364,10 @@ complexity_report_missing_tool() {
     if [ "$mode" = "enforce" ] && [ "$allow_missing" != "1" ]; then
         FAILURES+="复杂度检查不可执行（${label}）:\n${reason}\n可临时设置 COMPLEXITY_ALLOW_MISSING_TOOLS=1 以告警放行\n\n"
     else
-        echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-        echo -e "复杂度提醒：${label} 缺少工具/配置（warn 或已豁免）" >&2
-        echo -e "$reason" >&2
-        echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+        record_warning \
+            "复杂度提醒：${label} 缺少工具/配置（warn 或已豁免）" \
+            "$reason" \
+            "$reason"
     fi
 }
 
@@ -470,12 +527,10 @@ run_comment_quality() {
     if [ "$comment_mode" = "enforce" ]; then
         FAILURES+="注释质量检查失败：\n$reports\n"
     else
-        echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-        echo -e "注释质量提醒：TaskCompleted 阶段发现注释问题（warn 模式）" >&2
-        echo -e "可通过 COMMENT_CHECK_MODE=enforce 切换为硬拦截" >&2
-        echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-        echo -e "$reports" >&2
-        echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+        record_warning \
+            "注释质量提醒：TaskCompleted 阶段发现注释问题（warn 模式）" \
+            "可通过 COMMENT_CHECK_MODE=enforce 切换为硬拦截" \
+            "$reports"
     fi
 }
 
@@ -510,7 +565,9 @@ if [ -n "$FAILURES" ]; then
     echo -e "任务验证未通过，请修复后重试：" >&2
     echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
     echo -e "$FAILURES" >&2
+    emit_warnings
     exit 2
 fi
 
+emit_warnings
 exit 0

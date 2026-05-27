@@ -8,8 +8,8 @@ sources:
       - community/anthropic/codex/skills
     notes:
       - 全量 vendor 官方 17 个 skills，正文保持 upstream 原文。
-      - 除 `skill-creator` 外，Codex `agents/openai.yaml` 为本地生成适配层，随同 official skills 一起受此锁文件约束。
-      - `skill-creator` 在仓库中保持 upstream 镜像并安装到 Claude；Codex 使用内置系统 skill，不安装用户级副本，也不保留 Codex adapter。
+      - Codex `agents/openai.yaml` 为本地生成适配层，随同 official skills 一起受此锁文件约束。
+      - `skill-creator` 在仓库中保持 upstream 镜像，并安装到 Claude 与 Codex 用户运行面；Codex 隐藏 system 资源不作为 Skill 真源。
   superpowers:
     repo: https://github.com/obra/superpowers
     ref: f2cbfbefebbfef77321e4c9abc9e949826bea9d7

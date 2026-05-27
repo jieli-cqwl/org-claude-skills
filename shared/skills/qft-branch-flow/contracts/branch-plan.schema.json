@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://org-claude-skills.local/qft-branch-flow/branch-plan.schema.json",
+  "title": "QFT Branch Flow Plan",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scenario",
+    "version",
+    "projects",
+    "target_branch",
+    "steps",
+    "push"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "scenario": {
+      "type": "string",
+      "enum": [
+        "create-dev",
+        "dev-sync",
+        "release-merge",
+        "bugfix",
+        "release-sync-before",
+        "release-sync-after"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]{4}$"
+    },
+    "owner": {
+      "type": "string",
+      "pattern": "^[A-Z0-9]+$"
+    },
+    "requirement": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "delay": {
+      "type": "boolean"
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "business_branches": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "target_branch": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "repo",
+          "source_branch",
+          "target_branch",
+          "action"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "repo": {
+            "type": "string"
+          },
+          "source_branch": {
+            "type": "string"
+          },
+          "target_branch": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "create_branch",
+              "ensure_branch",
+              "merge"
+            ]
+          }
+        }
+      }
+    },
+    "push": {
+      "type": "object",
+      "required": [
+        "confirmed",
+        "branches"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "confirmed": {
+          "type": "boolean"
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "repo",
+              "branch"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "repo": {
+                "type": "string"
+              },
+              "branch": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

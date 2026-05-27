@@ -4,18 +4,25 @@
   "type": "object",
   "required": [
     "artifact_type",
+    "audit_mode",
     "target_skill",
     "verdict",
     "overall_score",
+    "artifact_paths",
     "scope_evidence",
     "dimension_scores",
     "findings",
-    "repair_handoff"
+    "repair_handoff",
+    "validation",
+    "executed_verification"
   ],
   "additionalProperties": false,
   "properties": {
     "artifact_type": {
       "const": "skill-audit-report"
+    },
+    "audit_mode": {
+      "const": "formal"
     },
     "target_skill": {
       "type": "string",
@@ -31,6 +38,21 @@
     },
     "verdict_reason": {
       "type": "string"
+    },
+    "artifact_paths": {
+      "type": "object",
+      "required": ["report_json", "summary_markdown"],
+      "additionalProperties": false,
+      "properties": {
+        "report_json": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary_markdown": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     },
     "scope_evidence": {
       "type": "array",
@@ -139,7 +161,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "severity", "title", "evidence", "impact", "repair_target", "verification_hint"],
+        "required": ["id", "severity", "title", "evidence_level", "evidence", "impact", "repair_target", "verification_hint"],
         "additionalProperties": false,
         "properties": {
           "id": {
@@ -153,9 +175,78 @@
             "type": "string",
             "minLength": 1
           },
+          "evidence_level": {
+            "enum": ["E0", "E1", "E2", "E3", "E4"]
+          },
           "evidence": {
             "type": "string",
             "minLength": 1
+          },
+          "evidence_checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["path", "line", "expected_snippet", "claim"],
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "line": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "expected_snippet": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "claim": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "claim_review": {
+            "type": "object",
+            "required": ["required_claims", "refutation_check", "status"],
+            "additionalProperties": false,
+            "properties": {
+              "required_claims": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "refutation_check": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "enum": ["supported", "refuted", "blocked"]
+              }
+            }
+          },
+          "severity_calibration": {
+            "type": "object",
+            "required": ["calibrated_severity", "team_use_impact", "rationale"],
+            "additionalProperties": false,
+            "properties": {
+              "calibrated_severity": {
+                "enum": ["P0", "P1", "P2", "P3"]
+              },
+              "team_use_impact": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
           },
           "impact": {
             "type": "string",
@@ -188,6 +279,52 @@
           "owner": {
             "type": "string",
             "minLength": 1
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["status", "command", "output"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "PASS"
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "executed_verification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "command", "status", "output"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": ["PASS", "FAIL", "BLOCKED"]
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "string"
           }
         }
       }

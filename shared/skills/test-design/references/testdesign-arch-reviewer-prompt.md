@@ -19,7 +19,7 @@
 - 只以 `reviewed_test_cases_digest` 绑定的测试设计产物为证据；临时对话材料和对话说明不算。
 - 只判断测试设计是否承接设计，不判断设计本身是否最优。
 - 发现设计不可测试、产品与设计冲突或设计承接缺失时，要求写入 typed gap。
-- 重点字段：`design_refs`、`design_source_refs`、`TESTABILITY_GAP`、`TRACE_CONFLICT`、`DESIGN_GAP`。
+- 重点字段：`design_refs`、`decision_refs`、`design_source_refs`、`TESTABILITY_GAP`、`TRACE_CONFLICT`、`DESIGN_GAP`。
 
 ## 审查维度
 

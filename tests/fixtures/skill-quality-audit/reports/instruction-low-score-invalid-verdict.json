@@ -1,9 +1,14 @@
 {
   "artifact_type": "skill-audit-report",
+  "audit_mode": "formal",
   "target_skill": "shared/skills/example",
   "verdict": "conditional",
   "overall_score": 6,
   "verdict_reason": "This fixture is intentionally invalid because Instruction Contract below 5 must be unfit.",
+  "artifact_paths": {
+    "report_json": "tests/fixtures/skill-quality-audit/reports/instruction-low-score-invalid-verdict.json",
+    "summary_markdown": "tests/fixtures/skill-quality-audit/reports/instruction-low-score-invalid-verdict.md"
+  },
   "scope_evidence": [
     {
       "surface": "SKILL.md",
@@ -83,7 +88,7 @@
     {
       "surface": "downstream consumers",
       "status": "checked",
-      "evidence": "tests and runtime surface consume the package."
+      "evidence": "contracts/skill-runtime-surface.json and tests/gate-plan.json consume the package."
     }
   ],
   "dimension_scores": [
@@ -147,7 +152,28 @@
       "id": "F-001",
       "severity": "P1",
       "title": "Instruction contract is too weak",
-      "evidence": "shared/skills/example/SKILL.md:12 uses vague action.",
+      "evidence_level": "E2",
+      "evidence": "tests/fixtures/skill-quality-audit/evidence-target.md:3 uses vague action.",
+      "evidence_checks": [
+        {
+          "path": "tests/fixtures/skill-quality-audit/evidence-target.md",
+          "line": 3,
+          "expected_snippet": "Instruction contract: explicit action is missing a required gate.",
+          "claim": "The cited line names the missing gate used by the Instruction Contract finding."
+        }
+      ],
+      "claim_review": {
+        "required_claims": [
+          "The Instruction Contract defect depends on a missing required gate in the cited target evidence."
+        ],
+        "refutation_check": "tests/fixtures/skill-quality-audit/evidence-target.md:3 still states that a required gate is missing.",
+        "status": "supported"
+      },
+      "severity_calibration": {
+        "calibrated_severity": "P1",
+        "team_use_impact": "The Skill cannot reliably produce the expected action without the missing gate.",
+        "rationale": "The weakness is major but this fixture intentionally tests verdict capping rather than a P0 stop."
+      },
       "impact": "The Skill cannot be executed reliably.",
       "repair_target": "shared/skills/example/SKILL.md Workflow",
       "verification_hint": "Raise Instruction Contract score to at least 5 before using conditional."
@@ -160,5 +186,11 @@
       "owner": "separate implementation window"
     }
   ],
+  "validation": {
+    "status": "PASS",
+    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py tests/fixtures/skill-quality-audit/reports/instruction-low-score-invalid-verdict.json",
+    "output": "[PASS] skill audit report valid"
+  },
+  "executed_verification": [],
   "residual_risk": []
 }

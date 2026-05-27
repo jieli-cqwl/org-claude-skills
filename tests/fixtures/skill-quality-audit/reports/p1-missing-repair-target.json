@@ -1,9 +1,14 @@
 {
   "artifact_type": "skill-audit-report",
+  "audit_mode": "formal",
   "target_skill": "shared/skills/example",
   "verdict": "conditional",
   "overall_score": 7.2,
   "verdict_reason": "One P1 finding remains; Instruction Contract is above the conditional floor.",
+  "artifact_paths": {
+    "report_json": "tests/fixtures/skill-quality-audit/reports/p1-missing-repair-target.json",
+    "summary_markdown": "tests/fixtures/skill-quality-audit/reports/p1-missing-repair-target.md"
+  },
   "scope_evidence": [
     {
       "surface": "SKILL.md",
@@ -83,7 +88,7 @@
     {
       "surface": "downstream consumers",
       "status": "checked",
-      "evidence": "tests and runtime surface consume the package."
+      "evidence": "contracts/skill-runtime-surface.json and tests/gate-plan.json consume the package."
     }
   ],
   "dimension_scores": [
@@ -147,12 +152,39 @@
       "id": "F-001",
       "severity": "P1",
       "title": "Missing repair target",
-      "evidence": "shared/skills/example/SKILL.md:10",
+      "evidence_level": "E2",
+      "evidence": "tests/fixtures/skill-quality-audit/evidence-target.md:2",
+      "evidence_checks": [
+        {
+          "path": "tests/fixtures/skill-quality-audit/evidence-target.md",
+          "line": 2,
+          "expected_snippet": "Handoff target: separate implementation window owns repair output.",
+          "claim": "The cited line names the repair output owner used by the P1 handoff finding."
+        }
+      ],
+      "claim_review": {
+        "required_claims": [
+          "The P1 finding depends on an assignable repair target being absent from the handoff."
+        ],
+        "refutation_check": "tests/fixtures/skill-quality-audit/evidence-target.md:2 does not include a downstream consumer or verification owner.",
+        "status": "supported"
+      },
+      "severity_calibration": {
+        "calibrated_severity": "P1",
+        "team_use_impact": "Repair cannot be safely assigned to a separate implementation window.",
+        "rationale": "The issue blocks handoff clarity but is not a P0 runtime safety failure."
+      },
       "impact": "Repair cannot be assigned.",
       "repair_target": "",
       "verification_hint": "Run validator."
     }
   ],
   "repair_handoff": [],
+  "validation": {
+    "status": "PASS",
+    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py tests/fixtures/skill-quality-audit/reports/p1-missing-repair-target.json",
+    "output": "[PASS] skill audit report valid"
+  },
+  "executed_verification": [],
   "residual_risk": []
 }

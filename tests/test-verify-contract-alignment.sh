@@ -132,6 +132,8 @@ assert_preflight_accepts_test_obligations_schema() {
   cp -R "$ROOT/docs/feature--quanfangtong-homepage-entry-center/phase-1" "$phase_dir"
   jq '.active_revision_id as $active | (.revisions[] | select(.revision_id == $active) | .entries[] | select(.artifact_type == "developer-report")) |= (.lifecycle_state = "FINALIZED" | .active_for_consumption = true | .version = "v1")' "$phase_dir/artifact-registry.json" >"$phase_dir/artifact-registry.tmp.json"
   mv "$phase_dir/artifact-registry.tmp.json" "$phase_dir/artifact-registry.json"
+  jq '.runtime_status = "BLOCKED" | .blocked_reason = "synthetic blocked developer-report probe" | .missing_inputs = ["synthetic input"] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"synthetic blocked developer-report probe","owner":"developer","safe_to_continue":false,"next_action":"return to developer","evidence_refs":["synthetic-probe"],"user_message":"synthetic blocked developer-report probe"}' "$phase_dir/unit-1/tasks/T1/developer-report.json" >"$phase_dir/unit-1/tasks/T1/developer-report.tmp.json"
+  mv "$phase_dir/unit-1/tasks/T1/developer-report.tmp.json" "$phase_dir/unit-1/tasks/T1/developer-report.json"
 
   if run_preflight "$phase_dir" T1 "$output"; then
     fail "verify preflight should keep BLOCKED developer-report status as an input blocker"

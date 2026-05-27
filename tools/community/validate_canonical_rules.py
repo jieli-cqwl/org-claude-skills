@@ -46,6 +46,7 @@ TASK_ALLOWED_FIELDS = {
     "unit_refs",
     "scope_item_refs",
     "design_refs",
+    "decision_refs",
     "test_refs",
     "depends_on",
     "shared_files",
@@ -113,7 +114,7 @@ def assert_tasks_contract(payload: dict) -> None:
         )
         if extra:
             raise ValueError(f"task {task_id} contains unsupported fields: {extra}")
-        for field in ("scope_item_refs", "acceptance_targets"):
+        for field in ("scope_item_refs", "decision_refs", "acceptance_targets"):
             values = task.get(field)
             if not isinstance(values, list) or not any(
                 isinstance(item, str) and item.strip() for item in values

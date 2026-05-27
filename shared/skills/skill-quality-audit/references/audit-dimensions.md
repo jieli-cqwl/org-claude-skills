@@ -2,6 +2,8 @@
 
 Use 10-point scores. Score the current Skill as it exists, not the maintainer's intent.
 
+If required target surfaces cannot be inspected or evidence is too unstable to score core dimensions, return `blocked` before quality scoring. In that case, use `0` only as a not-scored sentinel for affected dimensions and state the blocking evidence in each reason.
+
 ## Evidence Levels
 
 | Level | Meaning |
@@ -12,7 +14,7 @@ Use 10-point scores. Score the current Skill as it exists, not the maintainer's 
 | E3 | Direct file evidence plus active consumer, test, schema, script, or runtime path. |
 | E4 | E3 plus executed verification output proving the behavior or failure. |
 
-P0/P1 findings require E2 or higher. A completion verdict requires E3 or higher for the dimensions that decide the verdict.
+P0/P1 findings require E2 or higher, structured `evidence_checks` that re-open the cited current file line and match the expected snippet, `claim_review.status: supported`, and matching `severity_calibration`. A completion verdict requires E3 or higher for the dimensions that decide the verdict.
 
 ## Severity
 
@@ -39,9 +41,9 @@ P0/P1 findings require E2 or higher. A completion verdict requires E3 or higher 
 
 ## Verdict Rules
 
-- `blocked`: required target surfaces cannot be inspected or evidence is too weak to score core dimensions.
-- `unfit`: any P0 remains, Instruction Contract < 5, or Runtime Integration < 5.
+- `blocked`: required target surfaces cannot be inspected, a P0 prevents safe continuation, or evidence is too weak or unstable to score core dimensions.
+- `unfit`: any P0 remains after inspection, Instruction Contract < 5, or Runtime Integration < 5.
 - `conditional`: no P0, but at least one P1 remains, total score < 8, or Instruction Contract < 7.
 - `fit`: no P0/P1, Instruction Contract >= 7, Runtime Integration >= 7, Evidence And Evals >= 7, and total weighted score >= 8.
 
-P0 forces `blocked` or `unfit`. Instruction Contract < 7 caps verdict at `conditional`. Instruction Contract < 5 forces `unfit`.
+P0 forces `blocked` or `unfit`. For scored verdicts, Instruction Contract < 7 caps verdict at `conditional`, and Instruction Contract < 5 forces `unfit`. `blocked` requires blocked scope evidence or a P0 finding; do not use it to avoid an unfavorable scored verdict.

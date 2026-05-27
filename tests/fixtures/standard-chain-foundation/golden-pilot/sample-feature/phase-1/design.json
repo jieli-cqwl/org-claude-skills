@@ -398,6 +398,32 @@
     "rejected_constraints": [],
     "confirmation_summary": "User confirmed inherited runtime-control constraints before freezing design decisions."
   },
+  "review_closure": {
+    "reviewed_design_digest": "sha256:e33054d6f92d384806b8b943aa5375ae86a745f5c89e8cb5f4ba3908787c1d0b",
+    "reviewed_at": "2026-04-14T00:00:00Z",
+    "reviewers": [
+      {
+        "reviewer": "architecture",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_design_digest": "sha256:e33054d6f92d384806b8b943aa5375ae86a745f5c89e8cb5f4ba3908787c1d0b"
+      },
+      {
+        "reviewer": "product",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_design_digest": "sha256:e33054d6f92d384806b8b943aa5375ae86a745f5c89e8cb5f4ba3908787c1d0b"
+      },
+      {
+        "reviewer": "test",
+        "verdict": "PASS",
+        "finding_refs": [],
+        "reviewed_design_digest": "sha256:e33054d6f92d384806b8b943aa5375ae86a745f5c89e8cb5f4ba3908787c1d0b"
+      }
+    ],
+    "resolved_failures": [],
+    "warn_followups": []
+  },
   "final_confirmation": {
     "status": "confirmed",
     "confirmed_by": "user",
@@ -409,36 +435,10 @@
       "design.json#verification_plan"
     ]
   },
-  "review_closure": {
-    "reviewed_design_digest": "sha256:5a2a5d449779aea6bfee9478e762c9f0dc25e6cc5dde2b9044de62f53b2c4c48",
-    "reviewed_at": "2026-04-14T00:00:00Z",
-    "reviewers": [
-      {
-        "reviewer": "architecture",
-        "verdict": "PASS",
-        "finding_refs": [],
-        "reviewed_design_digest": "sha256:5a2a5d449779aea6bfee9478e762c9f0dc25e6cc5dde2b9044de62f53b2c4c48"
-      },
-      {
-        "reviewer": "product",
-        "verdict": "PASS",
-        "finding_refs": [],
-        "reviewed_design_digest": "sha256:5a2a5d449779aea6bfee9478e762c9f0dc25e6cc5dde2b9044de62f53b2c4c48"
-      },
-      {
-        "reviewer": "test",
-        "verdict": "PASS",
-        "finding_refs": [],
-        "reviewed_design_digest": "sha256:5a2a5d449779aea6bfee9478e762c9f0dc25e6cc5dde2b9044de62f53b2c4c48"
-      }
-    ],
-    "resolved_failures": [],
-    "warn_followups": []
-  },
   "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "stage_name": "Stakeholders and concerns",
+      "stage_name": "stakeholders-and-concerns",
       "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
       "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
       "decision_refs": [
@@ -447,7 +447,7 @@
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "stage_name": "Architecture-significant requirements",
+      "stage_name": "architecture-significant-requirements",
       "question_or_focus": "confirm the base constraints and problem decomposition",
       "user_response_summary": "User confirmed canonical JSON is the runtime control boundary.",
       "decision_refs": [
@@ -456,7 +456,7 @@
     },
     {
       "stage_id": "current-state-evidence",
-      "stage_name": "Current-state evidence",
+      "stage_name": "current-state-evidence",
       "question_or_focus": "confirm the design decisions that must be frozen",
       "user_response_summary": "User confirmed schema, registry, and gate alignment are required design decisions.",
       "decision_refs": [
@@ -465,7 +465,7 @@
     },
     {
       "stage_id": "complexity-model",
-      "stage_name": "Complexity model",
+      "stage_name": "complexity-model",
       "question_or_focus": "choose between canonical-only and markdown-driven runtime authority",
       "user_response_summary": "User selected canonical JSON as runtime truth and rejected markdown runtime authority.",
       "decision_refs": [
@@ -474,7 +474,7 @@
     },
     {
       "stage_id": "decision-discovery",
-      "stage_name": "Decision discovery",
+      "stage_name": "decision-discovery",
       "question_or_focus": "confirm module, interface, and boundary contracts",
       "user_response_summary": "User confirmed validators and registries are the key interfaces.",
       "decision_refs": [
@@ -483,7 +483,7 @@
     },
     {
       "stage_id": "option-tradeoff",
-      "stage_name": "Option tradeoff",
+      "stage_name": "option-tradeoff",
       "question_or_focus": "confirm migration, verification, rollback, and risk response",
       "user_response_summary": "User confirmed fail-closed validation and rollback through registry revisions.",
       "decision_refs": [
@@ -493,7 +493,7 @@
     },
     {
       "stage_id": "design-synthesis",
-      "stage_name": "Design synthesis",
+      "stage_name": "design-synthesis",
       "question_or_focus": "confirm planning constraints and impact scope",
       "user_response_summary": "User confirmed schema and fixture updates must land before downstream rollout.",
       "decision_refs": [

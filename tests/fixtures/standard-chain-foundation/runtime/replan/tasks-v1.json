@@ -37,6 +37,9 @@
       "batch": 1,
       "acceptance_targets": [
         "foundation"
+      ],
+      "decision_refs": [
+        "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
       ]
     }
   ]

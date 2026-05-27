@@ -1,0 +1,54 @@
+{
+  "expectations": [
+    {
+      "text": "输出按至少四个连续步骤推进，且场景确认早于项目确认。",
+      "passed": false,
+      "evidence": "缺少：第 1 步, 第 2 步, 第 3 步, 第 4 步"
+    },
+    {
+      "text": "项目展示同时包含 qft-all、qft-app 以及各自主分支。",
+      "passed": true,
+      "evidence": "所需片段均存在，禁用片段未出现。"
+    },
+    {
+      "text": "目标业务分支为 3.0.0.DEV_QW_0001_0301。",
+      "passed": true,
+      "evidence": "所需片段均存在，禁用片段未出现。"
+    },
+    {
+      "text": "本地 Git 写操作确认和 push 确认是分开的。",
+      "passed": false,
+      "evidence": "缺少：确认执行, 确认推送"
+    },
+    {
+      "text": "没有声称会直接执行真实 Git 命令。",
+      "passed": true,
+      "evidence": "所需片段均存在，禁用片段未出现。"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 2,
+    "total": 5,
+    "pass_rate": 0.6
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": 0,
+    "total_steps": 0,
+    "errors_encountered": 0,
+    "output_chars": 180,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "total_tokens": 0,
+    "duration_ms": 183447,
+    "total_duration_seconds": 183.447
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

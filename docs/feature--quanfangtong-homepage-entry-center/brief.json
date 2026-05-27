@@ -58,7 +58,7 @@
   "director_confirmation": {
     "status": "passed",
     "confirmed_at": "2026-05-26T00:00:00Z",
-    "locked_field_digest": "sha256:8fd534f7ae1a78495e7fb553a049a013fb4c8c59100f7ae7918f866431f9b6f3",
+    "locked_field_digest": "sha256:5b7cc61eedbeb5d5b7e9e2a9eccca4787df6e503389b76038a354eb3fb3d8c7e",
     "locked_fields": {
       "root_problem": "当前全房通首页承载登录、续费、下载、客服和公告入口，但入口关系与边界需要被收敛成可验证的专业入口中心。",
       "user_profile": [
@@ -104,7 +104,7 @@
           "item": "current homepage evidence pack captured for QFT-ASIS-001, QFT-ASIS-002, and QFT-ASIS-003",
           "impact": "AS-IS facts can reference captured desktop, mobile, and observed text evidence before downstream signoff.",
           "mitigation": "capture-manifest.json records all QFT-ASIS entries as captured at 2026-05-26T12:34:47Z.",
-          "status": "CLOSED",
+          "status": "RESOLVED",
           "evidence_refs": [
             "QFT-ASIS-001",
             "QFT-ASIS-002",
@@ -176,7 +176,7 @@
       "item": "current homepage evidence pack captured for QFT-ASIS-001, QFT-ASIS-002, and QFT-ASIS-003",
       "impact": "AS-IS facts can reference captured desktop, mobile, and observed text evidence before downstream signoff.",
       "mitigation": "capture-manifest.json records all QFT-ASIS entries as captured at 2026-05-26T12:34:47Z.",
-      "status": "CLOSED",
+      "status": "RESOLVED",
       "evidence_refs": [
         "QFT-ASIS-001",
         "QFT-ASIS-002",

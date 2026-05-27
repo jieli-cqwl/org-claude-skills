@@ -47,6 +47,10 @@
         "root redirect",
         "feedback form",
         "blank validation error"
+      ],
+      "decision_refs": [
+        "artifact://design/feedback-thanks-pilot.phase-1.design@v1#IF-FEEDBACK-FORM",
+        "artifact://design/feedback-thanks-pilot.phase-1.design@v1#IF-FEEDBACK-SUBMIT"
       ]
     }
   ]

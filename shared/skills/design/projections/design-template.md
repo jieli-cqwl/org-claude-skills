@@ -16,10 +16,10 @@
 
 | 阶段 | 本节回答 | 设计引用 |
 | --- | --- | --- |
-| Stakeholders & Concerns | 谁消费设计，关注什么。 | `design_stage_confirmations` |
+| Stakeholders & Concerns | 谁消费设计，关注什么。 | `co_creation_summary` |
 | Architecture-Significant Requirements | 哪些需求会改变架构。 | `input_analysis` |
 | Current-State Evidence | 哪些事实支撑决策。 | `runtime_facts` |
-| Complexity Model | 复杂度来自哪里，为什么不加多余结构。 | `input_analysis`、`design_stage_confirmations` |
+| Complexity Model | 复杂度来自哪里，为什么不加多余结构。 | `input_analysis`、`co_creation_summary` |
 | Decision Discovery | 哪些决策必须冻结，质量属性如何排序。 | `quality_attributes` |
 | Option Tradeoff | 每个决策比较过什么，为什么选当前方案。 | `option_analysis`、`key_decisions` |
 | Design Synthesis | 冻结决策如何落成边界、接口、验证、风险和交接。 | `modules`、`interfaces`、`verification_mapping` |

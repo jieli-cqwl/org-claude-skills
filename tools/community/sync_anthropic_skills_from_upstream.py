@@ -76,9 +76,6 @@ DEFAULT_PROMPTS = {
     "xlsx": "Use $xlsx to create, inspect, or edit spreadsheet files.",
 }
 
-CODEX_ADAPTER_EXCLUDED_SKILLS = {"skill-creator"}
-
-
 def fail(message: str) -> None:
     raise SystemExit(message)
 
@@ -135,8 +132,6 @@ def generate_codex_adapters(skill_names: list[str]) -> None:
     if DEST_CODEX_SKILLS.exists():
         shutil.rmtree(DEST_CODEX_SKILLS)
     for skill_name in skill_names:
-        if skill_name in CODEX_ADAPTER_EXCLUDED_SKILLS:
-            continue
         adapter_dir = DEST_CODEX_SKILLS / skill_name / "agents"
         adapter_dir.mkdir(parents=True, exist_ok=True)
         (adapter_dir / "openai.yaml").write_text(

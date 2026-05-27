@@ -9,8 +9,20 @@ from typing import Any
 
 from runtime_yaml import load_yaml
 
-TARGET_STAGES = {"product-director", "product-manager", "design"}
+TARGET_STAGES = {
+    "product-director",
+    "product-manager",
+    "design",
+    "developer",
+    "review",
+    "verify",
+    "qa",
+    "delivery-owner",
+}
 ALLOWED_CONSUME_MODES = {"reference", "transform", "gate", "handoff"}
+EXTERNAL_CONSUMERS = {
+    "docs/{feature}/phase-{N}/signoff-package.json": {"user"},
+}
 GLOBAL_FORBIDDEN_TOKENS = (
     "product-manager-ledger.json",
     "design-ledger.json",
@@ -139,12 +151,54 @@ def validate_artifacts(contract: dict[str, Any]) -> dict[str, dict[str, set[str]
     return fields_by_path
 
 
+def stage_input_consumers(standard_chain: dict[str, Any]) -> dict[str, set[str]]:
+    chain = standard_chain.get("chain")
+    if not isinstance(chain, list):
+        raise ValueError("standard-chain chain must be an array")
+    consumers_by_path: dict[str, set[str]] = {}
+    for stage in chain:
+        stage_data = require_mapping(stage, "chain[]")
+        stage_name = stage_data.get("name")
+        if not non_empty_string(stage_name):
+            raise ValueError("chain[].name must be a non-empty string")
+        inputs = stage_data.get("inputs", {})
+        input_data = require_mapping(inputs, f"chain.{stage_name}.inputs")
+        for input_group in ("required", "optional"):
+            artifacts = input_data.get(input_group, [])
+            if not isinstance(artifacts, list):
+                raise ValueError(
+                    f"chain.{stage_name}.inputs.{input_group} must be an array"
+                )
+            for artifact in artifacts:
+                if not isinstance(artifact, str):
+                    raise ValueError(
+                        f"chain.{stage_name}.inputs.{input_group} contains a non-string artifact"
+                    )
+                artifact_name = artifact.split(" as ", 1)[0]
+                consumers_by_path.setdefault(
+                    canonical_artifact_path(artifact_name), set()
+                ).add(str(stage_name))
+    return consumers_by_path
+
+
+def output_consumers(
+    output_data: dict[str, Any], path: str, inferred: dict[str, set[str]]
+) -> set[str]:
+    explicit = output_data.get("consumers")
+    if explicit is not None:
+        if not isinstance(explicit, list) or not explicit:
+            raise ValueError(f"chain output {path}.consumers must be a non-empty array")
+        return {str(consumer) for consumer in explicit}
+    return set(inferred.get(path, set())) | set(EXTERNAL_CONSUMERS.get(path, set()))
+
+
 def standard_chain_requirements(
     standard_chain: dict[str, Any],
 ) -> list[tuple[str, str, str, set[str]]]:
     chain = standard_chain.get("chain")
     if not isinstance(chain, list):
         raise ValueError("standard-chain chain must be an array")
+    inferred = stage_input_consumers(standard_chain)
     required: list[tuple[str, str, str, set[str]]] = []
     for stage in chain:
         stage_data = require_mapping(stage, "chain[]")
@@ -162,17 +216,16 @@ def standard_chain_requirements(
                     f"chain.{stage_name}.outputs[].artifact must be a non-empty string"
                 )
             key_fields = output_data.get("key_fields")
+            if key_fields is None:
+                continue
             if not isinstance(key_fields, list) or not key_fields:
                 raise ValueError(
                     f"chain.{stage_name}.{artifact}.key_fields must be a non-empty array"
                 )
-            consumers = output_data.get("consumers")
-            if not isinstance(consumers, list) or not consumers:
-                raise ValueError(
-                    f"chain.{stage_name}.{artifact}.consumers must be a non-empty array"
-                )
             path = canonical_artifact_path(str(artifact))
-            required_consumers = {str(consumer) for consumer in consumers}
+            required_consumers = output_consumers(output_data, path, inferred)
+            if not required_consumers:
+                continue
             for field in key_fields:
                 required.append((str(stage_name), path, str(field), required_consumers))
     return required

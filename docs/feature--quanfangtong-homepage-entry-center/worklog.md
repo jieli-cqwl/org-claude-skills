@@ -50,3 +50,30 @@
 - state_ref: canonical:phase-1/delivery-state.json::status=READY_FOR_USER_DECISION
 - next: await explicit user signoff, rejection, or risk acceptance before creating user-decision.json
 - next_ref: canonical:phase-1/signoff-package.json::acceptance.status=PENDING_USER_DECISION
+
+## 2026-05-26T00:00:04Z
+
+- actor: delivery-owner
+- context_owner: delivery-owner
+- mode: standard-chain
+- stage: SIGNOFF_PENDING
+- scope_ref: docs/feature--quanfangtong-homepage-entry-center
+- handoff_status: done
+- state_ref: canonical:phase-1/artifact-registry.json::artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state.next@v1#phase-summary
+- next: await explicit user signoff, rejection, or risk acceptance before creating user-decision.json
+- next_ref: canonical:phase-1/artifact-registry.json::artifact://signoff-package/quanfangtong-homepage-entry-center.phase-1.signoff.next@v1#signoff-root
+
+## 2026-05-27T00:00:00Z
+
+- actor: delivery-owner
+- context_owner: delivery-owner
+- mode: standard-chain
+- stage: BLOCKED
+- scope_ref: docs/feature--quanfangtong-homepage-entry-center
+- handoff_status: blocked
+- state_ref: canonical:phase-2/artifact-registry.json::artifact://delivery-state/quanfangtong-homepage-entry-center.phase-2.delivery-state@active#phase-summary
+- blocker: FRESH_PROOF_GAP T1 browser acceptance and canonical validation pass, but legitimate RED/GREEN tdd_evidence_index is missing
+- waiting_on: explicit RED/GREEN TDD loop for T1 or contract/status decision
+- unblock_condition: developer-report T1 can legitimately move to VERIFIED with RED/GREEN evidence, or user approves a contract/status change
+- next: do not start verify/QA/signoff for phase-2 until T1 blocker is resolved or formally accepted
+- next_ref: canonical:phase-2/artifact-registry.json::artifact://developer-report/quanfangtong-homepage-entry-center.phase-2.unit-1.task-T1.developer-report@v1#fresh-proof

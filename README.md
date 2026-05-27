@@ -140,7 +140,7 @@ standard-chain 的接手恢复顺序固定为：
 - `feishu-docs`：manual-only 飞书文档 Skill，通过官方 `lark-cli` 读取、创建、更新和删除飞书文档
 - `deep-research`：manual-only 横纵分析法 Deep Research Skill，用于手动触发纵向历史、横向对比、横纵交汇的 Markdown + PDF 深度研究报告
 - `community/superpowers/skills/` 承载锁定 ref 的 Superpowers 官方全量 skills，正文保持 upstream 原文
-- `community/anthropic/skills/` 承载全量官方 17 个 skills，正文保持 upstream 原文；其中 `skill-creator` 仅安装到 Claude 运行面，Codex 使用内置系统 `skill-creator`，不安装用户级副本且不保留 Codex 适配层
+- `community/anthropic/skills/` 承载全量官方 17 个 skills，正文保持 upstream 原文；`skill-creator` 同样从本仓镜像安装到 Claude 与 Codex 用户运行面，Codex 的隐藏 system 资源不作为 Skill 真源
 - `community/vercel/skills/` 承载按需 vendor 的 Vercel community skills，正文保持 upstream 原文
 - `community/alchaincyf/skills/` 承载按需 vendor 的 Alchaincyf community skills，正文保持 upstream 原文
 - `community/nextlevelbuilder/skills/` 承载按需 vendor 的 NextLevelBuilder community skills，正文保持 upstream 原文，`ui-ux-pro-max` 在安装层按 auto 暴露

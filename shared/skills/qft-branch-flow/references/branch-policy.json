@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "version_pattern": "^[0-9]{4}$",
+  "owner_pattern": "^[A-Z0-9]+$",
+  "requirement_pattern": "^[0-9]+$",
+  "branches": {
+    "dev": "3.0.0.DEV_{owner}_{requirement}_{version}",
+    "dev_delay": "3.0.0.DEV_{owner}_{requirement}_{version}_DELAY",
+    "release": "V.{version}",
+    "bugfix": "3.0.0.MASTER_BUG_{version}"
+  },
+  "scenarios": {
+    "create-dev": {
+      "description": "从项目主分支创建业务开发分支",
+      "steps": [
+        "create_branch"
+      ]
+    },
+    "dev-sync": {
+      "description": "将项目主分支同步到业务开发分支",
+      "steps": [
+        "merge_main_to_business"
+      ]
+    },
+    "release-merge": {
+      "description": "业务分支合入版本分支",
+      "steps": [
+        "ensure_release_branch",
+        "merge_business_to_release"
+      ]
+    },
+    "bugfix": {
+      "description": "从版本分支创建 BUG 分支，修复后合回版本分支",
+      "steps": [
+        "create_bug_branch",
+        "merge_bug_to_release"
+      ]
+    },
+    "release-sync-before": {
+      "description": "上线前将主分支同步到版本分支",
+      "steps": [
+        "merge_main_to_release"
+      ]
+    },
+    "release-sync-after": {
+      "description": "上线后将版本分支回合主分支",
+      "steps": [
+        "merge_release_to_main"
+      ]
+    }
+  }
+}

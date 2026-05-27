@@ -40,6 +40,9 @@
       "design_refs": [
         "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
       ],
+      "decision_refs": [
+        "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
+      ],
       "test_refs": [
         "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#TC-1"
       ],

@@ -285,7 +285,10 @@ ensure(policy.get("allowed_final_sources") == ["CLI", "MANUAL_IMPORT"], "v1 fina
 ensure(policy.get("internal_only_sources") == ["SCRIPT"], "v1 internal-only decision sources mismatch")
 
 stage_registry = load_yaml(bundle["stage_registry"])
-ensure(stage_registry.get("stages") == REQUIRED_STAGES, "stage registry mismatch")
+stages = stage_registry.get("stages")
+ensure(stages == REQUIRED_STAGES, "stage registry mismatch")
+ensure("SIGNOFF_PENDING" in stages, "SIGNOFF_PENDING stage missing")
+ensure("SIGNOFF_READY" not in stages, "SIGNOFF_READY is not a canonical standard-chain stage")
 ensure(stage_registry.get("terminal_stages") == ["CLOSED"], "terminal stages mismatch")
 ensure(stage_registry.get("externally_resumable_stages") == ["BLOCKED"], "externally resumable stages mismatch")
 transition_pairs = {
@@ -771,14 +774,14 @@ else:
 tasks_entry = artifacts["tasks"]
 tasks_schema = load_json(tasks_entry["schema_path"])
 tasks_template = load_json(tasks_entry["template_path"])
-missing_task_design_refs = deepcopy(tasks_template)
-missing_task_design_refs["tasks"][0]["design_refs"] = []
+missing_task_decision_refs = deepcopy(tasks_template)
+missing_task_decision_refs["tasks"][0]["decision_refs"] = []
 try:
-    schema_validator(tasks_schema, schema_registry).validate(missing_task_design_refs)
+    schema_validator(tasks_schema, schema_registry).validate(missing_task_decision_refs)
 except ValidationError:
     pass
 else:
-    raise SystemExit("tasks schema must require non-empty design_refs for each task")
+    raise SystemExit("tasks schema must require non-empty decision_refs for each task")
 
 missing_task_test_refs = deepcopy(tasks_template)
 missing_task_test_refs["tasks"][0]["test_refs"] = []

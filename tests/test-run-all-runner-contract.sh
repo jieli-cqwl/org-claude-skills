@@ -126,7 +126,7 @@ quick_steps="$(plan_count steps "$quick_plan")"
 release_steps="$(plan_count steps "$release_plan")"
 
 [ "$full_steps" -gt "$quick_steps" ] || fail "full plan should have more steps than quick plan"
-[ "$release_steps" -ge "$full_steps" ] || fail "release plan should include at least the full plan"
+[ "$release_steps" -gt "$full_steps" ] || fail "release plan should add release-only checks beyond the full plan"
 [ "$quick_steps" -le 35 ] || fail "quick plan should stay below 35 canary steps"
 
 assert_contains "bash $ROOT/tests/test-install-core.sh --group basic" "$full_plan" "full plan"
@@ -224,13 +224,16 @@ for moved_test in \
   "tests/test-product-eval-contract.sh" \
   "tests/test-product-context-signal-quality.sh" \
   "tests/test-developer-process-compliance-contract.sh" \
-  "tests/test-standard-chain-skill-structure.sh" \
-  "tests/test-release-metadata.sh"
+  "tests/test-standard-chain-skill-structure.sh"
 do
   assert_not_contains "bash $ROOT/$moved_test" "$quick_plan" "quick plan"
   assert_contains "bash $ROOT/$moved_test" "$full_plan" "full plan"
   assert_contains "bash $ROOT/$moved_test" "$release_plan" "release plan"
 done
+
+assert_not_contains "bash $ROOT/tests/test-release-metadata.sh" "$quick_plan" "quick plan"
+assert_not_contains "bash $ROOT/tests/test-release-metadata.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-release-metadata.sh" "$release_plan" "release plan"
 
 while IFS= read -r deleted_test; do
   [ -n "$deleted_test" ] || continue

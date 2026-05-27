@@ -66,7 +66,7 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - 读取 template/schema，确认当前产物只能写入已定义字段：`shared/skills/design/templates/design.template.json` 和 `shared/skills/design/contracts/design.schema.json`。
 - 从 template 创建 `{phase_dir}/design.json` 草稿；每个生产环节完成确认后，立即写入该环节拥有的 schema 字段。
 - 只写入 template/schema 已定义字段；没有合适字段时停止并报告字段缺口，不自创字段。
-- 将会改变或冻结设计义务的协作 checkpoint 写入 `design.json.co_creation_summary`；将最终确认写入 `design.json.final_confirmation`。
+- 将会改变或冻结设计义务的确认 checkpoint 写入 `design.json.co_creation_summary`；将最终确认写入 `design.json.final_confirmation`。
 - `design.json` 是设计过程和最终设计的唯一持久化产物；不创建额外设计台账。
 
 **Stakeholders & Concerns:**
