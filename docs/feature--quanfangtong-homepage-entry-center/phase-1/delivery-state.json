@@ -21,45 +21,47 @@
   ],
   "baseline_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
   "active_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
-  "current_stage": "BLOCKED",
-  "status": "BLOCKED",
-  "control_action": "BLOCK",
-  "summary_text": "Task 8 signoff is blocked only by TDD commit traceability: prototype implementation, code review, verify AC evidence, real Chromium QA, screenshots, active delivery-blocked registry revision, and current quick regression exist, but verify-result remains BLOCKING because developer-report runtime_status remains BLOCKED with empty tdd_evidence_index.",
+  "current_stage": "SIGNOFF_PENDING",
+  "status": "READY_FOR_USER_DECISION",
+  "control_action": "RECOMMEND_ALLOW",
+  "summary_text": "Task 8 signoff package is ready for user decision: prototype implementation, code review, verify AC evidence, real Chromium QA, screenshots, active registry revision, real TDD commit traceability 87fa0b5c, consistency audit PASS, and current quick regression all exist.",
   "kickoff": {
-    "status": "BLOCKED",
+    "status": "READY",
     "plan_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
     "preflight_evidence_ref": "docs/feature--quanfangtong-homepage-entry-center/phase-1/consistency-audit-result.json#result:BLOCKED",
     "environment_ready": true,
-    "dependency_ready": false,
-    "risk_owner_ready": false,
+    "dependency_ready": true,
+    "risk_owner_ready": true,
     "qa_handoff_ready": true,
-    "blocking_reason": "QA handoff evidence exists, active registry consumes current result artifacts, and quick regression passes; signoff cannot proceed while developer-report lacks real TDD commit_sha traceability."
+    "blocking_reason": "No delivery blocker remains; user decision is still pending by contract."
   },
   "tasks": [
     {
       "task_id": "T8",
-      "runtime_status": "BLOCKED",
+      "runtime_status": "READY_FOR_USER_DECISION",
       "owner": "delivery-owner",
       "attempt_count": 2,
       "current_batch": 2,
-      "active_blocker": "Signoff cannot be ALLOW or ALLOW_WITH_CONDITIONS until developer-report traceability is resolved and verify-result can pass.",
-      "next_action": "Obtain authorization to create a real Task 6 commit or keep signoff blocked; after commit, update developer-report.tdd_evidence_index and rerun verify/QA/signoff.",
+      "active_blocker": null,
+      "next_action": "Await explicit user signoff, rejection, or risk acceptance decision; do not create user-decision.json without that decision.",
       "latest_upstream_refs": [
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json#runtime_status:BLOCKED",
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:BLOCKING",
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json#result:BLOCKED",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json#runtime_status:VERIFIED",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:PASS",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json#result:PASS",
+        "git commit 87fa0b5c1162e2fc5250adc4d76ac93b5498fd55",
         "command: bash tests/run-all.sh --quick => [13/18] standard-chain-field-consumption-contract PASS; All tests passed"
       ]
     }
   ],
-  "blocker_id": "QFT-T8-BLOCK-TRACEABILITY-REGISTRY",
-  "blocker_reason_code": "TDD_COMMIT_TRACEABILITY_BLOCKED",
-  "blocker_basis_refs": [
-    "docs/feature--quanfangtong-homepage-entry-center/phase-1/consistency-audit-result.json#findings/QFT-AUDIT-BLOCK-002",
-    "docs/feature--quanfangtong-homepage-entry-center/phase-1/consistency-audit-result.json#findings/QFT-AUDIT-BLOCK-003",
-    "docs/feature--quanfangtong-homepage-entry-center/phase-1/artifact-registry.json#active_revision_id:delivery-blocked-r1",
-    "command: bash tests/run-all.sh --quick => [13/18] standard-chain-field-consumption-contract PASS; All tests passed"
+  "blocker_id": null,
+  "blocker_reason_code": null,
+  "blocker_basis_refs": [],
+  "blocker_resolution_evidence_refs": [
+    "git commit 87fa0b5c1162e2fc5250adc4d76ac93b5498fd55",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json#tdd_evidence_index",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:PASS",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json#result:PASS",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/consistency-audit-result.json#result:PASS"
   ],
-  "blocker_resolution_evidence_refs": [],
   "missing_prerequisite_paths": []
 }

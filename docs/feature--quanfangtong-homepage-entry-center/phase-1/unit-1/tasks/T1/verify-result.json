@@ -24,7 +24,7 @@
     "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json",
     "docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json"
   ],
-  "result": "BLOCKING",
+  "result": "PASS",
   "ac_results": [
     {
       "ac_ref": "AC-LOGIN-SWITCH",
@@ -159,21 +159,7 @@
       "proof": "Refresh obligation 要求登录切换、续费收起、下载/客服点击、公告展开后，浏览器刷新回到安全默认状态并可重复操作。design 声明 storage=none_persistent、refresh resets to documented default prototype state；app.js defaultState 定义 password、renewalCollapsed=false、announcementExpanded=false、download/support 计数为 0，并只在初始化时创建内存 state，无持久化 API。developer-report 记录 refresh_default 回到 password、renewal visible、announcement collapsed、download/support reset，并可 repeat_after_refresh。"
     }
   ],
-  "blockers": [
-    {
-      "blocker_id": "TDD-COMMIT-TRACEABILITY-MISSING",
-      "status": "BLOCKED",
-      "owner": "developer",
-      "severity": "DELIVERY_BLOCKER",
-      "evidence_refs": [
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json:18",
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json:20",
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json:56",
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json:195"
-      ],
-      "reason": "developer-report 当前 runtime_status=BLOCKED 且 tdd_evidence_index=[]；派发口径接受这是 gate 口径，不作为 AC 实现失败，但必须作为 delivery blocker/missing input，不能宣称 VERIFIED。"
-    }
-  ],
+  "blockers": [],
   "scope_findings": [
     {
       "status": "PASS",
@@ -213,8 +199,8 @@
   "verification_commands": [
     {
       "command": "bash /Users/lijieli/org-claude-skills/shared/skills/verify/scripts/preflight_check.sh --phase-dir /Users/lijieli/org-claude-skills/docs/feature--quanfangtong-homepage-entry-center/phase-1 --task-id T1",
-      "result": "BLOCKED",
-      "output_ref": "{\"failure_code\": \"DEVELOPER_REPORT_INVALID\", \"owner\": \"developer\", \"reason\": \"developer-report runtime_status is BLOCKED: RED/GREEN commit_sha traceability is unavailable because Task 6 changes remain in the uncommitted working tree; current quick regression passes and is no longer a delivery blocker.\", \"status\": \"BLOCKED\"}"
+      "result": "PASS",
+      "output_ref": "{\"developer_report_path\":\"unit-1/tasks/T1/developer-report.json\",\"status\":\"PASS\",\"task_id\":\"T1\"}"
     },
     {
       "command": "node --check /Users/lijieli/org-claude-skills/docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/app.js",
@@ -234,7 +220,7 @@
     {
       "command": "git -C /Users/lijieli/org-claude-skills status --short -- docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json",
       "result": "PASS",
-      "output_ref": "?? code-review-result.json; ?? prototype/; ?? developer-report.json; no verify-result.json written by this verifier"
+      "output_ref": "developer-report and prototype artifacts committed at 87fa0b5c1162e2fc5250adc4d76ac93b5498fd55; verify-result updated after traceability closure"
     },
     {
       "command": "bash tests/run-all.sh --quick",
@@ -242,5 +228,5 @@
       "output_ref": "[13/18] standard-chain-field-consumption-contract PASS; All tests passed"
     }
   ],
-  "summary": "BLOCKING: 人工只读核验显示 T1 七组 AC/test obligation 在 prototype 代码、文案和 developer-report proof 中均有一致证据，且未发现原型越界到真实后端、登录、支付、下载、客服、公告、埋点、发布或回滚集成。当前 active artifact-registry 已进入 delivery-blocked-r1 并可消费 developer-report/verify/QA/signoff 结果 artifact，project quick regression PASS；当前唯一 Task 级真实阻断为 developer-report 仍 runtime_status=BLOCKED 且 tdd_evidence_index=[]，因此不能宣称 VERIFIED。"
+  "summary": "PASS: T1 七组 AC/test obligation 在 prototype 代码、文案、developer-report proof 和真实 commit traceability 中均有一致证据；developer-report runtime_status=VERIFIED，tdd_evidence_index 含 RED/GREEN 两条真实 commit_sha=87fa0b5c 证据；原型未越界到真实后端、登录、支付、下载、客服、公告、埋点、发布或回滚集成；active artifact-registry 指向 signoff-ready-r2 且 project quick regression PASS。"
 }

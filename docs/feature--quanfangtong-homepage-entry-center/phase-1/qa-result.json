@@ -219,7 +219,7 @@
       "evidence_refs": [
         "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#bytes:149773",
         "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png#bytes:163805",
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:BLOCKING"
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:PASS"
       ],
       "blocker_owner": null
     },
@@ -234,15 +234,15 @@
         "Separate implementation behavior from delivery blockers."
       ],
       "expected_result": "Signoff readiness is PASS only if review, verify, QA, active registry, developer-report runtime status, and quick regression are all consumable for delivery-owner.",
-      "actual_result": "BLOCKED: browser QA obligations pass, current quick regression passes, and active artifact-registry has delivery-blocked-r1 consumable result artifacts, but verify-result remains BLOCKING because developer-report runtime_status remains BLOCKED with empty tdd_evidence_index.",
-      "status": "BLOCKED",
+      "actual_result": "PASS: browser QA obligations pass, current quick regression passes, active artifact-registry consumes current result artifacts, developer-report runtime_status=VERIFIED, and verify-result=PASS after real TDD commit traceability 87fa0b5c.",
+      "status": "PASS",
       "evidence_refs": [
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#blockers/TDD-COMMIT-TRACEABILITY-MISSING",
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/artifact-registry.json#active_revision_id:delivery-blocked-r1",
-        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json#runtime_status:BLOCKED",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json#tdd_evidence_index/commit_sha:87fa0b5c1162e2fc5250adc4d76ac93b5498fd55",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:PASS",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/artifact-registry.json#active_revision_id:signoff-ready-r2",
         "command: bash tests/run-all.sh --quick => [13/18] standard-chain-field-consumption-contract PASS; All tests passed"
       ],
-      "blocker_owner": "delivery-owner"
+      "blocker_owner": null
     }
   ],
   "browser_state_evidence": {
@@ -313,15 +313,8 @@
     "console_errors": 0,
     "failed_requests": 0
   },
-  "result": "BLOCKED",
-  "blocking_issue_count": 1,
-  "blocking_issues": [
-    {
-      "issue_id": "QA-SIGNOFF-READINESS-BLOCKED",
-      "owner": "delivery-owner",
-      "reason": "QA browser obligations pass and current quick regression passes, but delivery signoff readiness is blocked by verify-result BLOCKING and BLOCKED developer-report runtime status with missing TDD commit traceability.",
-      "next_action": "Resolve delivery-owner registry/signoff basis and developer-report commit traceability before claiming VERIFIED or signoff-ready."
-    }
-  ],
-  "summary": "BLOCKED: Real Chromium QA passed login switch, renewal, download, support, announcement, responsive, refresh recovery, prototype boundary, and evidence truth obligations on desktop 1440x1000 and mobile 390x844 with consoleErrors=0 and failedRequests=0. Current quick regression passes and active registry points to delivery-blocked-r1. Overall QA remains BLOCKED for signoff readiness because verify-result is BLOCKING and developer-report runtime_status is BLOCKED with no TDD commit traceability."
+  "result": "PASS",
+  "blocking_issue_count": 0,
+  "blocking_issues": [],
+  "summary": "PASS: Real Chromium QA passed login switch, renewal, download, support, announcement, responsive, refresh recovery, prototype boundary, evidence truth, and signoff-readiness obligations on desktop 1440x1000 and mobile 390x844 with consoleErrors=0 and failedRequests=0. Current quick regression passes, active registry points to signoff-ready-r2, verify-result=PASS, and developer-report has real TDD commit traceability 87fa0b5c."
 }

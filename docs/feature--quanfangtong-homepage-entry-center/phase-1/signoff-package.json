@@ -25,22 +25,24 @@
   ],
   "baseline_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
   "active_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
-  "current_stage": "BLOCKED",
-  "release_recommendation": "BLOCK",
-  "sign_off_status": "PENDING",
-  "business_risk_acceptance_status": "PENDING",
+  "current_stage": "SIGNOFF_PENDING",
+  "release_recommendation": "ALLOW",
+  "sign_off_status": "PENDING_USER_DECISION",
+  "business_risk_acceptance_status": "NOT_REQUIRED_FOR_PROTOTYPE_SIGNOFF_RECOMMENDATION",
   "last_observed_at": "2026-05-26T00:00:00Z",
-  "runtime_snapshot": "Static prototype, developer-report, code-review-result, verify-result, qa-result, desktop/mobile QA screenshots, consistency audit, active delivery-blocked registry revision, and current quick regression evidence exist. Browser QA and code review passed; verify and QA signoff readiness remain blocked by missing TDD commit traceability.",
-  "active_blocker": "QFT-T8-BLOCK-TDD-COMMIT-TRACEABILITY: developer-report runtime_status=BLOCKED with empty tdd_evidence_index, so verify-result=BLOCKING and qa-result=BLOCKED for signoff readiness.",
-  "blocker_owner": "developer owns real RED/GREEN commit traceability evidence; delivery-owner must rerun verify/QA/signoff after that evidence exists.",
-  "takeover_note": "Task 8 produced a blocking signoff package only; no user-decision.json is created without explicit user acceptance, rejection, or risk waiver.",
+  "runtime_snapshot": "Static prototype, developer-report, code-review-result, verify-result, qa-result, desktop/mobile QA screenshots, consistency audit, active registry revision, real TDD commit traceability 87fa0b5c, and current quick regression evidence exist. Browser QA, code review, verify, and consistency audit passed.",
+  "active_blocker": null,
+  "blocker_owner": null,
+  "takeover_note": "Task 8 produced a signoff-ready package only; no user-decision.json is created without explicit user acceptance, rejection, or risk waiver.",
   "decision_basis_refs": [
-    "docs/feature--quanfangtong-homepage-entry-center/phase-1/consistency-audit-result.json#result:BLOCKED",
-    "docs/feature--quanfangtong-homepage-entry-center/phase-1/delivery-state.json#status:BLOCKED",
-    "docs/feature--quanfangtong-homepage-entry-center/phase-1/artifact-registry.json#active_revision_id:delivery-blocked-r1",
-    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:BLOCKING",
-    "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json#result:BLOCKED",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/consistency-audit-result.json#result:PASS",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/delivery-state.json#status:READY_FOR_USER_DECISION",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/artifact-registry.json#active_revision_id:signoff-ready-r2",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json#runtime_status:VERIFIED",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:PASS",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json#result:PASS",
     "docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json#result:PASS",
+    "git commit 87fa0b5c1162e2fc5250adc4d76ac93b5498fd55",
     "command: bash tests/run-all.sh --quick => [13/18] standard-chain-field-consumption-contract PASS; All tests passed",
     "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#sha256:967e38a1bda4652ab0be68e9b9d984bf13327fa69ea0b1ff8ba62ad94880d97a",
     "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png#sha256:16e87e7d823e7ca91481301f512f1a4467fa5102f2d7e826b35708bb2f2b4791"
@@ -51,34 +53,33 @@
       "goal_source_ref": "artifact://brief/quanfangtong-homepage-entry-center.brief@v1#product-brief",
       "execution_basis_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
       "evidence_ref": "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json#browser_state_evidence",
-      "result": "PARTIALLY_MET_BLOCKED_FOR_SIGNOFF",
-      "remaining_gap_text": "Entry-center prototype behavior has real browser QA evidence; final signoff is blocked only by missing TDD commit traceability.",
-      "reason_code": "TDD_COMMIT_TRACEABILITY_BLOCKED"
+      "result": "MET",
+      "remaining_gap_text": "No remaining gap for signoff readiness; user decision remains pending by contract.",
+      "reason_code": "READY_FOR_USER_DECISION"
     },
     {
       "goal_ref": "artifact://phase-prd/quanfangtong-homepage-entry-center.phase-1.prd@v1#phase-goal",
       "goal_source_ref": "artifact://phase-prd/quanfangtong-homepage-entry-center.phase-1.prd@v1#phase-goal",
       "execution_basis_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
       "evidence_ref": "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#ac_results",
-      "result": "PARTIALLY_MET_BLOCKED_FOR_SIGNOFF",
-      "remaining_gap_text": "Verifier AC evidence is PASS, but verify-result stays BLOCKING because developer-report runtime_status is BLOCKED and tdd_evidence_index is empty.",
-      "reason_code": "VERIFY_HARD_GATE_BLOCKED"
+      "result": "MET",
+      "remaining_gap_text": "No remaining gap for signoff readiness; user decision remains pending by contract.",
+      "reason_code": "READY_FOR_USER_DECISION"
     },
     {
       "goal_ref": "artifact://unit-definition/quanfangtong-homepage-entry-center.phase-1.UNIT-1@v1#unit-UNIT-1",
       "goal_source_ref": "artifact://unit-definition/quanfangtong-homepage-entry-center.phase-1.UNIT-1@v1#unit-UNIT-1",
       "execution_basis_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
       "evidence_ref": "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json#obligation_results",
-      "result": "PARTIALLY_MET_BLOCKED_FOR_SIGNOFF",
-      "remaining_gap_text": "UNIT-1 critical browser obligations passed; QA-SIGNOFF-READINESS remains blocked by developer TDD commit traceability.",
-      "reason_code": "QA_SIGNOFF_READINESS_BLOCKED"
+      "result": "MET",
+      "remaining_gap_text": "No remaining gap for signoff readiness; user decision remains pending by contract.",
+      "reason_code": "READY_FOR_USER_DECISION"
     }
   ],
   "waiver_entries": [],
   "residual_risks": [
     "No real backend, auth, payment, download, support, announcement backend, telemetry, release, or rollback integration exists by design; prototype boundary is explicit.",
-    "No user signoff, rejection, or risk acceptance decision has been provided.",
-    "developer-report TDD evidence cannot be verified until a real commit supplies RED/GREEN commit_sha values."
+    "No user signoff, rejection, or risk acceptance decision has been provided."
   ],
   "acceptance": {
     "status": "PENDING_USER_DECISION"
