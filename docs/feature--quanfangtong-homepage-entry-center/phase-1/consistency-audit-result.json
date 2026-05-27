@@ -13,8 +13,6 @@
     "$.audit_scope",
     "$.mode",
     "$.blocked_layers",
-    "$.skipped_layers",
-    "$.tool_warning",
     "$.findings",
     "$.required_owner_action",
     "$.runtime_chain",
@@ -24,89 +22,99 @@
   "baseline_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
   "active_tasks_version_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
   "evidence_refs": [
-    "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root"
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json#result:PASS",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:BLOCKING",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json#result:BLOCKED",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/artifact-registry.json#active_revision_id:delivery-blocked-r1",
+    "command: bash tests/run-all.sh --quick => [13/18] standard-chain-field-consumption-contract PASS; All tests passed",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#sha256:967e38a1bda4652ab0be68e9b9d984bf13327fa69ea0b1ff8ba62ad94880d97a",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png#sha256:16e87e7d823e7ca91481301f512f1a4467fa5102f2d7e826b35708bb2f2b4791"
   ],
   "decision_authority": "advisory_only",
   "consumer": "delivery-owner",
   "audit_scope": "full",
-  "mode": "partial",
+  "mode": "blocking-current-facts",
   "blocked_layers": [
-    "L2",
-    "L4",
+    "L6",
     "L7"
   ],
-  "skipped_layers": [
-    "L5",
-    "L6"
-  ],
+  "skipped_layers": [],
   "tool_warning": [],
   "findings": [
     {
-      "finding_id": "QFT-AUDIT-CRIT-001",
+      "finding_id": "QFT-AUDIT-BLOCK-002",
       "severity": "CRITICAL",
+      "layer": "L6",
+      "file_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json",
+      "json_pointer": "/runtime_status",
+      "content_evidence": "developer-report runtime_status=BLOCKED and tdd_evidence_index=[]; RED/GREEN commit_sha traceability is unavailable until real Task 6 commit exists.",
+      "impact": "verify preflight and signoff cannot treat developer evidence as VERIFIED even though prototype behavior and browser QA passed.",
+      "required_owner_action": "Create a real Task 6 commit before filling tdd_evidence_index commit_sha values, or keep signoff blocked."
+    },
+    {
+      "finding_id": "QFT-AUDIT-BLOCK-003",
+      "severity": "CRITICAL",
+      "layer": "L7",
+      "file_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json",
+      "json_pointer": "/result",
+      "content_evidence": "verify-result result=BLOCKING with AC evidence PASS, while developer-report runtime_status=BLOCKED and tdd_evidence_index=[] because real TDD commit traceability is unavailable.",
+      "impact": "QA browser PASS cannot override verifier hard gate or missing TDD commit traceability.",
+      "required_owner_action": "Resolve developer-report commit traceability, then rerun verify."
+    },
+    {
+      "finding_id": "QFT-AUDIT-PASS-001",
+      "severity": "INFO",
       "layer": "L7",
       "file_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json",
-      "json_pointer": "/",
-      "content_evidence": "Missing file: docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json; Task 8 requires QA result before signoff.",
-      "impact": "release recommendation cannot be ALLOW or CONDITIONAL_ALLOW because QA obligations have no runtime evidence.",
-      "required_owner_action": "delivery-owner must route back to Task 7 QA/review/verify loop after Task 6 prototype evidence exists."
+      "json_pointer": "/obligation_results",
+      "content_evidence": "Real Chromium QA passed login switch, renewal, download, support, announcement, responsive, refresh recovery, prototype boundary, and evidence truth on desktop 1440x1000 and mobile 390x844 with consoleErrors=0 and failedRequests=0.",
+      "impact": "Prototype behavior is not the current blocker; delivery signoff remains blocked by canonical evidence consumption and TDD traceability.",
+      "required_owner_action": "Preserve QA PASS evidence while keeping QA-SIGNOFF-READINESS blocked until upstream blockers close."
     },
     {
-      "finding_id": "QFT-AUDIT-CRIT-002",
-      "severity": "CRITICAL",
+      "finding_id": "QFT-AUDIT-PASS-002",
+      "severity": "INFO",
       "layer": "L7",
-      "file_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json",
-      "json_pointer": "/",
-      "content_evidence": "Missing developer-report.json and verify-result.json for T1; current tasks.json is bootstrap-only with tasks: [].",
-      "impact": "implementation and verification chain is not closed; signoff would be unsupported.",
-      "required_owner_action": "tech-lead/developer must establish executable T1 and produce developer-report plus verifier result before QA."
-    },
-    {
-      "finding_id": "QFT-AUDIT-CRIT-003",
-      "severity": "CRITICAL",
-      "layer": "L4",
-      "file_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/test-cases.json",
-      "json_pointer": "/",
-      "content_evidence": "Missing design.json, test-cases.json, and plan.json; Task 8 cannot trace PM AC to design/test/plan obligations.",
-      "impact": "traceability from product requirements to executable test obligations is incomplete.",
-      "required_owner_action": "design, test-design, and tech-lead owners must complete Tasks 4 and 5 before Task 6/7/8 closure."
-    },
-    {
-      "finding_id": "QFT-AUDIT-CRIT-004",
-      "severity": "CRITICAL",
-      "layer": "L1",
-      "file_path": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json",
-      "json_pointer": "/",
-      "content_evidence": "Missing current homepage evidence pack; phase-prd.json evidence_sources mark QFT-ASIS-001/002/003 as ASSUMPTION and blocks_fields final_signoff.*.",
-      "impact": "AS-IS claims cannot be accepted as observed facts for final signoff.",
-      "required_owner_action": "Task 2 evidence capture must produce capture-manifest.json, desktop/mobile screenshots, and page-text before final signoff."
+      "file_path": "tests/run-all.sh",
+      "json_pointer": null,
+      "content_evidence": "[13/18] standard-chain-field-consumption-contract PASS; All tests passed.",
+      "impact": "Current quick regression is PASS and must remain signoff evidence rather than a blocker.",
+      "required_owner_action": "Use current quick regression PASS as regression evidence; it does not close TDD traceability blockers."
     }
   ],
   "required_owner_action": [
-    "Complete Task 2 current homepage evidence pack.",
-    "Complete Tasks 4 and 5 design, test-design, plan, task registry, and projection manifest baseline.",
-    "Complete Task 6 prototype plus developer-report and Task 7 review/verify/QA evidence.",
-    "Re-run full consistency audit only after QA obligation evidence exists."
+    "Keep release recommendation BLOCK until developer-report has real RED/GREEN commit_sha traceability and verify-result can pass.",
+    "Do not create user-decision.json without explicit user signoff, rejection, or risk acceptance.",
+    "If a real commit is authorized, update developer-report.tdd_evidence_index and rerun verify/QA/signoff."
   ],
   "runtime_chain": {
     "status": "BLOCKED",
     "checked_refs": [
-      "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry"
+      "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+      "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json",
+      "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json",
+      "docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json",
+      "docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json",
+      "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png",
+      "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png"
     ],
-    "uncovered_obligation_ids": [
-      "QFT-ASIS-001",
-      "QFT-ASIS-002",
-      "QFT-ASIS-003",
+    "covered_obligation_ids": [
       "AC-LOGIN-SWITCH",
       "AC-RENEWAL-PROMPT",
       "AC-DOWNLOAD-ENTRY",
       "AC-SUPPORT-ENTRY",
       "AC-ANNOUNCEMENT-DISPLAY",
-      "AC-RESPONSIVE"
+      "AC-RESPONSIVE",
+      "TC-UNIT1-REFRESH-001"
     ],
+    "uncovered_obligation_ids": [],
     "notes": [
-      "Full mode was requested, but runtime artifacts are absent.",
-      "No user decision artifact is produced because no explicit user signoff or risk acceptance was provided."
+      "Runtime artifacts exist and browser QA evidence is current.",
+      "Active artifact-registry points to delivery-blocked-r1 and can consume current result artifacts.",
+      "No user decision artifact is produced because no explicit user signoff or risk acceptance was provided.",
+      "Signoff remains blocked by developer TDD commit traceability."
     ]
-  }
+  },
+  "result": "BLOCKED",
+  "blocking_issue_count": 2
 }

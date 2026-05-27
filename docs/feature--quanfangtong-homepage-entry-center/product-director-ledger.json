@@ -54,7 +54,7 @@
     "control_handoff": false,
     "caveats": [
       "This ledger is not listed as a canonical control handoff.",
-      "QFT-ASIS evidence ids must be backed by the current-homepage evidence pack before final signoff treats AS-IS facts as observed evidence."
+      "QFT-ASIS evidence ids are backed by the current-homepage evidence pack captured at 2026-05-26T12:34:47Z; final signoff must consume canonical PM artifacts for current evidence status."
     ]
   }
 }

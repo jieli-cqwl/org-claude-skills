@@ -16,24 +16,34 @@
   <h1>全房通首页入口中心 Phase Operational</h1>
   <p><span class="badge">BLOCK</span></p>
   <h2>Phase Summary</h2>
-  <p>Task 8 signoff is blocked because required evidence, design/test/plan, prototype, developer, verifier, review, and QA artifacts are not present.</p>
+  <p>Static prototype, developer-report, code-review-result, verify-result, qa-result, desktop/mobile QA screenshots, consistency audit, active delivery-blocked registry revision, and current quick regression evidence exist. Browser QA and code review passed; verify and QA signoff readiness remain blocked by missing TDD commit traceability.</p>
   <h2>Active Blocker</h2>
-  <p>QFT-T8-BLOCK-001: missing evidence/design/test/plan/prototype/developer/verify/review/QA prerequisites.</p>
-  <h2>Decision Basis</h2>
-  <ul>
-    <li><code>artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root</code></li>
-    <li><code>artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state@blocked#phase-summary</code></li>
-    <li><code>artifact://phase-prd/quanfangtong-homepage-entry-center.phase-1.prd@v1#phase-goal</code></li>
-    <li><code>artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry</code></li>
-  </ul>
-  <h2>Missing Prerequisites</h2>
+  <p>QFT-T8-BLOCK-TDD-COMMIT-TRACEABILITY: developer-report runtime_status=BLOCKED with empty tdd_evidence_index, so verify-result=BLOCKING and qa-result=BLOCKED for signoff readiness.</p>
+  <h2>Current Evidence Matrix</h2>
   <table>
-    <thead><tr><th>Path</th><th>Status</th></tr></thead>
+    <thead><tr><th>Area</th><th>Status</th><th>Evidence</th></tr></thead>
     <tbody>
-      <tr><td><code>docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/desktop-homepage.png</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/mobile-homepage.png</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/page-text.md</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/design.json</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/test-cases.json</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/plan.json</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/index.html</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/styles.css</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/app.js</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png</code></td><td>MISSING</td></tr><tr><td><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png</code></td><td>MISSING</td></tr>
+      <tr><td>Code review</td><td>PASS</td><td><code>code-review-result.json#result:PASS</code></td></tr>
+      <tr><td>Verify</td><td>BLOCKING</td><td><code>unit-1/tasks/T1/verify-result.json#result:BLOCKING</code></td></tr>
+      <tr><td>Browser QA</td><td>PASS behavior / BLOCKED signoff</td><td><code>qa-result.json#obligation_results</code></td></tr>
+      <tr><td>Quick regression</td><td>PASS</td><td><code>bash tests/run-all.sh --quick =&gt; All tests passed</code></td></tr>
+      <tr><td>Registry</td><td>DELIVERY-BLOCKED ACTIVE</td><td><code>artifact-registry.json#active_revision_id:delivery-blocked-r1</code></td></tr>
+      <tr><td>User decision</td><td>PENDING</td><td><code>user-decision.json absent by contract</code></td></tr>
     </tbody>
   </table>
+  <h2>Decision Basis</h2>
+  <ul>
+    <li><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/consistency-audit-result.json#result:BLOCKED</code></li>
+    <li><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/delivery-state.json#status:BLOCKED</code></li>
+    <li><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/artifact-registry.json#active_revision_id:delivery-blocked-r1</code></li>
+    <li><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:BLOCKING</code></li>
+    <li><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/qa-result.json#result:BLOCKED</code></li>
+    <li><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json#result:PASS</code></li>
+    <li><code>command: bash tests/run-all.sh --quick =&gt; [13/18] standard-chain-field-consumption-contract PASS; All tests passed</code></li>
+    <li><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#sha256:967e38a1bda4652ab0be68e9b9d984bf13327fa69ea0b1ff8ba62ad94880d97a</code></li>
+    <li><code>docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png#sha256:16e87e7d823e7ca91481301f512f1a4467fa5102f2d7e826b35708bb2f2b4791</code></li>
+  </ul>
   <h2>Next Owner</h2>
-  <p>delivery-owner routes to product/design/test-design/tech-lead/developer/review/verify/qa owners in Task order.</p>
+  <p>developer owns real RED/GREEN commit traceability evidence; delivery-owner must rerun verify/QA/signoff after that evidence exists.</p>
 </body>
 </html>

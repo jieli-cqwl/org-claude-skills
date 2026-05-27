@@ -99,13 +99,18 @@ def active_entries(
             continue
         if entry.get("lifecycle_state") != "FINALIZED":
             continue
-        key = (
-            entry.get("artifact_type"),
-            entry.get("artifact_id"),
-            entry.get("version"),
-        )
-        if all(isinstance(part, str) and part for part in key):
-            result[key] = entry
+        artifact_type = entry.get("artifact_type")
+        artifact_id = entry.get("artifact_id")
+        version = entry.get("version")
+        if (
+            isinstance(artifact_type, str)
+            and artifact_type
+            and isinstance(artifact_id, str)
+            and artifact_id
+            and isinstance(version, str)
+            and version
+        ):
+            result[(artifact_type, artifact_id, version)] = entry
     if not result:
         raise PreflightFailure(
             "UNRESOLVED_REF", "artifact-registry has no FINALIZED active entries"
@@ -148,30 +153,67 @@ def validate_test_ref(phase_dir: Path, entry: dict[str, Any]) -> None:
         for row in test_cases.get("ac_coverage_matrix", [])
         if isinstance(row, dict) and isinstance(row.get("ac_id"), str)
     }
+    known_ac.update(
+        row.get("source_ac_ref")
+        for row in test_cases.get("test_obligations", [])
+        if isinstance(row, dict) and isinstance(row.get("source_ac_ref"), str)
+    )
     known_cases = {
         row.get("case_id")
         for row in test_cases.get("test_cases", [])
         if isinstance(row, dict) and isinstance(row.get("case_id"), str)
     }
+    known_cases.update(
+        row.get("obligation_id")
+        for row in test_cases.get("test_obligations", [])
+        if isinstance(row, dict) and isinstance(row.get("obligation_id"), str)
+    )
     if anchor and anchor not in known_ac and anchor not in known_cases:
         raise PreflightFailure(
             "UNRESOLVED_REF", f"test_ref anchor not found: {entry.get('ref')}"
         )
-    cases = [row for row in test_cases.get("test_cases", []) if isinstance(row, dict)]
-    if not any(
-        isinstance(row.get("assertion_target"), str) and row["assertion_target"].strip()
-        for row in cases
-    ):
+    assertions = [
+        row.get("assertion_target")
+        for row in test_cases.get("test_cases", [])
+        if isinstance(row, dict)
+    ]
+    assertions.extend(
+        row.get("expected_result")
+        for row in test_cases.get("test_obligations", [])
+        if isinstance(row, dict)
+    )
+    if not any(isinstance(item, str) and item.strip() for item in assertions):
         raise PreflightFailure(
-            "MISSING_INPUT", "test-cases.json lacks assertion_target"
+            "MISSING_INPUT", "test-cases.json lacks assertion target or expected result"
         )
-    if not any(
-        isinstance(row.get("evidence_expectation"), str)
-        and row["evidence_expectation"].strip()
-        for row in cases
+    evidence = [
+        row.get("evidence_expectation")
+        for row in test_cases.get("test_cases", [])
+        if isinstance(row, dict)
+    ]
+    evidence.extend(
+        row.get("evidence_expectation")
+        for row in test_cases.get("test_obligations", [])
+        if isinstance(row, dict)
+    )
+    evidence.extend(
+        row.get("evidence_method")
+        for row in test_cases.get("test_obligations", [])
+        if isinstance(row, dict)
+    )
+    has_evidence_refs = any(
+        isinstance(row, dict)
+        and isinstance(row.get("evidence_refs"), list)
+        and len(row["evidence_refs"]) > 0
+        for row in test_cases.get("test_obligations", [])
+    )
+    if (
+        not any(isinstance(item, str) and item.strip() for item in evidence)
+        and not has_evidence_refs
     ):
         raise PreflightFailure(
-            "MISSING_INPUT", "test-cases.json lacks evidence_expectation"
+            "MISSING_INPUT",
+            "test-cases.json lacks evidence expectation, method, or refs",
         )
 
 
@@ -223,6 +265,18 @@ def validate_developer_report(report: dict[str, Any], task_id: str) -> None:
     if not string_list(report.get("file_changes")):
         raise PreflightFailure(
             "DEVELOPER_REPORT_INVALID", "developer-report missing file_changes"
+        )
+    runtime_status = report.get("runtime_status")
+    if runtime_status == "BLOCKED":
+        blocked_reason = report.get("blocked_reason")
+        detail = (
+            f": {blocked_reason}"
+            if isinstance(blocked_reason, str) and blocked_reason.strip()
+            else ""
+        )
+        raise PreflightFailure(
+            "DEVELOPER_REPORT_INVALID",
+            f"developer-report runtime_status is BLOCKED{detail}",
         )
     rows = report.get("tdd_evidence_index")
     if not isinstance(rows, list) or len(rows) < 2:

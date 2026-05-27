@@ -78,20 +78,17 @@
       "source_type": "screenshot",
       "source_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/desktop-homepage.png",
       "screenshot_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/desktop-homepage.png",
-      "captured_at": "TBD_BY_TASK_2",
+      "captured_at": "2026-05-26T12:34:47Z",
       "entry_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json#QFT-ASIS-001",
-      "status": "ASSUMPTION",
-      "gap_reason": "Task 3 artifact generation references the planned evidence id; the capture pack is produced by Task 2.",
-      "required_evidence": [
-        "desktop-homepage.png entry in capture-manifest.json"
-      ],
-      "blocks_fields": [
-        "final_signoff.as_is_desktop_fact"
-      ],
+      "status": "captured",
       "supports": [
         "ASIS-1",
         "ENTRY-1",
         "COV-RESP-DESKTOP"
+      ],
+      "manifest_supports": [
+        "desktop_current_homepage",
+        "as_is_entry_center"
       ]
     },
     {
@@ -99,38 +96,34 @@
       "source_type": "screenshot",
       "source_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/mobile-homepage.png",
       "screenshot_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/mobile-homepage.png",
-      "captured_at": "TBD_BY_TASK_2",
+      "captured_at": "2026-05-26T12:34:47Z",
       "entry_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json#QFT-ASIS-002",
-      "status": "ASSUMPTION",
-      "gap_reason": "Task 3 artifact generation references the planned evidence id; the capture pack is produced by Task 2.",
-      "required_evidence": [
-        "mobile-homepage.png entry in capture-manifest.json"
-      ],
-      "blocks_fields": [
-        "final_signoff.as_is_mobile_fact"
-      ],
+      "status": "captured",
       "supports": [
         "ASIS-1",
         "COV-RESP-MOBILE"
+      ],
+      "manifest_supports": [
+        "mobile_current_homepage",
+        "responsive_baseline"
       ]
     },
     {
       "evidence_id": "QFT-ASIS-003",
-      "source_type": "page_description",
+      "source_type": "text",
       "source_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/page-text.md",
       "entry_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/capture-manifest.json#QFT-ASIS-003",
-      "status": "ASSUMPTION",
-      "gap_reason": "Task 3 artifact generation references the planned evidence id; the capture pack is produced by Task 2.",
-      "required_evidence": [
-        "page-text.md entry in capture-manifest.json"
-      ],
-      "blocks_fields": [
-        "final_signoff.as_is_text_fact"
-      ],
+      "status": "captured",
       "supports": [
         "ASIS-1",
         "RULE-1",
         "TOBE-1"
+      ],
+      "captured_at": "2026-05-26T12:34:47Z",
+      "observed_text_ref": "docs/feature--quanfangtong-homepage-entry-center/evidence/current-homepage/page-text.md",
+      "manifest_supports": [
+        "visible_text",
+        "as_is_flows"
       ]
     },
     {
@@ -392,15 +385,15 @@
       "risk_id": "RISK-1",
       "source": "current homepage evidence dependency",
       "risk_type": "evidence",
-      "trigger_condition": "QFT-ASIS evidence pack is missing or incomplete",
+      "trigger_condition": "QFT-ASIS evidence pack must remain available for downstream AS-IS traceability",
       "affected_units": [
         "UNIT-1"
       ],
-      "impact": "AS-IS statements cannot be treated as observed facts for final signoff",
-      "pm_decision": "keep evidence refs explicit and transfer final AS-IS evidence closure to Task 2 capture and delivery-owner signoff",
-      "mitigation_or_owner": "Task 2 evidence capture and delivery-owner final check",
+      "impact": "AS-IS statements are now backed by captured desktop, mobile, and observed text evidence.",
+      "pm_decision": "treat QFT-ASIS-001, QFT-ASIS-002, and QFT-ASIS-003 as observed Task 2 evidence while preserving traceability to capture-manifest.json",
+      "mitigation_or_owner": "delivery-owner must preserve evidence refs in final signoff package",
       "verification_target": "phase-prd.evidence_sources and capture-manifest.json",
-      "status": "TRANSFERRED"
+      "status": "CLOSED"
     },
     {
       "risk_id": "RISK-2",
@@ -587,10 +580,10 @@
     "residual_risks": [
       {
         "risk_id": "RISK-1",
-        "description": "QFT-ASIS evidence pack must exist before final AS-IS claims are accepted.",
+        "description": "QFT-ASIS evidence pack is captured and must remain referenced by final AS-IS claims.",
         "owner": "delivery-owner",
-        "target_resolution": "final signoff package",
-        "status": "TRANSFERRED"
+        "target_resolution": "preserve references in final signoff package",
+        "status": "CLOSED"
       }
     ]
   }

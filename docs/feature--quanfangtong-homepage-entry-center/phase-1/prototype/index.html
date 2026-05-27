@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>全房通首页入口中心原型</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header" data-testid="header-brand">
+      <div>
+        <p class="eyebrow">prototype_only / not_integrated</p>
+        <h1>全房通</h1>
+      </div>
+      <p class="header-note">首页入口中心静态原型，不连接真实登录、支付、下载、客服、公告或埋点服务。</p>
+    </header>
+
+    <main class="entry-shell" data-testid="entry-shell">
+      <section class="primary-column" aria-labelledby="login-title">
+        <section class="renewal-banner" data-testid="renewal-banner" aria-live="polite">
+          <div>
+            <p class="eyebrow">续费提醒 · not_integrated</p>
+            <h2>您的服务即将到期</h2>
+            <p data-testid="renewal-message">此处仅展示续费提示原型，不跳转支付页，不修改账号状态。</p>
+          </div>
+          <div class="banner-actions">
+            <button type="button" data-testid="renewal-dismiss">收起提示</button>
+            <button type="button" data-testid="renewal-restore">恢复提示</button>
+          </div>
+        </section>
+
+        <section class="login-card" data-testid="login-section" aria-labelledby="login-title">
+          <div class="section-heading">
+            <p class="eyebrow">登录入口 · prototype_only</p>
+            <h2 id="login-title">选择登录方式</h2>
+          </div>
+          <div class="login-tabs" role="tablist" aria-label="登录方式">
+            <button type="button" role="tab" aria-selected="true" data-login-target="password" data-testid="login-tab-password">密码登录</button>
+            <button type="button" role="tab" aria-selected="false" data-login-target="sms" data-testid="login-tab-sms">验证码登录</button>
+            <button type="button" role="tab" aria-selected="false" data-login-target="qr" data-testid="login-tab-qr">二维码登录</button>
+          </div>
+          <div class="login-panel" data-testid="login-panel" aria-live="polite">
+            <h3 data-testid="login-panel-title">密码登录</h3>
+            <p data-testid="login-panel-copy">展示账号和密码入口占位，不采集真实凭据。</p>
+            <div class="qr-placeholder" data-testid="qr-panel" hidden>二维码占位：仅用于评审入口，不生成真实扫码会话。</div>
+            <p class="boundary" data-testid="login-boundary">真实登录能力 not_integrated；不会提交凭据、创建会话或调用鉴权接口。</p>
+          </div>
+        </section>
+      </section>
+
+      <aside class="secondary-column" aria-label="辅助入口">
+        <section class="entry-card" data-testid="download-entry">
+          <p class="eyebrow">客户端下载 · not_integrated</p>
+          <h2>下载客户端</h2>
+          <p>用于保留客户端入口识别，不触发真实文件下载。</p>
+          <button type="button" data-testid="download-button">查看下载提示</button>
+          <p class="status" data-testid="download-status" aria-live="polite">等待操作。</p>
+        </section>
+
+        <section class="entry-card" data-testid="support-entry">
+          <p class="eyebrow">客服入口 · not_integrated</p>
+          <h2>联系客服</h2>
+          <p>用于保留客服入口识别，不打开聊天、工单、电话网关或外部页面。</p>
+          <button type="button" data-testid="support-button">查看客服提示</button>
+          <p class="status" data-testid="support-status" aria-live="polite">等待操作。</p>
+        </section>
+
+        <section class="entry-card" data-testid="announcement-entry">
+          <p class="eyebrow">公告 · prototype_only</p>
+          <h2>系统公告</h2>
+          <p data-testid="announcement-summary">公告摘要默认可见，内容来自静态原型。</p>
+          <div data-testid="announcement-detail" hidden>
+            <p>扩展公告内容用于评审展示层级，不请求 CMS、通知或公告后台。</p>
+          </div>
+          <button type="button" data-testid="announcement-toggle" aria-expanded="false">展开公告</button>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="site-footer" data-testid="footer-record">
+      <span>页面原型记录：仅用于 UNIT-1 浏览器评审。</span>
+      <span>不包含后端、鉴权、支付、下载、客服、公告后台、埋点、发布或回滚集成。</span>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

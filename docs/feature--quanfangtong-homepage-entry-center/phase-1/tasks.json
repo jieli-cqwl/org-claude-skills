@@ -5,11 +5,108 @@
   "producer": "tech-lead",
   "produced_at": "2026-05-26T00:00:00Z",
   "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.plan_version",
     "$.tasks"
   ],
   "plan_version": "tasks-bootstrap-r1",
-  "tasks": []
+  "source_refs": {
+    "plan_ref": "artifact://plan/quanfangtong-homepage-entry-center.phase-1.plan@plan-v1#plan-root",
+    "unit_ref": "artifact://unit-definition/quanfangtong-homepage-entry-center.phase-1.UNIT-1@v1#unit-UNIT-1",
+    "design_ref": "artifact://design/quanfangtong-homepage-entry-center.phase-1.design@v1#design-root",
+    "test_cases_ref": "artifact://test-cases/quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases@v1#test-root"
+  },
+  "tasks": [
+    {
+      "task_id": "T1",
+      "title": "Implement homepage entry center static prototype",
+      "owner": "developer",
+      "depends_on": [
+        "artifact://brief/quanfangtong-homepage-entry-center.brief@v1#product-brief",
+        "artifact://current-homepage-evidence-pack/quanfangtong-homepage-entry-center.current-homepage@v1#capture-manifest",
+        "artifact://phase-prd/quanfangtong-homepage-entry-center.phase-1.prd@v1#phase-goal",
+        "artifact://unit-definition/quanfangtong-homepage-entry-center.phase-1.UNIT-1@v1#unit-UNIT-1",
+        "artifact://design/quanfangtong-homepage-entry-center.phase-1.design@v1#design-root",
+        "artifact://test-cases/quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases@v1#test-root"
+      ],
+      "design_refs": [
+        "artifact://design/quanfangtong-homepage-entry-center.phase-1.design@v1#design-root"
+      ],
+      "test_refs": [
+        "artifact://test-cases/quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases@v1#TC-UNIT1-LOGIN-001",
+        "artifact://test-cases/quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases@v1#TC-UNIT1-RENEWAL-001",
+        "artifact://test-cases/quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases@v1#TC-UNIT1-DOWNLOAD-001",
+        "artifact://test-cases/quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases@v1#TC-UNIT1-SUPPORT-001",
+        "artifact://test-cases/quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases@v1#TC-UNIT1-ANNOUNCEMENT-001",
+        "artifact://test-cases/quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases@v1#TC-UNIT1-RESPONSIVE-001",
+        "artifact://test-cases/quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases@v1#TC-UNIT1-REFRESH-001"
+      ],
+      "allowed_paths": [
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/**",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json"
+      ],
+      "forbidden_scope_note": "Do not modify worklog, brief, phase-prd, UNIT-1, design, test-cases, QA/signoff/delivery-state/consistency-audit-result, plan, tasks, registry, or projection manifest from this developer task.",
+      "acceptance_targets": [
+        {
+          "ac_ref": "AC-LOGIN-SWITCH",
+          "test_ref": "TC-UNIT1-LOGIN-001",
+          "target": "Password, verification-code, and QR login tabs can be switched in the prototype; the selected method is visibly active after repeated switching and the prototype_only/not_integrated boundary remains visible."
+        },
+        {
+          "ac_ref": "AC-RENEWAL-PROMPT",
+          "test_ref": "TC-UNIT1-RENEWAL-001",
+          "target": "Renewal prompt is visible, can be dismissed or collapsed, can be restored for review, and repeat operations do not break the layout or imply real payment integration."
+        },
+        {
+          "ac_ref": "AC-DOWNLOAD-ENTRY",
+          "test_ref": "TC-UNIT1-DOWNLOAD-001",
+          "target": "Client download entry is recognizable, click feedback is visible, repeat clicks remain local, and no actual download or external navigation is triggered."
+        },
+        {
+          "ac_ref": "AC-SUPPORT-ENTRY",
+          "test_ref": "TC-UNIT1-SUPPORT-001",
+          "target": "Support entry is visible on desktop and mobile, click feedback is visible, repeat clicks remain local, and mobile feedback does not obscure core login or renewal areas."
+        },
+        {
+          "ac_ref": "AC-ANNOUNCEMENT-DISPLAY",
+          "test_ref": "TC-UNIT1-ANNOUNCEMENT-001",
+          "target": "Announcement or notice content is visible or expandable, does not cover login, renewal, download, or support entries, and stays marked as prototype-only content."
+        },
+        {
+          "ac_ref": "AC-RESPONSIVE",
+          "test_ref": "TC-UNIT1-RESPONSIVE-001",
+          "target": "Desktop 1440x1000 and mobile 390x844 layouts keep login, renewal, download, support, and announcement entries identifiable, usable, and free of blocking horizontal overflow."
+        },
+        {
+          "ac_ref": "AC-LOGIN-SWITCH AC-RENEWAL-PROMPT AC-DOWNLOAD-ENTRY AC-SUPPORT-ENTRY AC-ANNOUNCEMENT-DISPLAY AC-RESPONSIVE",
+          "test_ref": "TC-UNIT1-REFRESH-001",
+          "target": "After switching login mode, dismissing renewal prompt, clicking download/support, and expanding announcement content, browser refresh returns to a safe documented default state and the interaction sequence works again."
+        }
+      ],
+      "proving_command": [
+        "python3 -m http.server 4173 --directory docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype",
+        "Open http://127.0.0.1:4173/ in a real browser.",
+        "Run browser QA commands or equivalent DevTools automation against desktop 1440x1000 and mobile 390x844 viewports.",
+        "Capture screenshots and interaction notes for login tab switching, renewal dismiss/restore, download repeat clicks, support repeat clicks, announcement visibility or expansion, responsive behavior, and refresh recovery."
+      ],
+      "evidence_target": {
+        "developer_report_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json",
+        "required_evidence": [
+          "RED/GREEN/REFACTOR evidence for each acceptance target",
+          "desktop 1440x1000 real-browser screenshot or screenshot reference",
+          "mobile 390x844 real-browser screenshot or screenshot reference",
+          "interaction notes for login tab switching",
+          "interaction notes for renewal dismiss and restore",
+          "interaction notes for download and support repeat clicks",
+          "announcement visibility observation",
+          "responsive behavior observation",
+          "refresh recovery observation",
+          "confirmation that no backend, auth, payment, download, support, announcement, telemetry, release, or rollback integration was added"
+        ]
+      },
+      "mock_boundary_note": "Mock must not be used to prove acceptance or integration. Acceptance evidence requires a real browser over the local static prototype; all backend-facing behavior remains prototype_only or not_integrated."
+    }
+  ]
 }

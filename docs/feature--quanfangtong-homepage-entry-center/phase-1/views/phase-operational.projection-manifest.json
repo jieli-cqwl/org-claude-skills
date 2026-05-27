@@ -2,64 +2,79 @@
   "artifact_type": "projection-manifest",
   "artifact_id": "quanfangtong-homepage-entry-center.phase-1.phase-operational.projection-manifest",
   "schema_version": "1.0.0",
-  "producer": "materialize-canonical-html",
+  "producer": "delivery-owner",
   "produced_at": "2026-05-26T00:00:00Z",
   "chain_version": "standard-chain/v1",
   "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "artifact",
   "authoritative_fields": [
     "$.source_artifact_refs",
-    "$.section_source_map"
+    "$.section_source_map",
+    "$.materialize_owner",
+    "$.validate_owner",
+    "$.output_path"
   ],
   "view_id": "phase-operational",
+  "handoff_type": "canonical",
+  "handoff_purpose": "materialize phase-operational.html from Task 5 bootstrap plan, tasks, and artifact registry only",
   "source_artifact_refs": [
-    "artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state@blocked#phase-summary",
-    "artifact://signoff-package/quanfangtong-homepage-entry-center.phase-1.signoff@blocked#signoff-root",
-    "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root"
+    "artifact://plan/quanfangtong-homepage-entry-center.phase-1.plan@plan-v1#plan-root",
+    "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry",
+    "artifact://artifact-registry/quanfangtong-homepage-entry-center.phase-1.artifact-registry@bootstrap-r1#registry-root"
   ],
   "section_source_map": {
-    "phase-summary": {
+    "phase-plan": {
       "source_artifact_refs": [
-        "artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state@blocked#phase-summary"
+        "artifact://plan/quanfangtong-homepage-entry-center.phase-1.plan@plan-v1#plan-root"
       ],
       "json_pointers": [
-        "/summary_text",
-        "/current_stage",
-        "/control_action"
+        "/plan_version",
+        "/ordered_wbs",
+        "/blocking_gap_policy"
       ]
     },
-    "active-blocker": {
+    "developer-task": {
       "source_artifact_refs": [
-        "artifact://signoff-package/quanfangtong-homepage-entry-center.phase-1.signoff@blocked#signoff-root",
-        "artifact://consistency-audit-result/quanfangtong-homepage-entry-center.phase-1.consistency-audit@v1#audit-root"
+        "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-registry"
       ],
       "json_pointers": [
-        "/active_blocker",
-        "/findings"
+        "/tasks/0/task_id",
+        "/tasks/0/allowed_paths",
+        "/tasks/0/acceptance_targets",
+        "/tasks/0/proving_command",
+        "/tasks/0/evidence_target",
+        "/tasks/0/mock_boundary_note"
       ]
     },
-    "decision-basis": {
+    "artifact-registry-bootstrap": {
       "source_artifact_refs": [
-        "artifact://signoff-package/quanfangtong-homepage-entry-center.phase-1.signoff@blocked#signoff-root"
+        "artifact://artifact-registry/quanfangtong-homepage-entry-center.phase-1.artifact-registry@bootstrap-r1#registry-root"
       ],
       "json_pointers": [
-        "/decision_basis_refs"
+        "/registry_revision",
+        "/active_revision_id",
+        "/revisions/0/entries"
       ]
     },
-    "missing-prerequisites": {
+    "materialize-validate-responsibility": {
       "source_artifact_refs": [
-        "artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state@blocked#phase-summary"
+        "artifact://projection-manifest/quanfangtong-homepage-entry-center.phase-1.phase-operational.projection-manifest@bootstrap-r1#manifest-root"
       ],
       "json_pointers": [
-        "/missing_prerequisite_paths"
+        "/materialize_owner",
+        "/validate_owner",
+        "/output_path"
       ]
     }
   },
-  "generated_at": "2026-05-26T00:00:00Z",
-  "renderer_version": "1.0.0",
-  "rendered_artifact_ref": "artifact://projection-manifest/quanfangtong-homepage-entry-center.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
-  "rendered_content_digest": "sha256:b918ee76959a24fc1729ac7fc5e443ce49f18d789f9ca9e0378ebcda1e3ab09e",
   "materialize_owner": "delivery-owner",
+  "materialize_responsibility": "Render docs/feature--quanfangtong-homepage-entry-center/phase-1/views/phase-operational.html from plan, tasks, and artifact-registry bootstrap refs only.",
   "validate_owner": "consistency-auditor",
-  "output_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/views/phase-operational.html"
+  "validate_responsibility": "Validate that phase-operational.html is traceable to the canonical Task 5 bootstrap refs and does not source delivery-state or signoff blocked refs.",
+  "output_path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/views/phase-operational.html",
+  "generated_at": "2026-05-26T00:00:00Z",
+  "renderer_version": "bootstrap-r1",
+  "rendered_artifact_ref": "artifact://projection-view/quanfangtong-homepage-entry-center.phase-1.phase-operational.html@bootstrap-r1#html-output",
+  "rendered_content_status": "not_materialized_by_this_task",
+  "blocked_ref_policy": "delivery-state and signoff blocked refs are not valid source refs for this bootstrap projection manifest"
 }

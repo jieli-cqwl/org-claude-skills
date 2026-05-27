@@ -1,0 +1,326 @@
+{
+  "artifact_type": "test-cases",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-1.UNIT-1.test-cases",
+  "schema_version": "1.0.0",
+  "producer": "test-design",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "unit",
+  "unit_id": "UNIT-1",
+  "source_refs": {
+    "brief_ref": "docs/feature--quanfangtong-homepage-entry-center/brief.json",
+    "phase_prd_ref": "docs/feature--quanfangtong-homepage-entry-center/phase-1/phase-prd.json",
+    "unit_ref": "docs/feature--quanfangtong-homepage-entry-center/phase-1/units/UNIT-1.json",
+    "design_ref": "docs/feature--quanfangtong-homepage-entry-center/phase-1/design.json",
+    "asis_evidence_refs": [
+      "QFT-ASIS-001",
+      "QFT-ASIS-002",
+      "QFT-ASIS-003"
+    ]
+  },
+  "test_basis": {
+    "acceptance_refs": [
+      "AC-LOGIN-SWITCH",
+      "AC-RENEWAL-PROMPT",
+      "AC-DOWNLOAD-ENTRY",
+      "AC-SUPPORT-ENTRY",
+      "AC-ANNOUNCEMENT-DISPLAY",
+      "AC-RESPONSIVE"
+    ],
+    "design_refs": [
+      "entry-layout",
+      "login-switcher",
+      "renewal-banner",
+      "download-entry",
+      "support-entry",
+      "announcement-entry",
+      "responsive-shell"
+    ],
+    "mock_usage": "none_for_acceptance",
+    "acceptance_evidence_method": "real_browser",
+    "backend_boundary": "backend-facing expectations remain prototype_only or not_integrated"
+  },
+  "viewport_matrix": [
+    {
+      "viewport_id": "desktop-1440x1000",
+      "browser": "real_browser",
+      "width": 1440,
+      "height": 1000,
+      "evidence_target": "desktop screenshot plus interaction notes"
+    },
+    {
+      "viewport_id": "mobile-390x844",
+      "browser": "real_browser",
+      "width": 390,
+      "height": 844,
+      "evidence_target": "mobile screenshot plus interaction notes"
+    }
+  ],
+  "test_obligations": [
+    {
+      "obligation_id": "TC-UNIT1-LOGIN-001",
+      "source_ac_ref": "AC-LOGIN-SWITCH",
+      "test_type": "browser_e2e",
+      "evidence_method": "real_browser",
+      "browser": "real_browser",
+      "viewport_matrix": [
+        "desktop-1440x1000",
+        "mobile-390x844"
+      ],
+      "steps": [
+        "Open the static prototype entry center in a browser.",
+        "Select the password login tab and record the visible active state.",
+        "Select the verification-code login tab and record the visible active state.",
+        "Select the QR login tab and record the visible active state.",
+        "Repeat the tab sequence quickly and stop on QR login."
+      ],
+      "expected_result": "Each selected login method becomes visibly active, the matching panel text is shown, the last selected method remains visible after repeat switching, and prototype_only/not_integrated boundary text remains visible.",
+      "evidence_refs": [
+        "QFT-ASIS-001",
+        "QFT-ASIS-002",
+        "QFT-ASIS-003",
+        "design.json#modules/login-switcher"
+      ],
+      "boundary_assertion": "No real credential submission, auth session, tracking, or login backend call is used; real login is prototype_only and not_integrated.",
+      "backend_expectation": "not_integrated"
+    },
+    {
+      "obligation_id": "TC-UNIT1-RENEWAL-001",
+      "source_ac_ref": "AC-RENEWAL-PROMPT",
+      "test_type": "browser_e2e",
+      "evidence_method": "real_browser",
+      "browser": "real_browser",
+      "viewport_matrix": [
+        "desktop-1440x1000",
+        "mobile-390x844"
+      ],
+      "steps": [
+        "Open the static prototype entry center in a browser.",
+        "Confirm the renewal prompt is visible before interaction.",
+        "Dismiss or collapse the renewal prompt.",
+        "Use the restore or equivalent control to bring the prompt back.",
+        "Repeat dismiss and restore once."
+      ],
+      "expected_result": "The renewal prompt visibly changes state, can be restored for continued review, repeat operations do not break layout, and prototype_only/not_integrated boundary text remains visible.",
+      "evidence_refs": [
+        "QFT-ASIS-003",
+        "design.json#modules/renewal-banner"
+      ],
+      "boundary_assertion": "No payment page, billing mutation, renewal API, or account state change occurs; real renewal payment is prototype_only and not_integrated.",
+      "backend_expectation": "not_integrated"
+    },
+    {
+      "obligation_id": "TC-UNIT1-DOWNLOAD-001",
+      "source_ac_ref": "AC-DOWNLOAD-ENTRY",
+      "test_type": "browser_e2e",
+      "evidence_method": "real_browser",
+      "browser": "real_browser",
+      "viewport_matrix": [
+        "desktop-1440x1000",
+        "mobile-390x844"
+      ],
+      "steps": [
+        "Open the static prototype entry center in a browser.",
+        "Locate the client download entry.",
+        "Click the download entry once and record the visible feedback.",
+        "Click the download entry repeatedly.",
+        "Confirm the page remains in the prototype and no file download or external navigation starts."
+      ],
+      "expected_result": "The download entry is recognizable, clicking it displays prototype feedback, repeat clicks keep local feedback stable, and no actual download or external transfer occurs.",
+      "evidence_refs": [
+        "QFT-ASIS-003",
+        "design.json#modules/download-entry"
+      ],
+      "boundary_assertion": "Real client download is prototype_only and not_integrated; repeated clicks must not initiate real file delivery.",
+      "backend_expectation": "not_integrated"
+    },
+    {
+      "obligation_id": "TC-UNIT1-SUPPORT-001",
+      "source_ac_ref": "AC-SUPPORT-ENTRY",
+      "test_type": "browser_e2e",
+      "evidence_method": "real_browser",
+      "browser": "real_browser",
+      "viewport_matrix": [
+        "desktop-1440x1000",
+        "mobile-390x844"
+      ],
+      "steps": [
+        "Open the static prototype entry center in a browser.",
+        "Locate the support entry on desktop and mobile viewports.",
+        "Click the support entry once and record the visible feedback.",
+        "Click the support entry repeatedly.",
+        "Confirm the feedback does not obscure the login or renewal areas on the mobile viewport."
+      ],
+      "expected_result": "The support entry is visible and recognizable on desktop and mobile, clicking it displays prototype feedback, repeat clicks stay local, and mobile layout remains usable.",
+      "evidence_refs": [
+        "QFT-ASIS-002",
+        "QFT-ASIS-003",
+        "design.json#modules/support-entry"
+      ],
+      "boundary_assertion": "Real support system is prototype_only and not_integrated; no chat, ticket, phone gateway, external support page, or tracking integration is invoked.",
+      "backend_expectation": "not_integrated"
+    },
+    {
+      "obligation_id": "TC-UNIT1-ANNOUNCEMENT-001",
+      "source_ac_ref": "AC-ANNOUNCEMENT-DISPLAY",
+      "test_type": "browser_e2e",
+      "evidence_method": "real_browser",
+      "browser": "real_browser",
+      "viewport_matrix": [
+        "desktop-1440x1000",
+        "mobile-390x844"
+      ],
+      "steps": [
+        "Open the static prototype entry center in a browser.",
+        "Confirm announcement or notice content is visible without interaction.",
+        "Expand or collapse announcement content if the prototype provides that interaction.",
+        "Review the announcement area with desktop and mobile viewports.",
+        "Confirm long or expanded announcement content does not cover core entries."
+      ],
+      "expected_result": "Announcement content remains visible or expandable, does not cover login, renewal, download, or support entries, and stays clearly marked as prototype-only content.",
+      "evidence_refs": [
+        "QFT-ASIS-001",
+        "QFT-ASIS-002",
+        "QFT-ASIS-003",
+        "design.json#modules/announcement-entry"
+      ],
+      "boundary_assertion": "Real announcement backend is prototype_only and not_integrated; no CMS, notification, or backend announcement fetch is required for acceptance.",
+      "backend_expectation": "not_integrated"
+    },
+    {
+      "obligation_id": "TC-UNIT1-RESPONSIVE-001",
+      "source_ac_ref": "AC-RESPONSIVE",
+      "test_type": "browser_visual_smoke",
+      "evidence_method": "real_browser",
+      "browser": "real_browser",
+      "viewport_matrix": [
+        "desktop-1440x1000",
+        "mobile-390x844"
+      ],
+      "steps": [
+        "Open the static prototype entry center at desktop 1440x1000.",
+        "Record whether login, renewal, download, support, and announcement entries are all identifiable without overlap.",
+        "Resize or reopen at mobile 390x844.",
+        "Record whether the same entries remain identifiable and usable.",
+        "Scroll only if needed and confirm no content spills horizontally."
+      ],
+      "expected_result": "Desktop and mobile layouts preserve the entry center hierarchy; core text does not overlap, controls are not hidden, and no horizontal overflow blocks review at 390px width.",
+      "evidence_refs": [
+        "QFT-ASIS-001",
+        "QFT-ASIS-002",
+        "design.json#modules/entry-layout",
+        "design.json#modules/responsive-shell"
+      ],
+      "boundary_assertion": "Responsive behavior is prototype_only; it does not prove production release, deployment, rollback, monitoring, or browser support beyond this prototype review.",
+      "backend_expectation": "prototype_only"
+    },
+    {
+      "obligation_id": "TC-UNIT1-REFRESH-001",
+      "source_ac_ref": "AC-LOGIN-SWITCH AC-RENEWAL-PROMPT AC-DOWNLOAD-ENTRY AC-SUPPORT-ENTRY AC-ANNOUNCEMENT-DISPLAY AC-RESPONSIVE",
+      "test_type": "browser_resilience",
+      "evidence_method": "real_browser",
+      "browser": "real_browser",
+      "viewport_matrix": [
+        "desktop-1440x1000",
+        "mobile-390x844"
+      ],
+      "steps": [
+        "Open the static prototype entry center in a browser.",
+        "Switch login mode, dismiss renewal prompt, click download, click support, and expand announcement content.",
+        "Refresh the browser page.",
+        "Observe the default state after refresh.",
+        "Repeat the same interaction sequence once after refresh."
+      ],
+      "expected_result": "After refresh, the prototype returns to a documented safe default state and the same interactions can be performed again without stale, broken, or hidden UI state.",
+      "evidence_refs": [
+        "design.json#data_and_state.refresh_behavior",
+        "design.json#verification_mapping"
+      ],
+      "boundary_assertion": "Refresh recovery uses local prototype state only; no persisted backend session, payment, download, support, announcement, tracking, auth, release, or rollback state is created.",
+      "backend_expectation": "prototype_only"
+    }
+  ],
+  "traceability_matrix": [
+    {
+      "source_ac_ref": "AC-LOGIN-SWITCH",
+      "obligation_refs": [
+        "TC-UNIT1-LOGIN-001",
+        "TC-UNIT1-REFRESH-001"
+      ],
+      "design_refs": [
+        "login-switcher"
+      ],
+      "evidence_method": "real_browser"
+    },
+    {
+      "source_ac_ref": "AC-RENEWAL-PROMPT",
+      "obligation_refs": [
+        "TC-UNIT1-RENEWAL-001",
+        "TC-UNIT1-REFRESH-001"
+      ],
+      "design_refs": [
+        "renewal-banner"
+      ],
+      "evidence_method": "real_browser"
+    },
+    {
+      "source_ac_ref": "AC-DOWNLOAD-ENTRY",
+      "obligation_refs": [
+        "TC-UNIT1-DOWNLOAD-001",
+        "TC-UNIT1-REFRESH-001"
+      ],
+      "design_refs": [
+        "download-entry"
+      ],
+      "evidence_method": "real_browser"
+    },
+    {
+      "source_ac_ref": "AC-SUPPORT-ENTRY",
+      "obligation_refs": [
+        "TC-UNIT1-SUPPORT-001",
+        "TC-UNIT1-REFRESH-001"
+      ],
+      "design_refs": [
+        "support-entry"
+      ],
+      "evidence_method": "real_browser"
+    },
+    {
+      "source_ac_ref": "AC-ANNOUNCEMENT-DISPLAY",
+      "obligation_refs": [
+        "TC-UNIT1-ANNOUNCEMENT-001",
+        "TC-UNIT1-REFRESH-001"
+      ],
+      "design_refs": [
+        "announcement-entry"
+      ],
+      "evidence_method": "real_browser"
+    },
+    {
+      "source_ac_ref": "AC-RESPONSIVE",
+      "obligation_refs": [
+        "TC-UNIT1-RESPONSIVE-001",
+        "TC-UNIT1-REFRESH-001"
+      ],
+      "design_refs": [
+        "entry-layout",
+        "responsive-shell"
+      ],
+      "evidence_method": "real_browser"
+    }
+  ],
+  "qa_handoff_contract": {
+    "minimum_evidence": [
+      "desktop-1440x1000 screenshot",
+      "mobile-390x844 screenshot",
+      "interaction notes for login tab switching",
+      "interaction notes for renewal dismiss and restore",
+      "interaction notes for download and support repeat clicks",
+      "announcement visibility observation",
+      "refresh recovery observation"
+    ],
+    "acceptance_boundary": "Mock must not be used to prove acceptance or integration; real_browser evidence is required and all backend-facing behavior remains prototype_only or not_integrated.",
+    "release_boundary": "These obligations do not approve real production release, auth, payment, download, support, announcement backend, telemetry, or rollback."
+  },
+  "gaps": []
+}

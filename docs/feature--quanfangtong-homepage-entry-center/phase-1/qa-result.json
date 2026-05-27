@@ -1,0 +1,327 @@
+{
+  "artifact_type": "qa-result",
+  "artifact_id": "quanfangtong-homepage-entry-center.phase-1.qa-result",
+  "schema_version": "1.0.0",
+  "producer": "qa",
+  "produced_at": "2026-05-26T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "authority_scope": "phase",
+  "task_ref": "artifact://tasks/quanfangtong-homepage-entry-center.phase-1.tasks@tasks-bootstrap-r1#task-T1",
+  "qa_subject_refs": [
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/index.html",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/styles.css",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype/app.js",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json",
+    "docs/feature--quanfangtong-homepage-entry-center/phase-1/code-review-result.json"
+  ],
+  "browser": {
+    "name": "Chromium",
+    "version": "148.0.7778.179",
+    "entry_url": "http://127.0.0.1:4173/",
+    "server_command": "python3 -m http.server 4173 --directory docs/feature--quanfangtong-homepage-entry-center/phase-1/prototype"
+  },
+  "screenshots": [
+    {
+      "viewport": "desktop-1440x1000",
+      "path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png",
+      "sha256": "967e38a1bda4652ab0be68e9b9d984bf13327fa69ea0b1ff8ba62ad94880d97a",
+      "bytes": 149773
+    },
+    {
+      "viewport": "mobile-390x844",
+      "path": "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png",
+      "sha256": "16e87e7d823e7ca91481301f512f1a4467fa5102f2d7e826b35708bb2f2b4791",
+      "bytes": 163805
+    }
+  ],
+  "obligation_results": [
+    {
+      "obligation_id": "QA-LOGIN-SWITCH-DESKTOP",
+      "source_test_ref": "TC-UNIT1-LOGIN-001",
+      "criticality": "CRITICAL",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "desktop-1440x1000",
+      "steps": [
+        "Open prototype at http://127.0.0.1:4173/.",
+        "Observe default password tab.",
+        "Click sms, password, then qr login tabs."
+      ],
+      "expected_result": "The selected login method stays visible, QR panel appears for QR, prototype boundary remains visible, and no browser console error or failed request occurs.",
+      "actual_result": "PASS: default activeTab=password/loginTitle=密码登录/qrHidden=true; after repeated sequence activeTab=qr/loginTitle=二维码登录/qrHidden=false/boundaryVisible=true/noHorizontalOverflow=true; consoleErrors=0; failedRequests=0.",
+      "status": "PASS",
+      "evidence_refs": [
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#sha256:967e38a1bda4652ab0be68e9b9d984bf13327fa69ea0b1ff8ba62ad94880d97a",
+        "browser-state:desktop.initial.activeTab=password",
+        "browser-state:desktop.afterInteractions.activeTab=qr"
+      ],
+      "blocker_owner": null
+    },
+    {
+      "obligation_id": "QA-RENEWAL-DESKTOP",
+      "source_test_ref": "TC-UNIT1-RENEWAL-001",
+      "criticality": "CRITICAL",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "desktop-1440x1000",
+      "steps": [
+        "Open prototype.",
+        "Dismiss renewal prompt.",
+        "Restore renewal prompt."
+      ],
+      "expected_result": "Renewal prompt can collapse and restore without implying real payment integration or causing horizontal overflow.",
+      "actual_result": "PASS: renewalCollapsed=false initially; dismiss/restore path returned renewalCollapsed=false; boundaryVisible=true; noHorizontalOverflow=true; consoleErrors=0; failedRequests=0.",
+      "status": "PASS",
+      "evidence_refs": [
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#sha256:967e38a1bda4652ab0be68e9b9d984bf13327fa69ea0b1ff8ba62ad94880d97a",
+        "browser-state:desktop.afterInteractions.renewalCollapsed=false"
+      ],
+      "blocker_owner": null
+    },
+    {
+      "obligation_id": "QA-DOWNLOAD-ENTRY-DESKTOP",
+      "source_test_ref": "TC-UNIT1-DOWNLOAD-001",
+      "criticality": "CRITICAL",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "desktop-1440x1000",
+      "steps": [
+        "Open prototype.",
+        "Click download entry twice."
+      ],
+      "expected_result": "Download entry gives visible local feedback and triggers no real download, external navigation, console error, or failed request.",
+      "actual_result": "PASS: downloadStatus=下载入口反馈 2 次：仅本页原型状态，无外部跳转或真实集成。 consoleErrors=0; failedRequests=0.",
+      "status": "PASS",
+      "evidence_refs": [
+        "browser-state:desktop.afterInteractions.downloadStatus=下载入口反馈 2 次：仅本页原型状态，无外部跳转或真实集成。",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#sha256:967e38a1bda4652ab0be68e9b9d984bf13327fa69ea0b1ff8ba62ad94880d97a"
+      ],
+      "blocker_owner": null
+    },
+    {
+      "obligation_id": "QA-SUPPORT-ENTRY-DESKTOP-MOBILE",
+      "source_test_ref": "TC-UNIT1-SUPPORT-001",
+      "criticality": "CRITICAL",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "desktop-1440x1000 and mobile-390x844",
+      "steps": [
+        "Click support entry twice on desktop.",
+        "Resize to 390x844.",
+        "Click support entry once on mobile."
+      ],
+      "expected_result": "Support entry remains visible and local on desktop/mobile without blocking login or renewal areas.",
+      "actual_result": "PASS: desktop supportStatus=客服入口反馈 2 次；mobile supportStatus=客服入口反馈 1 次；mobile noHorizontalOverflow=true and boundaryVisible=true.",
+      "status": "PASS",
+      "evidence_refs": [
+        "browser-state:desktop.afterInteractions.supportStatus=客服入口反馈 2 次：仅本页原型状态，无外部跳转或真实集成。",
+        "browser-state:mobile.afterMobileInteractions.supportStatus=客服入口反馈 1 次：仅本页原型状态，无外部跳转或真实集成。",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png#sha256:16e87e7d823e7ca91481301f512f1a4467fa5102f2d7e826b35708bb2f2b4791"
+      ],
+      "blocker_owner": null
+    },
+    {
+      "obligation_id": "QA-ANNOUNCEMENT-DISPLAY",
+      "source_test_ref": "TC-UNIT1-ANNOUNCEMENT-001",
+      "criticality": "CRITICAL",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "desktop-1440x1000 and mobile-390x844",
+      "steps": [
+        "Open prototype.",
+        "Click announcement toggle."
+      ],
+      "expected_result": "Announcement summary/detail are visible as prototype-only content and do not cover core entries.",
+      "actual_result": "PASS: announcementExpanded=true after toggle on desktop and mobile; boundaryVisible=true; noHorizontalOverflow=true.",
+      "status": "PASS",
+      "evidence_refs": [
+        "browser-state:desktop.afterInteractions.announcementExpanded=true",
+        "browser-state:mobile.afterMobileInteractions.announcementExpanded=true",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#sha256:967e38a1bda4652ab0be68e9b9d984bf13327fa69ea0b1ff8ba62ad94880d97a",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png#sha256:16e87e7d823e7ca91481301f512f1a4467fa5102f2d7e826b35708bb2f2b4791"
+      ],
+      "blocker_owner": null
+    },
+    {
+      "obligation_id": "QA-RESPONSIVE",
+      "source_test_ref": "TC-UNIT1-RESPONSIVE-001",
+      "criticality": "CRITICAL",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "desktop-1440x1000 and mobile-390x844",
+      "steps": [
+        "Run desktop viewport 1440x1000.",
+        "Run mobile viewport 390x844.",
+        "Check horizontal overflow after interactions."
+      ],
+      "expected_result": "Both viewports keep login, renewal, download, support, and announcement entries visible without blocking horizontal overflow.",
+      "actual_result": "PASS: desktop noHorizontalOverflow=true; mobile noHorizontalOverflow=true; screenshots saved for both viewports.",
+      "status": "PASS",
+      "evidence_refs": [
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#sha256:967e38a1bda4652ab0be68e9b9d984bf13327fa69ea0b1ff8ba62ad94880d97a",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png#sha256:16e87e7d823e7ca91481301f512f1a4467fa5102f2d7e826b35708bb2f2b4791",
+        "browser-state:desktop.afterInteractions.noHorizontalOverflow=true",
+        "browser-state:mobile.afterMobileInteractions.noHorizontalOverflow=true"
+      ],
+      "blocker_owner": null
+    },
+    {
+      "obligation_id": "QA-REFRESH-RECOVERY",
+      "source_test_ref": "TC-UNIT1-REFRESH-001",
+      "criticality": "CRITICAL",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "desktop-1440x1000",
+      "steps": [
+        "Perform login switch, renewal, download, support, and announcement interactions.",
+        "Refresh the page."
+      ],
+      "expected_result": "Refresh returns the prototype to documented safe defaults and repeat operations remain possible.",
+      "actual_result": "PASS: afterRefresh activeTab=password, loginTitle=密码登录, qrHidden=true, renewalCollapsed=false, downloadStatus=等待操作。, supportStatus=等待操作。, announcementExpanded=false, boundaryVisible=true.",
+      "status": "PASS",
+      "evidence_refs": [
+        "browser-state:desktop.afterRefresh.activeTab=password",
+        "browser-state:desktop.afterRefresh.downloadStatus=等待操作。",
+        "browser-state:desktop.afterRefresh.announcementExpanded=false"
+      ],
+      "blocker_owner": null
+    },
+    {
+      "obligation_id": "QA-PROTOTYPE-BOUNDARY",
+      "source_test_ref": "prototype-boundary",
+      "criticality": "CRITICAL",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "desktop-1440x1000 and mobile-390x844",
+      "steps": [
+        "Observe prototype boundary text.",
+        "Run desktop and mobile interactions.",
+        "Monitor console errors and failed requests."
+      ],
+      "expected_result": "Prototype remains explicitly not integrated and does not perform backend/auth/payment/download/support/announcement/telemetry/release/rollback integration.",
+      "actual_result": "PASS: boundaryVisible=true on desktop and mobile; consoleErrors=0; failedRequests=0; no external navigation or real download observed during QA interactions.",
+      "status": "PASS",
+      "evidence_refs": [
+        "browser-state:desktop.initial.boundaryVisible=true",
+        "browser-state:mobile.initialMobile.boundaryVisible=true",
+        "browser-observation:consoleErrors=0",
+        "browser-observation:failedRequests=0"
+      ],
+      "blocker_owner": null
+    },
+    {
+      "obligation_id": "QA-EVIDENCE-TRUTH",
+      "source_test_ref": "qa-artifact-evidence",
+      "criticality": "HIGH",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "artifact",
+      "steps": [
+        "Save desktop and mobile screenshots to prototype-qa evidence directory.",
+        "Compute screenshot hashes.",
+        "Cross-check verifier and code-review states."
+      ],
+      "expected_result": "QA result references real current evidence and does not replace verify/review blockers with browser-only confidence.",
+      "actual_result": "PASS: screenshots exist with non-zero byte sizes and sha256 hashes; qa-result keeps verify and registry blockers separate from browser behavior PASS.",
+      "status": "PASS",
+      "evidence_refs": [
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/desktop.png#bytes:149773",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/evidence/prototype-qa/mobile.png#bytes:163805",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#result:BLOCKING"
+      ],
+      "blocker_owner": null
+    },
+    {
+      "obligation_id": "QA-SIGNOFF-READINESS",
+      "source_test_ref": "delivery-signoff-readiness",
+      "criticality": "CRITICAL",
+      "release_gate": "BLOCK_ON_FAIL",
+      "viewport": "artifact",
+      "steps": [
+        "Check code review, verify, QA, registry, developer report, and quick regression readiness.",
+        "Separate implementation behavior from delivery blockers."
+      ],
+      "expected_result": "Signoff readiness is PASS only if review, verify, QA, active registry, developer-report runtime status, and quick regression are all consumable for delivery-owner.",
+      "actual_result": "BLOCKED: browser QA obligations pass, current quick regression passes, and active artifact-registry has delivery-blocked-r1 consumable result artifacts, but verify-result remains BLOCKING because developer-report runtime_status remains BLOCKED with empty tdd_evidence_index.",
+      "status": "BLOCKED",
+      "evidence_refs": [
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/verify-result.json#blockers/TDD-COMMIT-TRACEABILITY-MISSING",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/artifact-registry.json#active_revision_id:delivery-blocked-r1",
+        "docs/feature--quanfangtong-homepage-entry-center/phase-1/unit-1/tasks/T1/developer-report.json#runtime_status:BLOCKED",
+        "command: bash tests/run-all.sh --quick => [13/18] standard-chain-field-consumption-contract PASS; All tests passed"
+      ],
+      "blocker_owner": "delivery-owner"
+    }
+  ],
+  "browser_state_evidence": {
+    "desktop": {
+      "initial": {
+        "activeTab": "password",
+        "loginTitle": "密码登录",
+        "qrHidden": true,
+        "renewalCollapsed": false,
+        "downloadStatus": "等待操作。",
+        "supportStatus": "等待操作。",
+        "announcementExpanded": "false",
+        "boundaryVisible": true,
+        "noHorizontalOverflow": true,
+        "viewport": "1440x1000"
+      },
+      "afterInteractions": {
+        "activeTab": "qr",
+        "loginTitle": "二维码登录",
+        "qrHidden": false,
+        "renewalCollapsed": false,
+        "downloadStatus": "下载入口反馈 2 次：仅本页原型状态，无外部跳转或真实集成。",
+        "supportStatus": "客服入口反馈 2 次：仅本页原型状态，无外部跳转或真实集成。",
+        "announcementExpanded": "true",
+        "boundaryVisible": true,
+        "noHorizontalOverflow": true,
+        "viewport": "1440x1000"
+      },
+      "afterRefresh": {
+        "activeTab": "password",
+        "loginTitle": "密码登录",
+        "qrHidden": true,
+        "renewalCollapsed": false,
+        "downloadStatus": "等待操作。",
+        "supportStatus": "等待操作。",
+        "announcementExpanded": "false",
+        "boundaryVisible": true,
+        "noHorizontalOverflow": true,
+        "viewport": "1440x1000"
+      }
+    },
+    "mobile": {
+      "initialMobile": {
+        "activeTab": "password",
+        "loginTitle": "密码登录",
+        "qrHidden": true,
+        "renewalCollapsed": false,
+        "downloadStatus": "等待操作。",
+        "supportStatus": "等待操作。",
+        "announcementExpanded": "false",
+        "boundaryVisible": true,
+        "noHorizontalOverflow": true,
+        "viewport": "390x844"
+      },
+      "afterMobileInteractions": {
+        "activeTab": "qr",
+        "loginTitle": "二维码登录",
+        "qrHidden": false,
+        "renewalCollapsed": true,
+        "downloadStatus": "下载入口反馈 1 次：仅本页原型状态，无外部跳转或真实集成。",
+        "supportStatus": "客服入口反馈 1 次：仅本页原型状态，无外部跳转或真实集成。",
+        "announcementExpanded": "true",
+        "boundaryVisible": true,
+        "noHorizontalOverflow": true,
+        "viewport": "390x844"
+      }
+    },
+    "console_errors": 0,
+    "failed_requests": 0
+  },
+  "result": "BLOCKED",
+  "blocking_issue_count": 1,
+  "blocking_issues": [
+    {
+      "issue_id": "QA-SIGNOFF-READINESS-BLOCKED",
+      "owner": "delivery-owner",
+      "reason": "QA browser obligations pass and current quick regression passes, but delivery signoff readiness is blocked by verify-result BLOCKING and BLOCKED developer-report runtime status with missing TDD commit traceability.",
+      "next_action": "Resolve delivery-owner registry/signoff basis and developer-report commit traceability before claiming VERIFIED or signoff-ready."
+    }
+  ],
+  "summary": "BLOCKED: Real Chromium QA passed login switch, renewal, download, support, announcement, responsive, refresh recovery, prototype boundary, and evidence truth obligations on desktop 1440x1000 and mobile 390x844 with consoleErrors=0 and failedRequests=0. Current quick regression passes and active registry points to delivery-blocked-r1. Overall QA remains BLOCKED for signoff readiness because verify-result is BLOCKING and developer-report runtime_status is BLOCKED with no TDD commit traceability."
+}

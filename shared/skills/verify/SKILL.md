@@ -40,14 +40,14 @@ allowed-tools: Read, Bash, Glob, Grep
 开始前先把输入压缩成四个对象：
 
 1. Task：`PHASE_DIR`、`TASK_ID`、scope 参数、Task AC、排除项和输出路径。
-2. Contract：当前 `plan.json`、`tasks.json`、`artifact-registry.json`、`scope_item_refs` 来源追踪、design_refs 和 test_refs。
+2. Contract：当前 `plan.json`、`tasks.json`、`artifact-registry.json`、`scope_item_refs` 来源追踪、design_refs、decision_refs 和 test_refs。
 3. Developer evidence：当前 Task 的 `developer-report.json`、`reviewable_anchor`、`file_changes` 和 `tdd_evidence_index`。
 4. Implementation evidence：变更文件、测试文件、必要的当前命令输出和可定位 `file:line`。
 
 `PHASE_DIR` 和 `TASK_ID` 优先来自用户或派发输入。缺少 `PHASE_DIR` 时，读取 scope registry `contracts/active-doc-scope.yaml` 定位 managed / migrated feature；不能唯一定位时阻断。验收事实以 `$PHASE_DIR/artifact-registry.json` 解析出的当前工件为准。
 
 Preflight：`bash shared/skills/verify/scripts/preflight_check.sh --phase-dir "$PHASE_DIR" --task-id "$TASK_ID"`。
-该脚本校验 `artifact-registry.json`、`plan.json`、`tasks.json`、Task scope、test_refs、`assertion_target`、`evidence_expectation` 和 `developer-report.json` 的 TDD 证据；失败则按脚本返回的 `failure_code / owner / reason` 阻断。
+该脚本校验 `artifact-registry.json`、`plan.json`、`tasks.json`、Task scope、test_refs anchor、`assertion_target` / `expected_result`、`evidence_expectation` / `evidence_method` / `evidence_refs` 和 `developer-report.json` 的 TDD 证据；`developer-report.runtime_status=BLOCKED` 时按 developer 输入阻断路由；失败则按脚本返回的 `failure_code / owner / reason` 阻断。
 
 `scope` 只裁剪验收阶段，不改变验收口径：缺省执行 Phase1 → Phase2A → Phase2B → Phase2C；指定 Phase1 / Phase2A / Phase2B / Phase2C 时，只输出对应阶段和必要前置结论。
 
@@ -90,9 +90,9 @@ digraph verify_flow {
    - 运行 Preflight；失败时输出脚本返回的 `failure_code / owner / reason`，不进入人工验收。
 
 2. 建立 AC 证据矩阵
-   - 读取当前 `tasks.json` 中的 Task、`scope_item_refs`、design_refs 和 test_refs。
+   - 读取当前 `tasks.json` 中的 Task、`scope_item_refs`、design_refs、decision_refs 和 test_refs。
    - 读取对应 `developer-report.json` 的 `file_changes`、`reviewable_anchor` 和 `tdd_evidence_index`。
-   - 解析 test_ref 指向的 `assertion_target` 和 `evidence_expectation`。
+   - 解析 test_ref 指向的 `assertion_target` / `expected_result` 和 `evidence_expectation` / `evidence_method` / `evidence_refs`。
    - 把每条 AC 映射到实现文件、测试文件、验证命令、边界条件和缺口。
 
 3. 反证 AC 与范围（Phase1）
@@ -159,7 +159,7 @@ digraph verify_flow {
 - [ ] `PHASE_DIR`、`TASK_ID`、scope 和输出路径已明确。
 - [ ] Preflight 当前运行通过，或已按 `failure_code / owner / reason` 阻断。
 - [ ] Phase1 每条 AC 有独立 `file:line` 证据、测试或验证证据、边界检查。
-- [ ] test_ref 已解析到 test-cases.json，且 `assertion_target`、`evidence_expectation` 被独立核对。
+- [ ] test_ref 已解析到 test-cases.json，且 `assertion_target` / `expected_result`、`evidence_expectation` / `evidence_method` / `evidence_refs` 被独立核对。
 - [ ] scope 控制结论已输出，范围外实现已识别或排除。
 - [ ] Phase2A TDD 证据和实现真实性都有客观证据。
 - [ ] Phase2B 健壮性和硬编码检查都有客观证据。

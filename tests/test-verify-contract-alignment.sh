@@ -124,6 +124,23 @@ assert_preflight_blocks_missing_test_refs() {
   rm -rf "$(dirname "$workspace")" "$output"
 }
 
+assert_preflight_accepts_test_obligations_schema() {
+  local tmp_root phase_dir output
+  tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/verify-preflight-obligations.XXXXXX")"
+  output="$(mktemp "${TMPDIR:-/tmp}/verify-preflight-obligations.out.XXXXXX")"
+  phase_dir="$tmp_root/phase-1"
+  cp -R "$ROOT/docs/feature--quanfangtong-homepage-entry-center/phase-1" "$phase_dir"
+  jq '.active_revision_id as $active | (.revisions[] | select(.revision_id == $active) | .entries[] | select(.artifact_type == "developer-report")) |= (.lifecycle_state = "FINALIZED" | .active_for_consumption = true | .version = "v1")' "$phase_dir/artifact-registry.json" >"$phase_dir/artifact-registry.tmp.json"
+  mv "$phase_dir/artifact-registry.tmp.json" "$phase_dir/artifact-registry.json"
+
+  if run_preflight "$phase_dir" T1 "$output"; then
+    fail "verify preflight should keep BLOCKED developer-report status as an input blocker"
+  fi
+  jq -e '.status == "BLOCKED" and .failure_code == "DEVELOPER_REPORT_INVALID" and .owner == "developer" and (.reason | contains("runtime_status is BLOCKED"))' "$output" >/dev/null \
+    || fail "verify preflight should accept test_obligations anchors before routing BLOCKED developer report"
+  rm -rf "$tmp_root" "$output"
+}
+
 assert_preflight_blocks_invalid_tdd_evidence() {
   local workspace phase_dir output report
   workspace="$(with_fixture)"
@@ -150,6 +167,7 @@ assert_manifest_declares_preflight
 assert_preflight_passes
 assert_preflight_blocks_missing_developer_report
 assert_preflight_blocks_missing_test_refs
+assert_preflight_accepts_test_obligations_schema
 assert_preflight_blocks_invalid_tdd_evidence
 
 printf '[PASS] verify contract alignment\n'

@@ -101,10 +101,15 @@
       ],
       "risks_and_unknowns": [
         {
-          "item": "current homepage evidence pack may be absent in an isolated task worktree",
-          "impact": "AS-IS facts need QFT-ASIS evidence refs before downstream signoff can treat them as observed facts",
-          "mitigation": "reference QFT-ASIS evidence ids and keep downstream evidence checks explicit",
-          "status": "OPEN"
+          "item": "current homepage evidence pack captured for QFT-ASIS-001, QFT-ASIS-002, and QFT-ASIS-003",
+          "impact": "AS-IS facts can reference captured desktop, mobile, and observed text evidence before downstream signoff.",
+          "mitigation": "capture-manifest.json records all QFT-ASIS entries as captured at 2026-05-26T12:34:47Z.",
+          "status": "CLOSED",
+          "evidence_refs": [
+            "QFT-ASIS-001",
+            "QFT-ASIS-002",
+            "QFT-ASIS-003"
+          ]
         }
       ],
       "decision_rationale": [
@@ -168,10 +173,15 @@
   ],
   "risks_and_unknowns": [
     {
-      "item": "current homepage evidence pack may be absent in an isolated task worktree",
-      "impact": "AS-IS facts need QFT-ASIS evidence refs before downstream signoff can treat them as observed facts",
-      "mitigation": "reference QFT-ASIS evidence ids and keep downstream evidence checks explicit",
-      "status": "OPEN"
+      "item": "current homepage evidence pack captured for QFT-ASIS-001, QFT-ASIS-002, and QFT-ASIS-003",
+      "impact": "AS-IS facts can reference captured desktop, mobile, and observed text evidence before downstream signoff.",
+      "mitigation": "capture-manifest.json records all QFT-ASIS entries as captured at 2026-05-26T12:34:47Z.",
+      "status": "CLOSED",
+      "evidence_refs": [
+        "QFT-ASIS-001",
+        "QFT-ASIS-002",
+        "QFT-ASIS-003"
+      ]
     }
   ],
   "decision_rationale": [
