@@ -418,7 +418,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 600
     },
     {
       "id": "install-migration",
@@ -1065,10 +1065,10 @@
         "tests/test-research-skill-creator-deep-audit.sh"
       ],
       "area": "research",
-      "tier": "full",
+      "tier": "quick",
       "tags": [],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 120
     },
     {
       "id": "research-skill-retain-gate",

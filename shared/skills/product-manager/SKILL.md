@@ -82,7 +82,7 @@ digraph product_manager_flow {
 
 ## The Process
 
-执行规则：读取 `templates/*.template.json` 创建目标 JSON；模板只提供结构起点，复制后立即替换所有样例业务值，目标 JSON 残留 `sample-feature`、`request review`、`Requester` 或 `Reviewer` 等样例文本即失败；用 `contracts/*.schema.json` 限定合法字段；用 scripts/gates 判定完成。后续节点发现缺字段时，回到字段拥有节点补齐。
+执行规则：读取 `shared/skills/product-manager/templates/brief.template.json`、`shared/skills/product-manager/templates/phase-prd.template.json` 和 `shared/skills/product-manager/templates/unit-definition.template.json` 创建目标 JSON；模板只提供结构起点，复制后立即替换所有样例业务值，目标 JSON 残留 `sample-feature`、`request review`、`Requester` 或 `Reviewer` 等样例文本即失败；用 `contracts/*.schema.json` 限定合法字段；用 scripts/gates 判定完成。后续节点发现缺字段时，回到字段拥有节点补齐。
 
 PM 状态字段：不生成 PM co-creation ledger。阻断、open question、WARN 和漂移写入拥有该问题的 `issue_ledger`；评审 digest、reviewer verdict 和收敛证据写入 `review_conclusion`；用户接受后写入 `brief.json.delivery_confirmation`。
 

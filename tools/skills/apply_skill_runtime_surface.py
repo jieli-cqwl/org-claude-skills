@@ -31,8 +31,13 @@ def load_contract(path: Path) -> dict:
     for name, entry in skills.items():
         mode = entry.get("mode")
         if mode not in VALID_MODES:
-            raise SystemExit(f"{path}: {name}.mode must be one of {sorted(VALID_MODES)}")
-        if not str(entry.get("owner", "")).strip() or not str(entry.get("reason", "")).strip():
+            raise SystemExit(
+                f"{path}: {name}.mode must be one of {sorted(VALID_MODES)}"
+            )
+        if (
+            not str(entry.get("owner", "")).strip()
+            or not str(entry.get("reason", "")).strip()
+        ):
             raise SystemExit(f"{path}: {name} requires owner and reason")
     return contract
 
@@ -76,7 +81,9 @@ def description_value(lines: list[str]) -> str:
     return value.strip("'\"")
 
 
-def set_scalar(lines: list[str], key: str, value: str, after_key: str | None = None) -> list[str]:
+def set_scalar(
+    lines: list[str], key: str, value: str, after_key: str | None = None
+) -> list[str]:
     idx = key_index(lines, key)
     rendered = f"{key}: {json.dumps(value, ensure_ascii=False)}"
     if value in {"true", "false"}:
@@ -119,10 +126,10 @@ def replace_description(lines: list[str], description: str) -> list[str]:
     return new_lines
 
 
-def compact_description(name: str, mode: str, original: str, entry: dict, max_chars: int) -> str:
-    if mode == "manual":
-        if entry.get("owner") == "first-party":
-            return original
+def compact_description(
+    name: str, mode: str, original: str, entry: dict, max_chars: int
+) -> str:
+    if mode == "manual" and entry.get("owner") != "first-party":
         return f"Manual-only. Invoke as ${name}."
     candidate = str(entry.get("description") or original).strip()
     if len(candidate) <= max_chars:
@@ -136,15 +143,22 @@ def compact_description(name: str, mode: str, original: str, entry: dict, max_ch
     return f"Use when the user request matches ${name}; read SKILL.md for the workflow."
 
 
-def apply_frontmatter(skill_file: Path, name: str, mode: str, entry: dict, max_chars: int) -> None:
+def apply_frontmatter(
+    skill_file: Path, name: str, mode: str, entry: dict, max_chars: int
+) -> None:
     text = skill_file.read_text(encoding="utf-8")
     lines, body = split_frontmatter(text, skill_file)
     original_description = re.sub(r"\s+", " ", description_value(lines)).strip()
     if original_description:
-        lines = replace_description(lines, compact_description(name, mode, original_description, entry, max_chars))
+        lines = replace_description(
+            lines,
+            compact_description(name, mode, original_description, entry, max_chars),
+        )
     if mode == "manual":
         lines = set_scalar(lines, "user-invocable", "true", after_key="name")
-        lines = set_scalar(lines, "disable-model-invocation", "true", after_key="user-invocable")
+        lines = set_scalar(
+            lines, "disable-model-invocation", "true", after_key="user-invocable"
+        )
     elif mode == "auto":
         lines = remove_scalar(lines, "disable-model-invocation")
     updated = "---\n" + "\n".join(lines).rstrip() + "\n---\n\n" + body
@@ -152,7 +166,9 @@ def apply_frontmatter(skill_file: Path, name: str, mode: str, entry: dict, max_c
         skill_file.write_text(updated, encoding="utf-8")
 
 
-def set_codex_implicit_invocation(skill_dir: Path, value: bool, create_if_missing: bool) -> None:
+def set_codex_implicit_invocation(
+    skill_dir: Path, value: bool, create_if_missing: bool
+) -> None:
     agents_dir = skill_dir / "agents"
     policy_file = agents_dir / "openai.yaml"
     rendered_value = "true" if value else "false"
@@ -203,10 +219,8 @@ def skill_name_from_file(skill_file: Path) -> str:
     return scalar_value(lines, "name") or skill_file.parent.name
 
 
-def apply_surface(contract: dict, skills_dir: Path, runtime: str) -> dict:
-    max_chars = int(contract.get("limits", {}).get("max_description_chars", 220))
-    contract_skills = contract["skills"]
-    audit = {
+def init_audit(runtime: str) -> dict:
+    return {
         "runtime": runtime,
         "auto_count": 0,
         "manual_count": 0,
@@ -215,6 +229,59 @@ def apply_surface(contract: dict, skills_dir: Path, runtime: str) -> dict:
         "applied": [],
     }
 
+
+def record_applied(audit: dict, name: str, mode: str) -> None:
+    if mode == "auto":
+        audit["auto_count"] += 1
+    elif mode == "manual":
+        audit["manual_count"] += 1
+    audit["applied"].append({"name": name, "mode": mode})
+
+
+def apply_skill_entry(
+    audit: dict,
+    skill_file: Path,
+    name: str,
+    entry: dict,
+    runtime: str,
+    max_chars: int,
+) -> None:
+    mode = entry["mode"]
+    skill_dir = skill_file.parent
+    if entry.get("owner") == "superpowers" and mode != "auto":
+        raise SystemExit(
+            f"{name}: Superpowers mirror skills must remain auto and unmodified"
+        )
+    if mode == "off":
+        audit["off_count"] += 1
+        shutil.rmtree(skill_dir)
+        audit["applied"].append({"name": name, "mode": mode})
+        return
+    if entry.get("owner") != "superpowers":
+        apply_frontmatter(skill_file, name, mode, entry, max_chars)
+    if runtime == "codex" and entry.get("owner") != "superpowers":
+        apply_codex_policy(skill_dir, mode)
+    record_applied(audit, name, mode)
+
+
+def finalize_audit(contract: dict, audit: dict) -> dict:
+    if audit["unknown"]:
+        unknown = ", ".join(sorted(audit["unknown"]))
+        raise SystemExit(f"skills missing from runtime surface contract: {unknown}")
+
+    auto_limit = int(contract.get("limits", {}).get("max_auto_invoked_skills", 25))
+    if audit["auto_count"] > auto_limit:
+        raise SystemExit(
+            f"auto skill count exceeds limit: {audit['auto_count']} > {auto_limit}"
+        )
+    return audit
+
+
+def apply_surface(contract: dict, skills_dir: Path, runtime: str) -> dict:
+    max_chars = int(contract.get("limits", {}).get("max_description_chars", 220))
+    contract_skills = contract["skills"]
+    audit = init_audit(runtime)
+
     for skill_file in sorted(skills_dir.glob("*/SKILL.md")):
         name = skill_name_from_file(skill_file)
         dir_name = skill_file.parent.name
@@ -222,33 +289,9 @@ def apply_surface(contract: dict, skills_dir: Path, runtime: str) -> dict:
         if entry is None:
             audit["unknown"].append(name)
             continue
-        mode = entry["mode"]
-        skill_dir = skill_file.parent
-        if entry.get("owner") == "superpowers" and mode != "auto":
-            raise SystemExit(f"{name}: Superpowers mirror skills must remain auto and unmodified")
-        if mode == "off":
-            audit["off_count"] += 1
-            shutil.rmtree(skill_dir)
-            audit["applied"].append({"name": name, "mode": mode})
-            continue
-        if entry.get("owner") != "superpowers":
-            apply_frontmatter(skill_file, name, mode, entry, max_chars)
-        if runtime == "codex" and entry.get("owner") != "superpowers":
-            apply_codex_policy(skill_dir, mode)
-        if mode == "auto":
-            audit["auto_count"] += 1
-        elif mode == "manual":
-            audit["manual_count"] += 1
-        audit["applied"].append({"name": name, "mode": mode})
+        apply_skill_entry(audit, skill_file, name, entry, runtime, max_chars)
 
-    if audit["unknown"]:
-        unknown = ", ".join(sorted(audit["unknown"]))
-        raise SystemExit(f"skills missing from runtime surface contract: {unknown}")
-
-    auto_limit = int(contract.get("limits", {}).get("max_auto_invoked_skills", 25))
-    if audit["auto_count"] > auto_limit:
-        raise SystemExit(f"auto skill count exceeds limit: {audit['auto_count']} > {auto_limit}")
-    return audit
+    return finalize_audit(contract, audit)
 
 
 def main() -> None:
@@ -257,7 +300,9 @@ def main() -> None:
     audit = apply_surface(contract, args.skills_dir, args.runtime)
     if args.audit_json:
         args.audit_json.parent.mkdir(parents=True, exist_ok=True)
-        args.audit_json.write_text(json.dumps(audit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        args.audit_json.write_text(
+            json.dumps(audit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
 
 
 if __name__ == "__main__":

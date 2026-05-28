@@ -21,6 +21,17 @@ model: sonnet
 6. push 必须在本地创建/合并完成后单独确认。
 7. 工作区不干净、来源分支缺失、目标分支冲突或 remote 不匹配时，阻塞对应项目；不要静默跳过。
 
+## Workflow
+
+| 步骤 | 输入 | 动作 | 输出 | 失败状态 |
+| --- | --- | --- | --- | --- |
+| 1. 场景确认 | 用户选择的业务场景编号 | 回显场景语义并等待 `确认` | 已确认 scenario | 用户未确认则停留本步 |
+| 2. 项目确认 | 项目编号列表 | 展示业务名、仓库名和主分支 | 已确认 project set | 未知项目或未确认则停留本步 |
+| 3. 分支信息确认 | 场景所需字段 | 生成或识别分支名并回显 | 已确认 branch inputs | 字段缺失或用户修改则回到本步 |
+| 4. 计划生成与校验 | scenario、projects、branch inputs | 调用 `plan` 生成 JSON，再调用 `validate` 校验 | 已校验 plan.json | validate 失败则阻塞 Git 检查 |
+| 5. 执行前检查 | 已校验 plan.json | 检查仓库、remote、工作区、来源分支、目标分支和同步状态 | 通过/阻塞项目分组 | 存在阻塞时由用户选择继续范围 |
+| 6. 执行与 push | 用户确认执行或推送 | 执行本地 Git 操作；push 单独确认 | 完成、未执行、下一步 | 冲突或 Git 失败时停止并报告项目状态 |
+
 ## 分支规范
 
 项目清单：
@@ -59,7 +70,7 @@ model: sonnet
 
 - 项目白名单来自 `references/project-registry.json`。
 - 分支命名和场景规则来自 `references/branch-policy.json`。
-- 计划结构以 `contracts/branch-plan.schema.json` 为准。
+- 计划结构以 `contracts/branch-plan.schema.json` 为准。Load timing: 第 4 步生成计划前读取；purpose: 校验计划字段和步骤结构；output: 合法 plan JSON；consumer: Git 检查和执行步骤；verification: `python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
 - 生成计划：`python3 scripts/qft_branch_flow.py plan <scenario> --projects <repo1,repo2> --version <版本号> ...`
 - 校验计划：`python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
 - `ensure_branch` 表示目标分支存在则使用现有分支，不存在才从来源分支创建；执行前检查必须验证目标分支状态。
@@ -213,6 +224,13 @@ python3 scripts/qft_branch_flow.py validate --input plan.json
 下一步：
 - 处理 qft-app 未提交改动后重新运行本向导
 ```
+
+## Verification
+
+- 计划生成后必须运行 `python3 scripts/qft_branch_flow.py validate --input <plan.json>`；只有 exit 0 且 plan JSON 符合 schema 才能进入 Git 检查。
+- 执行前检查必须逐项目展示仓库、remote、工作区、来源分支、目标分支和同步状态；任一失败项进入阻塞分组。
+- 本地写操作后必须用 `git status` 和目标分支存在性证明结果；push 后必须显示已推送的 remote 和 branch。
+- 输出分组必须包含已完成、未执行和下一步，供用户继续处理阻塞项目。
 
 ## 常见错误
 

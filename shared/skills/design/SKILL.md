@@ -30,29 +30,42 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 
 按顺序创建任务并完成；只在 Baseline Gate、范围/语义漂移、review、用户确认或 validator 失败时分支。
 
-1. **Baseline Gate** — run preflight; stop with an upstream handoff package on BLOCKED.
-2. **Establish Working Artifact** — create `{phase_dir}/design.json` from template/schema.
-3. **Explore Stakeholders and Concerns** — turn design consumers into design obligations.
-4. **Identify Architecture-Significant Requirements** — extract only requirements that change structure, data, interfaces, quality, migration, rollback, or verification.
-5. **Capture Current-State Evidence** — collect code, interface, data, config, runtime, and external-service facts with evidence and `observed_at`.
-6. **Model Complexity** — identify the real complexity source and default to the smallest viable architecture.
-7. **Discover Decisions** — list architecture decisions that must be frozen, their drivers, priority, and missing risk.
-8. **Explore Options and Tradeoffs** — process one decision at a time with recommendation, alternatives, tradeoffs, failure conditions, and user confirmation.
-9. **Synthesize Design** — convert frozen decisions into modules, data ownership, interfaces, cross-cutting concerns, migration, verification, rollback, risk response, and handoff.
-10. **Owner Self-Review** — verify the draft is consumable, referenced, and ready for advisory review.
-11. **Advisory Review** — run architecture/product/test review and fold FAIL/WARN into owned design fields.
-12. **Finalize Design** — show freeze summary, record final confirmation, and run digest/reference/phase validators.
-13. **Transition to /test-design** — hand off only after validators pass and `design.json` is frozen.
+1. **Baseline Gate** — run preflight.
+   - Stop with an upstream handoff package on BLOCKED.
+2. **Establish Working Artifact** — create `design.json`.
+   - Use `{phase_dir}/design.json` from template/schema.
+3. **Explore Stakeholders and Concerns** — derive obligations.
+   - Turn design consumers into design obligations.
+4. **Identify Architecture-Significant Requirements** — extract ASRs.
+   - Cover structure, data, interfaces, quality, migration, rollback, verification.
+5. **Capture Current-State Evidence** — collect facts.
+   - Include code, interface, data, config, runtime, and external-service facts.
+6. **Model Complexity** — locate complexity.
+   - Default to the smallest viable architecture.
+7. **Discover Decisions** — list decisions.
+   - Record drivers, priority, and missing risk.
+8. **Explore Options and Tradeoffs** — freeze one decision at a time.
+   - Include recommendation, alternatives, failure conditions, and confirmation.
+9. **Synthesize Design** — convert decisions into delivery shape.
+   - Cover modules, data, interfaces, migration, verification, rollback, risks.
+10. **Owner Self-Review** — verify consumability.
+   - Check references and readiness for advisory review.
+11. **Advisory Review** — run architecture/product/test review.
+   - Fold FAIL/WARN into owned design fields.
+12. **Finalize Design** — freeze confirmed design.
+   - Record confirmation and run digest/reference/phase validators.
+13. **Transition to /test-design** — hand off frozen design.
+   - Hand off only after validators pass and `design.json` is frozen.
 
 ## Capability Contracts
 
-**Intake Routing:**
+Intake Routing:
 
 - 先判断请求归属：WHY/WHAT 变化交回 `/product-manager`；HOW 设计留在 `/design`；测试、计划或实现要求写入 `/test-design`、`/tech-lead` 或 developer 交接字段。
 - 不用架构设计补产品语义缺口；不把测试用例、任务拆解或实现代码写进 `design.json`。
 - 设计问题只处理会影响结构、边界、数据、质量属性、迁移、回滚、验证或运维风险的 HOW 判断。
 
-**Baseline Gate:**
+Baseline Gate:
 
 - 有 `$ARGUMENTS` 时运行 `bash shared/skills/design/scripts/preflight_check.sh --arguments "$ARGUMENTS"`。
 - 已知 Phase 时运行 `bash shared/skills/design/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"`。
@@ -61,7 +74,7 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - 脚本 JSON 的 `status`、输入路径和阻断原因是 Gate 判定依据；不自行 glob 或读取字段替代脚本判断。
 - BLOCKED 时停止设计，输出回流包：`owner`、阻断事实、影响产物、回流节点和恢复条件；由用户或标准链编排器触发对应 owner。
 
-**Establishing the working artifact:**
+Establishing the working artifact:
 
 - 读取 template/schema，确认当前产物只能写入已定义字段：`shared/skills/design/templates/design.template.json` 和 `shared/skills/design/contracts/design.schema.json`。
 - 从 template 创建 `{phase_dir}/design.json` 草稿；每个生产环节完成确认后，立即写入该环节拥有的 schema 字段。
@@ -69,20 +82,20 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - 将会改变或冻结设计义务的确认 checkpoint 写入 `design.json.co_creation_summary`；将最终确认写入 `design.json.final_confirmation`。
 - `design.json` 是设计过程和最终设计的唯一持久化产物；不创建额外设计台账。
 
-**Stakeholders & Concerns:**
+Stakeholders & Concerns:
 
 - 列出当前 Phase 的 stakeholder（干系人）和设计消费者：用户、产品、测试、tech-lead、delivery-owner、开发、运维/平台、安全/合规。
 - 把每类消费者的关注点转成设计义务：业务语义、质量属性、边界契约、验证证据、实施依赖、迁移回滚、运行风险或后续交接。
 - 只向用户确认会改变设计结论的业务事实、外部约束、质量排序或风险接受。
 
-**Architecture-Significant Requirements:**
+Architecture-Significant Requirements:
 
 - 读取 brief、phase-prd、UNIT、AC、Verification Plan、risk、coverage 和 PM design handoff。
 - 只提炼会改变系统结构、质量属性、边界、数据、运行规则、迁移、回滚、验证或演进的需求。
 - `phase-prd.design_decision_candidates` 是上游候选提示；你只新增影响当前 Phase 可实施、可验证或可回滚的技术决策。
 - 产品范围、业务规则或 AC 语义变化时停止设计，输出 owner=`/product-manager` 的回流包；纯技术决策进入 Decision Discovery。
 
-**Current-State Evidence**
+Current-State Evidence
 
 - 采集与当前决策相关的代码、接口、数据、配置、部署、运行时和外部服务事实。
 - 复杂采证和 preflight 长输出可交给 sub agent；给出只读边界和返回格式，只接收事实、路径、证据、`observed_at`、候选方案、检查结果或原始 stdout/stderr。
@@ -92,7 +105,7 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - 每条事实必须包含 evidence 和 observed_at；无法采集会影响冻结决策的事实时，停止并写明 owner 与恢复方式。
 - 本地资料不足且技术选型依赖最新外部事实时才使用 WebSearch，并记录来源。
 
-**Evidence Strength:**
+Evidence Strength:
 
 - Strong：代码、schema、脚本输出、测试结果、配置、接口契约、数据库/运行时只读证据。
 - Medium：项目文档、历史 ADR、已确认用户事实、稳定团队约定。
@@ -100,21 +113,21 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - 弱证据不能冻结架构决策；它只能触发补采、风险记录、用户确认或上游回流。
 - 每条事实写清 evidence、observed_at、来源路径或命令；无法补强且影响关键决策时停止冻结。
 
-**Complexity Model:**
+Complexity Model:
 
 - 把复杂度拆成业务规则、数据状态、角色协作、运行规则、质量属性、外部约束、资源限制和未来变化。
 - 读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用简单、合适、演化三原则裁决复杂度。
 - 默认推荐最小可行架构；只有真实复杂度、质量目标或风险代价证明复杂模式能降低总体风险时才引入。
 - Constitution、历史 ADR、遗留设计或口头约束只有在用户确认后才能继承。
 
-**Decision Discovery:**
+Decision Discovery:
 
 - 列出必须冻结的架构决策、影响面、质量属性驱动因素、优先级和遗漏风险。
 - 读取 `references/quality-attributes.md`，用于把质量属性写成场景、目标指标、优先级和冲突取舍。
 - 裁决顺序：非协商约束、用户确认的质量属性优先级、可逆性、简单方案。
 - 质量冲突或决策点不清时，继续协作确认；属于产品语义的问题输出 owner=`/product-manager` 的回流包。
 
-**Option Tradeoff:**
+Option Tradeoff:
 
 - 每轮只处理一个关键决策。
 - 处理决策前读取 `references/decision-templates.md`，用于组织推荐、备选、取舍、确认问题和冻结写入。
@@ -126,7 +139,7 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - `option_analysis` 按 `decision_ref` 写 2+ 方案、取舍和事实锚点；`key_decisions` 写最终选择、失效条件和用户确认。
 - 每个决策最终只能进入四种状态：已冻结、转风险、已输出上游回流包、明确不做。
 
-**Decision Shape:**
+Decision Shape:
 
 - 每个 `key_decisions` 项必须写清 `decision_id`、summary、verdict、`option_ref`、`fact_refs` 和 `user_confirmation`。
 - 每个冻结决策必须能回指同一 `decision_id` 的 `option_analysis.decision_ref`；备选方案、取舍和失效条件写入 `option_analysis.tradeoff`。
@@ -134,7 +147,7 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - 推荐不是偏好陈述；推荐必须由事实、质量属性优先级、可逆性、风险代价或实现约束支撑。
 - 被拒方案必须说明为什么此 Phase 不选；失效条件必须说明什么事实出现时需要重开决策。
 
-**Design Synthesis:**
+Design Synthesis:
 
 - 把冻结决策转成模块、数据所有权、接口、横切关注点、迁移、验证、回滚、风险回应、影响范围、计划约束和产品交接。
 - 模块边界写清责任、数据 owner、调用方向、依赖、保护行为和被哪个 UNIT 消费。
@@ -145,14 +158,14 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - 无法被 `/test-design`、`/tech-lead` 或 developer 消费的描述不算完成；在拥有环节补齐可消费字段后再继续。
 - 进入自检前汇报接口 input/output/error 语义摘要、推荐方案、备选方案、取舍、用户裁决和仍需解决的阻断条件。
 
-**Downstream Consumability:**
+Downstream Consumability:
 
 - `/test-design` 必须能从 `verification_mapping` 写出断言、fixture 边界、失败场景和 evidence ref。
 - `/tech-lead` 必须能看出任务边界、依赖顺序、迁移步骤、风险承接和不可并行点。
 - developer 必须能实现接口 input/output/error、模块职责、数据 owner、边界行为和保护逻辑。
 - delivery-owner 必须能从 `risk_response`、`rollback_plan` 和 `planning_constraints` 判断风险、回滚和 release 条件，知道哪些 WARN 被承接到哪里。
 
-**Owner Self-Check:**
+Owner Self-Check:
 
 - 读取准备送审的 `design.json` 草稿。
 - 检查消费者关注点、架构显著需求、事实证据、复杂度模型、关键决策、备选取舍、接口边界、风险回应、验证映射和下游交接是否闭合。
@@ -160,7 +173,7 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - 将自检后的设计内容写入临时 review payload，运行 `python3 shared/skills/design/scripts/review_digest.py --review-payload "$TMPDIR/design-review.json"`。
 - 自检失败时回到拥有环节修正；未审内容先完成自检，再进入最终 `design.json`。
 
-**Advisory Review:**
+Advisory Review:
 
 - 召集 agent teams 承载架构、产品、测试 reviewer；对应视角是 architecture、product、test。
 - reviewer 只审 owner 已自检的设计、Reviewed Design Digest、审查范围摘要、用户确认记录和 open WARN 承接候选。
@@ -172,13 +185,13 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - FAIL 必须系统性修正并重审；WARN 必须给出承接位置，并入 `planning_constraints`、`risk_response`、`verification_mapping` 或 `product_handoff`。
 - 无法形成可验证 agent teams 时，停止并报告能力缺口。
 
-**Review Closure:**
+Review Closure:
 
 - review 闭合必须包含 owner 自检、advisory review verdict、FAIL 修正证据、WARN 承接位置和用户接受状态。
 - reviewer 只能给判断和证据，不能替 owner 冻结设计；owner 必须把有效 finding 合并回 `design.json` 的拥有字段。
 - review 未闭合时不能进入 final confirmation；WARN 没有承接位置时按 FAIL 处理。
 
-**Finalization And Handoff:**
+Finalization And Handoff:
 
 - 向用户展示冻结摘要：关键决策、边界、迁移、验证、回滚、风险回应、计划约束、review 结论和交接重点。
 - 只确认会改变实现、验证、回滚或风险接受的事实。
@@ -190,7 +203,7 @@ preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate；不得�
 - validator 失败时读取 `references/canonical-ref-cheatsheet.md`，用于定位 canonical ref 写法，回到拥有环节最小修正并重新验证。
 - 只有用户确认产生跨 Phase 或跨 feature 架构原则时，才更新 `docs/constitution.md`；首次创建项目级 Constitution 时读取 `assets/constitution-template.md`；单个 Phase 的设计事实留在 `design.json`。
 
-**Optional projection:**
+Optional projection:
 
 - 只在 `design.json` 已通过最终验证，且用户或交付流程需要设计说明视图/ADR 时执行。
 - 投影视图、ADR 和模块视图只能从已验证 `design.json` 派生。

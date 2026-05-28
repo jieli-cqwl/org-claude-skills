@@ -38,6 +38,8 @@ SYNTAX_SHELL_FILES=(
   "tests/run-focused.sh"
   "tests/test-run-focused-runner-contract.sh"
   "tests/test-run-all-runner-contract.sh"
+  "tests/test-skill-pull-contract.sh"
+  "tests/test-superpowers-upstream-fidelity.sh"
   "tests/test-entry-doc-source-contract.sh"
   "tests/test-test-assertion-boundary-contract.sh"
   "tests/test-install-runtime-quick-canary.sh"
@@ -69,6 +71,7 @@ run_bash_syntax_checks() {
     bash -n "$ROOT/$file"
   done
   python3 -m py_compile "$ROOT/tools/community/check_superpowers_upstream_fidelity.py"
+  python3 -m py_compile "$ROOT/tests/test-skill-pull-scripts.py"
   python3 -m py_compile "$ROOT/tools/community/audit_codex_hook_trust.py"
   python3 -m py_compile "$ROOT/tools/community/validate_context_contract.py"
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"

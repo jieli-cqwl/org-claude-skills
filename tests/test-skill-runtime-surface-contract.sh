@@ -181,7 +181,7 @@ if "contracts/skill-runtime-surface.json" not in readme:
     raise SystemExit("README.md should document the skill runtime surface contract")
 PY
 
-mkdir -p "$TMP_DIR/skills/docx/agents" "$TMP_DIR/skills/cli-updater/agents" "$TMP_DIR/skills/webapp-testing/agents"
+mkdir -p "$TMP_DIR/skills/docx/agents" "$TMP_DIR/skills/cli-updater/agents" "$TMP_DIR/skills/claude-api/agents" "$TMP_DIR/skills/webapp-testing/agents"
 cat > "$TMP_DIR/skills/docx/SKILL.md" <<'EOF_SKILL'
 ---
 name: docx
@@ -210,6 +210,14 @@ interface:
 policy:
   other_flag: true
 EOF_YAML
+cat > "$TMP_DIR/skills/claude-api/SKILL.md" <<'EOF_SKILL'
+---
+name: claude-api
+description: This official mirror description is intentionally much longer than the Codex runtime budget because the runtime surface contract owns the injected description for manual first-party skills.
+---
+
+# Claude API
+EOF_SKILL
 cat > "$TMP_DIR/skills/webapp-testing/SKILL.md" <<'EOF_SKILL'
 ---
 name: webapp-testing
@@ -243,6 +251,24 @@ grep -Fq 'allow_implicit_invocation: false' "$TMP_DIR/skills/cli-updater/agents/
   || fail "Codex manual-only policy merge should add implicit invocation flag"
 [ "$(grep -c '^policy:' "$TMP_DIR/skills/cli-updater/agents/openai.yaml")" -eq 1 ] \
   || fail "Codex manual-only policy merge must not create duplicate policy roots"
+python3 - "$CONTRACT" "$TMP_DIR/skills/claude-api/SKILL.md" <<'PY' \
+  || fail "Codex manual first-party runtime description should use contract override"
+import json
+import sys
+from pathlib import Path
+
+contract = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+skill_text = Path(sys.argv[2]).read_text(encoding="utf-8")
+frontmatter = skill_text.split("---\n", 2)[1]
+actual = ""
+for line in frontmatter.splitlines():
+    if line.startswith("description:"):
+        actual = line.split(":", 1)[1].strip().strip("'\"")
+        break
+expected = contract["skills"]["claude-api"]["description"]
+if actual != expected:
+    raise SystemExit(f"runtime description mismatch: {actual!r} != {expected!r}")
+PY
 ! grep -Fq 'disable-model-invocation: true' "$TMP_DIR/skills/webapp-testing/SKILL.md" \
   || fail "Codex auto skill should not be marked manual-only"
 ! grep -Fq 'allow_implicit_invocation: false' "$TMP_DIR/skills/webapp-testing/agents/openai.yaml" \
@@ -258,7 +284,7 @@ from pathlib import Path
 audit = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 if audit.get("runtime") != "codex":
     raise SystemExit("audit runtime mismatch")
-if audit.get("auto_count") != 1 or audit.get("manual_count") != 2:
+if audit.get("auto_count") != 1 or audit.get("manual_count") != 3:
     raise SystemExit(f"unexpected audit counts: {audit}")
 PY
 
