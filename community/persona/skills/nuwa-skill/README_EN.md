@@ -5,12 +5,15 @@
 > *"The next person you want to distill doesn't have to be a colleague."*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-blueviolet)](https://claude.ai/code)
-[![Skills](https://img.shields.io/badge/skills.sh-Compatible-green)](https://skills.sh)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-green)](https://agentskills.io)
+[![skills.sh](https://img.shields.io/badge/skills.sh-Compatible-blue)](https://skills.sh)
+[![Multi-Runtime](https://img.shields.io/badge/Runtime-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20OpenClaw%20·%20Hermes-blueviolet)](#install)
 
 <br>
 
 **Nuwa distills the thinking of anyone — let Musk, Naval, Munger, and Feynman work for you.**
+
+<sub>Built on the open [Agent Skills](https://agentskills.io) standard. Runs in Claude Code, Codex, Cursor, OpenClaw, Hermes Agent, CodeBuddy, Workbuddy, Gemini CLI, OpenCode, and 50+ skills-compatible runtimes.</sub>
 
 <br>
 
@@ -62,13 +65,65 @@ This is not role-play. Naval uses his "desire as contract" mental model. Musk us
 
 ---
 
+## Don't want to distill yourself? Try Bloome
+
+[<img src="bloome-advisors.jpg" alt="Bloome - Make them your brain trust" width="720">](https://www.bloome.im/?utm_source=huashu-leon-202605&utm_medium=github&utm_campaign=nuwa-skill)
+
+Want to talk product with Jobs and Allen Zhang anytime? Investing with Munger?
+
+[Bloome](https://www.bloome.im/?utm_source=huashu-leon-202605&utm_medium=github&utm_campaign=nuwa-skill) — Make them your brain trust. Humans and multiple agents collaborating in a single conversation. [www.bloome.im](https://www.bloome.im/?utm_source=huashu-leon-202605&utm_medium=github&utm_campaign=nuwa-skill)
+
+---
+
 ## Install
+
+Nuwa is built on the open [Agent Skills](https://agentskills.io) standard. It works in any skills-compatible AI agent runtime.
+
+### Option 1: One-line (recommended, cross-runtime)
+
+Open your skills-compatible agent — Claude Code, Codex, Cursor, OpenClaw, Hermes, CodeBuddy, Workbuddy, Gemini CLI, OpenCode, and 50+ more — and tell it:
+
+```
+Install this skill for me: https://github.com/alchaincyf/nuwa-skill
+```
+
+Or use the universal CLI installer ([vercel-labs/skills](https://github.com/vercel-labs/skills), supports 55+ runtimes):
 
 ```bash
 npx skills add alchaincyf/nuwa-skill
 ```
 
-Then in Claude Code:
+It auto-detects your runtime and places the skill in the correct directory. Add `-a claude-code` / `-a codex` / `-a cursor` / `-a openclaw` to target a specific runtime.
+
+### Option 2: Manual install
+
+<details>
+<summary>Per-runtime skills directories</summary>
+
+| Runtime | Path |
+|---|---|
+| Claude Code | `~/.claude/skills/nuwa-skill/` |
+| Codex CLI | `~/.agents/skills/nuwa-skill/` |
+| Cursor | `~/.cursor/skills/nuwa-skill/` |
+| OpenClaw | `~/.openclaw/workspace/skills/nuwa-skill/` |
+| Hermes Agent | run `tools/install_hermes_skill.py` |
+| Any other | clone into that runtime's `skills/` directory |
+
+```bash
+git clone https://github.com/alchaincyf/nuwa-skill <path-above>
+```
+
+</details>
+
+### Option 3: Use as a reference (no runtime needed)
+
+Even without a skills-aware runtime, you can paste any `SKILL.md` into your prompt context — Nuwa is plain markdown + YAML frontmatter.
+
+---
+
+### Usage
+
+Once installed, tell your agent:
 
 ```
 > Distill Paul Graham

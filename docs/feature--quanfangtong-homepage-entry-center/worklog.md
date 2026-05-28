@@ -50,3 +50,15 @@
 - state_ref: canonical:phase-1/delivery-state.json::status=READY_FOR_USER_DECISION
 - next: await explicit user signoff, rejection, or risk acceptance before creating user-decision.json
 - next_ref: canonical:phase-1/signoff-package.json::acceptance.status=PENDING_USER_DECISION
+
+## 2026-05-27T00:00:00Z
+
+- actor: context-contract-validator
+- context_owner: delivery-owner
+- mode: standard-chain
+- stage: SIGNOFF_PENDING
+- scope_ref: docs/feature--quanfangtong-homepage-entry-center
+- handoff_status: done
+- state_ref: canonical:phase-1/artifact-registry.json::artifact://delivery-state/quanfangtong-homepage-entry-center.phase-1.delivery-state.next@v1#phase-summary
+- next: await explicit user signoff, rejection, or risk acceptance before creating user-decision.json
+- next_ref: canonical:phase-1/artifact-registry.json::artifact://signoff-package/quanfangtong-homepage-entry-center.phase-1.signoff.next@v1#signoff-root

@@ -15,19 +15,18 @@ from typing import Any
 
 def resolve_runtime_root(script_path: Path) -> Path:
     resolved = script_path.resolve()
-    candidates = []
-    candidates.extend(parent for parent in resolved.parents[:5])
-    for value in (
-        os.environ.get("CODEX_HOME"),
-        os.environ.get("CLAUDE_HOME"),
-        str(Path.home() / ".codex"),
-        str(Path.home() / ".claude"),
-    ):
-        if value:
-            candidates.append(Path(value))
+    candidates = [
+        *resolved.parents[:5],
+        Path.home() / ".codex",
+        Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")),
+        Path.home() / ".claude",
+        Path(os.environ.get("CLAUDE_HOME", Path.home() / ".claude")),
+    ]
 
     for candidate in candidates:
-        if (candidate / "tools" / "community" / "validate_product_closure.py").is_file():
+        if (
+            candidate / "tools" / "community" / "validate_product_closure.py"
+        ).is_file():
             return candidate
     return resolved.parents[4]
 
@@ -483,7 +482,13 @@ def validate_release_readiness(phase: dict[str, Any]) -> None:
             )
         missing = [
             field
-            for field in ("risk_id", "description", "owner", "target_resolution", "status")
+            for field in (
+                "risk_id",
+                "description",
+                "owner",
+                "target_resolution",
+                "status",
+            )
             if not item.get(field)
         ]
         if missing:
@@ -529,11 +534,19 @@ def validate_business_process_graphs(phase: dict[str, Any]) -> None:
                 )
             missing = [
                 field
-                for field in ("from_step", "to_step", "condition", "object_state_change")
+                for field in (
+                    "from_step",
+                    "to_step",
+                    "condition",
+                    "object_state_change",
+                )
                 if not edge.get(field)
             ]
             if missing or not isinstance(edge.get("risk_refs"), list):
-                detail = ", ".join(missing + ([] if isinstance(edge.get("risk_refs"), list) else ["risk_refs"]))
+                detail = ", ".join(
+                    missing
+                    + ([] if isinstance(edge.get("risk_refs"), list) else ["risk_refs"])
+                )
                 raise PreflightFailure(
                     "PM_PRE_UNIT_MODEL_FAILURE",
                     f"business_process_graphs edge missing fields: {detail}",

@@ -76,18 +76,18 @@ def _assert_co_creation(payload: dict, top_level_ref_assert) -> None:
         _require_non_empty_string(stage_id, f"co_creation_summary[{index}].stage_id")
         if isinstance(stage_id, str):
             seen_stages.add(stage_id)
-        for field in ("stage_name", "question_or_focus", "user_response_summary"):
+        for field in ("confirmation_focus", "user_confirmation_summary"):
             _require_non_empty_string(
                 row.get(field), f"co_creation_summary[{index}].{field}"
             )
         refs = _require_string_list(
-            row.get("decision_refs"), f"co_creation_summary[{index}].decision_refs"
+            row.get("design_refs"), f"co_creation_summary[{index}].design_refs"
         )
         for ref_index, ref in enumerate(refs):
             top_level_ref_assert(
                 ref,
                 payload,
-                f"co_creation_summary[{index}].decision_refs[{ref_index}]",
+                f"co_creation_summary[{index}].design_refs[{ref_index}]",
             )
     missing_stages = sorted(DESIGN_REQUIRED_CONFIRMATION_STAGES - seen_stages)
     if missing_stages:
@@ -215,11 +215,15 @@ def _assert_warn_followups(review: dict, warn_finding_refs: set[str]) -> None:
             _require_non_empty_string(
                 row.get(field), f"review_closure.warn_followups[{index}].{field}"
             )
-        followup_ids.add(row.get("finding_id"))
-        if row.get("target") not in DESIGN_WARN_TARGETS:
+        finding_id = row.get("finding_id")
+        target = row.get("target")
+        if not isinstance(finding_id, str) or not isinstance(target, str):
+            raise AssertionError("validated warn followup fields must be strings")
+        followup_ids.add(finding_id)
+        if target not in DESIGN_WARN_TARGETS:
             raise ValueError(
                 err.warn_followup_target_invalid(
-                    index, row.get("target"), sorted(DESIGN_WARN_TARGETS)
+                    index, target, sorted(DESIGN_WARN_TARGETS)
                 )
             )
     missing_followups = sorted(warn_finding_refs - followup_ids)

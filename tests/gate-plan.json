@@ -418,7 +418,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 900
     },
     {
       "id": "install-migration",

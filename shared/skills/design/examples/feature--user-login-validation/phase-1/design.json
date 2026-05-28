@@ -702,25 +702,25 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:1066758ba82419f09523b79b3d78936bf65382a7e7b3fc6c910e568eb5e58e2e",
+    "reviewed_design_digest": "sha256:2a78093c0de405f167592fa055acbae9d625950a7ab5a0d4a5c9a241024e7d74",
     "reviewed_at": "2026-05-10T10:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:1066758ba82419f09523b79b3d78936bf65382a7e7b3fc6c910e568eb5e58e2e",
+        "reviewed_design_digest": "sha256:2a78093c0de405f167592fa055acbae9d625950a7ab5a0d4a5c9a241024e7d74",
         "finding_refs": []
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:1066758ba82419f09523b79b3d78936bf65382a7e7b3fc6c910e568eb5e58e2e",
+        "reviewed_design_digest": "sha256:2a78093c0de405f167592fa055acbae9d625950a7ab5a0d4a5c9a241024e7d74",
         "finding_refs": []
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:1066758ba82419f09523b79b3d78936bf65382a7e7b3fc6c910e568eb5e58e2e",
+        "reviewed_design_digest": "sha256:2a78093c0de405f167592fa055acbae9d625950a7ab5a0d4a5c9a241024e7d74",
         "finding_refs": []
       }
     ],
@@ -730,65 +730,58 @@
   "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "stage_name": "Stakeholders and concerns",
-      "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
-      "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
-      "decision_refs": [
+      "confirmation_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
+      "user_confirmation_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "design_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "stage_name": "Architecture-significant requirements",
-      "question_or_focus": "确认硬约束和力场：bcrypt、Redis 复用、防账号枚举、30 分钟过期",
-      "user_response_summary": "User 确认上述均为 P0 硬约束，允许 Phase 1 不处理存量用户",
-      "decision_refs": [
+      "confirmation_focus": "确认硬约束和力场：bcrypt、Redis 复用、防账号枚举、30 分钟过期",
+      "user_confirmation_summary": "User 确认上述均为 P0 硬约束，允许 Phase 1 不处理存量用户",
+      "design_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "stage_name": "Current-state evidence",
-      "question_or_focus": "确认 security 为 P0、reliability 为 P1；冻结 4 个决策点",
-      "user_response_summary": "User 确认质量属性排序和 4 个决策点（D-001~D-004）",
-      "decision_refs": [
+      "confirmation_focus": "确认 security 为 P0、reliability 为 P1；冻结 4 个决策点",
+      "user_confirmation_summary": "User 确认质量属性排序和 4 个决策点（D-001~D-004）",
+      "design_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "stage_name": "Complexity model",
-      "question_or_focus": "4 个决策各自的 2 方案对比",
-      "user_response_summary": "User 选择：bcrypt / HttpOnly Cookie / Redis TTL / 统一 401+200ms 延迟",
-      "decision_refs": [
+      "confirmation_focus": "4 个决策各自的 2 方案对比",
+      "user_confirmation_summary": "User 选择：bcrypt / HttpOnly Cookie / Redis TTL / 统一 401+200ms 延迟",
+      "design_refs": [
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "stage_name": "Decision discovery",
-      "question_or_focus": "确认 IF-LOGIN / IF-LOGOUT / IF-SESSION-VALIDATE 契约",
-      "user_response_summary": "User 确认三个接口契约和 3 个模块边界",
-      "decision_refs": [
+      "confirmation_focus": "确认 IF-LOGIN / IF-LOGOUT / IF-SESSION-VALIDATE 契约",
+      "user_confirmation_summary": "User 确认三个接口契约和 3 个模块边界",
+      "design_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "stage_name": "Option tradeoff",
-      "question_or_focus": "确认 VP-LOGIN-* 验证映射、Redis 降级和风险回应",
-      "user_response_summary": "User 确认 6 个 VP、3 个风险及对应回应",
-      "decision_refs": [
+      "confirmation_focus": "确认 VP-LOGIN-* 验证映射、Redis 降级和风险回应",
+      "user_confirmation_summary": "User 确认 6 个 VP、3 个风险及对应回应",
+      "design_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "stage_name": "Design synthesis",
-      "question_or_focus": "确认 CON-* 规划约束与 product_handoff READY",
-      "user_response_summary": "User 确认 3 个 planning_constraint 和 handoff 就绪",
-      "decision_refs": [
+      "confirmation_focus": "确认 CON-* 规划约束与 product_handoff READY",
+      "user_confirmation_summary": "User 确认 3 个 planning_constraint 和 handoff 就绪",
+      "design_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",

@@ -36,6 +36,26 @@ if python3 "$ROOT/tools/community/source_lock_check.py" "$TMP_DIR/sources-bad.ya
   fail "Superpowers 锁定 ref 漂移时应失败"
 fi
 
+cp "$ROOT/community/SOURCES.yaml" "$TMP_DIR/sources-invalid-yaml.yaml"
+python3 - "$TMP_DIR/sources-invalid-yaml.yaml" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+path.write_text(
+    text.replace(
+        "      - Vendor official Superpowers skills/ full set; files remain byte-for-byte upstream originals from locked ref.",
+        "      - `invalid-yaml-token`",
+    ),
+    encoding="utf-8",
+)
+PY
+if python3 "$ROOT/tools/community/source_lock_check.py" "$TMP_DIR/sources-invalid-yaml.yaml" >/tmp/org_invalid_source_lock_yaml.out 2>&1; then
+  cat /tmp/org_invalid_source_lock_yaml.out >&2
+  fail "SOURCES.yaml 不是可解析 YAML 时应失败"
+fi
+
 python3 - <<'PY' >/dev/null || fail "community sync 模块导入应可用"
 import tools.community.sync_canonical_from_upstream as canonical
 import tools.community.sync_vercel_skills_from_upstream as vercel

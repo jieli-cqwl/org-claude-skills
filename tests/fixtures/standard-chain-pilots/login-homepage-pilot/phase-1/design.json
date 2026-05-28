@@ -562,26 +562,26 @@
     ]
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:6df23907aed3dddcb58fe94cf9be6f54612bad2760f0511cf8eb13e5424e9298",
+    "reviewed_design_digest": "sha256:b7e446a95f2610a587ddb5342aa2b5aa29a16c377ec09b2ebb3cb767aca0584c",
     "reviewed_at": "2026-04-22T12:23:37Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:6df23907aed3dddcb58fe94cf9be6f54612bad2760f0511cf8eb13e5424e9298"
+        "reviewed_design_digest": "sha256:b7e446a95f2610a587ddb5342aa2b5aa29a16c377ec09b2ebb3cb767aca0584c"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:6df23907aed3dddcb58fe94cf9be6f54612bad2760f0511cf8eb13e5424e9298"
+        "reviewed_design_digest": "sha256:b7e446a95f2610a587ddb5342aa2b5aa29a16c377ec09b2ebb3cb767aca0584c"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:6df23907aed3dddcb58fe94cf9be6f54612bad2760f0511cf8eb13e5424e9298"
+        "reviewed_design_digest": "sha256:b7e446a95f2610a587ddb5342aa2b5aa29a16c377ec09b2ebb3cb767aca0584c"
       }
     ],
     "resolved_failures": [],
@@ -590,65 +590,58 @@
   "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "stage_name": "Stakeholders and concerns",
-      "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
-      "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
-      "decision_refs": [
+      "confirmation_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
+      "user_confirmation_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "design_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "stage_name": "Architecture-significant requirements",
-      "question_or_focus": "confirm the login/homepage scope and observable journey",
-      "user_response_summary": "User confirmed the pilot must prove login form, credential failure, homepage session, logout invalidation, and observability through real HTTP.",
-      "decision_refs": [
+      "confirmation_focus": "confirm the login/homepage scope and observable journey",
+      "user_confirmation_summary": "User confirmed the pilot must prove login form, credential failure, homepage session, logout invalidation, and observability through real HTTP.",
+      "design_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "stage_name": "Current-state evidence",
-      "question_or_focus": "confirm the current repository facts that affect the design",
-      "user_response_summary": "User confirmed the repository has no existing product web app, so the pilot stays isolated in a standard-library example app.",
-      "decision_refs": [
+      "confirmation_focus": "confirm the current repository facts that affect the design",
+      "user_confirmation_summary": "User confirmed the repository has no existing product web app, so the pilot stays isolated in a standard-library example app.",
+      "design_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "stage_name": "Complexity model",
-      "question_or_focus": "choose the simplest architecture that still proves the user journey",
-      "user_response_summary": "User selected standard-library HTTP with in-memory sessions because the phase validates the delivery chain, not production session durability.",
-      "decision_refs": [
+      "confirmation_focus": "choose the simplest architecture that still proves the user journey",
+      "user_confirmation_summary": "User selected standard-library HTTP with in-memory sessions because the phase validates the delivery chain, not production session durability.",
+      "design_refs": [
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "stage_name": "Decision discovery",
-      "question_or_focus": "confirm module, interface, and boundary contracts",
-      "user_response_summary": "User confirmed the key decisions are runtime choice, credential source, session boundary, and real HTTP verification.",
-      "decision_refs": [
+      "confirmation_focus": "confirm module, interface, and boundary contracts",
+      "user_confirmation_summary": "User confirmed the key decisions are runtime choice, credential source, session boundary, and real HTTP verification.",
+      "design_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "stage_name": "Option tradeoff",
-      "question_or_focus": "confirm migration, verification, rollback, and risk response",
-      "user_response_summary": "User confirmed the selected options keep dependencies minimal, isolate the pilot, and preserve rollback by removing the example app and tests.",
-      "decision_refs": [
+      "confirmation_focus": "confirm migration, verification, rollback, and risk response",
+      "user_confirmation_summary": "User confirmed the selected options keep dependencies minimal, isolate the pilot, and preserve rollback by removing the example app and tests.",
+      "design_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "stage_name": "Design synthesis",
-      "question_or_focus": "confirm planning constraints and impact scope",
-      "user_response_summary": "User confirmed downstream consumers need interfaces, verification mapping, risk response, and rollback plan tied to login/homepage behavior.",
-      "decision_refs": [
+      "confirmation_focus": "confirm planning constraints and impact scope",
+      "user_confirmation_summary": "User confirmed downstream consumers need interfaces, verification mapping, risk response, and rollback plan tied to login/homepage behavior.",
+      "design_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",

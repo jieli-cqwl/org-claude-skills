@@ -274,25 +274,25 @@
     "confirmation_summary": "<what the user confirmed before inheritance>"
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:93267311ce3965cec03853f6b1da3c16fb3b35197c5613ad9250ad8c32b490f6",
+    "reviewed_design_digest": "sha256:74035d84b3dc6ed0c20852ca19de3528d3d32b275ab71ddd80b97abc1c87b156",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "UNREVIEWED",
-        "reviewed_design_digest": "sha256:93267311ce3965cec03853f6b1da3c16fb3b35197c5613ad9250ad8c32b490f6",
+        "reviewed_design_digest": "sha256:74035d84b3dc6ed0c20852ca19de3528d3d32b275ab71ddd80b97abc1c87b156",
         "finding_refs": []
       },
       {
         "reviewer": "product",
         "verdict": "UNREVIEWED",
-        "reviewed_design_digest": "sha256:93267311ce3965cec03853f6b1da3c16fb3b35197c5613ad9250ad8c32b490f6",
+        "reviewed_design_digest": "sha256:74035d84b3dc6ed0c20852ca19de3528d3d32b275ab71ddd80b97abc1c87b156",
         "finding_refs": []
       },
       {
         "reviewer": "test",
         "verdict": "UNREVIEWED",
-        "reviewed_design_digest": "sha256:93267311ce3965cec03853f6b1da3c16fb3b35197c5613ad9250ad8c32b490f6",
+        "reviewed_design_digest": "sha256:74035d84b3dc6ed0c20852ca19de3528d3d32b275ab71ddd80b97abc1c87b156",
         "finding_refs": []
       }
     ],
@@ -313,66 +313,59 @@
   "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "stage_name": "Stakeholders and concerns",
-      "question_or_focus": "确认设计消费者、架构显著关注点和责任边界",
-      "user_response_summary": "<confirmed user answer>",
-      "decision_refs": [
+      "confirmation_focus": "确认设计消费者、架构显著关注点和责任边界",
+      "user_confirmation_summary": "<confirmed user answer>",
+      "design_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "stage_name": "Architecture-significant requirements",
-      "question_or_focus": "确认架构显著需求、质量属性和约束继承",
-      "user_response_summary": "<confirmed user answer>",
-      "decision_refs": [
+      "confirmation_focus": "确认架构显著需求、质量属性和约束继承",
+      "user_confirmation_summary": "<confirmed user answer>",
+      "design_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "stage_name": "Current-state evidence",
-      "question_or_focus": "确认当前系统事实、运行时证据和证据强度",
-      "user_response_summary": "<confirmed user answer>",
-      "decision_refs": [
+      "confirmation_focus": "确认当前系统事实、运行时证据和证据强度",
+      "user_confirmation_summary": "<confirmed user answer>",
+      "design_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "stage_name": "Complexity model",
-      "question_or_focus": "确认复杂度来源、最小可行架构和演化边界",
-      "user_response_summary": "<confirmed user answer>",
-      "decision_refs": [
+      "confirmation_focus": "确认复杂度来源、最小可行架构和演化边界",
+      "user_confirmation_summary": "<confirmed user answer>",
+      "design_refs": [
         "design.json#input_analysis",
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "stage_name": "Decision discovery",
-      "question_or_focus": "确认必须冻结的架构决策、遗漏风险和优先级",
-      "user_response_summary": "<confirmed user answer>",
-      "decision_refs": [
+      "confirmation_focus": "确认必须冻结的架构决策、遗漏风险和优先级",
+      "user_confirmation_summary": "<confirmed user answer>",
+      "design_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "stage_name": "Option tradeoff",
-      "question_or_focus": "确认候选方案取舍、失效条件和最终选择",
-      "user_response_summary": "<confirmed user answer>",
-      "decision_refs": [
+      "confirmation_focus": "确认候选方案取舍、失效条件和最终选择",
+      "user_confirmation_summary": "<confirmed user answer>",
+      "design_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "stage_name": "Design synthesis",
-      "question_or_focus": "确认设计合成结果和下游交接义务",
-      "user_response_summary": "<confirmed user answer>",
-      "decision_refs": [
+      "confirmation_focus": "确认设计合成结果和下游交接义务",
+      "user_confirmation_summary": "<confirmed user answer>",
+      "design_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",

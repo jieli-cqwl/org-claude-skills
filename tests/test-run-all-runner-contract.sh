@@ -243,6 +243,28 @@ assert_not_contains "test-install-smoke.sh" "$quick_plan" "quick plan"
 assert_not_contains "test-install-systematic.sh" "$quick_plan" "quick plan"
 assert_not_contains "test-install-runtime-audit.sh" "$quick_plan" "quick plan"
 
+python3 - "$quick_json" <<'PY'
+import json
+import sys
+
+plan = json.loads(sys.argv[1])
+for step in plan["steps"]:
+    if step.get("id") == "install-runtime":
+        raise SystemExit("install-runtime must not be part of the quick plan")
+PY
+
+full_json="$(bash "$RUNNER" --full --list --format=json)"
+python3 - "$full_json" <<'PY'
+import json
+import sys
+
+plan = json.loads(sys.argv[1])
+steps = {step.get("id"): step for step in plan["steps"]}
+timeout = steps["install-runtime"].get("timeout_sec")
+if not isinstance(timeout, int) or timeout < 900:
+    raise SystemExit(f"install-runtime timeout_sec must be at least 900, got {timeout}")
+PY
+
 if bash "$RUNNER" --does-not-exist >/tmp/org_run_all_bad_option.out 2>&1; then
   fail "unknown option should fail"
 fi

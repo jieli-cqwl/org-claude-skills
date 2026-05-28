@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 from typing import NoReturn
 
+import yaml
+
 try:
     import sync_canonical_from_upstream as sync  # type: ignore
 except ModuleNotFoundError:
@@ -193,6 +195,10 @@ def main(argv: list[str]) -> None:
         fail(f"缺少 source lock 文件: {lock_path}")
 
     text = lock_path.read_text(encoding="utf-8")
+    try:
+        yaml.safe_load(text)
+    except yaml.YAMLError as exc:
+        fail(f"SOURCES.yaml 不是有效 YAML: {exc}")
     require_pattern(text, r"^sources:\s*$", "SOURCES.yaml 缺少顶层 sources 节点")
     validate_source_names(text)
     for source_name, expected_repo in EXPECTED_REPOS.items():
