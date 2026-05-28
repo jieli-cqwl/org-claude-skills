@@ -1,0 +1,309 @@
+{
+  "artifact_type": "skill-audit-report",
+  "audit_mode": "formal",
+  "target_skill": "shared/skills/overview",
+  "verdict": "conditional",
+  "overall_score": 6.9,
+  "verdict_reason": "overview has a clear project-onboarding scenario and a mostly executable workflow, but one P1 runtime safety issue remains in dir-tree.sh, executable overview behavior gates are weak, and the source OpenAI adapter disagrees with the manual runtime surface before install self-heal. No P0 was found, so this is conditional rather than unfit or blocked.",
+  "artifact_paths": {
+    "report_json": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/skill-audit-report.json",
+    "summary_markdown": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/audit-summary.md"
+  },
+  "scope_evidence": [
+    {
+      "surface": "SKILL.md",
+      "status": "checked",
+      "evidence": "shared/skills/overview/SKILL.md:13 defines the goal and completion boundary; shared/skills/overview/SKILL.md:47 starts the workflow."
+    },
+    {
+      "surface": "agents/openai.yaml",
+      "status": "checked",
+      "evidence": "shared/skills/overview/agents/openai.yaml:1 defines the OpenAI adapter and shared/skills/overview/agents/openai.yaml:7 declares the implicit invocation policy."
+    },
+    {
+      "surface": "references",
+      "status": "checked",
+      "evidence": "shared/skills/overview/references/mode-selection.md:1 and shared/skills/overview/references/agent-assignments.md:1 are active references routed from shared/skills/overview/SKILL.md."
+    },
+    {
+      "surface": "scripts",
+      "status": "checked",
+      "evidence": "shared/skills/overview/scripts/project-detect.sh:1 and shared/skills/overview/scripts/dir-tree.sh:1 are active scan scripts."
+    },
+    {
+      "surface": "templates",
+      "status": "checked",
+      "evidence": "shared/skills/overview/projections/project-overview-template.md:1 is the active report template referenced by shared/skills/overview/SKILL.md:89."
+    },
+    {
+      "surface": "contracts",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/contracts/ directory was found; the shared runtime surface contract is recorded under the runtime surface row."
+    },
+    {
+      "surface": "test prompts",
+      "status": "checked",
+      "evidence": "shared/skills/overview/test-prompts.json:1 defines overview prompt fixtures."
+    },
+    {
+      "surface": "evals",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/evals/ directory was found in the target package."
+    },
+    {
+      "surface": "fixtures",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/fixtures/ directory was found in the target package."
+    },
+    {
+      "surface": "runtime surface",
+      "status": "checked",
+      "evidence": "contracts/skill-runtime-surface.json:231 registers overview and contracts/skill-runtime-surface.json:232 sets mode manual."
+    },
+    {
+      "surface": "install hooks",
+      "status": "checked",
+      "evidence": "install.sh:1090 applies the runtime surface tool; install.sh:1168 applies runtime surface during Codex staging; tools/skills/apply_skill_runtime_surface.py:262 applies Codex policy."
+    },
+    {
+      "surface": "gate plan",
+      "status": "checked",
+      "evidence": "tests/gate-plan.json:68 defines the skill-quality-audit profile; current gate scan found no overview-specific behavior gate."
+    },
+    {
+      "surface": "run-all",
+      "status": "checked",
+      "evidence": "tests/run-all.sh:4 orchestrates repository validation suites from tests/gate-plan.json."
+    },
+    {
+      "surface": "focused runner",
+      "status": "checked",
+      "evidence": "tests/run-focused.sh:4 describes focused validation and tests/run-focused.sh:20 includes the skill-quality-audit profile."
+    },
+    {
+      "surface": "README",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/README.md file was found in the target package."
+    },
+    {
+      "surface": "downstream consumers",
+      "status": "checked",
+      "evidence": "tests/test-platform-runtime-noise.sh:266 checks overview runtime path rendering; shared/skills/github-repo-radar/SKILL.md:32 routes some project health requests to scan / overview."
+    }
+  ],
+  "dimension_scores": [
+    {
+      "dimension": "Real Use Capability",
+      "score": 8.5,
+      "evidence_level": "E3",
+      "reason": "shared/skills/overview/SKILL.md:4 names onboarding and architecture overview triggers, shared/skills/overview/SKILL.md:13 defines the output boundary, and shared/skills/github-repo-radar/SKILL.md:32 is an active downstream route."
+    },
+    {
+      "dimension": "Trigger And Routing",
+      "score": 6.5,
+      "evidence_level": "E3",
+      "reason": "The description routes the right project-overview scenarios, but shared/skills/overview/agents/openai.yaml:7 allows implicit invocation while contracts/skill-runtime-surface.json:232 marks overview manual."
+    },
+    {
+      "dimension": "Instruction Contract",
+      "score": 7.5,
+      "evidence_level": "E3",
+      "reason": "Hard gates at shared/skills/overview/SKILL.md:17-21 and step output contracts at shared/skills/overview/SKILL.md:64-69 define objects, outputs, failure states, and proof, though runtime workflow still includes some maintainer sync text."
+    },
+    {
+      "dimension": "Workflow Causality",
+      "score": 8.0,
+      "evidence_level": "E3",
+      "reason": "The workflow orders scan, mode confirmation, module mapping, document generation, and user confirmation so each step feeds the next consumer."
+    },
+    {
+      "dimension": "Output And Handoff",
+      "score": 8.0,
+      "evidence_level": "E3",
+      "reason": "shared/skills/overview/SKILL.md:56-62 and shared/skills/overview/SKILL.md:87-96 define docs/项目概览.md fields, and shared/skills/overview/projections/project-overview-template.md:1 provides a consumable template."
+    },
+    {
+      "dimension": "Determinism And Validation",
+      "score": 5.0,
+      "evidence_level": "E3",
+      "reason": "Two scripts and a completion checklist exist, but shared/skills/overview/scripts/dir-tree.sh:26 uses eval in fallback and overview behavior is not backed by executable eval gates."
+    },
+    {
+      "dimension": "Runtime Integration",
+      "score": 6.0,
+      "evidence_level": "E3",
+      "reason": "contracts/skill-runtime-surface.json:232 makes overview manual and install tooling self-heals Codex policy, but the source adapter still says allow_implicit_invocation: true."
+    },
+    {
+      "dimension": "Evidence And Evals",
+      "score": 4.5,
+      "evidence_level": "E2",
+      "reason": "shared/skills/overview/test-prompts.json:1 exists, but target evals and fixtures are absent and current tests only prove installed path rendering."
+    },
+    {
+      "dimension": "Noise And Maintainability",
+      "score": 6.0,
+      "evidence_level": "E2",
+      "reason": "The skill is compact and mostly actionable, but duplicated output lists and Sync maintenance clauses at shared/skills/overview/SKILL.md:53 and shared/skills/overview/SKILL.md:55 add runtime noise."
+    }
+  ],
+  "findings": [
+    {
+      "id": "OVERVIEW-P1-001",
+      "severity": "P1",
+      "title": "dir-tree fallback builds a shell command with eval from overview inputs",
+      "evidence_level": "E3",
+      "evidence": "shared/skills/overview/SKILL.md:51 requires running dir-tree.sh with the selected project path; shared/skills/overview/scripts/dir-tree.sh:9 reads PROJECT_DIR from argv, shared/skills/overview/scripts/dir-tree.sh:10 reads DEPTH from argv, and shared/skills/overview/scripts/dir-tree.sh:26 executes eval find with those values and dynamic EXCLUDES in the fallback path.",
+      "evidence_checks": [
+        {
+          "path": "shared/skills/overview/SKILL.md",
+          "line": 51,
+          "expected_snippet": "bash {{SKILLS_HOME}}/overview/scripts/dir-tree.sh <项目路径> 3",
+          "claim": "The overview workflow requires invoking dir-tree.sh with the selected project path."
+        },
+        {
+          "path": "shared/skills/overview/scripts/dir-tree.sh",
+          "line": 9,
+          "expected_snippet": "PROJECT_DIR=\"${1:-.}\"",
+          "claim": "dir-tree.sh reads the project path from argv."
+        },
+        {
+          "path": "shared/skills/overview/scripts/dir-tree.sh",
+          "line": 10,
+          "expected_snippet": "DEPTH=\"${2:-3}\"",
+          "claim": "dir-tree.sh reads depth from argv."
+        },
+        {
+          "path": "shared/skills/overview/scripts/dir-tree.sh",
+          "line": 26,
+          "expected_snippet": "eval find \"$PROJECT_DIR\" -maxdepth \"$DEPTH\" -type d $EXCLUDES",
+          "claim": "The fallback path constructs and executes a shell command with eval."
+        }
+      ],
+      "claim_review": {
+        "required_claims": [
+          "The overview workflow passes user-selected project path input to dir-tree.sh.",
+          "dir-tree.sh builds its fallback find invocation through shell eval using argv-derived values.",
+          "The script does not validate or escape those argv-derived values before eval."
+        ],
+        "refutation_check": "shared/skills/overview/scripts/dir-tree.sh:11 only checks that PROJECT_DIR is a directory; shared/skills/overview/scripts/dir-tree.sh:16 uses tree when available, but the eval fallback at shared/skills/overview/scripts/dir-tree.sh:26 remains active when tree is absent.",
+        "status": "supported"
+      },
+      "severity_calibration": {
+        "calibrated_severity": "P1",
+        "team_use_impact": "A required scan helper can execute unintended shell fragments in fallback environments, affecting safe team use for a skill that accepts a user-supplied project path.",
+        "rationale": "This is not inflated to P0 because the unsafe branch is conditional on tree being unavailable and no exploit payload was executed in this audit; it is still P1 because it affects runtime command safety in a required scan step."
+      },
+      "impact": "A required scan helper can execute unintended shell fragments in fallback environments, affecting safe team use and making the user-supplied project path an unsafe runtime input.",
+      "repair_target": "shared/skills/overview/scripts/dir-tree.sh",
+      "verification_hint": "Replace eval with an argument-array or loop-based find implementation, validate DEPTH as a positive integer, preserve ignore semantics, then test paths containing spaces and shell metacharacters."
+    },
+    {
+      "id": "OVERVIEW-P2-001",
+      "severity": "P2",
+      "title": "overview behavior is represented by prompt fixtures, not executable readiness gates",
+      "evidence_level": "E2",
+      "evidence": "shared/skills/overview/test-prompts.json:5 stores expected behavior as natural-language text; no shared/skills/overview/evals directory was found; tests/test-platform-runtime-noise.sh:266 and tests/test-platform-runtime-noise.sh:269 check runtime path rendering rather than overview behavior.",
+      "impact": "Team users have examples but no deterministic proof that scan-before-write, mode confirmation, blocked states, Mermaid checks, and final user confirmation hold.",
+      "repair_target": "shared/skills/overview/evals or tests/gate-plan.json",
+      "verification_hint": "Add executable evals or focused tests for unreadable paths, unconfirmed mode, docs write refusal, Mermaid presence, key-file refs, and feedback sync, then wire them to the focused gate."
+    },
+    {
+      "id": "OVERVIEW-P2-002",
+      "severity": "P2",
+      "title": "source OpenAI adapter contradicts manual runtime contract before install self-heal",
+      "evidence_level": "E3",
+      "evidence": "shared/skills/overview/agents/openai.yaml:7 sets allow_implicit_invocation: true, contracts/skill-runtime-surface.json:232 sets overview to manual, and tools/skills/apply_skill_runtime_surface.py:262 self-heals Codex installed policy from the runtime surface.",
+      "impact": "Installed Codex output is protected by runtime-surface application, but the source package and runtime contract disagree, creating noisy review evidence and possible pre-install consumption drift.",
+      "repair_target": "shared/skills/overview/agents/openai.yaml or generated-source runtime policy",
+      "verification_hint": "Align source adapter policy with the manual runtime surface or mark it generated, then run install/runtime surface checks proving the installed adapter remains manual."
+    },
+    {
+      "id": "OVERVIEW-P3-001",
+      "severity": "P3",
+      "title": "maintainer sync clauses are mixed into runtime user workflow",
+      "evidence_level": "E2",
+      "evidence": "shared/skills/overview/SKILL.md:53 includes Sync maintenance text inside the mode-selection step; shared/skills/overview/SKILL.md:55 includes Sync maintenance text inside the agent-team step.",
+      "impact": "The executing agent may spend attention on maintainer synchronization work that is not part of the user's overview request.",
+      "repair_target": "shared/skills/overview/SKILL.md and overview maintenance docs/tests",
+      "verification_hint": "Move Sync maintenance clauses out of the runtime workflow or convert them into tests/docs consumed by maintainers, keeping user execution steps focused on trigger, read, expect, consume, evidence, and failure."
+    }
+  ],
+  "repair_handoff": [
+    {
+      "target": "shared/skills/overview/scripts/dir-tree.sh",
+      "action": "Remove eval-based fallback, validate depth, preserve ignore behavior, and add edge-case tests for paths with spaces and shell metacharacters.",
+      "owner": "overview maintainer"
+    },
+    {
+      "target": "shared/skills/overview/evals or tests/gate-plan.json",
+      "action": "Add executable readiness coverage for scan-before-write, mode confirmation, blocked states, Mermaid proof, key-file refs, and final user confirmation.",
+      "owner": "overview maintainer"
+    },
+    {
+      "target": "shared/skills/overview/agents/openai.yaml",
+      "action": "Align source adapter policy with the manual runtime surface or document/generate the source policy so source and installed runtime cannot drift.",
+      "owner": "runtime maintainer"
+    },
+    {
+      "target": "shared/skills/overview/SKILL.md",
+      "action": "Move maintainer Sync clauses out of runtime workflow steps and keep the execution contract focused on user-request outputs and proof.",
+      "owner": "overview maintainer"
+    }
+  ],
+  "validation": {
+    "status": "PASS",
+    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/skill-audit-report.json",
+    "output": "[PASS] skill audit report valid"
+  },
+  "executed_verification": [
+    {
+      "id": "overview-transcript-classified",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/classify_audit_artifact.py overview审查.md",
+      "status": "PASS",
+      "output": "artifact_type=transcript",
+      "evidence": "overview审查.md",
+      "supports": [
+        "readiness:Evidence Integrity"
+      ]
+    },
+    {
+      "id": "current-target-surface-scan",
+      "command": "rg --files shared/skills/overview shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill",
+      "status": "PASS",
+      "output": "Observed target SKILL.md, agents/openai.yaml, references, scripts, projections, and test-prompts; target contracts/evals/fixtures/README are absent.",
+      "evidence": "shared/skills/overview",
+      "supports": [
+        "dimension:Runtime Integration",
+        "dimension:Evidence And Evals",
+        "readiness:Scenario Capability"
+      ]
+    },
+    {
+      "id": "tree-fallback-environment-check",
+      "command": "command -v tree >/dev/null && printf 'tree=present' || printf 'tree=absent'",
+      "status": "PASS",
+      "output": "tree=absent",
+      "evidence": "shared/skills/overview/scripts/dir-tree.sh:16",
+      "supports": [
+        "finding:OVERVIEW-P1-001"
+      ]
+    },
+    {
+      "id": "final-overview-report-validator",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/skill-audit-report.json",
+      "status": "PASS",
+      "output": "[PASS] skill audit report valid",
+      "evidence": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/skill-audit-report.json",
+      "supports": [
+        "readiness:Evidence Integrity",
+        "readiness:Repairable Handoff"
+      ]
+    }
+  ],
+  "residual_risk": [
+    "This audit did not modify or exploit shared/skills/overview/scripts/dir-tree.sh; command safety risk is based on current source, required workflow, and fallback-environment evidence.",
+    "Existing dogfood overview audit artifacts were not trusted as authority for this run; overview审查.md was classified as a transcript and used only as a lead.",
+    "Full empirical baseline --require-complete validation was not run because this task owns only the with_skill sample and must not create without_skill artifacts."
+  ]
+}

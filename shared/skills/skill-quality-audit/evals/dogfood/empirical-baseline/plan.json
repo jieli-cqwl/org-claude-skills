@@ -1,0 +1,71 @@
+{
+  "artifact_type": "skill-quality-audit-empirical-baseline-plan",
+  "status": "completed_agent_runs",
+  "readiness_target": "team-ready",
+  "minimum_real_skill_reviews": 2,
+  "purpose": "Prove whether skill-quality-audit improves real Skill review output before promoting from conditional-team-use to team-ready.",
+  "delta_review_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/delta-review.json",
+  "grader_dimensions": [
+    "read_only_boundary",
+    "instruction_contract",
+    "runtime_surface_coverage",
+    "evidence_backed_findings",
+    "repair_handoff_precision"
+  ],
+  "cases": [
+    {
+      "id": "overview-readiness-audit",
+      "target_skill": "shared/skills/overview",
+      "prompt": "Audit shared/skills/overview for team-use readiness. Produce a formal JSON report, Markdown summary, current evidence, repair handoff, and validator result. Do not edit the target Skill.",
+      "readiness_checks": [
+        "Scenario Capability",
+        "Structure-Content Coherence",
+        "Evidence Integrity",
+        "Repairable Handoff",
+        "Attention Economy"
+      ],
+      "with_skill": {
+        "output_dir": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill",
+        "summary_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/summary.json"
+      },
+      "without_skill": {
+        "output_dir": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/without_skill",
+        "summary_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/without_skill/summary.json"
+      }
+    },
+    {
+      "id": "research-artifact-triage-audit",
+      "target_skill": "shared/skills/research",
+      "prompt": "Audit shared/skills/research for team-use readiness and stale/invalid audit artifact risk. Produce a formal JSON report, Markdown summary, current evidence, repair handoff, and validator result. Do not edit the target Skill.",
+      "readiness_checks": [
+        "Scenario Capability",
+        "Structure-Content Coherence",
+        "Evidence Integrity",
+        "Repairable Handoff",
+        "Attention Economy"
+      ],
+      "with_skill": {
+        "output_dir": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill",
+        "summary_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/summary.json"
+      },
+      "without_skill": {
+        "output_dir": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/without_skill",
+        "summary_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/without_skill/summary.json"
+      }
+    }
+  ],
+  "team_ready_gate": {
+    "min_with_skill_anchor_fidelity": 0.8,
+    "max_infra_failures": 0,
+    "requires_human_delta_review": true,
+    "requires_validator_pass_for_with_skill_reports": true,
+    "requires_without_skill_delta": true
+  },
+  "recording_requirements": [
+    "Each run must include a non-empty raw_output_ref file preserving the produced audit output.",
+    "Each with_skill output must include a validator-passing formal report or a blocked verdict with validator-passing JSON, and formal_report_ref must target the reviewed Skill.",
+    "Each without_skill output must be graded against the same anchors and readiness checks.",
+    "Human delta review must compare whether with_skill improves evidence integrity, handoff usability, and structure-content judgment.",
+    "Update lifecycle-review.json only after summaries and delta review exist."
+  ]
+}

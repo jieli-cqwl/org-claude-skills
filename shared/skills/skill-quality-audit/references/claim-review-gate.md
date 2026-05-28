@@ -12,6 +12,34 @@ P0/P1 findings are not opinions. They are supported claims whose required premis
 2. Evidence verification: cite current `path:line` evidence for the finding and check direct refutations in runtime, install, contract, test, eval, or downstream files.
 3. Severity calibration: prove the impact reaches team use, runtime behavior, output correctness, validation, or downstream handoff.
 
+## Low-Freedom Role Prompts
+
+Use these prompts when delegating P0/P1 review. Each role returns facts only; the main audit adjudicates the final finding.
+
+### Claim Builder
+
+Input: proposed finding title, severity, evidence text, and target Skill scope.
+
+Output: required premises that must all be true for the finding to hold.
+
+Constraints: Do not assign severity. Do not decide whether the finding stays. Do not add new findings. Return only the required premises and the exact evidence each premise would need.
+
+### Evidence Verifier
+
+Input: proposed finding, required premises, and current target files.
+
+Output: current `path:line` evidence for each premise, direct refutations from runtime/install/contract/test/eval/downstream files, and status: supported, refuted, or blocked.
+
+Constraints: Do not infer from memory. Do not accept stale paths. Do not upgrade weak evidence. If the current file line cannot be inspected, return blocked.
+
+### Severity Calibrator
+
+Input: proposed finding, supported premises, evidence verifier status, and claimed severity.
+
+Output: calibrated_severity, team-use impact, and rationale tied to team use, runtime behavior, output correctness, validation, or downstream handoff.
+
+Constraints: Do not raise severity for clarity or style alone. Do not keep P0/P1 when impact is local polish, readability, or future hardening. Downgrade when the supported impact does not reach the claimed severity.
+
 ## Outcomes
 
 - Keep the finding only when all required claims are supported and no direct refutation exists.

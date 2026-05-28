@@ -1,0 +1,41 @@
+{
+  "artifact_type": "skill-quality-audit-empirical-delta-review",
+  "measurement_status": "completed_human_delta_review",
+  "reviewed_cases": [
+    {
+      "case_id": "overview-readiness-audit",
+      "with_skill_summary_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/summary.json",
+      "without_skill_summary_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/without_skill/summary.json",
+      "finding": "with_skill produced a validator-passing formal report with current evidence checks, severity calibration, and repair handoff; without_skill found useful risks but did not produce the formal report contract and passed only one of five readiness anchors."
+    },
+    {
+      "case_id": "research-artifact-triage-audit",
+      "with_skill_summary_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/summary.json",
+      "without_skill_summary_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/without_skill/summary.json",
+      "finding": "with_skill produced a validator-passing formal report with two P1 findings and a repairable handoff; without_skill produced actionable notes but left structure-content and evidence integrity only partial."
+    }
+  ],
+  "team_ready_gate": {
+    "with_skill_anchor_fidelity": 1.0,
+    "infra_failures": 0,
+    "without_skill_delta_observed": true,
+    "validator_pass_for_with_skill_reports": true
+  },
+  "case_deltas": [
+    {
+      "case_id": "overview-readiness-audit",
+      "with_skill_pass_rate": 1.0,
+      "without_skill_pass_rate": 0.2,
+      "uplift": 0.8,
+      "primary_delta": "formal evidence integrity and repair handoff"
+    },
+    {
+      "case_id": "research-artifact-triage-audit",
+      "with_skill_pass_rate": 1.0,
+      "without_skill_pass_rate": 0.6,
+      "uplift": 0.4,
+      "primary_delta": "validator-backed formal report and severity-calibrated findings"
+    }
+  ],
+  "conclusion": "team-ready"
+}

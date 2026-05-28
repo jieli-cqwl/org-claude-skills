@@ -1,0 +1,45 @@
+{
+  "artifact_type": "skill-quality-audit-empirical-run-summary",
+  "case_id": "research-artifact-triage-audit",
+  "run_mode": "without_skill",
+  "target_skill": "shared/skills/research",
+  "graded": true,
+  "pass_rate": 0.6,
+  "anchor_passed": 3,
+  "anchor_total": 5,
+  "infra_failures": 0,
+  "readiness_checks": {
+    "Scenario Capability": "PASS",
+    "Structure-Content Coherence": "PARTIAL",
+    "Evidence Integrity": "PARTIAL",
+    "Repairable Handoff": "PASS",
+    "Attention Economy": "PASS"
+  },
+  "validator_status": "NOT_APPLICABLE",
+  "raw_output_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/without_skill/raw-output.md",
+  "repair_handoff_quality": {
+    "status": "GOOD",
+    "summary": "Main handoff is narrow and actionable: align research-report-template.md with completion_check.sh, or update the hook to accept the current template structure; add deterministic fixture coverage and preserve bounded evidence wording.",
+    "primary_repair_targets": [
+      "shared/skills/research/projections/research-report-template.md",
+      "shared/skills/research/scripts/completion_check.sh"
+    ]
+  },
+  "core_findings": [
+    {
+      "id": "F1",
+      "severity": "high",
+      "summary": "Formal report template and completion hook disagree on heading level and exact section names, so template-following reports may fail the deterministic gate."
+    },
+    {
+      "id": "F2",
+      "severity": "medium",
+      "summary": "Evidence is explicitly bounded to static contracts and recorded evals; do not treat it as fresh blind empirical proof."
+    },
+    {
+      "id": "F3",
+      "severity": "positive",
+      "summary": "Triggering, adjacent routing, lightweight triage, and scenario coverage are strong."
+    }
+  ]
+}

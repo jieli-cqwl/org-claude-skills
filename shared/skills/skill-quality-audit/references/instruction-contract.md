@@ -4,6 +4,8 @@ An instruction is acceptable only when the next agent can execute it without gue
 
 ## Sentence-Level Categories
 
+Classification is diagnostic, not a finding by itself. A finding exists only when a sentence controls trigger, action, condition, gate, output, evidence, reference routing, failure handling, or handoff behavior and cannot be executed or verified without guessing.
+
 Classify each meaningful sentence as one of:
 
 - Trigger: when the Skill should start.

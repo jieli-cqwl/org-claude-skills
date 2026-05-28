@@ -1,0 +1,21 @@
+{
+  "artifact_type": "skill-quality-audit-empirical-run-summary",
+  "case_id": "overview-readiness-audit",
+  "run_mode": "without_skill",
+  "target_skill": "shared/skills/overview",
+  "graded": true,
+  "pass_rate": 0.2,
+  "anchor_passed": 1,
+  "anchor_total": 5,
+  "infra_failures": 0,
+  "readiness_checks": {
+    "Scenario Capability": "PARTIAL",
+    "Structure-Content Coherence": "PARTIAL",
+    "Evidence Integrity": "PARTIAL",
+    "Repairable Handoff": "PARTIAL",
+    "Attention Economy": "PASS"
+  },
+  "validator_status": "NOT_APPLICABLE",
+  "raw_output_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/without_skill/raw-output.md",
+  "repair_handoff_quality": "GOOD - raw-output.md contains line-referenced findings, observed command behavior, and concrete repair order; main blocker is the dir-tree fallback."
+}

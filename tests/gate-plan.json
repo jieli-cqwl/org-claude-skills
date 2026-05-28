@@ -2203,6 +2203,54 @@
       "timeout_sec": 120
     },
     {
+      "id": "skill-quality-audit-team-readiness-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-team-readiness-contract.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
+      "id": "skill-quality-audit-claim-review-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-claim-review-contract.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
+      "id": "skill-quality-audit-empirical-baseline-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-empirical-baseline-contract.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
+      "id": "skill-quality-audit-empirical-baseline-validator",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-empirical-baseline-validator.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
       "id": "skill-quality-audit-runtime-contract",
       "command": [
         "bash",

@@ -1,0 +1,183 @@
+{
+  "artifact_type": "skill-audit-report",
+  "audit_mode": "formal",
+  "target_skill": "shared/skills/skill-quality-audit",
+  "verdict": "fit",
+  "overall_score": 8.6,
+  "verdict_reason": "The Skill has hardened deterministic report gates, validator-backed evidence integrity, a team-use readiness acceptance lens, and a passing empirical with-skill / without-skill baseline. Lifecycle evidence now records positive uplift and anchor fidelity before the team-ready claim.",
+  "artifact_paths": {
+    "report_json": "shared/skills/skill-quality-audit/evals/dogfood/self-audit/skill-audit-report.json",
+    "summary_markdown": "shared/skills/skill-quality-audit/evals/dogfood/self-audit/audit-summary.md"
+  },
+  "scope_evidence": [
+    {
+      "surface": "SKILL.md",
+      "status": "checked",
+      "evidence": "shared/skills/skill-quality-audit/SKILL.md:14 states the team-use audit goal."
+    },
+    {
+      "surface": "agents/openai.yaml",
+      "status": "checked",
+      "evidence": "shared/skills/skill-quality-audit/agents/openai.yaml:1 defines the OpenAI adapter."
+    },
+    {
+      "surface": "references",
+      "status": "checked",
+      "evidence": "shared/skills/skill-quality-audit/references/team-use-readiness.md:1 and shared/skills/skill-quality-audit/references/audit-dimensions.md:1 are active references."
+    },
+    {
+      "surface": "scripts",
+      "status": "checked",
+      "evidence": "shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py:1 validates formal reports."
+    },
+    {
+      "surface": "templates",
+      "status": "absent",
+      "evidence": "No shared/skills/skill-quality-audit/templates directory is present."
+    },
+    {
+      "surface": "contracts",
+      "status": "checked",
+      "evidence": "shared/skills/skill-quality-audit/contracts/skill-audit-report.schema.json:1 defines the JSON report schema."
+    },
+    {
+      "surface": "test prompts",
+      "status": "checked",
+      "evidence": "shared/skills/skill-quality-audit/test-prompts.json:1 stores audit prompt fixtures."
+    },
+    {
+      "surface": "evals",
+      "status": "checked",
+      "evidence": "shared/skills/skill-quality-audit/evals/evals.json:1 defines mixed eval scenarios."
+    },
+    {
+      "surface": "fixtures",
+      "status": "checked",
+      "evidence": "shared/skills/skill-quality-audit/evals/fixtures/ contains target skills and report fixtures."
+    },
+    {
+      "surface": "runtime surface",
+      "status": "checked",
+      "evidence": "contracts/skill-runtime-surface.json references skill-quality-audit as an active runtime Skill."
+    },
+    {
+      "surface": "install hooks",
+      "status": "checked",
+      "evidence": "install.sh stages shared Skill resources during runtime installation."
+    },
+    {
+      "surface": "gate plan",
+      "status": "checked",
+      "evidence": "tests/gate-plan.json:2206 registers the team-readiness contract gate."
+    },
+    {
+      "surface": "run-all",
+      "status": "checked",
+      "evidence": "tests/run-all.sh delegates quick gates through the gate plan."
+    },
+    {
+      "surface": "focused runner",
+      "status": "checked",
+      "evidence": "tests/run-focused.sh includes the skill-quality-audit focused profile."
+    },
+    {
+      "surface": "README",
+      "status": "absent",
+      "evidence": "No shared/skills/skill-quality-audit/README.md file is present."
+    },
+    {
+      "surface": "downstream consumers",
+      "status": "checked",
+      "evidence": "tests/gate-plan.json:2206 and tests/test-skill-quality-audit-team-readiness-contract.sh:43 consume the readiness contract."
+    }
+  ],
+  "dimension_scores": [
+    {
+      "dimension": "Real Use Capability",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "The goal, target user decision, and repair handoff are explicit in SKILL.md and backed by prompt fixtures."
+    },
+    {
+      "dimension": "Trigger And Routing",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "The description targets quality, readiness, validation, and unsafe Skill review scenarios; runtime remains manual."
+    },
+    {
+      "dimension": "Instruction Contract",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "The workflow now routes team-use verdicts through readiness standards and prevents sentence-category findings without behavioral impact."
+    },
+    {
+      "dimension": "Workflow Causality",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Scope evidence feeds capability review, instruction review, runtime validation, and final repair handoff in order."
+    },
+    {
+      "dimension": "Output And Handoff",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "JSON report, Markdown summary, repair handoff, validator output, and P0/P1 detail requirements are explicit and validator-backed."
+    },
+    {
+      "dimension": "Determinism And Validation",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Schema, validator, hardening tests, runtime contract tests, and focused runner gates cover the formal report contract."
+    },
+    {
+      "dimension": "Runtime Integration",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Allowed tools, adapter, runtime surface, and gate-plan registration align with an audit-only manual Skill."
+    },
+    {
+      "dimension": "Evidence And Evals",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Contract, fixture, focused, static, and empirical with-skill / without-skill gates now pass with lifecycle-recorded uplift and anchor fidelity."
+    },
+    {
+      "dimension": "Noise And Maintainability",
+      "score": 9,
+      "evidence_level": "E3",
+      "reason": "The HARD-GATE is focused, the readiness reference is short, references have explicit retrieval triggers, and claim-review roles now have low-freedom prompt contracts."
+    }
+  ],
+  "findings": [],
+  "repair_handoff": [],
+  "validation": {
+    "status": "PASS",
+    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/self-audit/skill-audit-report.json",
+    "output": "[PASS] skill audit report valid"
+  },
+  "executed_verification": [
+    {
+      "id": "focused-skill-quality-audit",
+      "command": "bash tests/run-focused.sh skill-quality-audit",
+      "status": "PASS",
+      "output": "17/17 focused skill-quality-audit gates passed.",
+      "evidence": "Focused runner output observed in this session."
+    },
+    {
+      "id": "empirical-baseline-complete",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_empirical_baseline.py shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/plan.json shared/skills/skill-quality-audit/evals/lifecycle-review.json --require-complete",
+      "status": "PASS",
+      "output": "[PASS] skill-quality-audit empirical baseline complete",
+      "evidence": "Complete empirical baseline validator output observed in this session."
+    },
+    {
+      "id": "static-skill-quality-checks",
+      "command": "python3 tools/skill_quality/check_skill_package_quality.py shared/skills/skill-quality-audit && python3 tools/skill_quality/check_skill_body_quality.py shared/skills/skill-quality-audit && python3 tools/skill_quality/check_skill_anti_noise.py --path shared/skills/skill-quality-audit",
+      "status": "PASS",
+      "output": "package, body, and anti-noise static checks returned static_pass with finding_count 0.",
+      "evidence": "Static checker output observed in this session."
+    }
+  ],
+  "residual_risk": [
+    "The empirical sample covers overview and research Skill reviews; broaden samples before treating the result as a universal benchmark for every future Skill class."
+  ]
+}

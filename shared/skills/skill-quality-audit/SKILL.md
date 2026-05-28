@@ -97,6 +97,7 @@ For P0/P1 candidates, use low-freedom agent-team roles when available: Claim Bui
 ## Required References
 
 - Audit dimensions: Read `references/audit-dimensions.md` when scoring, setting verdict caps, or assigning severity/evidence levels.
+- Team-use readiness: Read `references/team-use-readiness.md` before issuing or accepting a team-use readiness verdict, running a self-audit, or judging whether structure and content reinforce each other.
 - Instruction contract: Read `references/instruction-contract.md` when reviewing sentences, keywords, fields, or ambiguity.
 - Benchmark mechanism alignment: Read `references/benchmark-mechanism-alignment.md` when comparing a target Skill with a strong Skill such as `brainstorming`.
 - Noise taxonomy: Read `references/noise-taxonomy.md` when deciding whether content should stay, move, become deterministic, or be deleted.
@@ -144,6 +145,7 @@ Before calling the audit complete, verify:
 - Every P0/P1 evidence entry cites at least one `path:line` and has `evidence_checks` proving the current file line still contains the claimed snippet.
 - Every P0/P1 finding includes `claim_review.status: supported`, a file-line refutation check, and `severity_calibration.calibrated_severity` matching the final severity.
 - Every formal report includes `audit_mode: formal`, `artifact_paths`, `validation`, and `executed_verification`.
+- Team-use readiness has been checked against scenario capability, structure-content coherence, evidence integrity, repairable handoff, and attention economy.
 - Any E4 score has a matching PASS `executed_verification.supports` entry using `dimension:<name>` or `finding:<id>`.
 - Any `conditional`, `unfit`, or `blocked` verdict has a concrete next repair action.
 - The report does not instruct the current agent to modify the target Skill.

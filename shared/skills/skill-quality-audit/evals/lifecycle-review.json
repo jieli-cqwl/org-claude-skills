@@ -1,23 +1,37 @@
 {
   "skill_name": "skill-quality-audit",
   "eval_type": "mixed",
-  "review_date": "2026-05-26",
+  "review_date": "2026-05-28",
   "decision": "optimize",
-  "decision_label": "New audit-only Skill pending field use",
+  "decision_label": "Team-ready after empirical baseline",
   "evidence_refs": [
     "shared/skills/skill-quality-audit/SKILL.md",
+    "shared/skills/skill-quality-audit/references/team-use-readiness.md",
+    "shared/skills/skill-quality-audit/references/claim-review-gate.md",
     "shared/skills/skill-quality-audit/evals/evals.json",
+    "shared/skills/skill-quality-audit/evals/dogfood/self-audit/skill-audit-report.json",
+    "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/plan.json",
+    "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/delta-review.json",
+    "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/summary.json",
+    "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/without_skill/summary.json",
+    "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/summary.json",
+    "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/without_skill/summary.json",
+    "shared/skills/skill-quality-audit/scripts/validate_empirical_baseline.py",
     "shared/skills/skill-quality-audit/test-prompts.json",
     "tests/test-skill-quality-audit-report-contract.sh",
     "tests/test-skill-quality-audit-runtime-contract.sh",
-    "tests/test-skill-quality-audit-instruction-contract.sh"
+    "tests/test-skill-quality-audit-instruction-contract.sh",
+    "tests/test-skill-quality-audit-team-readiness-contract.sh",
+    "tests/test-skill-quality-audit-claim-review-contract.sh",
+    "tests/test-skill-quality-audit-empirical-baseline-contract.sh",
+    "tests/test-skill-quality-audit-empirical-baseline-validator.sh"
   ],
-  "next_action": "Use the Skill on real Skill reviews before considering retain.",
+  "next_action": "Use for team Skill readiness audits; keep broadening empirical samples as new target Skill classes appear.",
   "capability_uplift": {
-    "measurement_status": "needs_empirical_baseline",
-    "with_avg": null,
-    "without_avg": null,
-    "uplift": null,
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "with_avg": 1.0,
+    "without_avg": 0.4,
+    "uplift": 0.6,
     "grader_dimensions": [
       "read_only_boundary",
       "instruction_contract",
@@ -25,13 +39,63 @@
       "evidence_backed_findings",
       "repair_handoff_precision"
     ],
-    "next_run": "Run with_skill and without_skill audits against real Skill review tasks before retain."
+    "next_run": "Broaden empirical coverage beyond overview and research before relying on this as a universal Skill-quality benchmark.",
+    "with_sample_size": 2,
+    "without_sample_size": 2,
+    "summary_refs": [
+      "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/summary.json",
+      "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/summary.json",
+      "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/without_skill/summary.json",
+      "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/without_skill/summary.json"
+    ]
   },
   "encoded_preference": {
-    "measurement_status": "anchors_defined_needs_fidelity_run",
-    "anchor_count": 6,
-    "eval_count": 4,
-    "fidelity": null,
-    "next_run": "Grade expected_anchors across audit outputs before retain."
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "anchor_count": 12,
+    "eval_count": 7,
+    "fidelity": 1.0,
+    "next_run": "Keep grading expected anchors on future target Skill classes.",
+    "sample_size": 2,
+    "anchor_passed": 10,
+    "anchor_total": 10,
+    "summary_refs": [
+      "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/summary.json",
+      "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/summary.json"
+    ]
+  },
+  "human_read_delta_review": {
+    "measurement_status": "completed_human_delta_review",
+    "delta_review_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/delta-review.json",
+    "conclusion": "team-ready"
+  },
+  "pilot_empirical": {
+    "measurement_status": "pilot_empirical_sample_recorded",
+    "skill_name": "skill-quality-audit",
+    "eval_type": "mixed",
+    "with_skill": {
+      "summary_refs": [
+        "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/summary.json",
+        "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/summary.json"
+      ],
+      "sample_size": 2,
+      "avg_pass_rate": 1.0,
+      "infra_failures": 0,
+      "anchor_passed": 10,
+      "anchor_total": 10,
+      "anchor_fidelity": 1.0
+    },
+    "without_skill": {
+      "summary_refs": [
+        "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/without_skill/summary.json",
+        "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/without_skill/summary.json"
+      ],
+      "sample_size": 2,
+      "avg_pass_rate": 0.4,
+      "infra_failures": 0,
+      "anchor_passed": 4,
+      "anchor_total": 10,
+      "anchor_fidelity": 0.4
+    },
+    "decision_boundary": "Pilot evidence supports team-ready use for Skill readiness audits; broaden samples for other Skill classes before treating the result as universal."
   }
 }

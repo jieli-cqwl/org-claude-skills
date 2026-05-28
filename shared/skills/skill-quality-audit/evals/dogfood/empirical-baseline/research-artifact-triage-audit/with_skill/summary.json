@@ -1,0 +1,28 @@
+{
+  "artifact_type": "skill-quality-audit-empirical-run-summary",
+  "case_id": "research-artifact-triage-audit",
+  "run_mode": "with_skill",
+  "target_skill": "shared/skills/research",
+  "graded": true,
+  "pass_rate": 1.0,
+  "anchor_passed": 5,
+  "anchor_total": 5,
+  "infra_failures": 0,
+  "readiness_checks": {
+    "Scenario Capability": "PASS",
+    "Structure-Content Coherence": "PASS",
+    "Evidence Integrity": "PASS",
+    "Repairable Handoff": "PASS",
+    "Attention Economy": "PASS"
+  },
+  "validator_status": "PASS",
+  "formal_report_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/skill-audit-report.json",
+  "raw_output_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/raw-output.md",
+  "repair_handoff_quality": "PASS: findings include concrete file targets, impact, separate-window repair actions, and verification commands. The report does not ask this empirical run to modify target files.",
+  "summary_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/audit-summary.md",
+  "core_findings": [
+    "P1: Formal report completion gate is not registered in shared/hooks/registry.json.",
+    "P1: completion_check/test fixture accepts formal reports missing Report Self-Review and User Confirmation Gate.",
+    "P2: source agents/openai.yaml allows implicit invocation while runtime surface says research is manual."
+  ]
+}

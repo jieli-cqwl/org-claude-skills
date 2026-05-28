@@ -67,4 +67,16 @@ if rg -n 'reference.*自动加载|自动加载.*reference|runtime 自动加载�
   fail "shared runtime docs must not describe runtime references as automatically loaded"
 fi
 
+collaboration_boundary_sentence="涉及共享文件、共享契约、共享数据写入或同一用户路径时，先验收共享前置任务；无独立边界则串行执行。"
+for path in \
+  "$ROOT/shared/rules/执行纪律.md" \
+  "$ROOT/shared/reference/影响范围分析.md"; do
+  rg -F "$collaboration_boundary_sentence" "$path" >/dev/null 2>&1 \
+    || fail "missing collaboration boundary sentence: $path"
+done
+
+if rg -F '先验收共享前置；无法拆出时串行执行' "$ROOT/shared/rules/执行纪律.md" "$ROOT/shared/reference/影响范围分析.md" >/dev/null 2>&1; then
+  fail "collaboration boundary wording must name the shared prerequisite task and independent boundary"
+fi
+
 echo "[PASS] runtime contract inline"
