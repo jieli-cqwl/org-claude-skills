@@ -13,13 +13,13 @@
           "const": "delivery-state"
         },
         "current_stage": {
-          "type": "string"
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/current_stage"
         },
         "status": {
-          "type": "string"
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/runtime_status"
         },
         "control_action": {
-          "type": "string"
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/control_action"
         },
         "summary_text": {
           "type": "string"
@@ -108,14 +108,129 @@
             "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/taskRuntimeEntry"
           }
         },
+        "progress_signal": {
+          "type": "string",
+          "enum": [
+            "gap_closed",
+            "gap_narrowed",
+            "gap_judgment_changed",
+            "new_blocker",
+            "new_risk",
+            "authoritative_owner_routed",
+            "no_progress"
+          ]
+        },
+        "consecutive_no_progress_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "owner_action_consumption": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required_owner": {
+                "type": "string",
+                "minLength": 1
+              },
+              "routed_to": {
+                "type": "string",
+                "minLength": 1
+              },
+              "result": {
+                "type": "string",
+                "enum": [
+                  "ROUTED",
+                  "OWNER_ACCEPTED",
+                  "OWNER_RESOLVED",
+                  "USER_DECISION_REQUESTED",
+                  "REBASELINE_REQUIRED",
+                  "BLOCKED"
+                ]
+              },
+              "evidence_ref": {
+                "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+              },
+              "state_update": {
+                "type": "object",
+                "properties": {
+                  "current_stage": {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/current_stage"
+                  },
+                  "status": {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/runtime_status"
+                  },
+                  "control_action": {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/control_action"
+                  },
+                  "next_action": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "resume_condition": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "current_stage",
+                  "status",
+                  "control_action",
+                  "next_action",
+                  "resume_condition"
+                ],
+                "additionalProperties": false
+              },
+              "reopen_condition": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "action_id",
+              "required_owner",
+              "routed_to",
+              "result",
+              "evidence_ref",
+              "state_update",
+              "reopen_condition"
+            ],
+            "additionalProperties": false
+          }
+        },
         "blocker_id": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
+        },
+        "blocker_owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "blocked_from_stage": {
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/blocked_from_stage"
+        },
+        "resume_stage": {
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/resume_stage"
         },
         "blocker_reason_code": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "blocker_basis_refs": {
-          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray",
+          "minItems": 1
+        },
+        "next_action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resume_condition": {
+          "type": "string",
+          "minLength": 1
         },
         "blocker_resolution_evidence_refs": {
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
@@ -133,6 +248,77 @@
         "kickoff",
         "tasks",
         "active_tasks_version_ref"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "current_stage"
+            ],
+            "properties": {
+              "current_stage": {
+                "const": "BLOCKED"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "blocker_id",
+              "blocker_owner",
+              "blocker_basis_refs",
+              "resume_stage",
+              "next_action",
+              "resume_condition"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "const": "BLOCKED"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "blocker_id",
+              "blocker_owner",
+              "blocker_basis_refs",
+              "resume_stage",
+              "next_action",
+              "resume_condition"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "control_action"
+            ],
+            "properties": {
+              "control_action": {
+                "enum": [
+                  "BLOCK",
+                  "REQUEST_DECISION"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "blocker_id",
+              "blocker_owner",
+              "blocker_basis_refs",
+              "resume_stage",
+              "next_action",
+              "resume_condition"
+            ]
+          }
+        }
       ],
       "additionalProperties": true
     }

@@ -260,6 +260,7 @@
         "fix-result",
         "signoff-package",
         "user-decision",
+        "target-change",
         "artifact-registry",
         "projection-manifest"
       ]

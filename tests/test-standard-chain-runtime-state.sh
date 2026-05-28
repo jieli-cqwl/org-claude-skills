@@ -140,6 +140,9 @@ from pathlib import Path
 data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 assert data["current_stage"] == "BLOCKED"
 assert data["resume_stage"] == "TASK_EXECUTION"
+assert data["blocker_owner"] == "user"
+assert data["next_action"] == "collect explicit user decision and rerun DO-S1 preflight"
+assert data["resume_condition"] == "user decision artifact exists and blocker basis refs remain current"
 PY
 
 apply_leave_blocked_output="$TMP_DIR/apply-leave-blocked.json"
@@ -346,6 +349,23 @@ PY
 if python3 "$ROOT/tools/community/update_delivery_state.py" --fixture "$TMP_DIR/mismatched-block-origin.json" --check-enter-blocked >/tmp/t2_block_origin.out 2>&1; then
   cat /tmp/t2_block_origin.out >&2
   fail "enter blocked should reject blocked_from_stage drift"
+fi
+
+cp "$FIXTURE_ROOT/blocked/enter-blocked.json" "$TMP_DIR/missing-blocked-recovery-fields.json"
+python3 - "$TMP_DIR/missing-blocked-recovery-fields.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+for key in ("blocker_owner", "next_action", "resume_condition"):
+    data["blocker"].pop(key, None)
+path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/update_delivery_state.py" --fixture "$TMP_DIR/missing-blocked-recovery-fields.json" --check-enter-blocked >/tmp/t2_missing_blocked_recovery_fields.out 2>&1; then
+  cat /tmp/t2_missing_blocked_recovery_fields.out >&2
+  fail "enter blocked should reject missing blocker owner, next action, and resume condition"
 fi
 
 cp "$FIXTURE_ROOT/blocked/leave-blocked.json" "$TMP_DIR/mismatched-unblock.json"

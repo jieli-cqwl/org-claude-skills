@@ -21,6 +21,37 @@
         "active_revision_id": {
           "type": "string"
         },
+        "runtime_artifact_policy": {
+          "type": "object",
+          "required": [
+            "active_uniqueness",
+            "required_runtime_artifacts",
+            "owner_responsibility"
+          ],
+          "properties": {
+            "active_uniqueness": {
+              "const": "one_active_entry_per_scope_artifact_type"
+            },
+            "required_runtime_artifacts": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "developer-report",
+                  "verify-result",
+                  "code-review-result",
+                  "qa-result",
+                  "consistency-audit-result"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "owner_responsibility": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
         "revisions": {
           "type": "array",
           "items": {

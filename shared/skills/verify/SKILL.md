@@ -124,6 +124,7 @@ digraph verify_flow {
 
 8. 写 `verify-result.json`
    - 按 `shared/skills/verify/templates/verify-result.template.json` 和 `shared/skills/verify/contracts/verify-result.schema.json` 写入结论。
+   - 顶层 `gate_result` 只能是 `PASS` / `ISSUE` / `BLOCKED`；`SPEC_OK` 只允许作为 `phase_verdicts.spec_review.status`，不能作为最终门禁结论。
    - 每个 FAIL/ISSUE 必须带 `file:line` 或明确的缺证据路径。
    - 对话回复只摘要结论、证据、阻断和下一步 owner，不能替代 `verify-result.json`。
 
@@ -134,6 +135,8 @@ digraph verify_flow {
 - 输出路径：`docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json`
 - 模板：`shared/skills/verify/templates/verify-result.template.json`
 - Schema：`shared/skills/verify/contracts/verify-result.schema.json`
+
+verify 负责写入当前 Task 的 `verify-result.json`；派发 code-reviewer / qa 前，由 delivery-owner 确认该结果在 active `artifact-registry.json` 中存在且只有一个 `FINALIZED + active_for_consumption=true` entry。
 
 `verify-result.json` 至少能回答：
 

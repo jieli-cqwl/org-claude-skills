@@ -16,7 +16,13 @@
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/current_stage"
         },
         "decision": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "APPROVE",
+            "REJECT",
+            "ACCEPT_RISK",
+            "REQUEST_CHANGES"
+          ]
         },
         "decision_source": {
           "type": "string"

@@ -195,6 +195,15 @@ ARTIFACT_SPECS = [
         producer="user-decision-writer",
     ),
     ArtifactSpec(
+        artifact_type="target-change",
+        scope="phase",
+        family="runtime",
+        schema_path="shared/skills/delivery-owner/contracts/target-change.schema.json",
+        template_path="shared/skills/delivery-owner/templates/target-change.template.json",
+        default_path="docs/{feature}/phase-{N}/target-change.json",
+        producer="delivery-owner",
+    ),
+    ArtifactSpec(
         artifact_type="artifact-registry",
         scope="phase",
         family="runtime",

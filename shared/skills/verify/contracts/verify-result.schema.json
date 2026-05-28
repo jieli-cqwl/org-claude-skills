@@ -16,7 +16,12 @@
           "type": "string"
         },
         "gate_result": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "PASS",
+            "ISSUE",
+            "BLOCKED"
+          ]
         },
         "developer_report_ref": {
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"

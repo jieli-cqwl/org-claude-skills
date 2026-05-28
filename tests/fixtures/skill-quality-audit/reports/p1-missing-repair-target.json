@@ -1,7 +1,7 @@
 {
   "artifact_type": "skill-audit-report",
   "audit_mode": "formal",
-  "target_skill": "shared/skills/example",
+  "target_skill": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill",
   "verdict": "conditional",
   "overall_score": 7.2,
   "verdict_reason": "One P1 finding remains; Instruction Contract is above the conditional floor.",
@@ -13,22 +13,22 @@
     {
       "surface": "SKILL.md",
       "status": "checked",
-      "evidence": "shared/skills/example/SKILL.md"
+      "evidence": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md"
     },
     {
       "surface": "agents/openai.yaml",
-      "status": "checked",
-      "evidence": "shared/skills/example/agents/openai.yaml"
+      "status": "absent",
+      "evidence": "No agents/openai.yaml in target package."
     },
     {
       "surface": "references",
-      "status": "checked",
-      "evidence": "shared/skills/example/references/"
+      "status": "absent",
+      "evidence": "No references directory in target package."
     },
     {
       "surface": "scripts",
-      "status": "checked",
-      "evidence": "shared/skills/example/scripts/"
+      "status": "absent",
+      "evidence": "No scripts directory in target package."
     },
     {
       "surface": "templates",
@@ -37,23 +37,23 @@
     },
     {
       "surface": "contracts",
-      "status": "checked",
-      "evidence": "shared/skills/example/contracts/"
+      "status": "absent",
+      "evidence": "No contracts directory in target package."
     },
     {
       "surface": "test prompts",
-      "status": "checked",
-      "evidence": "shared/skills/example/test-prompts.json"
+      "status": "absent",
+      "evidence": "No test-prompts.json in target package."
     },
     {
       "surface": "evals",
-      "status": "checked",
-      "evidence": "shared/skills/example/evals/"
+      "status": "absent",
+      "evidence": "No evals directory in target package."
     },
     {
       "surface": "fixtures",
-      "status": "checked",
-      "evidence": "shared/skills/example/evals/fixtures/"
+      "status": "absent",
+      "evidence": "No fixtures directory in target package."
     },
     {
       "surface": "runtime surface",

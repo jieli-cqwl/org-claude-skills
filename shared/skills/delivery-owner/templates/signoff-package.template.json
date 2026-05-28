@@ -21,7 +21,8 @@
     "$.active_blocker",
     "$.blocker_owner",
     "$.takeover_note",
-    "$.decision_basis_refs"
+    "$.decision_basis_refs",
+    "$.runtime_evidence_matrix"
   ],
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
@@ -36,6 +37,73 @@
   "takeover_note": "delivery-owner 持续跟进签收收口",
   "decision_basis_refs": [
     "artifact://qa-result/sample-feature.phase-1.qa@v1#release"
+  ],
+  "runtime_evidence_matrix": [
+    {
+      "artifact_type": "developer-report",
+      "artifact_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#runtime-status",
+      "producer": "developer",
+      "status": "VERIFIED",
+      "freshness_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-1#active-entry:developer-report:sample-feature.phase-1.unit-1.task-T1.developer-report",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "verify-result",
+      "artifact_ref": "artifact://verify-result/sample-feature.phase-1.unit-1.task-T1.verify-result@v1#gate-result",
+      "producer": "verify",
+      "status": "PASS",
+      "freshness_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-1#active-entry:verify-result:sample-feature.phase-1.unit-1.task-T1.verify-result",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "code-review-result",
+      "artifact_ref": "artifact://code-review-result/sample-feature.phase-1.review@v1#review-conclusion",
+      "producer": "review",
+      "status": "PASS",
+      "freshness_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-1#active-entry:code-review-result:sample-feature.phase-1.review",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "qa-result",
+      "artifact_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#obligation_results",
+      "producer": "qa",
+      "status": "PASS",
+      "freshness_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-1#active-entry:qa-result:sample-feature.phase-1.qa",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "consistency-audit-result",
+      "artifact_ref": "artifact://consistency-audit-result/sample-feature.phase-1.consistency-audit@v1#audit-root",
+      "producer": "consistency-audit",
+      "status": "CLOSED",
+      "freshness_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-1#active-entry:consistency-audit-result:sample-feature.phase-1.consistency-audit",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    }
   ],
   "goal_closure": [
     {

@@ -78,6 +78,24 @@ def assert_blocked_resume_pair(blocked_from_stage: str, resume_stage: str) -> No
         )
 
 
+def require_blocker_recovery_fields(blocker: dict) -> None:
+    required = [
+        "blocker_id",
+        "blocker_owner",
+        "blocker_basis_refs",
+        "resume_stage",
+        "next_action",
+        "resume_condition",
+    ]
+    missing = [
+        field
+        for field in required
+        if field not in blocker or blocker[field] in ("", None, [])
+    ]
+    if missing:
+        raise ValueError(f"BLOCKED 状态缺少恢复字段: {', '.join(missing)}")
+
+
 def assert_task_runtime_alignment(state: dict, tasks_registry: dict) -> None:
     active_tasks_version_ref = state.get("active_tasks_version_ref")
     if not isinstance(active_tasks_version_ref, str):
@@ -105,6 +123,7 @@ def assert_task_runtime_alignment(state: dict, tasks_registry: dict) -> None:
 
 
 def enter_blocked(state: dict, blocker: dict) -> dict:
+    require_blocker_recovery_fields(blocker)
     if blocker["blocked_from_stage"] != state.get("current_stage"):
         raise ValueError("blocked_from_stage 必须等于当前 current_stage")
     assert_blocked_resume_pair(
@@ -117,8 +136,11 @@ def enter_blocked(state: dict, blocker: dict) -> dict:
     result["current_stage"] = "BLOCKED"
     result["status"] = "BLOCKED"
     result["blocker_id"] = blocker["blocker_id"]
+    result["blocker_owner"] = blocker["blocker_owner"]
     result["blocked_from_stage"] = blocker["blocked_from_stage"]
     result["resume_stage"] = blocker["resume_stage"]
+    result["next_action"] = blocker["next_action"]
+    result["resume_condition"] = blocker["resume_condition"]
     result["blocker_reason_code"] = blocker["blocker_reason_code"]
     result["blocker_opened_at"] = blocker["blocker_opened_at"]
     result["blocker_basis_refs"] = blocker["blocker_basis_refs"]

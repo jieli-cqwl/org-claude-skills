@@ -178,6 +178,32 @@ def stage_input_consumers(standard_chain: dict[str, Any]) -> dict[str, set[str]]
                 consumers_by_path.setdefault(
                     canonical_artifact_path(artifact_name), set()
                 ).add(str(stage_name))
+        stage_inputs = input_data.get("stage_inputs", {})
+        if stage_inputs is None:
+            continue
+        stage_input_data = require_mapping(
+            stage_inputs, f"chain.{stage_name}.inputs.stage_inputs"
+        )
+        for substage_name, substage_inputs in stage_input_data.items():
+            substage_data = require_mapping(
+                substage_inputs,
+                f"chain.{stage_name}.inputs.stage_inputs.{substage_name}",
+            )
+            for input_group in ("required", "optional"):
+                artifacts = substage_data.get(input_group, [])
+                if not isinstance(artifacts, list):
+                    raise ValueError(
+                        f"chain.{stage_name}.inputs.stage_inputs.{substage_name}.{input_group} must be an array"
+                    )
+                for artifact in artifacts:
+                    if not isinstance(artifact, str):
+                        raise ValueError(
+                            f"chain.{stage_name}.inputs.stage_inputs.{substage_name}.{input_group} contains a non-string artifact"
+                        )
+                    artifact_name = artifact.split(" as ", 1)[0]
+                    consumers_by_path.setdefault(
+                        canonical_artifact_path(artifact_name), set()
+                    ).add(str(stage_name))
     return consumers_by_path
 
 

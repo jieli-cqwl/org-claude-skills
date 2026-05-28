@@ -26,8 +26,8 @@ assert_absent() {
   fi
 }
 
-assert_present 'key_fields: \[active_tasks_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks, kickoff\]' "$ROOT/contracts/standard-chain.yaml"
-assert_present 'key_fields: \[baseline_tasks_version_ref, baseline_tasks_version_ref, active_tasks_version_ref, active_tasks_version_ref, current_stage, release_recommendation, goal_closure, waiver_entries, sign_off_status, business_risk_acceptance_status, last_observed_at, runtime_snapshot, active_blocker, blocker_owner, takeover_note, decision_basis_refs\]' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'key_fields: \[active_tasks_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks, kickoff, progress_signal, consecutive_no_progress_count, owner_action_consumption, blocker_id, blocker_owner, blocker_basis_refs, resume_stage, next_action, resume_condition\]' "$ROOT/contracts/standard-chain.yaml"
+assert_present 'key_fields: \[baseline_tasks_version_ref, baseline_tasks_version_ref, active_tasks_version_ref, active_tasks_version_ref, current_stage, release_recommendation, goal_closure, waiver_entries, sign_off_status, business_risk_acceptance_status, last_observed_at, runtime_snapshot, active_blocker, blocker_owner, takeover_note, decision_basis_refs, runtime_evidence_matrix\]' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'key_fields: \[baseline_tasks_version_ref, baseline_tasks_version_ref, active_tasks_version_ref, active_tasks_version_ref, current_stage, decision, decision_source, actor_id, sign_off_status, business_risk_acceptance_status, authority_proof_refs, decision_basis_refs, director_lock_digests, decision_payload_digest\]' "$ROOT/contracts/standard-chain.yaml"
 assert_present 'plan_version: \{plan-vN\}' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"

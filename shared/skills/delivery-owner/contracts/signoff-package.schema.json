@@ -77,6 +77,77 @@
         },
         "decision_basis_refs": {
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+        },
+        "runtime_evidence_matrix": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "properties": {
+              "artifact_type": {
+                "type": "string",
+                "enum": [
+                  "developer-report",
+                  "verify-result",
+                  "code-review-result",
+                  "qa-result",
+                  "consistency-audit-result"
+                ]
+              },
+              "artifact_ref": {
+                "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+              },
+              "producer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "minLength": 1
+              },
+              "freshness_basis_ref": {
+                "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+              },
+              "active_registry_proof": {
+                "type": "object",
+                "properties": {
+                  "registry_ref": {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+                  },
+                  "lifecycle_state": {
+                    "const": "FINALIZED"
+                  },
+                  "active_for_consumption": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "registry_ref",
+                  "lifecycle_state",
+                  "active_for_consumption"
+                ],
+                "additionalProperties": false
+              },
+              "stale_superseded_check": {
+                "type": "string",
+                "enum": [
+                  "CURRENT",
+                  "STALE",
+                  "SUPERSEDED"
+                ]
+              }
+            },
+            "required": [
+              "artifact_type",
+              "artifact_ref",
+              "producer",
+              "status",
+              "freshness_basis_ref",
+              "active_registry_proof",
+              "stale_superseded_check"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "required": [
@@ -93,6 +164,7 @@
         "blocker_owner",
         "takeover_note",
         "decision_basis_refs",
+        "runtime_evidence_matrix",
         "baseline_tasks_version_ref",
         "active_tasks_version_ref"
       ],

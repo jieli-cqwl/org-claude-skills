@@ -74,9 +74,20 @@ import sys
 payload = json.load(open(sys.argv[1], encoding="utf-8"))
 assert payload["status"] == "PASS"
 assert payload["decision"] == "REPLAY_CONTRACT_READY"
-assert payload["case_count"] == 3
+assert payload["case_count"] == 4
 PY
-sed 's/next_owner: user/next_owner: fixer agent/' "$REPLAY" >"$TMP_DIR/replay-bad-no-progress.md"
+python3 - "$REPLAY" "$TMP_DIR/replay-bad-no-progress.md" <<'PY'
+import sys
+from pathlib import Path
+
+source = Path(sys.argv[1])
+target = Path(sys.argv[2])
+text = source.read_text(encoding="utf-8")
+marker = "## Replay 4: two no-progress rounds replay"
+before, after = text.split(marker, 1)
+after = after.replace("next_owner: user", "next_owner: fixer agent", 1)
+target.write_text(before + marker + after, encoding="utf-8")
+PY
 set +e
 bash "$REPLAY_CHECK" --replay "$TMP_DIR/replay-bad-no-progress.md" >"$TMP_DIR/replay-bad-no-progress.json"
 replay_bad_rc=$?
@@ -100,7 +111,11 @@ assert_contains "current_gap:" "$STATUS_TEMPLATE"
 assert_contains "gap_owner:" "$STATUS_TEMPLATE"
 assert_contains "next_owner:" "$STATUS_TEMPLATE"
 assert_contains "progress_signal:" "$STATUS_TEMPLATE"
+assert_contains "gap_judgment_changed" "$STATUS_TEMPLATE"
+assert_not_contains "owner_changed" "$STATUS_TEMPLATE"
+assert_not_contains "progress_signal: new_evidence" "$STATUS_TEMPLATE"
 assert_contains "consecutive_no_progress_count:" "$STATUS_TEMPLATE"
+assert_contains "owner_action_consumption:" "$STATUS_TEMPLATE"
 assert_contains "stale_evidence_refs:" "$STATUS_TEMPLATE"
 assert_contains "decision_boundary:" "$STATUS_TEMPLATE"
 assert_contains "resume_condition:" "$STATUS_TEMPLATE"
@@ -169,9 +184,32 @@ import sys
 payload = json.load(open(sys.argv[1], encoding="utf-8"))
 assert payload["status"] == "PASS"
 assert payload["decision"] == "ACCEPTED"
-assert payload["safe_to_dispatch"] is True
+assert payload["safe_for_baseline_audit"] is True
+assert payload["safe_to_dispatch"] is False
 assert payload["task_count"] >= 1
 assert payload["qa_handoff_count"] >= 1
+PY
+
+cp -R "$PHASE/.." "$TMP_DIR/kickoff-only-feature"
+KICKOFF_ONLY_PHASE="$TMP_DIR/kickoff-only-feature/phase-1"
+rm -f \
+  "$KICKOFF_ONLY_PHASE/code-review-result.json" \
+  "$KICKOFF_ONLY_PHASE/qa-result.json" \
+  "$KICKOFF_ONLY_PHASE/consistency-audit-result.json" \
+  "$KICKOFF_ONLY_PHASE/signoff-package.json" \
+  "$KICKOFF_ONLY_PHASE/user-decision.json" \
+  "$KICKOFF_ONLY_PHASE/unit-1/tasks/T1/developer-report.json" \
+  "$KICKOFF_ONLY_PHASE/unit-1/tasks/T1/verify-result.json" \
+  "$KICKOFF_ONLY_PHASE/unit-1/tasks/T2/developer-report.json" \
+  "$KICKOFF_ONLY_PHASE/unit-1/tasks/T2/verify-result.json"
+bash "$INTAKE" --phase-dir "$KICKOFF_ONLY_PHASE" >"$TMP_DIR/intake-kickoff-only.json"
+python3 - "$TMP_DIR/intake-kickoff-only.json" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "PASS"
+assert payload["safe_for_baseline_audit"] is True
+assert payload["safe_to_dispatch"] is False
 PY
 
 mkdir -p "$TMP_DIR/missing-tasks"
@@ -187,16 +225,18 @@ payload = json.load(open(sys.argv[1], encoding="utf-8"))
 assert payload["status"] == "BLOCKED"
 assert payload["decision"] == "NEEDS_INPUT"
 assert payload["safe_to_dispatch"] is False
+assert payload["safe_for_baseline_audit"] is False
 PY
 
-cp -R "$PHASE" "$TMP_DIR/missing-qa-handoff"
+cp -R "$PHASE/.." "$TMP_DIR/missing-qa-handoff-feature"
+MISSING_QA_PHASE="$TMP_DIR/missing-qa-handoff-feature/phase-1"
 jq 'del(.qa_handoff_contract)' \
-  "$TMP_DIR/missing-qa-handoff/unit-1/test-cases.json" \
-  >"$TMP_DIR/missing-qa-handoff/unit-1/test-cases.tmp"
-mv "$TMP_DIR/missing-qa-handoff/unit-1/test-cases.tmp" \
-  "$TMP_DIR/missing-qa-handoff/unit-1/test-cases.json"
+  "$MISSING_QA_PHASE/unit-1/test-cases.json" \
+  >"$MISSING_QA_PHASE/unit-1/test-cases.tmp"
+mv "$MISSING_QA_PHASE/unit-1/test-cases.tmp" \
+  "$MISSING_QA_PHASE/unit-1/test-cases.json"
 set +e
-bash "$INTAKE" --phase-dir "$TMP_DIR/missing-qa-handoff" >"$TMP_DIR/intake-missing-qa.json"
+bash "$INTAKE" --phase-dir "$MISSING_QA_PHASE" >"$TMP_DIR/intake-missing-qa.json"
 missing_qa_rc=$?
 set -e
 [ "$missing_qa_rc" -ne 0 ] || fail "intake preflight should fail when qa_handoff_contract is missing"
@@ -209,6 +249,79 @@ assert payload["decision"] == "NEEDS_BASELINE"
 assert payload["failure_code"] == "MISSING_QA_HANDOFF"
 assert payload["owner"] == "test-design"
 assert payload["safe_to_dispatch"] is False
+assert payload["safe_for_baseline_audit"] is False
+PY
+
+cp -R "$PHASE/.." "$TMP_DIR/missing-plan-readiness-feature"
+MISSING_PLAN_PHASE="$TMP_DIR/missing-plan-readiness-feature/phase-1"
+jq 'del(.planning_readiness)' \
+  "$MISSING_PLAN_PHASE/plan.json" \
+  >"$MISSING_PLAN_PHASE/plan.tmp"
+mv "$MISSING_PLAN_PHASE/plan.tmp" \
+  "$MISSING_PLAN_PHASE/plan.json"
+set +e
+bash "$INTAKE" --phase-dir "$MISSING_PLAN_PHASE" >"$TMP_DIR/intake-missing-plan-readiness.json"
+missing_plan_readiness_rc=$?
+set -e
+[ "$missing_plan_readiness_rc" -ne 0 ] || fail "intake preflight should fail when planning_readiness is missing"
+python3 - "$TMP_DIR/intake-missing-plan-readiness.json" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "NEEDS_BASELINE"
+assert payload["failure_code"] == "PLAN_NOT_READY"
+assert payload["owner"] == "tech-lead"
+assert payload["safe_for_baseline_audit"] is False
+assert payload["safe_to_dispatch"] is False
+PY
+
+cp -R "$PHASE/.." "$TMP_DIR/missing-cross-unit-obligations-feature"
+MISSING_CROSS_UNIT_PHASE="$TMP_DIR/missing-cross-unit-obligations-feature/phase-1"
+jq 'del(.cross_unit_obligations)' \
+  "$MISSING_CROSS_UNIT_PHASE/unit-1/test-cases.json" \
+  >"$MISSING_CROSS_UNIT_PHASE/unit-1/test-cases.tmp"
+mv "$MISSING_CROSS_UNIT_PHASE/unit-1/test-cases.tmp" \
+  "$MISSING_CROSS_UNIT_PHASE/unit-1/test-cases.json"
+set +e
+bash "$INTAKE" --phase-dir "$MISSING_CROSS_UNIT_PHASE" >"$TMP_DIR/intake-missing-cross-unit-obligations.json"
+missing_cross_unit_rc=$?
+set -e
+[ "$missing_cross_unit_rc" -ne 0 ] || fail "intake preflight should fail when cross_unit_obligations is missing"
+python3 - "$TMP_DIR/intake-missing-cross-unit-obligations.json" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "NEEDS_BASELINE"
+assert payload["failure_code"] == "MISSING_CROSS_UNIT_OBLIGATIONS"
+assert payload["owner"] == "test-design"
+assert payload["safe_for_baseline_audit"] is False
+assert payload["safe_to_dispatch"] is False
+PY
+
+cp -R "$PHASE/.." "$TMP_DIR/director-lock-drift-feature"
+DIRECTOR_LOCK_DRIFT_PHASE="$TMP_DIR/director-lock-drift-feature/phase-1"
+jq '.director_confirmation.locked_field_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"' \
+  "$DIRECTOR_LOCK_DRIFT_PHASE/phase-prd.json" \
+  >"$DIRECTOR_LOCK_DRIFT_PHASE/phase-prd.tmp"
+mv "$DIRECTOR_LOCK_DRIFT_PHASE/phase-prd.tmp" \
+  "$DIRECTOR_LOCK_DRIFT_PHASE/phase-prd.json"
+set +e
+bash "$INTAKE" --phase-dir "$DIRECTOR_LOCK_DRIFT_PHASE" >"$TMP_DIR/intake-director-lock-drift.json"
+director_lock_drift_rc=$?
+set -e
+[ "$director_lock_drift_rc" -ne 0 ] || fail "intake preflight should fail when director lock digest drifts"
+python3 - "$TMP_DIR/intake-director-lock-drift.json" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "NEEDS_BASELINE"
+assert payload["failure_code"] == "DIRECTOR_LOCK_DRIFT"
+assert payload["owner"] == "product-manager"
+assert payload["safe_for_baseline_audit"] is False
+assert payload["safe_to_dispatch"] is False
 PY
 
 cat >"$TMP_DIR/packet-pass.json" <<'JSON'
@@ -216,12 +329,12 @@ cat >"$TMP_DIR/packet-pass.json" <<'JSON'
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
   "role": "developer",
   "goal": "Implement AC-T1-1 only",
-  "scope": ["src/feature.ts", "tests/feature.test.ts"],
+  "forbidden_scope": ["docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json", "docs/sample-feature/phase-1/phase-prd.json"],
   "input_refs": ["artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"],
   "expected_evidence": ["developer preflight PASS", "RED output", "GREEN output", "REFACTOR or no-op note", "developer-report.json"],
   "stop_condition": "AC-T1-1 green or scope/AC blocked",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -238,17 +351,50 @@ assert payload["decision"] == "DISPATCH_READY"
 assert payload["role"] == "developer"
 PY
 
+cat >"$TMP_DIR/packet-legacy-scope-fail.json" <<'JSON'
+{
+  "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
+  "role": "developer",
+  "goal": "Implement AC-T1-1 only",
+  "scope": ["src/feature.ts", "tests/feature.test.ts"],
+  "forbidden_scope": ["docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json", "docs/sample-feature/phase-1/phase-prd.json"],
+  "input_refs": ["artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"],
+  "expected_evidence": ["developer preflight PASS", "RED output", "GREEN output", "REFACTOR or no-op note", "developer-report.json"],
+  "stop_condition": "AC-T1-1 green or scope/AC blocked",
+  "forbidden_actions": [
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
+    "do not modify baseline or AC",
+    "do not commit or release",
+    "do not conclude for other roles"
+  ]
+}
+JSON
+set +e
+bash "$PACKET" --packet "$TMP_DIR/packet-legacy-scope-fail.json" >"$TMP_DIR/packet-legacy-scope-fail.out"
+legacy_scope_rc=$?
+set -e
+[ "$legacy_scope_rc" -ne 0 ] || fail "task packet check should reject legacy top-level scope even when forbidden_scope exists"
+python3 - "$TMP_DIR/packet-legacy-scope-fail.out" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "PACKET_BLOCKED"
+assert payload["failure_code"] == "PACKET_UNSAFE"
+assert "scope" in payload["fields"]
+PY
+
 cat >"$TMP_DIR/packet-path-with-done-pass.json" <<'JSON'
 {
   "task_ref": "artifact://tasks/done-feature.phase-1.tasks@tasks-v2#task-T1",
   "role": "developer",
   "goal": "Implement AC-T1-1 only",
-  "scope": ["src/done-feature.ts", "tests/done-feature.test.ts"],
+  "forbidden_scope": ["docs/done-feature/phase-1/tasks.json", "docs/done-feature/phase-1/test-cases.json"],
   "input_refs": ["artifact://tasks/done-feature.phase-1.tasks@tasks-v2#plan-version"],
   "expected_evidence": ["developer preflight PASS", "RED output", "GREEN output", "REFACTOR or no-op note", "developer-report.json"],
   "stop_condition": "AC-T1-1 green or scope/AC blocked",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -270,12 +416,12 @@ cat >"$TMP_DIR/packet-code-reviewer-pass.json" <<'JSON'
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#batch-review",
   "role": "code-reviewer",
   "goal": "Review verified implementation batch before QA handoff",
-  "scope": ["git diff base..head", "developer-report.json", "verify-result.json"],
+  "forbidden_scope": ["src/", "tests/", "docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json"],
   "input_refs": ["tasks.json#batch", "developer-report.json#T1", "verify-result.json#T1", "git diff base..head"],
   "expected_evidence": ["Strengths", "Issues", "Recommendations", "Assessment", "code-review-result.json"],
   "stop_condition": "Assessment Yes with no blocking issues or exact review issue reported",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -297,11 +443,11 @@ cat >"$TMP_DIR/packet-consistency-auditor-pass.json" <<'JSON'
   "task_ref": "artifact://phase/sample-feature.phase-1#baseline-consistency-audit",
   "role": "consistency-auditor",
   "goal": "Run baseline advisory consistency audit before delivery-owner dispatches implementation",
-  "scope": ["frozen baseline artifacts before developer/verifier/qa intervention"],
+  "forbidden_scope": ["brief.json", "phase-prd.json", "plan.json", "tasks.json", "design.json", "test-cases.json"],
   "input_refs": ["brief.json", "phase-prd.json", "artifact-registry.json", "plan.json", "tasks.json", "design.json", "test-cases.json", "qa_handoff_contract", "cross_unit_obligations"],
   "expected_evidence": ["advisory_only", "findings", "required_owner_action", "consistency-audit-result.json"],
   "stop_condition": "No blocked owner action remains, or exact upstream owner action is reported",
-  "forbidden_actions": ["禁止修改 scope 外文件", "禁止修改 baseline、AC 或验收标准", "禁止执行 commit/release", "禁止替其他角色签收或接受风险"]
+  "forbidden_actions": ["禁止越界修改 forbidden_scope 中的文件", "禁止修改 baseline、AC 或验收标准", "禁止执行 commit/release", "禁止替其他角色签收或接受风险"]
 }
 JSON
 bash "$PACKET" --packet "$TMP_DIR/packet-consistency-auditor-pass.json" >"$TMP_DIR/packet-consistency-auditor-pass.out"
@@ -319,12 +465,12 @@ cat >"$TMP_DIR/packet-final-consistency-auditor-pass.json" <<'JSON'
   "task_ref": "artifact://phase/sample-feature.phase-1#consistency-audit",
   "role": "consistency-auditor",
   "goal": "Run full advisory consistency audit before commit handoff",
-  "scope": ["docs/sample-feature/phase-1"],
+  "forbidden_scope": ["docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json", "docs/sample-feature/phase-1/phase-prd.json"],
   "input_refs": ["brief.json", "phase-prd.json", "artifact-registry.json", "plan.json", "tasks.json", "design.json", "test-cases.json", "developer-report.json", "verify-result.json", "code-review-result.json", "qa-result.json", "delivery-state.json", "signoff-package.json"],
   "expected_evidence": ["advisory_only", "findings", "required_owner_action", "consistency-audit-result.json"],
   "stop_condition": "No blocked owner action or exact owner action reported",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -346,12 +492,12 @@ cat >"$TMP_DIR/packet-final-consistency-auditor-missing-runtime.json" <<'JSON'
   "task_ref": "artifact://phase/sample-feature.phase-1#consistency-audit",
   "role": "consistency-auditor",
   "goal": "Run full advisory consistency audit before commit handoff",
-  "scope": ["docs/sample-feature/phase-1"],
+  "forbidden_scope": ["docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json", "docs/sample-feature/phase-1/phase-prd.json"],
   "input_refs": ["brief.json", "phase-prd.json", "artifact-registry.json", "code-review-result.json", "qa-result.json"],
   "expected_evidence": ["advisory_only", "findings", "required_owner_action", "consistency-audit-result.json"],
   "stop_condition": "No blocked owner action or exact owner action reported",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -379,7 +525,7 @@ cat >"$TMP_DIR/packet-object-refs-pass.json" <<'JSON'
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2",
   "role": "developer",
   "goal": "Close AC-T2-2 missing scope evidence only",
-  "scope": ["src/feature.ts", "tests/feature.test.ts"],
+  "forbidden_scope": ["docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json", "docs/sample-feature/phase-1/phase-prd.json"],
   "input_refs": [
     {
       "ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2",
@@ -399,7 +545,7 @@ cat >"$TMP_DIR/packet-object-refs-pass.json" <<'JSON'
   ],
   "stop_condition": "AC-T2-2 scope evidence provided or exact blocker reported",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -421,7 +567,7 @@ cat >"$TMP_DIR/packet-fail.json" <<'JSON'
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
   "role": "developer",
   "goal": "Fix it",
-  "scope": "按需处理",
+  "forbidden_scope": "按需处理",
   "input_refs": ["artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"],
   "expected_evidence": "完成即可",
   "stop_condition": "done",
@@ -447,12 +593,12 @@ cat >"$TMP_DIR/packet-ambiguous-variant.json" <<'JSON'
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
   "role": "developer",
   "goal": "Implement AC-T1-1 only",
-  "scope": "按需处理。",
+  "forbidden_scope": "按需处理。",
   "input_refs": ["artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"],
   "expected_evidence": ["developer preflight PASS", "RED output", "GREEN output", "REFACTOR or no-op note", "developer-report.json"],
   "stop_condition": "done when ready",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -471,7 +617,7 @@ payload = json.load(open(sys.argv[1], encoding="utf-8"))
 assert payload["status"] == "BLOCKED"
 assert payload["decision"] == "PACKET_BLOCKED"
 assert payload["failure_code"] == "PACKET_AMBIGUOUS"
-assert "scope" in payload["fields"] or "stop_condition" in payload["fields"]
+assert "forbidden_scope" in payload["fields"] or "stop_condition" in payload["fields"]
 PY
 
 cat >"$TMP_DIR/qa-packet-pass.json" <<'JSON'
@@ -479,7 +625,7 @@ cat >"$TMP_DIR/qa-packet-pass.json" <<'JSON'
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#qa",
   "role": "qa",
   "goal": "Validate required user paths after verified tasks",
-  "scope": ["QA_A", "QA_B", "QA_C", "QA_D"],
+  "forbidden_scope": ["src/", "tests/", "docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json"],
   "input_refs": [
     "artifact://qa-handoff/sample-feature.phase-1.unit-1@v1#qa_handoff_contract",
     "artifact://verify-result/sample-feature.phase-1.task-T1@v1#pass"
@@ -487,7 +633,7 @@ cat >"$TMP_DIR/qa-packet-pass.json" <<'JSON'
   "expected_evidence": ["QA_A result", "QA_B result", "QA_C result", "QA_D result", "qa-result.json"],
   "stop_condition": "All required QA paths pass or a reproducible issue is reported",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -508,12 +654,12 @@ cat >"$TMP_DIR/qa-packet-missing-verify.json" <<'JSON'
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#qa",
   "role": "qa",
   "goal": "Validate required user paths after verified tasks",
-  "scope": ["QA_A", "QA_B", "QA_C", "QA_D"],
+  "forbidden_scope": ["src/", "tests/", "docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json"],
   "input_refs": ["artifact://qa-handoff/sample-feature.phase-1.unit-1@v1#qa_handoff_contract"],
   "expected_evidence": ["QA_A result", "QA_B result", "QA_C result", "QA_D result", "qa-result.json"],
   "stop_condition": "All required QA paths pass or a reproducible issue is reported",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -540,12 +686,12 @@ cat >"$TMP_DIR/verifier-packet-pass.json" <<'JSON'
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
   "role": "verifier",
   "goal": "Verify AC and scope for T1",
-  "scope": ["src/feature.ts", "tests/feature.test.ts"],
+  "forbidden_scope": ["src/", "tests/", "docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json"],
   "input_refs": ["artifact://developer-report/sample-feature.phase-1.task-T1@v1#summary"],
   "expected_evidence": ["AC verification", "scope verification", "verify-result.json"],
   "stop_condition": "AC/scope PASS or exact missing gap is reported",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"
@@ -566,12 +712,12 @@ cat >"$TMP_DIR/fixer-packet-pass.json" <<'JSON'
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
   "role": "fixer",
   "goal": "Root cause and minimal fix for the reported failure",
-  "scope": ["src/feature.ts", "tests/feature.test.ts"],
+  "forbidden_scope": ["docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json", "docs/sample-feature/phase-1/phase-prd.json"],
   "input_refs": ["artifact://verify-result/sample-feature.phase-1.task-T1@v1#fail"],
   "expected_evidence": ["root cause", "minimal fix", "freshness check", "fix-result.json"],
   "stop_condition": "Failure fixed or exact blocker is reported",
   "forbidden_actions": [
-    "do not modify scope outside packet",
+    "do not violate scope boundary: do not modify files listed in forbidden_scope",
     "do not modify baseline or AC",
     "do not commit or release",
     "do not conclude for other roles"

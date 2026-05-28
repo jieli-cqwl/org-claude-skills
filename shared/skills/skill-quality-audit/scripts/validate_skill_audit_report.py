@@ -23,11 +23,13 @@ from skill_audit_report_contract import (
     VALID_VERDICTS,
     VALIDATION_FIELDS,
     evidence_level_at_least,
+    existing_path_refs,
     fail,
     has_pathish_ref,
     require,
     require_known_fields,
     validate_findings,
+    validate_summary,
 )
 
 
@@ -136,10 +138,17 @@ def validate_scope(report: dict[str, Any]) -> None:
             f"scope_evidence[{index}].evidence is required",
         )
         if status == "checked":
-            require(
-                has_pathish_ref(evidence),
-                f"scope_evidence[{index}] checked evidence must name an active file or directory",
-            )
+            refs = existing_path_refs(evidence)
+            if has_pathish_ref(evidence):
+                require(
+                    refs,
+                    f"scope_evidence[{index}] checked evidence path does not exist: {evidence}",
+                )
+            else:
+                require(
+                    False,
+                    f"scope_evidence[{index}] checked evidence must name an active file or directory",
+                )
     unknown = sorted(seen - REQUIRED_SCOPE_SURFACE_SET)
     require(not unknown, f"unknown scope surfaces: {', '.join(unknown)}")
     missing = [surface for surface in REQUIRED_SCOPE_SURFACES if surface not in seen]
@@ -281,6 +290,14 @@ def validate_executed_verification(report: dict[str, Any]) -> None:
             item["status"] in {"PASS", "FAIL", "BLOCKED"},
             f"executed_verification[{index}].status is invalid",
         )
+        if "supports" in item:
+            supports = item["supports"]
+            require(
+                isinstance(supports, list)
+                and supports
+                and all(isinstance(value, str) and value for value in supports),
+                f"executed_verification[{index}].supports must be non-empty strings",
+            )
     e4_dimensions = [
         item.get("dimension", f"dimension[{index}]")
         for index, item in enumerate(report.get("dimension_scores", []))
@@ -292,8 +309,20 @@ def validate_executed_verification(report: dict[str, Any]) -> None:
         if item.get("evidence_level") == "E4"
     ]
     if e4_dimensions or e4_findings:
-        refs = ", ".join(e4_dimensions + e4_findings)
-        require(items, f"E4 evidence requires executed_verification entries: {refs}")
+        required_refs = [f"dimension:{name}" for name in e4_dimensions]
+        required_refs.extend(f"finding:{name}" for name in e4_findings)
+        supported_refs = {
+            support
+            for item in items
+            if item.get("status") == "PASS"
+            for support in item.get("supports", [])
+        }
+        missing = sorted(set(required_refs) - supported_refs)
+        require(
+            not missing,
+            "E4 evidence requires matching PASS executed_verification supports: "
+            + ", ".join(missing),
+        )
 
 
 def validate_repair_handoff(report: dict[str, Any]) -> None:
@@ -319,6 +348,7 @@ def main(argv: list[str]) -> int:
     validate_scope(report)
     validate_dimensions(report)
     validate_findings(report)
+    validate_summary(report)
     validate_verdict_rules(report)
     validate_validation(report)
     validate_executed_verification(report)

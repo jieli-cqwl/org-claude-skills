@@ -58,6 +58,51 @@ for tool in \
   [ -f "$tool" ] || fail "missing validator tool: ${tool#"$ROOT"/}"
 done
 
+python3 - "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+template = json.loads(
+    (root / "shared/skills/delivery-owner/templates/artifact-registry.template.json").read_text(encoding="utf-8")
+)
+schema = json.loads(
+    (root / "shared/skills/delivery-owner/contracts/artifact-registry.schema.json").read_text(encoding="utf-8")
+)
+active_revision_id = template["active_revision_id"]
+active_revision = next(
+    revision
+    for revision in template["revisions"]
+    if revision["revision_id"] == active_revision_id
+)
+active_types = {
+    entry["artifact_type"]
+    for entry in active_revision["entries"]
+    if entry.get("active_for_consumption") is True
+}
+required_runtime_types = {
+    "developer-report",
+    "verify-result",
+    "code-review-result",
+    "qa-result",
+    "consistency-audit-result",
+}
+missing = sorted(required_runtime_types - active_types)
+if missing:
+    raise SystemExit(f"artifact registry template missing active runtime artifact types: {missing}")
+
+policy = template.get("runtime_artifact_policy", {})
+if policy.get("active_uniqueness") != "one_active_entry_per_scope_artifact_type":
+    raise SystemExit("artifact registry template must declare active runtime uniqueness policy")
+if set(policy.get("required_runtime_artifacts", [])) != required_runtime_types:
+    raise SystemExit("artifact registry template must declare required runtime artifact types")
+
+props = schema["allOf"][1]["properties"]
+if "runtime_artifact_policy" not in props:
+    raise SystemExit("artifact registry schema must define runtime_artifact_policy")
+PY
+
 positive_scenario="$TMP_DIR/positive-scenario.json"
 python3 - "$ROOT" "$positive_scenario" <<'PY'
 import hashlib
@@ -161,12 +206,260 @@ positive_phase_dir="$TMP_DIR/positive-phase"
 prepare_phase_dir "$positive_scenario" "$positive_phase_dir"
 golden_phase_dir="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1"
 
+qa_missing_task_verify_dir="$TMP_DIR/qa-missing-task-verify/sample-feature"
+mkdir -p "$TMP_DIR/qa-missing-task-verify"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$qa_missing_task_verify_dir"
+rm -f "$qa_missing_task_verify_dir/phase-1/unit-1/tasks/T2/verify-result.json"
+if python3 "$ROOT/shared/skills/qa/scripts/preflight_check.py" \
+  --phase-dir "$qa_missing_task_verify_dir/phase-1" >"$TMP_DIR/qa-missing-task-verify.out"; then
+  cat "$TMP_DIR/qa-missing-task-verify.out" >&2
+  fail "qa preflight should reject when any frozen task lacks current verify-result PASS"
+fi
+python3 - "$TMP_DIR/qa-missing-task-verify.out" <<'PY'
+import json
+import sys
+
+payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
+assert payload["status"] == "BLOCKED"
+assert payload["failure_code"] in {"MISSING_INPUT", "VERIFIER_NOT_PASS"}
+assert any("T2" in item or "verify-result" in item for item in payload["missing_inputs"])
+PY
+
+qa_inactive_task_verify_dir="$TMP_DIR/qa-inactive-task-verify/sample-feature"
+mkdir -p "$TMP_DIR/qa-inactive-task-verify"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$qa_inactive_task_verify_dir"
+python3 - "$qa_inactive_task_verify_dir/phase-1/artifact-registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+registry_path = Path(sys.argv[1])
+payload = json.loads(registry_path.read_text(encoding="utf-8"))
+active_revision_id = payload["active_revision_id"]
+for revision in payload["revisions"]:
+    if revision["revision_id"] != active_revision_id:
+        continue
+    for entry in revision["entries"]:
+        if (
+            entry.get("artifact_type") == "verify-result"
+            and entry.get("artifact_path") == "unit-1/tasks/T2/verify-result.json"
+        ):
+            entry["active_for_consumption"] = False
+registry_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/shared/skills/qa/scripts/preflight_check.py" \
+  --phase-dir "$qa_inactive_task_verify_dir/phase-1" >"$TMP_DIR/qa-inactive-task-verify.out"; then
+  cat "$TMP_DIR/qa-inactive-task-verify.out" >&2
+  fail "qa preflight should reject filesystem verify-result without active registry binding"
+fi
+python3 - "$TMP_DIR/qa-inactive-task-verify.out" <<'PY'
+import json
+import sys
+
+payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
+assert payload["status"] == "BLOCKED"
+assert payload["failure_code"] == "MISSING_INPUT"
+assert any("T2" in item and "verify-result" in item for item in payload["missing_inputs"])
+PY
+
+qa_stale_task_verify_dir="$TMP_DIR/qa-stale-task-verify/sample-feature"
+mkdir -p "$TMP_DIR/qa-stale-task-verify"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$qa_stale_task_verify_dir"
+python3 - "$qa_stale_task_verify_dir/phase-1/unit-1/tasks/T2/verify-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+verify_path = Path(sys.argv[1])
+payload = json.loads(verify_path.read_text(encoding="utf-8"))
+payload["baseline_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+verify_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/shared/skills/qa/scripts/preflight_check.py" \
+  --phase-dir "$qa_stale_task_verify_dir/phase-1" >"$TMP_DIR/qa-stale-task-verify.out"; then
+  cat "$TMP_DIR/qa-stale-task-verify.out" >&2
+  fail "qa preflight should reject stale verify-result task version refs"
+fi
+python3 - "$TMP_DIR/qa-stale-task-verify.out" <<'PY'
+import json
+import sys
+
+payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
+assert payload["status"] == "BLOCKED"
+assert payload["failure_code"] == "VERIFIER_NOT_PASS"
+assert any("T2" in item and "verify-result" in item for item in payload["missing_inputs"])
+PY
+
+qa_spec_ok_gate_dir="$TMP_DIR/qa-spec-ok-gate/sample-feature"
+mkdir -p "$TMP_DIR/qa-spec-ok-gate"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$qa_spec_ok_gate_dir"
+python3 - "$qa_spec_ok_gate_dir/phase-1/unit-1/tasks/T2/verify-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+verify_path = Path(sys.argv[1])
+payload = json.loads(verify_path.read_text(encoding="utf-8"))
+payload["gate_result"] = "SPEC_OK"
+verify_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/shared/skills/qa/scripts/preflight_check.py" \
+  --phase-dir "$qa_spec_ok_gate_dir/phase-1" >"$TMP_DIR/qa-spec-ok-gate.out"; then
+  cat "$TMP_DIR/qa-spec-ok-gate.out" >&2
+  fail "qa preflight should reject final verify-result gate_result=SPEC_OK"
+fi
+python3 - "$TMP_DIR/qa-spec-ok-gate.out" <<'PY'
+import json
+import sys
+
+payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
+assert payload["status"] == "BLOCKED"
+assert payload["failure_code"] == "VERIFIER_NOT_PASS"
+assert any("T2" in item and "verify-result" in item for item in payload["missing_inputs"])
+PY
+
+verify_schema_spec_ok_dir="$TMP_DIR/verify-schema-spec-ok"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$verify_schema_spec_ok_dir"
+python3 - "$verify_schema_spec_ok_dir/phase-1/unit-1/tasks/T1/verify-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+verify_path = Path(sys.argv[1])
+payload = json.loads(verify_path.read_text(encoding="utf-8"))
+payload["gate_result"] = "SPEC_OK"
+verify_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" \
+  --phase-dir "$verify_schema_spec_ok_dir/phase-1" >"$TMP_DIR/verify-schema-spec-ok.out" 2>&1; then
+  cat "$TMP_DIR/verify-schema-spec-ok.out" >&2
+  fail "schema validator should reject final verify-result gate_result=SPEC_OK"
+fi
+
 normalized_output="$TMP_DIR/normalized.json"
 python3 "$ROOT/tools/community/normalize_canonical_artifact.py" \
   --fixture "$positive_scenario" >"$normalized_output" || fail "normalizer should pass"
 
 python3 "$ROOT/tools/community/validate_canonical_schema.py" \
   --phase-dir "$positive_phase_dir" >/dev/null || fail "schema validator should pass"
+
+bad_delivery_stage="$TMP_DIR/bad-delivery-stage.json"
+python3 - "$positive_scenario" "$bad_delivery_stage" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact["artifact_type"] == "delivery-state":
+        artifact["current_stage"] = "READY_FOR_COMMIT"
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bad_delivery_stage" >/tmp/t3_bad_delivery_stage.out 2>&1; then
+  cat /tmp/t3_bad_delivery_stage.out >&2
+  fail "schema validator should reject delivery-state current_stage outside shared-core vocabulary"
+fi
+
+bad_delivery_action="$TMP_DIR/bad-delivery-action.json"
+python3 - "$positive_scenario" "$bad_delivery_action" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact["artifact_type"] == "delivery-state":
+        artifact["control_action"] = "DISPATCH_READY"
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bad_delivery_action" >/tmp/t3_bad_delivery_action.out 2>&1; then
+  cat /tmp/t3_bad_delivery_action.out >&2
+  fail "schema validator should reject delivery-state control_action outside shared-core vocabulary"
+fi
+
+blocked_missing_recovery="$TMP_DIR/blocked-missing-recovery.json"
+python3 - "$positive_scenario" "$blocked_missing_recovery" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact["artifact_type"] == "delivery-state":
+        artifact["current_stage"] = "BLOCKED"
+        artifact["status"] = "BLOCKED"
+        artifact["control_action"] = "BLOCK"
+        for key in (
+            "blocker_id",
+            "blocker_owner",
+            "blocker_basis_refs",
+            "resume_stage",
+            "next_action",
+            "resume_condition",
+        ):
+            artifact.pop(key, None)
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$blocked_missing_recovery" >/tmp/t3_blocked_missing_recovery.out 2>&1; then
+  cat /tmp/t3_blocked_missing_recovery.out >&2
+  fail "schema validator should reject blocked delivery-state without recovery fields"
+fi
+
+bad_progress_owner_changed="$TMP_DIR/bad-progress-owner-changed.json"
+python3 - "$positive_scenario" "$bad_progress_owner_changed" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact["artifact_type"] == "delivery-state":
+        artifact["progress_signal"] = "owner_changed"
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bad_progress_owner_changed" >/tmp/t3_bad_progress_owner_changed.out 2>&1; then
+  cat /tmp/t3_bad_progress_owner_changed.out >&2
+  fail "schema validator should reject delivery-state progress_signal=owner_changed"
+fi
+
+bad_progress_new_evidence="$TMP_DIR/bad-progress-new-evidence.json"
+python3 - "$positive_scenario" "$bad_progress_new_evidence" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact["artifact_type"] == "delivery-state":
+        artifact["progress_signal"] = "new_evidence"
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bad_progress_new_evidence" >/tmp/t3_bad_progress_new_evidence.out 2>&1; then
+  cat /tmp/t3_bad_progress_new_evidence.out >&2
+  fail "schema validator should reject generic delivery-state progress_signal=new_evidence"
+fi
+
+bad_owner_action_consumption="$TMP_DIR/bad-owner-action-consumption.json"
+python3 - "$positive_scenario" "$bad_owner_action_consumption" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact["artifact_type"] == "delivery-state":
+        artifact["owner_action_consumption"] = [
+            {
+                "required_owner": "tech-lead",
+                "result": "ROUTED"
+            }
+        ]
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bad_owner_action_consumption" >/tmp/t3_bad_owner_action_consumption.out 2>&1; then
+  cat /tmp/t3_bad_owner_action_consumption.out >&2
+  fail "schema validator should reject incomplete owner_action_consumption entries"
+fi
 
 python3 - "$ROOT" <<'PY' || fail "installed fallback schema validator should resolve nested allOf refs"
 import sys

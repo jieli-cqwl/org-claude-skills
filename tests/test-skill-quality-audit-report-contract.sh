@@ -30,12 +30,12 @@ validator_lines="$(wc -l < "$VALIDATOR" | tr -d ' ')"
 python3 "$VALIDATOR" "$VALID"
 python3 "$VALIDATOR" "$FIT_VALID"
 
-python3 - "$VALID" "$TMP_DIR/root-file-line-evidence.json" <<'PY'
+python3 - "$VALID" "$TMP_DIR/root-file-line-evidence.json" "$TMP_DIR/root-file-line-evidence.md" <<'PY'
 import json
 import sys
 from pathlib import Path
 
-src, dst = map(Path, sys.argv[1:])
+src, dst, summary = map(Path, sys.argv[1:])
 data = json.loads(src.read_text(encoding="utf-8"))
 data["findings"][0]["evidence"] = "AGENTS.md:1 provides root-level evidence for this contract fixture."
 data["findings"][0]["evidence_checks"][0] = {
@@ -45,6 +45,22 @@ data["findings"][0]["evidence_checks"][0] = {
     "claim": "Root-level file references with line numbers are valid evidence.",
 }
 data["findings"][0]["claim_review"]["refutation_check"] = "AGENTS.md:1 was checked for a direct refutation."
+data["artifact_paths"]["summary_markdown"] = str(summary)
+summary.write_text(
+    "\n".join(
+        [
+            "# Skill Audit Summary",
+            "",
+            "Finding F-001 / P1 / Handoff target is incomplete.",
+            "Evidence: AGENTS.md:1 provides root-level evidence for this contract fixture.",
+            "Impact: The editing window may not know which file or test proves repair.",
+            "Repair target: shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md Output Contract",
+            "Verification hint: Run the target skill package quality checker after adding consumer and verification.",
+        ]
+    )
+    + "\n",
+    encoding="utf-8",
+)
 dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 python3 "$VALIDATOR" "$TMP_DIR/root-file-line-evidence.json"
@@ -68,18 +84,27 @@ fi
 grep -Fq "target_skill" "$TMP_DIR/object-target-skill.out" \
   || fail "target_skill object failure should mention target_skill"
 
-python3 - "$VALID" "$TMP_DIR/absolute-artifact-paths.json" <<'PY'
+python3 - "$VALID" "$TMP_DIR/absolute-artifact-paths.json" "$TMP_DIR/research-skill-audit-report.json" "$TMP_DIR/research-skill-audit-summary.md" <<'PY'
 import json
 import sys
 from pathlib import Path
 
-src, dst = map(Path, sys.argv[1:])
+src, dst, report_path, summary_path = map(Path, sys.argv[1:])
 data = json.loads(src.read_text(encoding="utf-8"))
+summary_path.write_text(
+    Path("tests/fixtures/skill-quality-audit/reports/valid-report.md").read_text(
+        encoding="utf-8"
+    ),
+    encoding="utf-8",
+)
 data["artifact_paths"] = {
-    "report_json": "/tmp/research-skill-audit-report.json",
-    "summary_markdown": "/tmp/research-skill-audit-summary.md",
+    "report_json": str(report_path),
+    "summary_markdown": str(summary_path),
 }
-data["validation"]["command"] = "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py /tmp/research-skill-audit-report.json"
+data["validation"]["command"] = (
+    "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py "
+    + str(report_path)
+)
 dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 python3 "$VALIDATOR" "$TMP_DIR/absolute-artifact-paths.json"

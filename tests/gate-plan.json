@@ -2191,6 +2191,18 @@
       "timeout_sec": 120
     },
     {
+      "id": "skill-quality-audit-validator-hardening",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-validator-hardening.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
       "id": "skill-quality-audit-runtime-contract",
       "command": [
         "bash",

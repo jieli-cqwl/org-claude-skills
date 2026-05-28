@@ -11,11 +11,23 @@
     "$.scope_ref",
     "$.registry_revision",
     "$.active_revision_id",
+    "$.runtime_artifact_policy",
     "$.revisions"
   ],
   "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
   "registry_revision": "rev-1",
   "active_revision_id": "rev-1",
+  "runtime_artifact_policy": {
+    "active_uniqueness": "one_active_entry_per_scope_artifact_type",
+    "required_runtime_artifacts": [
+      "developer-report",
+      "verify-result",
+      "code-review-result",
+      "qa-result",
+      "consistency-audit-result"
+    ],
+    "owner_responsibility": "Each producer writes its own runtime artifact; delivery-owner must add exactly one active FINALIZED registry entry before dispatching the next consumer."
+  },
   "revisions": [
     {
       "revision_id": "rev-1",
@@ -109,6 +121,61 @@
           "lifecycle_state": "FINALIZED",
           "active_for_consumption": true,
           "produced_by": "delivery-owner",
+          "restore_basis_refs": []
+        },
+        {
+          "scope_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1",
+          "artifact_id": "sample-feature.phase-1.unit-1.task-T1.developer-report",
+          "artifact_type": "developer-report",
+          "version": "v1",
+          "artifact_path": "unit-1/tasks/T1/developer-report.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "developer",
+          "restore_basis_refs": []
+        },
+        {
+          "scope_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1",
+          "artifact_id": "sample-feature.phase-1.unit-1.task-T1.verify-result",
+          "artifact_type": "verify-result",
+          "version": "v1",
+          "artifact_path": "unit-1/tasks/T1/verify-result.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "verify",
+          "restore_basis_refs": []
+        },
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.phase-1.code-review",
+          "artifact_type": "code-review-result",
+          "version": "v1",
+          "artifact_path": "code-review-result.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "review",
+          "restore_basis_refs": []
+        },
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.phase-1.qa",
+          "artifact_type": "qa-result",
+          "version": "v1",
+          "artifact_path": "qa-result.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "qa",
+          "restore_basis_refs": []
+        },
+        {
+          "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+          "artifact_id": "sample-feature.phase-1.consistency-audit",
+          "artifact_type": "consistency-audit-result",
+          "version": "v1",
+          "artifact_path": "consistency-audit-result.json",
+          "lifecycle_state": "FINALIZED",
+          "active_for_consumption": true,
+          "produced_by": "consistency-audit",
           "restore_basis_refs": []
         }
       ]

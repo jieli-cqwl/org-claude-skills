@@ -56,9 +56,12 @@ bash shared/skills/qa/scripts/preflight_check.sh --phase-dir "$PHASE_DIR"
 
 脚本校验：
 - `brief.json` / `phase-prd.json` / `plan.json` / `artifact-registry.json` 必须可读
+- `tasks.json.tasks[]` 中每个冻结 Task 都必须有对应 `developer-report.json` 且 `runtime_status=VERIFIED`
 - `units/UNIT-*.json` 必须存在
 - `unit-*/test-cases.json.qa_handoff_contract[]` 必须非空，每条义务含 `qa_stage` 和 `execution_mode`
-- `verify-result.json.gate_result` 必须为 `PASS` 或 `SPEC_OK`（`--skip-verifier` 仅供非 standard-chain 场景）
+- 每个冻结 Task 都必须有对应 `verify-result.json`，且最终 `gate_result` 必须为 `PASS`（`SPEC_OK` 只允许作为 verify 内部 `phase_verdicts.spec_review.status`；`--skip-verifier` 仅供非 standard-chain 场景）
+
+`code-review-result.json` 不属于 QA 准入输入；提测前 code-review gate 由 `delivery-owner` DO-S6 负责关闭并证明，QA 只消费冻结需求、设计、测试义务、developer/verify 运行证据和真实验收结果。
 
 `NFR` 不是独立阶段，由 `qa_handoff_contract[]` 触发并挂到对应阶段；未执行写 `not_executed_reason`。
 
@@ -140,10 +143,12 @@ Trigger: 计算 `release_recommendation`；Read: `references/release-decision-me
 
 canonical schema/template：以 `shared/skills/qa/templates/qa-result.template.json` 起草，最终按 `contracts/qa-result.schema.json` 校验。
 
+qa 负责写入 Phase 级 `qa-result.json`；进入提交准备或 full consistency-audit 前，由 delivery-owner 确认该结果在 active `artifact-registry.json` 中存在且只有一个 `FINALIZED + active_for_consumption=true` entry。
+
 条件字段：
 - `conditional_release_basis`：`release_recommendation=CONDITIONAL_ALLOW` 时必填。
 - `browser_tool` / `entry_url` / `browser_evidence`：任一 `qa_handoff_contract` 命中 `browser_required` 时必填；`browser_evidence` 至少含 screenshot / trace / video / browser log / Playwright / webapp-testing 锚点之一，不得为纯 API / CLI 证据。
-- `obligation_results[]`：逐条对应 `qa_handoff_contract[].obligation_id`，包含 `source_refs`、`evidence_refs`、`qa_stage`、`gate_result` 和摘要；REQUIRED 义务在 readiness 时必须 PASS。
+- `obligation_results[]`：逐条对应 `qa_handoff_contract[].obligation_id`，并覆盖相关 `cross_unit_obligations`；包含 `source_refs`、`evidence_refs`、`qa_stage`、`gate_result` 和摘要；REQUIRED 义务在 readiness 时必须 PASS。
 
 `FAIL` 项必须使用稳定 `issue_id=QAR-XXX`，并带完整 triage 字段。`issue_ledger[]` 的 `owner_hint` 必须取 `fixer / developer / product-manager / design` 之一。
 

@@ -195,6 +195,18 @@
       "template_path": "shared/skills/delivery-owner/templates/user-decision.template.json",
       "default_path": "docs/{feature}/phase-{N}/user-decision.json"
     },
+    "target-change": {
+      "artifact_type": "target-change",
+      "family": "runtime",
+      "scope": "phase",
+      "producer": "delivery-owner",
+      "schema_version": "1.0.0",
+      "chain_version": "standard-chain/v1",
+      "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+      "schema_path": "shared/skills/delivery-owner/contracts/target-change.schema.json",
+      "template_path": "shared/skills/delivery-owner/templates/target-change.template.json",
+      "default_path": "docs/{feature}/phase-{N}/target-change.json"
+    },
     "artifact-registry": {
       "artifact_type": "artifact-registry",
       "family": "runtime",

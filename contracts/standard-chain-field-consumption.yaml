@@ -101,6 +101,36 @@ artifacts:
             consume_mode: gate
         required_when: PM derives phase and unit delivery order
         failure_effect: phase sequencing loses its confirmed Director basis
+      director_confirmation:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: gate PM refinement on confirmed Director lock metadata
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: prove PM-refined brief still carries Director confirmation before execution and signoff
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: audit preservation of Director-owned brief fields
+            consume_mode: gate
+        required_when: Director-owned brief fields are consumed downstream
+        failure_effect: PM refinement or delivery can proceed without a confirmed Director lock
+      locked_field_digest:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: detect drift in Director-owned brief fields during PM refinement
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: block execution or signoff when the brief Director lock digest drifts
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: compare active registry and artifact digests for Director-owned brief fields
+            consume_mode: gate
+        required_when: Director-owned brief fields are consumed downstream
+        failure_effect: final delivery cannot mechanically prove the brief preserved Director-owned fields
       acceptance_criteria:
         producer: product-manager
         authority: product-manager
@@ -219,6 +249,36 @@ artifacts:
             consume_mode: gate
         required_when: PM defines release readiness and delivery closure
         failure_effect: phase completion cannot be judged against Director intent
+      director_confirmation:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: gate PM phase refinement on confirmed Director lock metadata
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: prove PM-refined phase PRD still carries Director confirmation before execution and signoff
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: audit preservation of Director-owned phase fields
+            consume_mode: gate
+        required_when: Director-owned phase fields are consumed downstream
+        failure_effect: PM refinement or delivery can proceed without a confirmed Director phase lock
+      locked_field_digest:
+        producer: product-director
+        authority: product-director
+        consumers:
+          - consumer: product-manager
+            consumed_for: detect drift in Director-owned phase fields during PM refinement
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: block execution or signoff when the phase PRD Director lock digest drifts
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: compare active registry and artifact digests for Director-owned phase fields
+            consume_mode: gate
+        required_when: Director-owned phase fields are consumed downstream
+        failure_effect: final delivery cannot mechanically prove the phase PRD preserved Director-owned fields
       evidence_sources:
         producer: product-manager
         authority: product-manager
@@ -1055,20 +1115,20 @@ artifacts:
         producer: review
         authority: review
         consumers:
-          - consumer: qa
-            consumed_for: gate QA on review outcome
+          - consumer: delivery-owner
+            consumed_for: gate QA dispatch on review outcome during DO-S6
             consume_mode: gate
-        required_when: QA consumes review output
-        failure_effect: QA may continue after a failed or missing review gate
+        required_when: delivery-owner dispatches QA after code review
+        failure_effect: delivery-owner may dispatch QA after a failed or missing review gate
       dimension_verdicts:
         producer: review
         authority: review
         consumers:
-          - consumer: qa
-            consumed_for: inspect review coverage by dimension
+          - consumer: delivery-owner
+            consumed_for: inspect review coverage by dimension before QA dispatch
             consume_mode: reference
         required_when: review reports dimension-level judgments
-        failure_effect: QA cannot distinguish covered dimensions from omissions
+        failure_effect: delivery-owner cannot distinguish covered dimensions from omissions
       findings:
         producer: review
         authority: review
@@ -1082,11 +1142,11 @@ artifacts:
         producer: review
         authority: review
         consumers:
-          - consumer: qa
-            consumed_for: understand review exclusions before QA judgment
+          - consumer: delivery-owner
+            consumed_for: understand review exclusions before QA dispatch and signoff
             consume_mode: reference
         required_when: review excludes scope from inspection
-        failure_effect: QA may assume excluded areas were reviewed
+        failure_effect: delivery-owner may assume excluded areas were reviewed
       review_conclusion:
         producer: review
         authority: review
@@ -1257,6 +1317,18 @@ artifacts:
             consume_mode: reference
         required_when: delivery-owner prepares delivery state
         failure_effect: delivery summary can flatten failed QA sub-stages
+      obligation_results:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove every qa_handoff_contract and relevant cross_unit_obligation has an executed QA disposition before signoff
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: reconcile QA evidence against test-design obligations during full advisory audit
+            consume_mode: gate
+        required_when: QA hands off phase result
+        failure_effect: required QA obligations can be omitted while phase QA still appears complete
       issue_ledger:
         producer: qa
         authority: qa
@@ -1266,6 +1338,82 @@ artifacts:
             consume_mode: gate
         required_when: QA records issue ledger entries
         failure_effect: unresolved QA issues can lose owner and disposition
+
+  - path: docs/{feature}/phase-{N}/target-change.json
+    producer: delivery-owner
+    fields:
+      changed_target_type:
+        producer: delivery-owner
+        authority: user
+        consumers:
+          - consumer: product-director
+            consumed_for: route goal, scope, AC, task, or design changes back to baseline owners
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: decide whether plan and task baselines must be regenerated
+            consume_mode: gate
+        required_when: user changes delivery target after baseline or runtime evidence exists
+        failure_effect: target changes can be treated as ordinary signoff decisions
+      affected_refs:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: tech-lead
+            consumed_for: identify frozen artifacts that need rebaseline
+            consume_mode: gate
+        required_when: target change is recorded
+        failure_effect: rebaseline owner cannot determine affected scope
+      invalidates_refs:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: mark old baseline refs as unusable for closeout
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: verify stale refs are not consumed after target change
+            consume_mode: gate
+        required_when: target change invalidates frozen artifacts
+        failure_effect: stale baseline refs can remain active
+      superseded_evidence_refs:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: block reuse of developer, verify, review, QA, or audit evidence produced before the target change
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: audit evidence freshness after rebaseline
+            consume_mode: gate
+        required_when: target change happens after runtime evidence exists
+        failure_effect: old runtime evidence can close a changed target
+      rebaseline_required:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: tech-lead
+            consumed_for: force return to baseline freezing before more execution
+            consume_mode: gate
+        required_when: target change is recorded
+        failure_effect: execution can continue without rebaseline
+      rebaseline_owner:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: route the target change to the correct owner
+            consume_mode: gate
+        required_when: rebaseline is required
+        failure_effect: target changes can stall without owner
+      required_fresh_proof_after_rebaseline:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: define which runtime evidence must be regenerated after rebaseline
+            consume_mode: gate
+        required_when: stale evidence is superseded by target change
+        failure_effect: closeout can proceed without fresh proof
 
   - path: docs/{feature}/phase-{N}/delivery-state.json
     producer: delivery-owner
@@ -1333,6 +1481,87 @@ artifacts:
             consume_mode: reference
         required_when: delivery-state records kickoff information
         failure_effect: delivery readiness can be asserted without kickoff basis
+      progress_signal:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: audit whether follow-up loops made real progress or must pause
+            consume_mode: gate
+        required_when: delivery-state records a follow-up loop result
+        failure_effect: no-progress loops can be hidden behind ambiguous progress labels
+      consecutive_no_progress_count:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: enforce the two-round no-progress pause rule
+            consume_mode: gate
+        required_when: delivery-state records follow-up loop progress
+        failure_effect: repeated no-progress rounds can continue without user decision
+      owner_action_consumption:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: verify advisory owner actions were routed and recorded with evidence
+            consume_mode: gate
+        required_when: consistency audit reports blocked_layers, CRITICAL findings, or required_owner_action
+        failure_effect: advisory owner actions can be summarized as closed without owner evidence
+      blocker_id:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: identify the active recovery blocker
+            consume_mode: gate
+        required_when: delivery-state is BLOCKED or requests a user decision
+        failure_effect: blocked state cannot be recovered deterministically
+      blocker_owner:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: route blocker resolution to the accountable owner
+            consume_mode: gate
+        required_when: delivery-state is BLOCKED or requests a user decision
+        failure_effect: blocker resolution has no accountable owner
+      blocker_basis_refs:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: verify why delivery was blocked
+            consume_mode: gate
+        required_when: delivery-state is BLOCKED or requests a user decision
+        failure_effect: recovery can proceed without evidence for the block
+      resume_stage:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: determine which stage resumes after blocker resolution
+            consume_mode: gate
+        required_when: delivery-state is BLOCKED or requests a user decision
+        failure_effect: recovery can resume at an arbitrary or stale stage
+      next_action:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: verify the next recovery action is explicit
+            consume_mode: gate
+        required_when: delivery-state is BLOCKED or requests a user decision
+        failure_effect: recovery depends on implicit operator memory
+      resume_condition:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: consistency-auditor
+            consumed_for: verify the condition required before resuming delivery
+            consume_mode: gate
+        required_when: delivery-state is BLOCKED or requests a user decision
+        failure_effect: delivery can resume before blocker evidence is actually resolved
 
   - path: docs/{feature}/phase-{N}/artifact-registry.json
     producer: delivery-owner
@@ -1503,3 +1732,15 @@ artifacts:
             consume_mode: handoff
         required_when: signoff package is presented for user decision
         failure_effect: user cannot trace decision basis to canonical artifacts
+      runtime_evidence_matrix:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: user
+            consumed_for: prove signoff covers current developer, verifier, code-review, QA obligation, and consistency-audit runtime evidence
+            consume_mode: gate
+          - consumer: user-decision-writer
+            consumed_for: bind user signoff or risk acceptance to typed runtime artifacts rather than logical summaries
+            consume_mode: gate
+        required_when: signoff package is presented for user decision
+        failure_effect: logical summaries or QA-only refs can replace the full runtime proof chain

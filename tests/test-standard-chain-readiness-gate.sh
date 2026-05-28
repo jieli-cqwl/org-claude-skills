@@ -1334,6 +1334,78 @@ if python3 "$SCRIPT" \
   fail "readiness gate should reject signoff execution_basis_ref/evidence_ref anchors that do not resolve"
 fi
 
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/signoff-missing-runtime-evidence-type"
+python3 - "$TMP_DIR/signoff-missing-runtime-evidence-type/phase-1/signoff-package.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+signoff_path = Path(sys.argv[1])
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+signoff["runtime_evidence_matrix"] = [
+    {
+        "artifact_type": "developer-report",
+        "artifact_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#runtime-status",
+        "producer": "developer",
+        "status": "VERIFIED",
+        "freshness_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
+        "active_registry_proof": {
+            "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-4#active-entry:developer-report:sample-feature.phase-1.unit-1.task-T1.developer-report",
+            "lifecycle_state": "FINALIZED",
+            "active_for_consumption": True,
+        },
+        "stale_superseded_check": "CURRENT",
+    },
+    {
+        "artifact_type": "verify-result",
+        "artifact_ref": "artifact://verify-result/sample-feature.phase-1.unit-1.task-T1.verify-result@v1#gate-result",
+        "producer": "verify",
+        "status": "PASS",
+        "freshness_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
+        "active_registry_proof": {
+            "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-4#active-entry:verify-result:sample-feature.phase-1.unit-1.task-T1.verify-result",
+            "lifecycle_state": "FINALIZED",
+            "active_for_consumption": True,
+        },
+        "stale_superseded_check": "CURRENT",
+    },
+    {
+        "artifact_type": "qa-result",
+        "artifact_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#obligation_results",
+        "producer": "qa",
+        "status": "PASS",
+        "freshness_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
+        "active_registry_proof": {
+            "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-4#active-entry:qa-result:sample-feature.phase-1.qa",
+            "lifecycle_state": "FINALIZED",
+            "active_for_consumption": True,
+        },
+        "stale_superseded_check": "CURRENT",
+    },
+    {
+        "artifact_type": "consistency-audit-result",
+        "artifact_ref": "artifact://consistency-audit-result/sample-feature.phase-1.consistency-audit@v1#audit-root",
+        "producer": "consistency-audit",
+        "status": "CLOSED",
+        "freshness_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
+        "active_registry_proof": {
+            "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-4#active-entry:consistency-audit-result:sample-feature.phase-1.consistency-audit",
+            "lifecycle_state": "FINALIZED",
+            "active_for_consumption": True,
+        },
+        "stale_superseded_check": "CURRENT",
+    },
+]
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/signoff-missing-runtime-evidence-type/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_signoff_missing_runtime_evidence_type.out 2>&1; then
+  cat /tmp/t6_signoff_missing_runtime_evidence_type.out >&2
+  fail "readiness gate should reject signoff runtime_evidence_matrix missing code-review-result coverage"
+fi
+
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/developer-runtime-status-drift"
 python3 - "$TMP_DIR/developer-runtime-status-drift/phase-1/unit-1/tasks/T1/developer-report.json" <<'PY'
 import json

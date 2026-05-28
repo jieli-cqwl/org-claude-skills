@@ -17,6 +17,32 @@ python3 "$VALIDATOR" \
   --standard-chain "$ROOT/contracts/standard-chain.yaml" \
   --field-consumption "$CONTRACT"
 
+python3 - "$ROOT/contracts/standard-chain.yaml" <<'PY'
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(sys.argv[1]).parents[1] / "tools" / "community"))
+from runtime_yaml import load_yaml
+
+consumed_runtime_artifacts = {
+    "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json",
+    "phase-{N}/code-review-result.json",
+    "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json",
+}
+data = load_yaml(Path(sys.argv[1]))
+violations = []
+for stage in data.get("chain", []):
+    for output in stage.get("outputs", []) or []:
+        artifact = output.get("artifact")
+        if artifact in consumed_runtime_artifacts and output.get("terminal") is True:
+            violations.append(f"{stage.get('name')}:{artifact}")
+if violations:
+    raise SystemExit(
+        "downstream-consumed runtime artifacts must not be terminal: "
+        + ", ".join(violations)
+    )
+PY
+
 # negative assertion only
 python3 - "$ROOT" "$CONTRACT" "$ROOT/contracts/co-creation-ledgers.yaml" "$ROOT/contracts/standard-chain.yaml" <<'PY'
 import re
@@ -198,6 +224,19 @@ with tempfile.TemporaryDirectory() as tmp:
     expect_validator_failure(
         standard_chain,
         missing_qa_contract,
+        "qa-result",
+    )
+
+    missing_qa_obligation_contract = tmp_dir / "missing-qa-obligation-field-consumption.yaml"
+    remove_contract_field(
+        contract,
+        "docs/{feature}/phase-{N}/qa-result.json",
+        "obligation_results",
+        missing_qa_obligation_contract,
+    )
+    expect_validator_failure(
+        standard_chain,
+        missing_qa_obligation_contract,
         "qa-result",
     )
 

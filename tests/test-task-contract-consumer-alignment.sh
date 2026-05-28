@@ -65,6 +65,68 @@ fields_by_path = {
     for artifact in field_contract.get("artifacts", [])
 }
 
+standard_chain = load_yaml(root / "contracts" / "standard-chain.yaml")
+delivery_owner = next(
+    role for role in standard_chain["chain"] if role.get("name") == "delivery-owner"
+)
+qa_role = next(role for role in standard_chain["chain"] if role.get("name") == "qa")
+product_director = next(
+    role for role in standard_chain["chain"] if role.get("name") == "product-director"
+)
+product_manager = next(
+    role for role in standard_chain["chain"] if role.get("name") == "product-manager"
+)
+require(
+    "phase-{N}/code-review-result.json" not in set(qa_role["inputs"].get("required", [])),
+    "qa required inputs must not include code-review-result; delivery-owner DO-S6 owns the review gate",
+)
+delivery_inputs = delivery_owner["inputs"]
+future_runtime_inputs = {
+    "phase-{N}/code-review-result.json",
+    "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json",
+    "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json",
+    "phase-{N}/qa-result.json",
+    "phase-{N}/consistency-audit-result.json",
+}
+require(
+    not (set(delivery_inputs.get("required", [])) & future_runtime_inputs),
+    "delivery-owner top-level required inputs must not include future runtime artifacts",
+)
+stage_inputs = delivery_inputs.get("stage_inputs", {})
+for stage in ("DO-S1", "DO-S5", "DO-S6", "DO-S7", "DO-S8"):
+    require(stage in stage_inputs, f"delivery-owner inputs must define {stage} stage inputs")
+require(
+    set(stage_inputs["DO-S1"].get("required", [])) == {
+        "brief.json",
+        "phase-{N}/phase-prd.json",
+        "phase-{N}/artifact-registry.json",
+        "phase-{N}/plan.json",
+        "phase-{N}/tasks.json",
+        "phase-{N}/design.json",
+        "phase-{N}/unit-{N}/test-cases.json",
+    },
+    "delivery-owner DO-S1 required inputs must be kickoff baseline artifacts only",
+)
+require(
+    {
+        "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json",
+        "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json",
+    }.issubset(set(stage_inputs["DO-S5"].get("required", []))),
+    "delivery-owner DO-S5 inputs must include developer and verify runtime evidence",
+)
+require(
+    "phase-{N}/code-review-result.json" in set(stage_inputs["DO-S6"].get("required", [])),
+    "delivery-owner DO-S6 inputs must include code-review-result",
+)
+require(
+    "phase-{N}/qa-result.json" in set(stage_inputs["DO-S7"].get("required", [])),
+    "delivery-owner DO-S7 inputs must include qa-result",
+)
+require(
+    "phase-{N}/consistency-audit-result.json" in set(stage_inputs["DO-S8"].get("required", [])),
+    "delivery-owner DO-S8 inputs must include consistency-audit-result",
+)
+
 
 def consumers_for(path: str, field: str) -> dict[str, str]:
     consumers = fields_by_path[path][field]["consumers"]
@@ -83,6 +145,24 @@ brief_path = "docs/{feature}/brief.json"
 phase_prd_path = "docs/{feature}/phase-{N}/phase-prd.json"
 unit_path = "docs/{feature}/phase-{N}/units/UNIT-{N}.json"
 design_path = "docs/{feature}/phase-{N}/design.json"
+code_review_path = "docs/{feature}/phase-{N}/code-review-result.json"
+
+
+def output_key_fields(role: dict, artifact: str) -> set[str]:
+    for output in role.get("outputs", []):
+        if output.get("artifact") == artifact:
+            return set(output.get("key_fields", []))
+    require(False, f"{role.get('name')} must output {artifact}")
+    return set()
+
+
+for role in (product_director, product_manager):
+    for artifact in ("brief.json", "phase-{N}/phase-prd.json"):
+        fields = output_key_fields(role, artifact)
+        require(
+            {"director_confirmation", "locked_field_digest"}.issubset(fields),
+            f"{role.get('name')} {artifact} key_fields must expose director lock fields",
+        )
 
 require_consumer(brief_path, "acceptance_criteria", "test-design", "transform")
 require_consumer(unit_path, "verification_plan", "test-design", "transform")
@@ -95,6 +175,21 @@ require_consumer(design_path, "verification_mapping", "test-design", "transform"
 for field in ("planning_constraints", "migration_plan", "rollback_plan"):
     require_consumer(design_path, field, "tech-lead", "transform" if field != "planning_constraints" else "gate")
     require_consumer(design_path, field, "delivery-owner", "gate")
+for path in (brief_path, phase_prd_path):
+    require_consumer(path, "director_confirmation", "product-manager", "gate")
+    require_consumer(path, "locked_field_digest", "product-manager", "gate")
+    require_consumer(path, "director_confirmation", "delivery-owner", "gate")
+    require_consumer(path, "locked_field_digest", "delivery-owner", "gate")
+for field in ("gate_result", "dimension_verdicts", "findings", "excluded", "review_conclusion"):
+    require(
+        "qa" not in consumers_for(code_review_path, field),
+        f"{code_review_path}#{field} must not be consumed by qa",
+    )
+require_consumer(code_review_path, "gate_result", "delivery-owner", "gate")
+require_consumer(code_review_path, "dimension_verdicts", "delivery-owner", "reference")
+require_consumer(code_review_path, "findings", "delivery-owner", "gate")
+require_consumer(code_review_path, "excluded", "delivery-owner", "reference")
+require_consumer(code_review_path, "review_conclusion", "delivery-owner", "gate")
 
 developer_report_schema = json.loads(
     (root / "shared/skills/developer/contracts/developer-report.schema.json").read_text(

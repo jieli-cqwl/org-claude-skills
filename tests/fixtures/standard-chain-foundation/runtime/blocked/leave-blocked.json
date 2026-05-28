@@ -19,8 +19,11 @@
     "summary_text": "blocked pending user decision",
     "tasks": [],
     "blocker_id": "BLOCK-001",
+    "blocker_owner": "user",
     "blocked_from_stage": "TASK_EXECUTION",
     "resume_stage": "TASK_EXECUTION",
+    "next_action": "collect explicit user decision and rerun DO-S1 preflight",
+    "resume_condition": "user decision artifact exists and blocker basis refs remain current",
     "blocker_reason_code": "WAITING_FOR_USER_DECISION",
     "blocker_basis_refs": [
       "artifact://evidence/sample-feature.phase-1.blocker@ev-1#blocker"

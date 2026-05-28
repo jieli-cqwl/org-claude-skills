@@ -28,6 +28,7 @@ from validate_readiness_contract import (
     assert_authority_proof,
     assert_code_review_pass,
     assert_signoff_closure,
+    assert_signoff_runtime_evidence_matrix,
     assert_task_runtime_identity,
 )
 
@@ -366,6 +367,7 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_signoff_evidence_freshness(phase_dir)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
     assert_active_registry_matches_artifacts(phase_dir, collect_validation_artifact_paths(phase_dir), registry)
+    assert_signoff_runtime_evidence_matrix(phase_dir, registry)
     assert_authority_proof(phase_dir)
     assert_signoff_closure(feature_dir, phase_dir)
     run_phase_validator(phase_dir, catalog)

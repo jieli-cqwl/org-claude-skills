@@ -5,27 +5,34 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
-from json import JSONDecodeError
 from pathlib import Path
 from typing import Any
 
+from intake_common import IntakeFailure, load_json, nonempty_strings
+from intake_handoff import validate_test_cases
 
-class IntakeFailure(Exception):
-    def __init__(
-        self,
-        code: str,
-        decision: str,
-        owner: str,
-        reason: str,
-        missing_inputs: list[str] | None = None,
-    ) -> None:
-        super().__init__(reason)
-        self.code = code
-        self.decision = decision
-        self.owner = owner
-        self.reason = reason
-        self.missing_inputs = missing_inputs or []
+
+def resolve_runtime_root(script_path: Path) -> Path:
+    resolved = script_path.resolve()
+    candidates = [
+        *resolved.parents[:6],
+        Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")),
+        Path(os.environ.get("CLAUDE_HOME", Path.home() / ".claude")),
+    ]
+    for candidate in candidates:
+        if (
+            candidate / "tools" / "community" / "validate_product_closure.py"
+        ).is_file():
+            return candidate
+    return resolved.parents[4]
+
+
+RUNTIME_ROOT = resolve_runtime_root(Path(__file__))
+sys.path.insert(0, str(RUNTIME_ROOT / "tools" / "community"))
+
+from validate_product_closure import assert_confirmation, assert_director_lock  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -35,40 +42,29 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def load_json(path: Path, missing_name: str) -> dict[str, Any]:
-    if not path.is_file():
-        raise IntakeFailure(
-            "MISSING_INPUT",
-            "NEEDS_INPUT",
-            "delivery-owner",
-            f"missing required file: {path}",
-            [missing_name],
-        )
+def split_artifact_ref(ref: str) -> tuple[str, str, str, str]:
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except JSONDecodeError as exc:
+        scheme, target = ref.split("://", 1)
+        artifact_target, anchor = target.split("#", 1)
+        artifact_type, versioned_id = artifact_target.split("/", 1)
+        artifact_id, version = versioned_id.rsplit("@", 1)
+    except ValueError as exc:
         raise IntakeFailure(
-            "INVALID_JSON",
-            "NEEDS_INPUT",
-            "delivery-owner",
-            f"malformed JSON: {path}: {exc}",
-            [missing_name],
+            "INVALID_CANONICAL_REF",
+            "NEEDS_BASELINE",
+            "tech-lead",
+            f"invalid canonical artifact ref: {ref}",
+            ["plan.baseline_tasks_version_ref"],
         ) from exc
-    if not isinstance(payload, dict):
+    if scheme != "artifact":
         raise IntakeFailure(
-            "INVALID_JSON",
-            "NEEDS_INPUT",
-            "delivery-owner",
-            f"top-level JSON must be an object: {path}",
-            [missing_name],
+            "INVALID_CANONICAL_REF",
+            "NEEDS_BASELINE",
+            "tech-lead",
+            f"invalid canonical artifact ref scheme: {ref}",
+            ["plan.baseline_tasks_version_ref"],
         )
-    return payload
-
-
-def nonempty_strings(value: Any) -> list[str]:
-    if not isinstance(value, list):
-        return []
-    return [item for item in value if isinstance(item, str) and item.strip()]
+    return artifact_type, artifact_id, version, anchor
 
 
 def acceptance_basis(task: dict[str, Any]) -> list[str]:
@@ -80,93 +76,6 @@ def acceptance_basis(task: dict[str, Any]) -> list[str]:
         else:
             basis.extend(nonempty_strings(value))
     return sorted(set(basis))
-
-
-def active_registry_entries(registry: dict[str, Any]) -> list[dict[str, Any]]:
-    active_revision_id = registry.get("active_revision_id")
-    revisions = registry.get("revisions")
-    if not isinstance(active_revision_id, str) or not isinstance(revisions, list):
-        raise IntakeFailure(
-            "INVALID_ARTIFACT_REGISTRY",
-            "NEEDS_INPUT",
-            "delivery-owner",
-            "artifact-registry.json must contain active_revision_id and revisions",
-            ["artifact-registry.json"],
-        )
-    for revision in revisions:
-        if (
-            isinstance(revision, dict)
-            and revision.get("revision_id") == active_revision_id
-        ):
-            entries = revision.get("entries")
-            if isinstance(entries, list):
-                return [entry for entry in entries if isinstance(entry, dict)]
-    raise IntakeFailure(
-        "INVALID_ARTIFACT_REGISTRY",
-        "NEEDS_INPUT",
-        "delivery-owner",
-        f"artifact-registry active revision not found: {active_revision_id}",
-        ["artifact-registry.active_revision_id"],
-    )
-
-
-def active_test_case_paths(phase_dir: Path, registry: dict[str, Any]) -> list[Path]:
-    paths: list[Path] = []
-    for entry in active_registry_entries(registry):
-        if (
-            entry.get("artifact_type") != "test-cases"
-            or entry.get("active_for_consumption") is not True
-        ):
-            continue
-        artifact_path = entry.get("artifact_path")
-        if isinstance(artifact_path, str) and artifact_path.strip():
-            paths.append(phase_dir / artifact_path)
-    if not paths:
-        paths = sorted(phase_dir.glob("unit-*/test-cases.json"))
-    if not paths:
-        raise IntakeFailure(
-            "MISSING_QA_HANDOFF",
-            "NEEDS_BASELINE",
-            "test-design",
-            "no test-cases artifact found for QA handoff",
-            ["test-cases"],
-        )
-    return paths
-
-
-def validate_test_cases(phase_dir: Path, registry: dict[str, Any]) -> int:
-    handoff_count = 0
-    for path in active_test_case_paths(phase_dir, registry):
-        payload = load_json(path, str(path.relative_to(phase_dir)))
-        design_gap_report = payload.get("design_gap_report")
-        gaps = (
-            design_gap_report.get("gaps") if isinstance(design_gap_report, dict) else []
-        )
-        if isinstance(gaps, list):
-            blocking = [
-                gap.get("gap_id", "<unknown>")
-                for gap in gaps
-                if isinstance(gap, dict) and gap.get("blocking") is True
-            ]
-            if blocking:
-                raise IntakeFailure(
-                    "BLOCKING_DESIGN_GAP",
-                    "NEEDS_BASELINE",
-                    "design",
-                    f"test-cases has blocking design gaps: {', '.join(map(str, blocking))}",
-                    ["test-cases.design_gap_report"],
-                )
-        qa_handoff = payload.get("qa_handoff_contract")
-        if not isinstance(qa_handoff, list) or not qa_handoff:
-            raise IntakeFailure(
-                "MISSING_QA_HANDOFF",
-                "NEEDS_BASELINE",
-                "test-design",
-                f"{path.relative_to(phase_dir)} must contain non-empty qa_handoff_contract",
-                ["test-cases.qa_handoff_contract"],
-            )
-        handoff_count += len(qa_handoff)
-    return handoff_count
 
 
 def assert_tech_lead(payload: dict[str, Any], artifact: str) -> None:
@@ -181,6 +90,20 @@ def assert_tech_lead(payload: dict[str, Any], artifact: str) -> None:
         )
 
 
+def assert_director_lock_intact(payload: dict[str, Any], label: str) -> None:
+    try:
+        assert_confirmation(payload, "director_confirmation", "passed", label)
+        assert_director_lock(payload, label)
+    except ValueError as exc:
+        raise IntakeFailure(
+            "DIRECTOR_LOCK_DRIFT",
+            "NEEDS_BASELINE",
+            "product-manager",
+            str(exc),
+            [f"{label}.director_confirmation.locked_field_digest"],
+        ) from exc
+
+
 def assert_confirmed(tasks_payload: dict[str, Any]) -> None:
     confirmation = tasks_payload.get("user_confirmation")
     status = confirmation.get("status") if isinstance(confirmation, dict) else None
@@ -191,6 +114,73 @@ def assert_confirmed(tasks_payload: dict[str, Any]) -> None:
             "tech-lead",
             "tasks user_confirmation.status must be CONFIRMED before delivery control",
             ["tasks.user_confirmation.status"],
+        )
+
+
+def assert_plan_ready(
+    plan_payload: dict[str, Any], tasks_payload: dict[str, Any]
+) -> None:
+    assert_tech_lead(plan_payload, "plan.json")
+    planning_readiness = plan_payload.get("planning_readiness")
+    status = (
+        planning_readiness.get("status")
+        if isinstance(planning_readiness, dict)
+        else None
+    )
+    blocking_gaps = (
+        planning_readiness.get("blocking_gaps")
+        if isinstance(planning_readiness, dict)
+        else None
+    )
+    if status != "READY" or blocking_gaps:
+        raise IntakeFailure(
+            "PLAN_NOT_READY",
+            "NEEDS_BASELINE",
+            "tech-lead",
+            "plan planning_readiness.status must be READY with no blocking_gaps",
+            ["plan.planning_readiness"],
+        )
+    confirmation = plan_payload.get("user_confirmation")
+    confirmation_status = (
+        confirmation.get("status") if isinstance(confirmation, dict) else None
+    )
+    if str(confirmation_status).upper() not in {"CONFIRMED", "确认"}:
+        raise IntakeFailure(
+            "PLAN_NOT_CONFIRMED",
+            "NEEDS_BASELINE",
+            "tech-lead",
+            "plan user_confirmation.status must be CONFIRMED before baseline audit",
+            ["plan.user_confirmation.status"],
+        )
+    if plan_payload.get("plan_version") != tasks_payload.get("plan_version"):
+        raise IntakeFailure(
+            "PLAN_TASK_VERSION_DRIFT",
+            "NEEDS_BASELINE",
+            "tech-lead",
+            "plan.json plan_version must match tasks.json plan_version",
+            ["plan.plan_version", "tasks.plan_version"],
+        )
+    tasks_ref = plan_payload.get("baseline_tasks_version_ref")
+    if not isinstance(tasks_ref, str):
+        raise IntakeFailure(
+            "PLAN_TASK_REF_DRIFT",
+            "NEEDS_BASELINE",
+            "tech-lead",
+            "plan baseline_tasks_version_ref must be a canonical tasks ref",
+            ["plan.baseline_tasks_version_ref"],
+        )
+    ref_type, ref_artifact_id, _ref_version, ref_anchor = split_artifact_ref(tasks_ref)
+    if (
+        ref_type != "tasks"
+        or ref_artifact_id != tasks_payload.get("artifact_id")
+        or ref_anchor != "task-registry"
+    ):
+        raise IntakeFailure(
+            "PLAN_TASK_REF_DRIFT",
+            "NEEDS_BASELINE",
+            "tech-lead",
+            "plan baseline_tasks_version_ref must bind the confirmed tasks registry",
+            ["plan.baseline_tasks_version_ref"],
         )
 
 
@@ -268,7 +258,8 @@ def success_payload(
         "task_count": task_summary["task_count"],
         "task_ids": task_summary["task_ids"],
         "qa_handoff_count": qa_handoff_count,
-        "safe_to_dispatch": True,
+        "safe_for_baseline_audit": True,
+        "safe_to_dispatch": False,
     }
 
 
@@ -280,6 +271,7 @@ def failure_payload(exc: IntakeFailure) -> dict[str, Any]:
         "owner": exc.owner,
         "reason": exc.reason,
         "missing_inputs": exc.missing_inputs,
+        "safe_for_baseline_audit": False,
         "safe_to_dispatch": False,
     }
 
@@ -294,10 +286,18 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
             f"phase-dir not found: {phase_dir}",
             ["phase-dir"],
         )
+    feature_dir = phase_dir.parent
+    brief = load_json(feature_dir / "brief.json", "brief.json")
+    phase_prd = load_json(phase_dir / "phase-prd.json", "phase-prd.json")
+    assert_director_lock_intact(brief, "brief.json")
+    assert_director_lock_intact(phase_prd, "phase-prd.json")
+    plan = load_json(phase_dir / "plan.json", "plan.json")
+    load_json(phase_dir / "design.json", "design.json")
     tasks = load_json(phase_dir / "tasks.json", "tasks.json")
     registry = load_json(phase_dir / "artifact-registry.json", "artifact-registry.json")
     assert_tech_lead(tasks, "tasks.json")
     assert_confirmed(tasks)
+    assert_plan_ready(plan, tasks)
     task_summary = validate_tasks(tasks)
     qa_handoff_count = validate_test_cases(phase_dir, registry)
     return success_payload(phase_dir, tasks, task_summary, qa_handoff_count)

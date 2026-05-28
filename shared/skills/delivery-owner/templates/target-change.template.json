@@ -1,0 +1,52 @@
+{
+  "artifact_type": "target-change",
+  "artifact_id": "sample-feature.phase-1.target-change",
+  "schema_version": "1.0.0",
+  "producer": "delivery-owner",
+  "produced_at": "2026-04-14T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.baseline_tasks_version_ref",
+    "$.active_tasks_version_ref",
+    "$.changed_target_type",
+    "$.affected_refs",
+    "$.invalidates_refs",
+    "$.superseded_evidence_refs",
+    "$.rebaseline_required",
+    "$.rebaseline_owner",
+    "$.required_fresh_proof_after_rebaseline"
+  ],
+  "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+  "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+  "changed_target_type": "AC",
+  "change_source": "authenticated-user-decision",
+  "actor_id": "user-001",
+  "affected_refs": [
+    "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
+  ],
+  "invalidates_refs": [
+    "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+  ],
+  "superseded_evidence_refs": [
+    "artifact://verify-result/sample-feature.phase-1.unit-1.task-T1.verify-result@v1#verify-root",
+    "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-result"
+  ],
+  "rebaseline_required": true,
+  "rebaseline_owner": "tech-lead",
+  "required_fresh_proof_after_rebaseline": [
+    "tasks",
+    "test-cases",
+    "developer-report",
+    "verify-result",
+    "code-review-result",
+    "qa-result"
+  ],
+  "authority_proof_refs": [
+    "artifact://evidence/sample-feature.phase-1.authority-proof@ev-target-change#proof-root"
+  ],
+  "decision_basis_refs": [
+    "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
+  ]
+}

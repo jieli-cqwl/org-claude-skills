@@ -12,7 +12,6 @@ fail() {
 
 required_references=(
   "代码复用.md"
-  "代码质量.md"
   "全栈开发.md"
   "完成前验证.md"
   "影响范围分析.md"

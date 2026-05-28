@@ -33,7 +33,6 @@ global_docs = {
     "reference/技术选型.md",
     "reference/性能效率.md",
     "reference/硬编码治理规范.md",
-    "reference/代码质量.md",
     "reference/Skill质量标准.md",
 }
 path_pattern = re.compile(

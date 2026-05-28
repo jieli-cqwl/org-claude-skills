@@ -29,8 +29,7 @@ for path in \
   "reference/系统调试.md" \
   "reference/全栈开发.md" \
   "reference/性能效率.md" \
-  "reference/硬编码治理规范.md" \
-  "reference/代码质量.md"; do
+  "reference/硬编码治理规范.md"; do
   rg -n "\{\{RUNTIME_HOME\}\}/$path" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \
     || fail "missing assistant runtime reference: $path"
 done

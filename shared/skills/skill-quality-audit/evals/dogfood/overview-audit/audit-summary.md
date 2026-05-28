@@ -8,7 +8,11 @@ The previous `overview审查.md` artifact is a transcript, not a valid audit rep
 
 ## Findings
 
-- `OVERVIEW-P1-001`: `dir-tree.sh` fallback uses `eval find ...` with invocation-context inputs. Repair the script and add shell edge-case tests.
+- `OVERVIEW-P1-001` / `P1` / `dir-tree fallback uses eval with user-controlled project path context`.
+  Evidence: `shared/skills/overview/scripts/dir-tree.sh:26` runs eval find with PROJECT_DIR, DEPTH, and dynamic EXCLUDES.
+  Impact: A project path or depth edge case can be interpreted by the shell during fallback scanning instead of being treated as data.
+  Repair target: `shared/skills/overview/scripts/dir-tree.sh`.
+  Verification hint: Replace eval with an argv array, validate depth as a positive integer, and test paths containing spaces and shell metacharacters.
 - `OVERVIEW-P2-001`: overview behavior is represented by prompt fixtures, not executable eval gates.
 - `OVERVIEW-P2-002`: runtime workflow text includes maintainer `Sync` instructions.
 

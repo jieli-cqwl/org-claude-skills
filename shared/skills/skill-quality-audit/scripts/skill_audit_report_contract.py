@@ -80,12 +80,22 @@ CLAIM_REVIEW_FIELDS = {"required_claims", "refutation_check", "status"}
 SEVERITY_CALIBRATION_FIELDS = {"calibrated_severity", "team_use_impact", "rationale"}
 HANDOFF_FIELDS = {"target", "action", "owner"}
 VALIDATION_FIELDS = {"status", "command", "output"}
-EXECUTED_VERIFICATION_FIELDS = {"id", "command", "status", "output", "evidence"}
+EXECUTED_VERIFICATION_FIELDS = {
+    "id",
+    "command",
+    "status",
+    "output",
+    "evidence",
+    "supports",
+}
 PATH_TOKEN = r"/?(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.[A-Za-z0-9_.-]+"
 FILE_LINE_RE = re.compile(rf"(?:^|[\s'\"(`\[]){PATH_TOKEN}:\d+(?:\b|[)\]`'\".,;])")
 PATHISH_RE = re.compile(
     rf"(?:^|[\s'\"(`\[]){PATH_TOKEN}(?:\b|[)\]`'\".,;])|"
     rf"(?:^|[\s'\"(`\[])/?(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+/(?:\b|[)\]`'\".,;])"
+)
+PATH_CANDIDATE_RE = re.compile(
+    r"/?(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+(?:\.[A-Za-z0-9_.-]+|/)"
 )
 
 
@@ -109,6 +119,18 @@ def has_file_line_ref(text: str) -> bool:
 
 def has_pathish_ref(text: str) -> bool:
     return bool(PATHISH_RE.search(text))
+
+
+def existing_path_refs(text: str) -> list[str]:
+    refs: list[str] = []
+    for match in PATH_CANDIDATE_RE.finditer(text):
+        value = match.group(0).strip("`'\"()[],;")
+        path = Path(value)
+        if not path.is_absolute() and ".." in path.parts:
+            continue
+        if path.exists():
+            refs.append(value)
+    return refs
 
 
 def evidence_level_at_least(level: str, minimum: str) -> bool:
@@ -193,7 +215,14 @@ def validate_findings(report: dict[str, Any]) -> None:
             level in VALID_EVIDENCE_LEVELS,
             f"findings[{index}].evidence_level is invalid",
         )
-        for field in ("id", "title", "evidence", "impact"):
+        for field in (
+            "id",
+            "title",
+            "evidence",
+            "impact",
+            "repair_target",
+            "verification_hint",
+        ):
             require(
                 isinstance(finding.get(field), str) and finding[field],
                 f"findings[{index}].{field} is required",
@@ -209,6 +238,60 @@ def validate_findings(report: dict[str, Any]) -> None:
             )
         if severity in {"P0", "P1"}:
             validate_high_severity_finding(finding, str(severity), str(level), index)
+
+
+def resolve_report_artifact(path_text: str) -> Path:
+    path = Path(path_text)
+    require(
+        ".." not in path.parts,
+        f"artifact path must stay inside a safe location: {path_text}",
+    )
+    return path
+
+
+def validate_summary(report: dict[str, Any]) -> None:
+    paths = report.get("artifact_paths", {})
+    summary_value = paths.get("summary_markdown")
+    require(
+        isinstance(summary_value, str) and summary_value.strip(),
+        "artifact_paths.summary_markdown is required",
+    )
+    summary_path = resolve_report_artifact(summary_value)
+    require(
+        summary_path.is_file(),
+        f"summary_markdown does not exist: {summary_value}",
+    )
+    summary_text = summary_path.read_text(encoding="utf-8")
+    require(summary_text.strip(), f"summary_markdown is empty: {summary_value}")
+
+    for index, finding in enumerate(report.get("findings", [])):
+        if finding.get("severity") not in {"P0", "P1"}:
+            continue
+        label = (
+            f"summary_markdown for {finding.get('severity')} "
+            f"finding {finding.get('id', index)}"
+        )
+        for field in (
+            "id",
+            "severity",
+            "title",
+            "impact",
+            "repair_target",
+            "verification_hint",
+        ):
+            value = finding.get(field)
+            require(
+                isinstance(value, str) and value in summary_text,
+                f"{label} must include {field}",
+            )
+        evidence_refs = []
+        for check in finding.get("evidence_checks", []):
+            if isinstance(check, dict):
+                evidence_refs.append(f"{check.get('path')}:{check.get('line')}")
+        require(
+            evidence_refs and any(ref in summary_text for ref in evidence_refs),
+            f"{label} must include evidence_checks path:line",
+        )
 
 
 def validate_claim_review(claim_review: Any, label: str) -> None:

@@ -32,6 +32,8 @@ done
 
 [ -f "$ROOT/tools/community/authority_proof.py" ] || fail "missing authority_proof.py"
 [ -f "$ROOT/tools/community/write_user_decision.py" ] || fail "missing write_user_decision.py"
+[ -f "$ROOT/shared/skills/delivery-owner/contracts/target-change.schema.json" ] || fail "missing target-change schema"
+[ -f "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" ] || fail "missing target-change template"
 
 build_validation_fixture() {
   local source_fixture="$1"
@@ -125,6 +127,51 @@ for negative_rule_case in script-source stale-baseline; do
     fail "$negative_rule_case rule validation should fail"
   fi
 done
+
+target_change_user_decision_source="$TMP_DIR/target-change-user-decision.source.json"
+python3 - "$FIXTURE_ROOT/approve.json" "$target_change_user_decision_source" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+source = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+source["decision_payload"]["decision"] = "CHANGE_SCOPE"
+source["decision_payload"]["decision_basis_refs"] = [
+    "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
+]
+Path(sys.argv[2]).write_text(json.dumps(source, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+target_change_user_decision_output="$TMP_DIR/target-change-user-decision.out.json"
+target_change_user_decision_rule="$TMP_DIR/target-change-user-decision.rule.json"
+python3 "$ROOT/tools/community/write_user_decision.py" --fixture "$target_change_user_decision_source" >"$target_change_user_decision_output" \
+  || fail "target-change-shaped user-decision writer should emit payload before schema rejection"
+build_rule_fixture "$target_change_user_decision_output" "$target_change_user_decision_source" "$target_change_user_decision_rule"
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$target_change_user_decision_rule" >/tmp/t4_target_change_user_decision.out 2>&1; then
+  cat /tmp/t4_target_change_user_decision.out >&2
+  fail "user-decision schema should reject target/scope change decisions"
+fi
+
+target_change_rule_fixture="$TMP_DIR/target-change.rule.json"
+python3 - "$ROOT" "$target_change_rule_fixture" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+payload = {
+    "artifacts": [
+        json.loads(
+            (root / "shared/skills/delivery-owner/templates/target-change.template.json").read_text(encoding="utf-8")
+        )
+    ],
+    "runtime_state": {
+        "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
+    },
+}
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$target_change_rule_fixture" >/dev/null \
+  || fail "target-change template should pass canonical schema validation"
 
 signoff_rule_fixture="$TMP_DIR/signoff.rule.json"
 python3 - "$ROOT" "$signoff_rule_fixture" <<'PY'
