@@ -51,9 +51,9 @@
 - next: await explicit user signoff, rejection, or risk acceptance before creating user-decision.json
 - next_ref: canonical:phase-1/signoff-package.json::acceptance.status=PENDING_USER_DECISION
 
-## 2026-05-26T00:00:04Z
+## 2026-05-27T00:00:00Z
 
-- actor: delivery-owner
+- actor: context-contract-validator
 - context_owner: delivery-owner
 - mode: standard-chain
 - stage: SIGNOFF_PENDING

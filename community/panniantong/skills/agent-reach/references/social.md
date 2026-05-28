@@ -4,13 +4,11 @@
 
 ## 小红书 / XiaoHongShu (xhs-cli)
 
-### 稳定可用的命令
-
 ```bash
-# 搜索笔记（推荐入口）
+# 搜索笔记
 xhs search "query"
 
-# 阅读笔记详情（必须用搜索结果中的 URL 或 ID，不能裸 note_id）
+# 阅读笔记详情
 xhs read NOTE_ID_OR_URL
 
 # 查看评论
@@ -21,49 +19,20 @@ xhs hot
 
 # 推荐 feed
 xhs feed
+
+# 用户主页
+xhs user USER_ID
+xhs user-posts USER_ID
+
+# 发帖/互动
+xhs post --title "标题" --content "正文" --images img1.jpg img2.jpg
+xhs like NOTE_ID
+xhs comment NOTE_ID "评论内容"
 ```
-
-### 已知不稳定的命令（v0.6.4）
-
-```bash
-# 以下命令当前可能返回 API error，谨慎使用：
-xhs user USER_ID          # 可能返回 {code: -1}
-xhs user-posts USER_ID    # 可能返回 {code: -1}
-xhs favorites              # 可能返回 API error
-```
-
-### 重要注意事项
 
 > **安装**: `pipx install xiaohongshu-cli`，然后 `xhs login`（自动从浏览器提取 Cookie）。
->
-> **xsec_token 限制**: 小红书强制 xsec_token 机制，**不能直接用裸 note_id 去读**。正确流程是：先 `xhs search` 或 `xhs feed` 获取结果，再用结果中的 URL/ID 去 `xhs read`。直接构造 note_id 会被拦截。
->
-> **频率控制**: 高频请求（批量搜索、深翻评论）会触发验证码，这是平台限制无法绕过。建议每次操作间隔 2-3 秒。
->
-> **POST 操作风险**: 发帖(post)、评论(comment)、点赞(like) 等写操作在 v0.6.x 可能因签名问题返回 406。如需使用，建议降级到 v0.3.5 (`pipx install xiaohongshu-cli==0.3.5`)。
 
 ## 抖音 / Douyin
-
-### 安装与配置
-
-`douyin-mcp-server` 是 **stdio 模式**的 MCP server，需先安装再注册到 mcporter：
-
-```bash
-# 1. 安装
-pipx install douyin-mcp-server
-
-# 2. 查找安装路径
-pipx runpip douyin-mcp-server show -f 2>/dev/null | grep "Location" \
-  || find ~/.local -name "douyin-mcp-server" 2>/dev/null | head -1
-
-# 3. 注册到 mcporter（使用 stdio 模式，将路径替换为上一步的输出）
-mcporter config add douyin --command "/path/to/douyin-mcp-server" --scope home
-```
-
-> **注意**：`agent-reach install --channels douyin` 暂不支持抖音渠道（抖音在"可选渠道待解锁"列表）。
-> HTTP 模式（`mcporter config add douyin http://localhost:18070/mcp`）**无法正常工作**，请使用上方 stdio 方式。
-
-### 用法
 
 ```bash
 # 解析视频信息
@@ -80,11 +49,9 @@ mcporter call 'douyin.extract_douyin_text(share_link: "https://v.douyin.com/xxx/
 
 ## Twitter/X (twitter-cli)
 
-### 稳定命令
-
 ```bash
-# 首页时间线（最稳定）
-twitter feed -n 20
+# 搜索推文
+twitter search "query" --limit 10
 
 # 读取单条推文（含回复）
 twitter tweet URL_OR_ID
@@ -93,34 +60,17 @@ twitter tweet URL_OR_ID
 twitter article URL_OR_ID
 
 # 用户时间线
-twitter user-posts @username -n 20
+twitter user-posts @username --limit 20
 
 # 用户资料
 twitter user @username
+
+# 首页时间线
+twitter feed --limit 20
 ```
 
-### 可能不稳定的命令
-
-```bash
-# 搜索推文（Twitter 频繁改 GraphQL 端点，可能 404）
-twitter search "query" -n 10
-# 如果 search 返回 404，升级 twitter-cli：pipx upgrade twitter-cli
-
-# likes（2024 年后只能看自己的，平台限制）
-twitter likes
-```
-
-### 重要注意事项
-
-> **安装**: `pipx install twitter-cli`（确保 v0.8.5+）
->
-> **认证**: 推荐用 Cookie-Editor 导出后设置环境变量 `TWITTER_AUTH_TOKEN` + `TWITTER_CT0`。自动提取在 SSH/Docker/无头环境不可用。
->
-> **IP 风控**: 不要在 VPS/数据中心 IP 上频繁调用，尤其是 followers/following，有封号风险。使用住宅代理或本地环境。
->
-> **search 可能失效**: Twitter 频繁修改 GraphQL API，search 命令可能随时返回 404。如遇到，先 `pipx upgrade twitter-cli`。如果最新版仍不行，说明上游还没跟上 Twitter 的改动，用 `twitter feed` 替代。
->
-> **输出格式**: 建议用 `--yaml` 或 `--json` 获得结构化输出，对 AI agent 更友好。
+> **安装**: `pipx install twitter-cli` 或 `uv tool install twitter-cli`
+> **认证**: 设置 `TWITTER_AUTH_TOKEN` + `TWITTER_CT0` 环境变量，或确保浏览器已登录 x.com。
 
 ## 微博 / Weibo
 
@@ -223,6 +173,4 @@ rdt popular --limit 10
 rdt all --limit 10
 ```
 
-> **安装**: `pipx install rdt-cli`（确保 v0.4.2+）。无需登录即可搜索和阅读。
-> 需要登录的功能：`rdt feed --subs-only`（订阅列表）、`rdt saved`（收藏）。
-> 建议使用 `--yaml` 输出，对 AI agent 更友好。
+> **安装**: `pipx install rdt-cli`。无需登录即可搜索和阅读。

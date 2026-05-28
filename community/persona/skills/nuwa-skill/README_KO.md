@@ -5,12 +5,15 @@
 > *"증류할 다음 사람이 꼭 동료일 필요는 없다"*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-blueviolet)](https://claude.ai/code)
-[![Skills](https://img.shields.io/badge/skills.sh-Compatible-green)](https://skills.sh)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-green)](https://agentskills.io)
+[![skills.sh](https://img.shields.io/badge/skills.sh-Compatible-blue)](https://skills.sh)
+[![Multi-Runtime](https://img.shields.io/badge/Runtime-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20OpenClaw%20·%20Hermes-blueviolet)](#설치)
 
 <br>
 
 **Nuwa는 누구의 사고방식도 증류한다. 머스크, 나발, 멍거, 파인만을 당신을 위해 일하게 하라.**
+
+<sub>오픈된 [Agent Skills](https://agentskills.io) 표준 기반. Claude Code, Codex, Cursor, OpenClaw, Hermes Agent, CodeBuddy, Workbuddy, Gemini CLI, OpenCode 등 50+ 개 skills 호환 runtime 에서 작동.</sub>
 
 <br>
 
@@ -64,13 +67,65 @@ Naval   ❯ 당신은 세 가지 욕망을 나열했다.
 
 ---
 
+## 직접 증류하기 싫다면? Bloome을 써보세요
+
+[<img src="bloome-advisors.jpg" alt="Bloome - 그들을 당신의 두뇌집단으로" width="720">](https://www.bloome.im/?utm_source=huashu-leon-202605&utm_medium=github&utm_campaign=nuwa-skill)
+
+언제든 잡스나 장샤오룽과 제품 얘기를? 멍거와 투자 얘기를?
+
+[Bloome](https://www.bloome.im/?utm_source=huashu-leon-202605&utm_medium=github&utm_campaign=nuwa-skill) —— 그들을 당신의 두뇌집단으로. 하나의 대화 안에서 사람과 여러 Agent가 협업한다. [www.bloome.im](https://www.bloome.im/?utm_source=huashu-leon-202605&utm_medium=github&utm_campaign=nuwa-skill)
+
+---
+
 ## 설치
+
+Nuwa는 오픈된 [Agent Skills](https://agentskills.io) 표준 기반으로 구축되어, skills 호환 AI agent runtime 어디에서나 작동한다.
+
+### 방법1: 한 줄 명령(권장, 크로스 runtime)
+
+사용 중인 agent (Claude Code, Codex, Cursor, OpenClaw, Hermes, CodeBuddy, Workbuddy, Gemini CLI, OpenCode 등 50+ 개) 에게 말하라:
+
+```
+이 skill을 설치해 줘: https://github.com/alchaincyf/nuwa-skill
+```
+
+또는 범용 CLI 설치 도구 ([vercel-labs/skills](https://github.com/vercel-labs/skills), 55+ runtime 지원):
 
 ```bash
 npx skills add alchaincyf/nuwa-skill
 ```
 
-Claude Code에서:
+현재 runtime을 자동 감지하여 올바른 디렉터리에 skill을 배치한다. 특정 runtime을 지정하려면 `-a claude-code` / `-a codex` / `-a cursor` / `-a openclaw` 등을 추가한다.
+
+### 방법2: 수동 설치
+
+<details>
+<summary>각 runtime별 skills 디렉터리</summary>
+
+| Runtime | 경로 |
+|---|---|
+| Claude Code | `~/.claude/skills/nuwa-skill/` |
+| Codex CLI | `~/.agents/skills/nuwa-skill/` |
+| Cursor | `~/.cursor/skills/nuwa-skill/` |
+| OpenClaw | `~/.openclaw/workspace/skills/nuwa-skill/` |
+| Hermes Agent | `tools/install_hermes_skill.py` 실행 |
+| 기타 | 해당 runtime의 `skills/` 디렉터리에 clone |
+
+```bash
+git clone https://github.com/alchaincyf/nuwa-skill <위 경로>
+```
+
+</details>
+
+### 방법3: 참고 자료로 사용 (runtime 불필요)
+
+skills를 자동 로드하지 않는 runtime이라도, `SKILL.md` 내용을 대화에 붙여넣으면 된다 — 본질은 그냥 markdown + YAML frontmatter다.
+
+---
+
+### 사용법
+
+설치 후 agent에게:
 
 ```
 > 폴 그레이엄을 증류해 줘

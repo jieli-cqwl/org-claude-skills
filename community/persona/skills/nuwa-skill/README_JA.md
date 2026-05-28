@@ -5,12 +5,15 @@
 > *「蒸留すべき次の人物は、同僚である必要はない」*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-blueviolet)](https://claude.ai/code)
-[![Skills](https://img.shields.io/badge/skills.sh-Compatible-green)](https://skills.sh)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-green)](https://agentskills.io)
+[![skills.sh](https://img.shields.io/badge/skills.sh-Compatible-blue)](https://skills.sh)
+[![Multi-Runtime](https://img.shields.io/badge/Runtime-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20OpenClaw%20·%20Hermes-blueviolet)](#インストール)
 
 <br>
 
 **Nuwaは誰の思考法でも蒸留できる。マスク、Naval、マンガー、ファインマンをあなたのために働かせよう。**
+
+<sub>オープンな [Agent Skills](https://agentskills.io) 標準に基づき構築。Claude Code、Codex、Cursor、OpenClaw、Hermes Agent、CodeBuddy、Workbuddy、Gemini CLI、OpenCode など 50+ の skills 互換 runtime で動作。</sub>
 
 <br>
 
@@ -65,13 +68,65 @@ Naval    ❯ 君は三つの欲望をリストアップした。
 
 ---
 
+## 自分で蒸留したくない？Bloomeを試してみよう
+
+[<img src="bloome-advisors.jpg" alt="Bloome - 彼らをあなたのブレーンチームに" width="720">](https://www.bloome.im/?utm_source=huashu-leon-202605&utm_medium=github&utm_campaign=nuwa-skill)
+
+いつでもジョブズや張小龍とプロダクトの相談を？マンガーと投資の話を？
+
+[Bloome](https://www.bloome.im/?utm_source=huashu-leon-202605&utm_medium=github&utm_campaign=nuwa-skill) —— 彼らをあなたのブレーンチームに。一つの対話の中で、人と複数のAgentが協力する。[www.bloome.im](https://www.bloome.im/?utm_source=huashu-leon-202605&utm_medium=github&utm_campaign=nuwa-skill)
+
+---
+
 ## インストール
+
+Nuwa はオープンな [Agent Skills](https://agentskills.io) 標準に基づき構築されており、skills 互換の任意の AI agent runtime で動作する。
+
+### 方法1：ワンライナー（推奨、クロス runtime）
+
+お使いの agent（Claude Code、Codex、Cursor、OpenClaw、Hermes、CodeBuddy、Workbuddy、Gemini CLI、OpenCode など 50+ 対応）に伝える：
+
+```
+このskillをインストールして：https://github.com/alchaincyf/nuwa-skill
+```
+
+または、汎用 CLI インストーラ（[vercel-labs/skills](https://github.com/vercel-labs/skills)、55+ runtime 対応）を使う：
 
 ```bash
 npx skills add alchaincyf/nuwa-skill
 ```
 
-Claude Codeで:
+現在の runtime を自動検出し、正しいディレクトリに skill を配置する。特定 runtime を指定する場合は `-a claude-code` / `-a codex` / `-a cursor` / `-a openclaw` などを付ける。
+
+### 方法2：手動インストール
+
+<details>
+<summary>各 runtime の skills ディレクトリ</summary>
+
+| Runtime | パス |
+|---|---|
+| Claude Code | `~/.claude/skills/nuwa-skill/` |
+| Codex CLI | `~/.agents/skills/nuwa-skill/` |
+| Cursor | `~/.cursor/skills/nuwa-skill/` |
+| OpenClaw | `~/.openclaw/workspace/skills/nuwa-skill/` |
+| Hermes Agent | `tools/install_hermes_skill.py` を実行 |
+| その他 | 該当 runtime の `skills/` ディレクトリに clone |
+
+```bash
+git clone https://github.com/alchaincyf/nuwa-skill <上記のパス>
+```
+
+</details>
+
+### 方法3：参考資料として使う（runtime 不要）
+
+skills を自動ロードしない runtime でも、`SKILL.md` の内容を会話にペーストすればよい——本質はただの markdown + YAML frontmatter。
+
+---
+
+### 使い方
+
+インストール後、agent に伝える：
 
 ```
 > ポール・グレアムを蒸留して
