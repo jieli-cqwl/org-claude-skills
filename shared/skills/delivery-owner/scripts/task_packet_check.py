@@ -16,7 +16,7 @@ REQUIRED_FIELDS = (
     "task_ref",
     "role",
     "goal",
-    "scope",
+    "forbidden_scope",
     "input_refs",
     "expected_evidence",
     "stop_condition",
@@ -30,10 +30,22 @@ ALLOWED_ROLES = {
     "qa",
     "fixer",
 }
-AMBIGUOUS_VALUES = {"按需处理", "as needed", "whatever is necessary", "完成即可", "done"}
+AMBIGUOUS_VALUES = {
+    "按需处理",
+    "as needed",
+    "whatever is necessary",
+    "完成即可",
+    "done",
+}
 FORBIDDEN_ACTION_CATEGORIES = {
     "scope_boundary": (r"\bscope\b", "范围", "越界", r"\boutside\b"),
-    "baseline_boundary": (r"\bbaseline\b", "基线", r"\bac\b", r"\bacceptance\b", "验收"),
+    "baseline_boundary": (
+        r"\bbaseline\b",
+        "基线",
+        r"\bac\b",
+        r"\bacceptance\b",
+        "验收",
+    ),
     "commit_release_boundary": (r"\bcommit\b", r"\brelease\b", "提交", "发布"),
     "role_boundary": ("其他角色", r"\bother roles?\b", "代替", "替"),
 }
@@ -55,7 +67,10 @@ ROLE_EVIDENCE_CATEGORIES = {
         "decision_authority": ("advisory", "advisory_only"),
         "findings": ("findings", "发现"),
         "owner_action": ("required_owner_action", "owner action"),
-        "consistency_audit_result": ("consistency-audit-result.json", "consistency audit result"),
+        "consistency_audit_result": (
+            "consistency-audit-result.json",
+            "consistency audit result",
+        ),
     },
     "verifier": {
         "ac_verification": (r"\bac\b", "验收"),
@@ -78,7 +93,14 @@ ROLE_EVIDENCE_CATEGORIES = {
 }
 ROLE_INPUT_CATEGORIES = {
     "developer": {
-        "baseline_or_task_ref": (r"artifact://plan", r"artifact://tasks", r"\bplan\b", r"\btasks?\b", "计划", "任务"),
+        "baseline_or_task_ref": (
+            r"artifact://plan",
+            r"artifact://tasks",
+            r"\bplan\b",
+            r"\btasks?\b",
+            "计划",
+            "任务",
+        ),
     },
     "code-reviewer": {
         "implementation_evidence": (
@@ -92,7 +114,11 @@ ROLE_INPUT_CATEGORIES = {
     },
     "consistency-auditor": {
         "baseline_artifacts": ("plan.json", "tasks.json", "design.json"),
-        "test_obligations": ("test-cases.json", "qa_handoff_contract", "cross_unit_obligations"),
+        "test_obligations": (
+            "test-cases.json",
+            "qa_handoff_contract",
+            "cross_unit_obligations",
+        ),
     },
     "verifier": {
         "implementation_evidence": (
@@ -105,19 +131,51 @@ ROLE_INPUT_CATEGORIES = {
         ),
     },
     "qa": {
-        "qa_handoff": ("qa_handoff", "qa-handoff", "qa handoff", "test-cases", "test cases"),
-        "verified_evidence": ("verify-result.json", "verify-result", "verify result", "verifier", "验收"),
+        "qa_handoff": (
+            "qa_handoff",
+            "qa-handoff",
+            "qa handoff",
+            "test-cases",
+            "test cases",
+        ),
+        "verified_evidence": (
+            "verify-result.json",
+            "verify-result",
+            "verify result",
+            "verifier",
+            "验收",
+        ),
     },
     "fixer": {
-        "failure_evidence": ("qa-result.json", "qa-result", "verify-result.json", "verify-result", "fail", "failure", "失败"),
+        "failure_evidence": (
+            "qa-result.json",
+            "qa-result",
+            "verify-result.json",
+            "verify-result",
+            "fail",
+            "failure",
+            "失败",
+        ),
     },
 }
 CONSISTENCY_AUDIT_FINAL_INPUT_CATEGORIES = {
     "baseline_artifacts": ("plan.json", "tasks.json", "design.json"),
-    "test_obligations": ("test-cases.json", "qa_handoff_contract", "cross_unit_obligations"),
-    "implementation_evidence": ("developer-report.json", "developer-report", "developer report"),
+    "test_obligations": (
+        "test-cases.json",
+        "qa_handoff_contract",
+        "cross_unit_obligations",
+    ),
+    "implementation_evidence": (
+        "developer-report.json",
+        "developer-report",
+        "developer report",
+    ),
     "verification_evidence": ("verify-result.json", "verify-result", "verify result"),
-    "review_evidence": ("code-review-result.json", "code-review-result", "code review result"),
+    "review_evidence": (
+        "code-review-result.json",
+        "code-review-result",
+        "code review result",
+    ),
     "qa_evidence": ("qa-result.json", "qa-result", "qa result"),
 }
 
@@ -139,13 +197,19 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def load_packet(path: Path) -> dict[str, Any]:
     if not path.is_file():
-        raise PacketFailure("MISSING_PACKET", f"packet file not found: {path}", ["packet"])
+        raise PacketFailure(
+            "MISSING_PACKET", f"packet file not found: {path}", ["packet"]
+        )
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except JSONDecodeError as exc:
-        raise PacketFailure("INVALID_JSON", f"malformed JSON: {path}: {exc}", ["packet"]) from exc
+        raise PacketFailure(
+            "INVALID_JSON", f"malformed JSON: {path}: {exc}", ["packet"]
+        ) from exc
     if not isinstance(payload, dict):
-        raise PacketFailure("INVALID_JSON", "packet top-level JSON must be an object", ["packet"])
+        raise PacketFailure(
+            "INVALID_JSON", "packet top-level JSON must be an object", ["packet"]
+        )
     return payload
 
 
@@ -191,7 +255,11 @@ def is_ambiguous_text(value: str) -> bool:
 def assert_required(packet: dict[str, Any]) -> None:
     missing = [field for field in REQUIRED_FIELDS if not has_value(packet.get(field))]
     if missing:
-        raise PacketFailure("PACKET_INCOMPLETE", f"missing required fields: {', '.join(missing)}", missing)
+        raise PacketFailure(
+            "PACKET_INCOMPLETE",
+            f"missing required fields: {', '.join(missing)}",
+            missing,
+        )
 
 
 def assert_role(packet: dict[str, Any]) -> None:
@@ -258,7 +326,11 @@ def assert_role_inputs(packet: dict[str, Any]) -> None:
 
 
 def assert_consistency_auditor_inputs(packet: dict[str, Any]) -> None:
-    goal_text = " ".join(flattened_strings([packet.get("task_ref"), packet.get("goal"), packet.get("scope")])).lower()
+    goal_text = " ".join(
+        flattened_strings(
+            [packet.get("task_ref"), packet.get("goal"), packet.get("scope")]
+        )
+    ).lower()
     categories = ROLE_INPUT_CATEGORIES["consistency-auditor"]
     if any(term in goal_text for term in ("full", "commit", "提交", "final", "do-s8")):
         categories = CONSISTENCY_AUDIT_FINAL_INPUT_CATEGORIES
@@ -279,7 +351,15 @@ def assert_consistency_auditor_inputs(packet: dict[str, Any]) -> None:
 def validate(packet: dict[str, Any]) -> dict[str, Any]:
     assert_required(packet)
     assert_role(packet)
-    for field in ("task_ref", "goal", "scope", "input_refs", "expected_evidence", "stop_condition", "forbidden_actions"):
+    for field in (
+        "task_ref",
+        "goal",
+        "scope",
+        "input_refs",
+        "expected_evidence",
+        "stop_condition",
+        "forbidden_actions",
+    ):
         assert_not_ambiguous(packet, field)
     assert_forbidden_actions(packet)
     assert_role_inputs(packet)

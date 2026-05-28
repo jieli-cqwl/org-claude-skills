@@ -112,18 +112,12 @@ jq -e '
 ' "$HOOK_REGISTRY" >/dev/null || fail "product-director hook registry contract drift"
 
 jq -e '
-  (keys_unsorted | sort) == ([
-    "appetite",
-    "business_goals",
-    "decision_rationale",
-    "delivery_plan",
-    "feasibility_constraints",
-    "non_goals",
-    "risks_and_unknowns",
-    "root_problem",
-    "scope_boundaries",
-    "user_profile"
-  ] | sort)
+  .artifact_type == "brief"
+  and .producer == "product-director"
+  and (.authoritative_fields | index("$.director_confirmation"))
+  and .director_confirmation.locked_fields
+  and .director_confirmation.locked_field_digest
+  and .root_problem
   and .user_profile
   and .appetite
   and .non_goals
@@ -133,18 +127,21 @@ jq -e '
   and (.review_conclusion? | not)
   and (.issue_ledger? | not)
   and (.delivery_confirmation? | not)
-' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null || fail "director brief template must encode Director result payload only"
+' "$DIRECTOR_BRIEF_JSON_TEMPLATE" >/dev/null || fail "director brief template must encode canonical Director handoff envelope"
 
 jq -e '
-  (keys_unsorted | sort) == ([
-    "entry_conditions",
-    "exit_conditions",
-    "phase_goal"
-  ] | sort)
+  .artifact_type == "phase-prd"
+  and .producer == "product-director"
+  and (.authoritative_fields | index("$.director_confirmation"))
+  and .director_confirmation.locked_fields
+  and .director_confirmation.locked_field_digest
   and .phase_goal
   and .entry_conditions
   and .exit_conditions
-' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase template must encode Director phase result payload only"
+  and (.unit_index? | not)
+  and (.review_conclusion? | not)
+  and (.issue_ledger? | not)
+' "$DIRECTOR_PHASE_JSON_TEMPLATE" >/dev/null || fail "director phase template must encode canonical Director handoff envelope"
 
 python3 - "$ROOT" "$CHECK_SCRIPT" <<'PY'
 import json

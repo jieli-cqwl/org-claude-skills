@@ -17,7 +17,7 @@
   {
     "id": 4,
     "prompt": "Handoff gate preflight 通过了，但 Director baseline 里「审核规则」只写了「按公司标准审核」没有具体标准，「批量操作」出现在范围里但没写上限。PM 准备进入 Evidence and AS-IS，应该怎么处理？",
-    "expected": "PM 在 Handoff gate 阶段识别「按公司标准审核」为歧义定义（需要用户补充或回 Director 确认）、「批量操作上限」为输入缺口（PM 可在细化中作为关键假设带入验证）；分类为「需回 Director」的项停在 Handoff gate 等用户裁决，「PM 可收口」的项带入 Evidence and AS-IS 关键假设流程；分类结果写入 PM 台账。"
+    "expected": "PM 在 Handoff gate 阶段识别「按公司标准审核」为歧义定义（需要用户补充或回 Director 确认）、「批量操作上限」为输入缺口（PM 可在细化中作为关键假设带入验证）；分类为「需回 Director」的项停在 Handoff gate 等用户裁决，「PM 可收口」的项带入 Evidence and AS-IS 关键假设流程；分类结果写入对应 JSON 的 `pre_review_issue_ledger`，并标明 owner、status、阻断事实、回流节点和恢复条件。"
   },
   {
     "id": 5,

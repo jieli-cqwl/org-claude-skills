@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Product Director result gate: validates Director-owned result payloads only.
+# Product Director result gate: validates Director-owned canonical handoff artifacts.
 set -euo pipefail
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
@@ -92,7 +92,7 @@ BRIEF_KEYS = {
     "delivery_plan",
 }
 PHASE_KEYS = {"phase_goal", "entry_conditions", "exit_conditions"}
-RUNTIME_OR_DOWNSTREAM_FIELDS = {
+ENVELOPE_KEYS = {
     "artifact_type",
     "artifact_id",
     "schema_version",
@@ -102,9 +102,8 @@ RUNTIME_OR_DOWNSTREAM_FIELDS = {
     "chain_registry_digest",
     "authority_scope",
     "authoritative_fields",
-    "director_confirmation",
-    "locked_fields",
-    "locked_field_digest",
+}
+PM_OWNED_DOWNSTREAM_FIELDS = {
     "unit_index",
     "unit_priority_order",
     "acceptance_criteria",
@@ -133,24 +132,60 @@ def require_non_empty_list(errors: list[str], key: str) -> None:
         errors.append(f"{label}.{key} must be a non-empty array")
 
 
+def validate_envelope(errors: list[str], director_keys: set[str]) -> None:
+    expected_type = "brief" if label == "brief.json" else "phase-prd"
+    expected_authoritative = {f"$.{key}" for key in director_keys} | {"$.director_confirmation"}
+    if payload.get("artifact_type") != expected_type:
+        errors.append(f"{label}.artifact_type must be {expected_type}")
+    if payload.get("producer") != "product-director":
+        errors.append(f"{label}.producer must be product-director")
+    authoritative_fields = payload.get("authoritative_fields")
+    if not isinstance(authoritative_fields, list):
+        errors.append(f"{label}.authoritative_fields must be an array")
+    else:
+        missing = sorted(expected_authoritative - set(authoritative_fields))
+        if missing:
+            errors.append(f"{label}.authoritative_fields missing Director handoff fields: {', '.join(missing)}")
+    confirmation = payload.get("director_confirmation")
+    if not isinstance(confirmation, dict):
+        errors.append(f"{label}.director_confirmation must be an object")
+        return
+    if confirmation.get("status") != "passed":
+        errors.append(f"{label}.director_confirmation.status must be passed")
+    if not isinstance(confirmation.get("confirmed_at"), str) or not confirmation.get("confirmed_at", "").strip():
+        errors.append(f"{label}.director_confirmation.confirmed_at must be a non-empty string")
+    digest = confirmation.get("locked_field_digest")
+    if not isinstance(digest, str) or not digest.startswith("sha256:") or len(digest) != 71:
+        errors.append(f"{label}.director_confirmation.locked_field_digest must be sha256:<64 hex>")
+    locked_fields = confirmation.get("locked_fields")
+    if not isinstance(locked_fields, dict):
+        errors.append(f"{label}.director_confirmation.locked_fields must be an object")
+    else:
+        missing = sorted(director_keys - set(locked_fields))
+        if missing:
+            errors.append(f"{label}.director_confirmation.locked_fields missing: {', '.join(missing)}")
+
+
 errors: list[str] = []
 if not isinstance(payload, dict):
     errors.append(f"{label} must be a JSON object")
 else:
     required = BRIEF_KEYS if label == "brief.json" else PHASE_KEYS
+    allowed = required | ENVELOPE_KEYS | {"director_confirmation"}
     actual = set(payload.keys())
     missing = sorted(required - actual)
-    extra = sorted(actual - required)
-    polluted = sorted(actual & RUNTIME_OR_DOWNSTREAM_FIELDS)
+    extra = sorted(actual - allowed)
+    downstream = sorted(actual & PM_OWNED_DOWNSTREAM_FIELDS)
+    validate_envelope(errors, required)
     if missing:
         errors.append(f"{label} missing Director result fields: {', '.join(missing)}")
     if extra:
         errors.append(
-            f"{label} contains fields outside Director result payload: {', '.join(extra)}"
+            f"{label} contains fields outside Director handoff contract: {', '.join(extra)}"
         )
-    if polluted:
+    if downstream:
         errors.append(
-            f"{label} contains runtime or downstream fields: {', '.join(polluted)}"
+            f"{label} contains PM-owned downstream fields: {', '.join(downstream)}"
         )
 
     if label == "brief.json":

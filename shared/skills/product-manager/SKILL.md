@@ -31,7 +31,7 @@ PM 的正确产出是结构化业务事实和产品判断包；JSON 承载下游
 - `phase-prd.json` 写 Phase 产品模型：现状、目标、入口、出口、角色在何条件下可触发/执行/审批/查看/撤销、对象状态变化、用户可见状态、范围边界、业务态/端/路径覆盖、风险落点、技术证据输入、设计决策候选和发布口径。
 - `units/UNIT-*.json` 回答交付切片：每个 UNIT 的触发、核心行为、可观察结果、优先级依据、依赖、排除项、Integration Context、AC、Verification Plan 和功能/流程/风险/规则追溯。
 - `brief.json` 写交付闭合：PM issue、review digest、review conclusion 和 delivery confirmation 是否已经关闭。
-- PM 过程状态写入正式 JSON：阻断、WARN、漂移和 open question 写 `issue_ledger`；评审 digest、reviewer verdict 和收敛证据写 `review_conclusion`；用户接受后写 `delivery_confirmation`。
+- PM 过程状态写入正式 JSON：Handoff、Self-check 和 Review digest 前的阻断、open question、WARN 与漂移写 `pre_review_issue_ledger`；Review digest 后的承接、风险接受、延期和关闭写 `issue_ledger` 合法终态；评审 digest、reviewer verdict 和收敛证据写 `review_conclusion`；用户接受后写 `delivery_confirmation`。
 - 用户给方案词时，改写为业务行为、业务约束、可观察结果、风险或设计交接；技术实现路径、接口字段、组件方案和测试实现留给下游。
 
 ## Checklist
@@ -84,14 +84,14 @@ digraph product_manager_flow {
 
 执行规则：读取 `shared/skills/product-manager/templates/brief.template.json`、`shared/skills/product-manager/templates/phase-prd.template.json` 和 `shared/skills/product-manager/templates/unit-definition.template.json` 创建目标 JSON；模板只提供结构起点，复制后立即替换所有样例业务值，目标 JSON 残留 `sample-feature`、`request review`、`Requester` 或 `Reviewer` 等样例文本即失败；用 `contracts/*.schema.json` 限定合法字段；用 scripts/gates 判定完成。后续节点发现缺字段时，回到字段拥有节点补齐。
 
-PM 状态字段：不生成 PM co-creation ledger。阻断、open question、WARN 和漂移写入拥有该问题的 `issue_ledger`；评审 digest、reviewer verdict 和收敛证据写入 `review_conclusion`；用户接受后写入 `brief.json.delivery_confirmation`。
+PM 状态采用阶段化闭集写入：Handoff、Self-check 和 Review digest 前的阻断、open question、WARN 与漂移写入拥有该问题的 `pre_review_issue_ledger`；Review digest 后的承接、风险接受、延期和关闭写入 `issue_ledger` 合法终态；评审 digest、reviewer verdict 和收敛证据写入 `review_conclusion`；用户接受后写入 `brief.json.delivery_confirmation`。未能归类的 PM 状态先作为 open question 写入对应 `pre_review_issue_ledger`，不扩展模板外字段。
 
 **Handoff gate**：读取 `brief.json` 和当前 `phase-prd.json`；运行 `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`。
 - 确认 Director baseline 已通过、Phase 边界一致、时间盒未超过 14 天、锁定字段未漂移。
 - 扫描歧义定义、范围灰区、输入缺口和语义冲突。
 - 把缺口分为 PM 可收口、需要用户裁决、必须回 Director 三类。
 - PM 可收口项带入后续对应字段。
-- 需要用户或 Director 的项写入对应 JSON 的 `issue_ledger`，并停在 Handoff gate。
+- 需要用户或 Director 的项写入对应 JSON 的 `pre_review_issue_ledger`，并停在 Handoff gate。
 - Director locked fields 需要改变时，记录漂移并停止。
 
 **Evidence and AS-IS**：读取 `brief.json`、当前 `phase-prd.json`、入口截图、录屏、页面描述、接口请求/响应、数据前后值、审计日志、测试记录、流程文档、用户反馈或用户裁决。
@@ -230,10 +230,10 @@ PM 状态字段：不生成 PM co-creation ledger。阻断、open question、WAR
 
 ## 写入位置
 
-- `docs/{feature}/brief.json`：承载 PM issue、评审结论和交付确认；用户接受后写 `delivery_confirmation`。
+- `docs/{feature}/brief.json`：承载 PM pre-review issue、评审结论、post-review issue 和交付确认；用户接受后写 `delivery_confirmation`。
 - `docs/{feature}/phase-{N}/phase-prd.json`：Handoff gate 通过后作为工作草稿；逐环节写 PM 产品模型、功能清单、风险、UNIT 索引、设计交接和评审字段。
 - `docs/{feature}/phase-{N}/units/UNIT-*.json`：UNIT split 后作为工作草稿；写 UNIT 闭环、优先级、Integration Context、AC、Verification Plan、依赖和排除项。
-- `review_conclusion` 在 review digest 和 Agent review 完成后写；`issue_ledger` 记录阻断、open question、WARN 和漂移；`delivery_confirmation` 在用户接受后写。
+- `review_conclusion` 在 review digest 和 Agent review 完成后写；`pre_review_issue_ledger` 记录 Handoff、Self-check 和 Review digest 前的阻断、open question、WARN 与漂移；`issue_ledger` 记录 Review digest 后的承接、风险接受、延期和关闭；`delivery_confirmation` 在用户接受后写。
 
 ## 完成校验
 

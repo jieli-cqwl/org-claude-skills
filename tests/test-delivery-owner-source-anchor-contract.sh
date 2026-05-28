@@ -48,8 +48,10 @@ PY
 
 assert_present '"business_goals"' "$ROOT/shared/skills/product-director/templates/brief.template.json"
 assert_present '"phase_goal"' "$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
-assert_absent '"authoritative_fields"|"\\$\\.director_confirmation"|director_confirmation|locked_field_digest' "$ROOT/shared/skills/product-director/templates/brief.template.json"
-assert_absent '"authoritative_fields"|"\\$\\.director_confirmation"|director_confirmation|locked_field_digest|unit_index' "$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
+assert_present '"authoritative_fields"' "$ROOT/shared/skills/product-director/templates/brief.template.json"
+assert_present '"\$\.director_confirmation"' "$ROOT/shared/skills/product-director/templates/brief.template.json"
+assert_present 'director_confirmation' "$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
+assert_absent '"unit_index"|"review_conclusion"|"issue_ledger"' "$ROOT/shared/skills/product-director/templates/phase-prd.template.json"
 
 assert_present '"verification_mapping"' "$ROOT/shared/skills/design/templates/design.template.json"
 assert_present '"evidence_ref"' "$ROOT/shared/skills/design/templates/design.template.json"
@@ -68,6 +70,10 @@ assert_present 'references/dispatch-packet\.md' "$ROOT/shared/skills/delivery-ow
 assert_present 'references/followup-loops\.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_absent 'codex/agents/(developer|verifier|qa|fixer)\.toml' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_present 'developer-report\.json' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_present 'forbidden_scope:' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_absent '^[[:space:]]*scope:' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
+assert_present '"forbidden_scope"' "$ROOT/shared/skills/delivery-owner/scripts/task_packet_check.py"
+assert_absent '"scope"' "$ROOT/shared/skills/delivery-owner/scripts/task_packet_check.py"
 assert_present 'verify-result\.json' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_present 'qa-result\.json' "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_present 'templates/user-decision-package\.template\.md' "$ROOT/shared/skills/delivery-owner/references/followup-loops.md"

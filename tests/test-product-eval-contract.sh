@@ -40,6 +40,8 @@ SCENARIO_MANAGER_P3="$ROOT/tools/eval/scenarios/product-manager-p3-unit-boundary
 PM_EVALS="$ROOT/shared/skills/product-manager/evals/evals.json"
 PM_LIFECYCLE="$ROOT/shared/skills/product-manager/evals/lifecycle-review.json"
 PM_DOGFOOD="$ROOT/shared/skills/product-manager/evals/dogfood/request-review-flow/with_skill/dogfood-result.json"
+PM_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
+PM_TEST_PROMPTS="$ROOT/shared/skills/product-manager/test-prompts.json"
 DIRECTOR_EVALS="$ROOT/shared/skills/product-director/evals/evals.json"
 DIRECTOR_TEST_PROMPTS="$ROOT/shared/skills/product-director/test-prompts.json"
 
@@ -54,6 +56,8 @@ test -f "$SCENARIO_MANAGER_P3" || fail "missing manager eval scenario: $SCENARIO
 test -f "$PM_EVALS" || fail "missing product-manager evals: $PM_EVALS"
 test -f "$PM_LIFECYCLE" || fail "missing product-manager lifecycle review: $PM_LIFECYCLE"
 test -f "$PM_DOGFOOD" || fail "missing product-manager dogfood result: $PM_DOGFOOD"
+test -f "$PM_SKILL" || fail "missing product-manager skill: $PM_SKILL"
+test -f "$PM_TEST_PROMPTS" || fail "missing product-manager test prompts: $PM_TEST_PROMPTS"
 test -f "$DIRECTOR_EVALS" || fail "missing product-director evals: $DIRECTOR_EVALS"
 test -f "$DIRECTOR_TEST_PROMPTS" || fail "missing product-director test prompts: $DIRECTOR_TEST_PROMPTS"
 test -d "$BENCHMARK_ROOT" || fail "missing product split benchmark results root: $BENCHMARK_ROOT"
@@ -84,6 +88,30 @@ for source in map(Path, sys.argv[1:]):
             continue
         if any(term in value for term in ("standard-chain", "canonical", "真源", "accepted_warning")):
             raise SystemExit(f"old eval wording in {source}:{'.'.join(path)}: {value}")
+PY
+
+python3 - "$PM_SKILL" "$PM_EVALS" "$PM_TEST_PROMPTS" <<'PY'
+import sys
+from pathlib import Path
+
+for source in map(Path, sys.argv[1:]):
+    text = source.read_text(encoding="utf-8")
+    for forbidden in ("PM co-creation ledger", "PM 台账"):
+        if forbidden in text:
+            raise SystemExit(f"deprecated PM ledger anchor in {source}: {forbidden}")
+
+skill_text = Path(sys.argv[1]).read_text(encoding="utf-8")
+for bad in (
+    "阻断、open question、WARN 和漂移写入拥有该问题的 `issue_ledger`",
+    "阻断、WARN、漂移和 open question 写 `issue_ledger`",
+    "`issue_ledger` 记录阻断、open question、WARN 和漂移",
+):
+    if bad in skill_text:
+        raise SystemExit(f"PM open issue state must not route directly to issue_ledger: {bad}")
+for source in map(Path, sys.argv[2:]):
+    text = source.read_text(encoding="utf-8")
+    if "分类结果写入对应 JSON 的 `issue_ledger`" in text:
+        raise SystemExit(f"PM pre-review classification must route to pre_review_issue_ledger: {source}")
 PY
 
 test -f "$BENCHMARK_ROOT/eval-0/with_skill/run-1/outputs/response.md" || fail "missing split benchmark response"

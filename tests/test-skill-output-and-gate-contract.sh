@@ -473,7 +473,7 @@ prepare_director_workspace() {
   write_product_director_ledger "$workspace/docs/director-feature"
 }
 
-prepare_director_pm_polluted_workspace() {
+prepare_director_downstream_phase_workspace() {
   local workspace="$1"
   prepare_director_workspace "$workspace"
 
@@ -490,7 +490,7 @@ prepare_director_pm_polluted_workspace() {
   mv "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json" "$workspace/docs/director-feature/phase-1/phase-prd.json"
 }
 
-prepare_director_brief_pm_polluted_workspace() {
+prepare_director_downstream_brief_workspace() {
   local workspace="$1"
   prepare_director_workspace "$workspace"
 
@@ -508,13 +508,6 @@ prepare_director_brief_pm_polluted_workspace() {
 prepare_director_runtime_noise_workspace() {
   local workspace="$1"
   prepare_director_workspace "$workspace"
-
-  jq '
-    .artifact_type = "brief"
-    | .director_confirmation = {"status": "passed"}
-  ' \
-    "$workspace/docs/director-feature/brief.json" > "$workspace/docs/director-feature/brief.tmp.json"
-  mv "$workspace/docs/director-feature/brief.tmp.json" "$workspace/docs/director-feature/brief.json"
 
   jq '.unit_index = []' \
     "$workspace/docs/director-feature/phase-1/phase-prd.json" > "$workspace/docs/director-feature/phase-1/phase-prd.tmp.json"
@@ -643,7 +636,7 @@ assert_canonical_runtime_artifacts() {
   assert_absent 'references/output\.md#' "$ROOT/shared/skills/product-director/SKILL.md"
   assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
   assert_present 'shared/skills/product-director/templates/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
-  assert_absent 'artifact_type|chain_registry_digest|locked_field_digest|director_confirmation' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+  assert_present 'canonical envelope' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
 }
 
 assert_canonical_only_scripts() {
@@ -660,7 +653,7 @@ assert_canonical_only_scripts() {
     bash -n "$script"
     if [ "$script" = "$ROOT/shared/skills/product-director/scripts/completion_check.sh" ]; then
       assert_present 'Director result baseline gate' "$script"
-      assert_absent 'canonical' "$script"
+      assert_present 'canonical' "$script"
     else
       assert_present 'canonical' "$script"
     fi
@@ -818,25 +811,25 @@ assert_canonical_hooks_pass() {
   assert_present 'product-director content quality validation failed' "$SKILL_OUTPUT_TMP_ROOT/director-weak-content/hook.stderr"
   assert_present 'phase entry conditions must be business facts' "$SKILL_OUTPUT_TMP_ROOT/director-weak-content/hook.stderr"
 
-  prepare_director_pm_polluted_workspace "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted"
+  prepare_director_downstream_phase_workspace "$SKILL_OUTPUT_TMP_ROOT/director-downstream-phase"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
-    "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted" "director-pm-polluted" \
+    "$SKILL_OUTPUT_TMP_ROOT/director-downstream-phase" "director-downstream-phase" \
     "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
-  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.status")" = "0" ]; then
-    cat "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stdout" >&2
-    fail "product-director gate should reject downstream phase-prd fields"
+  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-downstream-phase/hook.status")" = "0" ]; then
+    cat "$SKILL_OUTPUT_TMP_ROOT/director-downstream-phase/hook.stdout" >&2
+    fail "product-director gate should reject PM-owned downstream phase-prd fields"
   fi
-  assert_present 'phase-prd.json contains runtime or downstream fields' "$SKILL_OUTPUT_TMP_ROOT/director-pm-polluted/hook.stderr"
+  assert_present 'phase-prd.json contains PM-owned downstream fields' "$SKILL_OUTPUT_TMP_ROOT/director-downstream-phase/hook.stderr"
 
-  prepare_director_brief_pm_polluted_workspace "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted"
+  prepare_director_downstream_brief_workspace "$SKILL_OUTPUT_TMP_ROOT/director-downstream-brief"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
-    "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted" "director-brief-pm-polluted" \
+    "$SKILL_OUTPUT_TMP_ROOT/director-downstream-brief" "director-downstream-brief" \
     "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
-  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted/hook.status")" = "0" ]; then
-    cat "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted/hook.stdout" >&2
-    fail "product-director gate should reject downstream brief fields"
+  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-downstream-brief/hook.status")" = "0" ]; then
+    cat "$SKILL_OUTPUT_TMP_ROOT/director-downstream-brief/hook.stdout" >&2
+    fail "product-director gate should reject PM-owned downstream brief fields"
   fi
-  assert_present 'brief.json contains runtime or downstream fields' "$SKILL_OUTPUT_TMP_ROOT/director-brief-pm-polluted/hook.stderr"
+  assert_present 'brief.json contains PM-owned downstream fields' "$SKILL_OUTPUT_TMP_ROOT/director-downstream-brief/hook.stderr"
 
   prepare_director_runtime_noise_workspace "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise"
   run_hook "$ROOT/shared/skills/product-director/scripts/completion_check.sh" \
@@ -844,9 +837,9 @@ assert_canonical_hooks_pass() {
     "docs/director-feature/brief.json\ndocs/director-feature/phase-1/phase-prd.json\n"
   if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise/hook.status")" = "0" ]; then
     cat "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise/hook.stdout" >&2
-    fail "product-director gate should reject runtime envelope fields"
+    fail "product-director gate should reject PM-owned downstream fields"
   fi
-  assert_present 'contains runtime or downstream fields' "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise/hook.stderr"
+  assert_present 'phase-prd.json contains PM-owned downstream fields' "$SKILL_OUTPUT_TMP_ROOT/director-runtime-noise/hook.stderr"
 
   prepare_workspace "$SKILL_OUTPUT_TMP_ROOT/manager"
   run_hook "$ROOT/shared/skills/product-manager/scripts/completion_check.sh" \

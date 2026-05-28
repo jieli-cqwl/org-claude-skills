@@ -13,21 +13,15 @@ def terms(value: str) -> tuple[str, ...]:
 
 
 FORBIDDEN_BRIEF_FIELDS = terms(
-    "artifact_type|artifact_id|schema_version|producer|produced_at|chain_version|"
-    "chain_registry_digest|authority_scope|authoritative_fields|director_confirmation|"
-    "locked_fields|locked_field_digest|unit_index|"
-    "acceptance_criteria|design_decisions|non_functional_requirements|"
+    "unit_index|acceptance_criteria|design_decisions|non_functional_requirements|"
     "business_flows|user_paths|rule_mappings|semantic_draft|"
     "business_semantics_draft|semantics_gaps|review_conclusion|"
     "issue_ledger|delivery_confirmation"
 )
 FORBIDDEN_PHASE_FIELDS = terms(
-    "artifact_type|artifact_id|schema_version|producer|produced_at|chain_version|"
-    "chain_registry_digest|authority_scope|authoritative_fields|director_confirmation|"
-    "locked_fields|locked_field_digest|unit_index|"
-    "review_conclusion|issue_ledger|business_flows|user_paths|rule_mappings|"
-    "unit_priority_order|semantic_draft|business_semantics_draft|semantics_gaps|"
-    "design_decision_candidates"
+    "unit_index|review_conclusion|issue_ledger|business_flows|user_paths|"
+    "rule_mappings|unit_priority_order|semantic_draft|business_semantics_draft|"
+    "semantics_gaps|design_decision_candidates"
 )
 CAUSE_TERMS = terms("because|causing|由于|因为|导致|源于|造成|使得|来自")
 COST_TERMS = terms(

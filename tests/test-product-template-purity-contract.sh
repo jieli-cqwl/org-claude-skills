@@ -74,31 +74,28 @@ assert_absent 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 assert_absent 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|agent-team://.*reviewer/R2|CONFIRMATION' "$MANAGER_PHASE_JSON"
 
 jq -e '
-  (keys_unsorted | sort) == ([
-    "appetite",
-    "business_goals",
-    "decision_rationale",
-    "delivery_plan",
-    "feasibility_constraints",
-    "non_goals",
-    "risks_and_unknowns",
-    "root_problem",
-    "scope_boundaries",
-    "user_profile"
-  ] | sort)
-  and all(.delivery_plan[]; ((keys_unsorted | sort) == (["goal", "iteration_timebox_days", "phase_id"] | sort)) and .iteration_timebox_days == 14)
-' "$DIRECTOR_BRIEF_JSON" >/dev/null || fail "director brief JSON template must only define Director result payload"
-jq -e '
-  all(.delivery_plan[]; .iteration_timebox_days == 14)
+  .artifact_type == "brief"
+  and .producer == "product-director"
+  and (.authoritative_fields | index("$.director_confirmation"))
+  and .director_confirmation.locked_fields
+  and all(.delivery_plan[]; .iteration_timebox_days == 14)
   and all(.director_confirmation.locked_fields.delivery_plan[]; .iteration_timebox_days == 14)
-' "$MANAGER_BRIEF_JSON" >/dev/null || fail "manager brief JSON template must carry Phase timeboxes"
+  and (.review_conclusion? | not)
+  and (.issue_ledger? | not)
+  and (.delivery_confirmation? | not)
+' "$DIRECTOR_BRIEF_JSON" >/dev/null || fail "director brief JSON template must define canonical Director handoff envelope"
 jq -e '
-  (keys_unsorted | sort) == ([
-    "entry_conditions",
-    "exit_conditions",
-    "phase_goal"
-  ] | sort)
-' "$DIRECTOR_PHASE_JSON" >/dev/null || fail "director phase JSON template must only define Director phase result payload"
+  .artifact_type == "phase-prd"
+  and .producer == "product-director"
+  and (.authoritative_fields | index("$.director_confirmation"))
+  and .director_confirmation.locked_fields
+  and .phase_goal
+  and .entry_conditions
+  and .exit_conditions
+  and (.unit_index? | not)
+  and (.review_conclusion? | not)
+  and (.issue_ledger? | not)
+' "$DIRECTOR_PHASE_JSON" >/dev/null || fail "director phase JSON template must define canonical Director handoff envelope"
 
 assert_absent 'UX-0[0-9]|以上为起始项|按产品实际情况增删|分页规范|敏感信息.*脱敏|前端控制|后端控制|页面功能[[:space:]]*\\|[[:space:]]*各模块入口|表单校验[[:space:]]*\\|[[:space:]]*必填项校验|安全控制[[:space:]]*\\|[[:space:]]*敏感字段|端：前端 / 后端 / 全栈' "$MANAGER_PHASE"
 

@@ -122,12 +122,12 @@
       "prompt": "Handoff gate preflight 通过了，但 Director baseline 里「审核规则」只写了「按公司标准审核」没有具体标准，「批量操作」出现在范围里但没写上限，「商品状态」在成功标准和业务规则里各出现一次但含义不一致。PM 准备进入 Evidence and AS-IS，应该怎么处理这些问题？",
       "files": [],
       "expectations": [
-        "PM 停在 Handoff gate，识别并分类这三类问题：「按公司标准审核」是歧义定义，需要用户补充具体规则或回 Director 确认；「批量操作上限」是输入缺口，PM 可在 Evidence and AS-IS 业务流程分析中作为关键假设带入验证；「商品状态含义不一致」是语义冲突，进入细化前先统一定义。分类结果写入 PM 台账，「需回 Director」的项停在 Handoff gate 等用户裁决。",
+        "PM 停在 Handoff gate，识别并分类这三类问题：「按公司标准审核」是歧义定义，需要用户补充具体规则或回 Director 确认；「批量操作上限」是输入缺口，PM 可在 Evidence and AS-IS 业务流程分析中作为关键假设带入验证；「商品状态含义不一致」是语义冲突，进入细化前先统一定义。分类结果写入对应 JSON 的 `pre_review_issue_ledger`，并标明 owner、status、阻断事实、回流节点和恢复条件；「需回 Director」的项停在 Handoff gate 等用户裁决。",
         "识别 Director baseline 中的歧义定义、输入缺口和语义冲突",
         "按「PM 可收口」与「需回 Director」分类处理",
         "歧义定义和语义冲突在 Handoff gate 闭合或报告用户",
         "输入缺口可带入后续步骤作为关键假设验证",
-        "分类结果写入 PM 台账"
+        "分类结果写入对应 JSON 的 `pre_review_issue_ledger`，并标明 owner、status、阻断事实、回流节点和恢复条件"
       ],
       "expected_anchors": [
         "handoff-input-quality"
