@@ -58,7 +58,8 @@ elif mutation == "unknown-gap-type":
                     "UNIT-1.json#acceptance_criteria[0].ac_id"
                 ],
                 "owner": "product-manager",
-                "next_action": "clarify acceptance criteria",
+                "required_artifact_ref": "phase-prd.json#exit_conditions[0]",
+                "decision_needed": False,
                 "blocking": False,
             }
         ],
@@ -74,7 +75,8 @@ elif mutation == "blocking-gap":
                     "UNIT-1.json#acceptance_criteria[0].ac_id"
                 ],
                 "owner": "product-manager",
-                "next_action": "clarify acceptance criteria",
+                "required_artifact_ref": "phase-prd.json#exit_conditions[0]",
+                "decision_needed": True,
                 "blocking": True,
             }
         ],
@@ -85,6 +87,8 @@ elif mutation == "coverage-type-mismatch":
     data["ac_coverage_matrix"][0]["negative_case_refs"] = [
         data["ac_coverage_matrix"][0]["positive_case_refs"][0]
     ]
+elif mutation == "unknown-ac-coverage-id":
+    data["ac_coverage_matrix"][0]["ac_id"] = "AC-DOES-NOT-EXIST"
 elif mutation == "missing-reviewer-verdicts":
     data["review_conclusion"].pop("reviewer_verdicts", None)
 elif mutation == "reviewer-fail-verdict":
@@ -141,6 +145,7 @@ for mutation in \
   blocking-gap \
   invalid-cross-unit \
   coverage-type-mismatch \
+  unknown-ac-coverage-id \
   missing-reviewer-verdicts \
   reviewer-fail-verdict \
   reviewer-warn-aggregate-mismatch \
@@ -157,6 +162,7 @@ for mutation in \
     blocking-gap) expected='blocking gap|blocking=true' ;;
     invalid-cross-unit) expected='composition_status|UNKNOWN' ;;
     coverage-type-mismatch) expected='negative_case_refs|negative cases' ;;
+    unknown-ac-coverage-id) expected='ac_coverage_matrix.*ac_id|unknown' ;;
     missing-reviewer-verdicts) expected='reviewer_verdicts' ;;
     reviewer-fail-verdict) expected='reviewer_verdicts.*FAIL|unresolved FAIL' ;;
     reviewer-warn-aggregate-mismatch) expected='WARN verdicts require aggregate WARN' ;;

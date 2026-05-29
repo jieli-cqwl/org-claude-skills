@@ -33,12 +33,6 @@
   "evidence_refs": [],
   "planning_mode": "standard-chain",
   "plan_version": "plan-v1",
-  "scope_freeze": [
-    "T1"
-  ],
-  "task_list": [
-    "T1"
-  ],
   "goal_fidelity_review": [
     {
       "goal_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
@@ -56,7 +50,6 @@
   },
   "planning_readiness": {
     "status": "READY",
-    "summary": "design inputs are sufficient for standard-chain planning",
     "blocking_gaps": [],
     "decision_package": {
       "required": false,
@@ -68,7 +61,6 @@
     "wbs": [
       {
         "work_package_id": "WP-1",
-        "title": "Work package 1",
         "task_refs": [
           "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
         ]
@@ -76,15 +68,6 @@
     ],
     "critical_path": [
       "T1"
-    ],
-    "parallel_batches": [
-      {
-        "batch": 1,
-        "task_refs": [
-          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
-        ],
-        "parallelizable": false
-      }
     ],
     "investment_risk_signals": [
       {

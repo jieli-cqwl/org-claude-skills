@@ -25,7 +25,6 @@
   "tasks": [
     {
       "task_id": "T1",
-      "task_title": "implement anonymous redirect and login validation",
       "phase_ref": "artifact://phase-prd/login-homepage-pilot.phase-1.prd@v1#phase-goal",
       "unit_refs": [
         "artifact://unit-definition/login-homepage-pilot.phase-1.unit-1@v1#unit"
@@ -73,7 +72,6 @@
     },
     {
       "task_id": "T2",
-      "task_title": "implement authenticated homepage and logout invalidation",
       "phase_ref": "artifact://phase-prd/login-homepage-pilot.phase-1.prd@v1#phase-goal",
       "unit_refs": [
         "artifact://unit-definition/login-homepage-pilot.phase-1.unit-1@v1#unit"

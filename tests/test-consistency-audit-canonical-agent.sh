@@ -68,7 +68,6 @@ assert_absent 'test-cases.md' "$COVERAGE"
 assert_present '^name: consistency-auditor$' "$AGENT"
 assert_present 'skills:' "$AGENT"
 assert_present 'consistency-audit' "$AGENT"
-assert_present '加载 consistency-audit skill' "$AGENT"
 assert_absent 'Write|Edit' "$AGENT"
 
 extract_json="$("$EXTRACT" "$FIXTURE")"

@@ -22,7 +22,7 @@ TEST_DESIGN_ALLOWED_ACTIONS = [
     "test_basis_analysis",
     "condition_example_mapping",
     "test_case_design",
-    "test_obligation_shaping",
+    "qa_handoff_contract_shaping",
     "specialty_test_design",
     "gap_routing",
     "test_design_owner_self_check",

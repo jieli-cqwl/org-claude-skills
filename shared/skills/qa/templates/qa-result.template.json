@@ -47,32 +47,28 @@
       "gate_result": "PASS",
       "evidence_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-result"
-      ],
-      "summary": "static contract and schema checks passed"
+      ]
     },
     {
       "qa_stage": "QA_B",
       "gate_result": "PASS",
       "evidence_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace"
-      ],
-      "summary": "runtime replay and readiness checks passed"
+      ]
     },
     {
       "qa_stage": "QA_C",
       "gate_result": "PASS",
       "evidence_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#issue-ledger"
-      ],
-      "summary": "negative and recovery checks passed"
+      ]
     },
     {
       "qa_stage": "QA_D",
       "gate_result": "PASS",
       "evidence_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#release"
-      ],
-      "summary": "release readiness and signoff closure checks passed"
+      ]
     }
   ],
   "obligation_results": [
@@ -85,8 +81,7 @@
       ],
       "evidence_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-result"
-      ],
-      "summary": "static contract validation evidence recorded"
+      ]
     },
     {
       "obligation_id": "QHO-RUNTIME-REPLAY",
@@ -97,8 +92,7 @@
       ],
       "evidence_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace"
-      ],
-      "summary": "runtime replay evidence recorded"
+      ]
     },
     {
       "obligation_id": "QHO-RECOVERY-COVERAGE",
@@ -109,8 +103,7 @@
       ],
       "evidence_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#issue-ledger"
-      ],
-      "summary": "negative and recovery evidence recorded"
+      ]
     },
     {
       "obligation_id": "QHO-RELEASE-CLOSURE",
@@ -121,8 +114,7 @@
       ],
       "evidence_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#release"
-      ],
-      "summary": "release closure evidence recorded"
+      ]
     }
   ],
   "issue_ledger": []

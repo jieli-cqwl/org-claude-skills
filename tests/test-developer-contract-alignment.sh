@@ -105,7 +105,6 @@ assert_non_git_gate_blocks_fake_sha() {
   "active_tasks_version_ref": "artifact://tasks/demo.phase-1.tasks@tasks-v1#task-registry",
   "task_id": "T1",
   "runtime_status": "VERIFIED",
-  "summary_text": "demo report",
   "reviewable_anchor": "artifact://developer-report/demo.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
   "file_changes": [
     "src/demo.ts"
@@ -541,29 +540,38 @@ assert_developer_preflight_passes() {
   fi
 }
 
-assert_developer_preflight_accepts_test_obligations_schema() {
+assert_developer_preflight_blocks_legacy_test_obligations_anchor() {
   local tmp_root phase_dir out
 
-  tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/developer-preflight-obligations.XXXXXX")"
-  out="$(mktemp "${TMPDIR:-/tmp}/developer-preflight-obligations.out.XXXXXX")"
+  tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/developer-preflight-legacy-obligations.XXXXXX")"
+  out="$(mktemp "${TMPDIR:-/tmp}/developer-preflight-legacy-obligations.out.XXXXXX")"
   cleanup_developer_preflight_obligations() {
     rm -rf "$tmp_root" "$out"
   }
   trap cleanup_developer_preflight_obligations RETURN
 
   mkdir -p "$tmp_root"
-  cp -R "$ROOT/docs/feature--quanfangtong-homepage-entry-center/phase-1" "$tmp_root/phase-1"
+  cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1" "$tmp_root/phase-1"
   phase_dir="$tmp_root/phase-1"
+  jq '(.tasks[] | select(.task_id == "T1") | .test_refs) = [
+      "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#LEGACY-OBLIGATION"
+    ]' "$phase_dir/tasks.json" >"$phase_dir/tasks.tmp.json"
+  mv "$phase_dir/tasks.tmp.json" "$phase_dir/tasks.json"
+  jq '.test_obligations = [{
+      "obligation_id": "LEGACY-OBLIGATION",
+      "source_ac_ref": "AC-T1-1",
+      "expected_result": "legacy obligation must not be consumed"
+    }]' "$phase_dir/unit-1/test-cases.json" >"$phase_dir/unit-1/test-cases.tmp.json"
+  mv "$phase_dir/unit-1/test-cases.tmp.json" "$phase_dir/unit-1/test-cases.json"
 
   if bash "$ROOT/shared/skills/developer/scripts/preflight_check.sh" --phase-dir "$phase_dir" --task-id T1 >"$out"; then
-    if rg -n '"status": "PASS".*"task_id": "T1"|\"task_id\": "T1".*\"status\": "PASS"' "$out" >/dev/null 2>&1; then
-      pass "developer preflight 接受 test_obligations/expected_result schema"
-    else
-      fail "developer preflight test_obligations 输出缺少 PASS/T1"
-    fi
+    cat "$out" >&2 || true
+    fail "developer preflight 不应消费旧 test_obligations anchor"
+  elif rg -n '"failure_code": "UNRESOLVED_REF"|test_ref anchor not found' "$out" >/dev/null 2>&1; then
+    pass "developer preflight 阻断旧 test_obligations anchor"
   else
     cat "$out" >&2 || true
-    fail "developer preflight 应接受 test_obligations/expected_result schema"
+    fail "developer preflight 旧 test_obligations anchor 阻断输出缺少 UNRESOLVED_REF"
   fi
 }
 assert_developer_preflight_blocks_missing_registry() {
@@ -820,7 +828,7 @@ assert_canonical_json_report_accepts_mutation \
   '.runtime_status = "BLOCKED" | .task_scope = [] | .file_changes = [] | .blocked_reason = "canonical inputs are missing" | .missing_inputs = ["design.json"] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"canonical inputs are missing","owner":"delivery-owner","safe_to_continue":false,"next_action":"redispatch with canonical inputs","evidence_refs":["artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#blocked"],"user_message":"缺少 developer 前置输入，已阻断真实代码修改。"} | .self_testing.full_regression.status = "BLOCKED" | .self_testing.full_regression.reason = "canonical inputs are missing" | .self_testing.static_analysis.lint.status = "BLOCKED" | .self_testing.static_analysis.lint.reason = "canonical inputs are missing" | .self_testing.static_analysis.type_check.status = "BLOCKED" | .self_testing.static_analysis.type_check.reason = "canonical inputs are missing" | .self_testing.static_analysis.build.status = "BLOCKED" | .self_testing.static_analysis.build.reason = "canonical inputs are missing" | .tdd_evidence_index = []'
 assert_developer_manifest_contract
 assert_developer_preflight_passes
-assert_developer_preflight_accepts_test_obligations_schema
+assert_developer_preflight_blocks_legacy_test_obligations_anchor
 assert_developer_preflight_blocks_missing_registry
 
 printf '\n── Summary ──\n'

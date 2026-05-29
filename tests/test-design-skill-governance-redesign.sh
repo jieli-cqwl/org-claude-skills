@@ -195,7 +195,7 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 requirements = {
     "option_analysis": ["option_analysis", "候选方案", "取舍", "事实锚点"],
-    "key_decisions": ["key_decisions", "最终选择", "失效条件", "用户确认"],
+    "key_decisions": ["key_decisions", "最终选择", "失效条件", "fact_refs"],
 }
 missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
 if missing:
@@ -487,7 +487,7 @@ assert_design_registry_contract() {
 assert_test_design_permission_boundary() {
   assert_allowed_tools_exact "$TEST_DESIGN_SKILL" "Read,Write,Bash,Glob,Grep,AskUserQuestion,TeamCreate,SendMessage,TeamDelete"
   assert_present 'reviewed_test_cases_digest' "$TEST_DESIGN_SKILL"
-  assert_absent 'test-cases\.json` 候选产物|同一份候选产物|context 草稿|上下文草稿' "$TEST_DESIGN_SKILL"
+  assert_absent 'candidate_test_cases_json|context_draft' "$TEST_DESIGN_SKILL"
 }
 
 assert_closure_design_required_field() {
@@ -753,7 +753,6 @@ payload = json.loads(path.read_text(encoding="utf-8"))
 payload["constraint_inheritance_confirmation"]["source_refs"] = []
 payload["constraint_inheritance_confirmation"]["inherited_constraints"] = []
 payload["constraint_inheritance_confirmation"]["rejected_constraints"] = []
-payload["constraint_inheritance_confirmation"]["confirmation_summary"] = "No project-level or historical constraints were found for inheritance."
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 }
@@ -837,9 +836,7 @@ path = Path(sys.argv[1])
 mutation = sys.argv[2]
 payload = json.loads(path.read_text(encoding="utf-8"))
 decision = payload["key_decisions"][0]
-if mutation == "missing_user_confirmation":
-    decision.pop("user_confirmation", None)
-elif mutation == "draft_state":
+if mutation == "draft_state":
     decision["decision_state"] = "草稿"
 elif mutation == "bad_option_ref":
     decision["option_ref"] = "DESIGN-OPT-999"
@@ -1974,10 +1971,9 @@ assert_absent 'validate_design_semantics|validate_design_references|validate_sch
 assert_present 'co_creation_summary' "$DESIGN_CHECK"
 assert_absent 'design_stage_confirmations' "$DESIGN_CHECK"
 
-assert_absent 'hook-payload|completion_check\.sh <|写入并运行 gate' "$TEST_DESIGN_SKILL"
+assert_absent 'hook-payload|completion_check\.sh <' "$TEST_DESIGN_SKILL"
 assert_present 'digraph test_design_flow' "$TEST_DESIGN_SKILL"
 assert_absent '```mermaid|graph TD' "$TEST_DESIGN_SKILL"
-assert_present 'hooks completion gate 未返回 BLOCKED' "$TEST_DESIGN_SKILL"
 python3 - "$DESIGN_SKILL" <<'PY'
 import re
 import sys
@@ -2055,7 +2051,7 @@ for required_capability in [
 for name, terms in {
     "intake_route_boundary": ["WHY/WHAT", "HOW", "/product-manager", "/test-design", "/tech-lead"],
     "evidence_strength_tiers": ["Strong", "Medium", "Weak", "弱证据不能冻结架构决策"],
-    "decision_shape": ["key_decisions", "decision_id", "option_ref", "fact_refs", "user_confirmation", "option_analysis.decision_ref", "option_analysis.evaluation", "impact_scope", "verification_mapping"],
+    "decision_shape": ["key_decisions", "decision_id", "decision_state", "option_ref", "fact_refs", "option_analysis.decision_ref", "option_analysis.evaluation", "impact_scope", "verification_mapping"],
     "downstream_consumability": ["/test-design", "断言", "/tech-lead", "任务边界", "developer", "input/output/error", "delivery-owner", "risk_response", "rollback_plan", "planning_constraints"],
 }.items():
     missing_terms = [term for term in terms if term not in capability_contracts]
@@ -2074,7 +2070,6 @@ if plain_bullets:
         + "; ".join(plain_bullets)
     )
 PY
-assert_present '也是 design owner' "$DESIGN_SKILL"
 assert_present 'preflight_check\.sh --arguments "\$ARGUMENTS"' "$DESIGN_SKILL"
 assert_present 'Stakeholders & Concerns' "$DESIGN_SKILL"
 assert_present 'Architecture-Significant Requirements' "$DESIGN_SKILL"
@@ -2087,19 +2082,18 @@ assert_present 'Owner Self-Check' "$DESIGN_SKILL"
 assert_present 'Advisory Review' "$DESIGN_SKILL"
 assert_design_preflight_context_boundary "$DESIGN_SKILL"
 assert_design_owner_execution_boundary "$DESIGN_SKILL"
-assert_absent 'baseline_packet|runtime_fact_packet|decision_packet|review_packet|packet 只能作为证据或候选项' "$DESIGN_SKILL"
+assert_absent 'baseline_packet|runtime_fact_packet|decision_packet|review_packet' "$DESIGN_SKILL"
 assert_design_owner_execution_boundary "$DESIGN_SKILL"
-assert_absent 'candidate_design_json.*不包含 `review_closure` 和 `final_confirmation`|build_candidate_package\.py --design "\$TMPDIR/design-candidate\.json" --package-output "\$TMPDIR/design-candidate-package\.json" --candidate-output "\$TMPDIR/design-candidate\.json"|候选设计包只写入 `\$TMPDIR`' "$DESIGN_SKILL"
+assert_absent 'candidate_design_json|build_candidate_package\.py' "$DESIGN_SKILL"
 assert_present 'review_digest\.py --review-payload "\$TMPDIR/design-review\.json"' "$DESIGN_SKILL"
 assert_present 'review_digest\.py --check "\$PHASE_DIR/design\.json"' "$DESIGN_SKILL"
 assert_absent 'design-ledger\.json|validate_co_creation_ledger\.py --artifact "\$PHASE_DIR/design-ledger\.json"|--producer design' "$DESIGN_SKILL"
 assert_present 'validate_standard_chain_phase\.py --phase-dir "\$PHASE_DIR"' "$DESIGN_SKILL"
-assert_present '"Finalize design\.json"|Finalize design\.json|最终冻结' "$DESIGN_SKILL"
-assert_absent 'review_closure\.candidate_digest|reviewed_candidate_digest|reviewer 输出必须回显 `candidate_digest`' "$DESIGN_SKILL"
+assert_present 'Finalize design\.json' "$DESIGN_SKILL"
+assert_absent 'review_closure\.candidate_digest|reviewed_candidate_digest' "$DESIGN_SKILL"
 assert_design_constitution_update_boundary "$DESIGN_SKILL"
 assert_design_option_decision_write_boundary "$DESIGN_SKILL"
 assert_design_external_fact_boundary "$DESIGN_SKILL"
-assert_present '召集 agent teams' "$DESIGN_SKILL"
 assert_present 'render_projection\.py --design "\$PHASE_DIR/design\.json" --design-output "\$PHASE_DIR/views/design\.projection\.md"' "$DESIGN_SKILL"
 assert_present 'render_projection\.py --design "\$PHASE_DIR/design\.json" --adr-dir "\$PHASE_DIR/adr"' "$DESIGN_SKILL"
 assert_present 'render_projection\.py' "$DESIGN_SKILL"
@@ -2133,9 +2127,7 @@ for design_resource in \
   assert_present '^## 目标$' "$design_resource"
   assert_absent 'Resource Contract|^\| (Trigger|Read|Expect|Consume|Evidence|Sync) \||^>?[[:space:]]*(Trigger|Read|Expect|Consume|Evidence|Sync):|引用者' "$design_resource"
 done
-assert_present '投影 Manifest' "$ROOT/shared/skills/design/projections/design-template.md"
 assert_present 'views/design\.projection-manifest\.json' "$ROOT/shared/skills/design/projections/design-template.md"
-assert_absent 'S3 问题拆解|S4 决策点识别|S5 逐项方案探索|S6 边界与接口共识|S7 质量与演进闭环|S8 实施约束收口' "$ROOT/shared/skills/design/projections/design-template.md"
 test ! -f "$ROOT/shared/skills/design/projections/template-notes.md" || fail "template-notes projection duplicate must be removed"
 assert_absent 'REQUIRED' "$ROOT/shared/skills/design/projections/adr-spec.md"
 assert_design_projection_derivation_contract "$ROOT/shared/skills/design/projections/adr-spec.md"
@@ -2202,7 +2194,7 @@ if missing:
 PY
 assert_absent 'S10 最终确认|S10 confirmation summary|S5 or S10 user confirmation summary' "$DESIGN_TEMPLATE"
 assert_absent 'S10 最终确认' "$DESIGN_SCHEMA"
-assert_present 'final confirmation summary' "$DESIGN_TEMPLATE"
+assert_absent 'final confirmation summary' "$DESIGN_TEMPLATE"
 assert_present '最终确认：status=confirmed 后才能交给 /test-design' "$DESIGN_SCHEMA"
 assert_absent 'sample-feature|DESIGN-OPT|IF-ACTIVE|IF-READINESS|MOD-CANONICAL|canonical-only|markdown-driven|readiness validation|artifact-registry|golden phase|wizard co-creation|schema, registry|fail-closed validation' "$DESIGN_TEMPLATE"
 assert_present '\{feature\}\.phase-\{N\}\.design' "$DESIGN_TEMPLATE"
@@ -2223,7 +2215,7 @@ assert_present '"option_ref": "OPT-001"' "$DESIGN_TEMPLATE"
 assert_present '"decision_ref": "D-001"' "$DESIGN_TEMPLATE"
 assert_present '"fact_refs"' "$DESIGN_TEMPLATE"
 assert_present '"target_metrics"' "$DESIGN_TEMPLATE"
-assert_present '"user_confirmation"' "$DESIGN_TEMPLATE"
+assert_absent '"user_confirmation"' "$DESIGN_TEMPLATE"
 assert_present '"inherited_constraints": \[' "$DESIGN_TEMPLATE"
 assert_present '"decision_state"' "$DESIGN_SCHEMA"
 assert_present '"已冻结"' "$DESIGN_SCHEMA"
@@ -2231,7 +2223,7 @@ assert_present '"option_ref"' "$DESIGN_SCHEMA"
 assert_present '"decision_ref"' "$DESIGN_SCHEMA"
 assert_present '"fact_refs"' "$DESIGN_SCHEMA"
 assert_present '"target_metrics"' "$DESIGN_SCHEMA"
-assert_present '"user_confirmation"' "$DESIGN_SCHEMA"
+assert_absent '"user_confirmation"' "$DESIGN_SCHEMA"
 assert_present '"review_closure"' "$DESIGN_SCHEMA"
 assert_present '"reviewed_design_digest"' "$DESIGN_SCHEMA"
 assert_present '"reviewers"' "$DESIGN_SCHEMA"
@@ -2301,10 +2293,10 @@ for interface_field in input_params output_params error_codes; do
   assert_design_gate_rejects_missing_interface_field "$interface_field"
 done
 
-assert_present 'option_analysis.*2\+.*alternative|2\+.*alternative.*option_analysis|option_analysis.*2\+.*方案|2\+.*方案.*option_analysis' "$DESIGN_SKILL"
+assert_present 'option_analysis' "$DESIGN_SKILL"
 assert_present 'decision_ref' "$DESIGN_SKILL"
-assert_present 'key_decisions.*最终|最终.*key_decisions|key_decisions.*冻结|冻结.*key_decisions' "$DESIGN_SKILL"
-assert_absent 'alternatives in `design\.json\.key_decisions`|方案.*`design\.json\.key_decisions`|`design\.json\.key_decisions`.*方案' "$DESIGN_SKILL"
+assert_present 'key_decisions' "$DESIGN_SKILL"
+assert_absent 'alternatives in `design\.json\.key_decisions`|`design\.json\.key_decisions`.*alternative' "$DESIGN_SKILL"
 assert_present 'final_confirmation' "$DESIGN_SKILL"
 assert_present 'product_handoff' "$DESIGN_SKILL"
 assert_present 'co_creation_summary' "$DESIGN_SKILL"
@@ -2332,7 +2324,7 @@ for mutation in manager_vp_ref unit_id design_ref affected_module accepted_ref; 
 done
 
 progress "key decision contract mutation checks"
-for mutation in missing_user_confirmation draft_state bad_option_ref missing_fact_refs bad_fact_ref missing_option_decision_ref bad_option_decision_ref missing_option_fact_refs bad_option_fact_ref single_option_for_decision; do
+for mutation in draft_state bad_option_ref missing_fact_refs bad_fact_ref missing_option_decision_ref bad_option_decision_ref missing_option_fact_refs bad_option_fact_ref single_option_for_decision; do
   assert_phase_rejects_bad_key_decision_contract "$mutation"
   assert_design_gate_rejects_bad_key_decision_contract "$mutation"
 done
@@ -2389,19 +2381,18 @@ assert_present 'references/methodology\.md' "$TEST_DESIGN_SKILL"
 assert_present 'references/test-obligation-shaping\.md' "$TEST_DESIGN_SKILL"
 assert_present 'references/specialty-test-design\.md' "$TEST_DESIGN_SKILL"
 assert_absent 'references/methodology\.md.*Trigger:.*Read:.*Expect:.*Consume:.*Evidence:.*Sync:' "$TEST_DESIGN_SKILL"
-assert_present 'journey_title' "$TEST_CASES_SCHEMA"
+assert_absent 'journey_title' "$TEST_CASES_SCHEMA"
 assert_present 'predecessor_case_refs' "$TEST_CASES_SCHEMA"
 assert_present 'successor_case_refs' "$TEST_CASES_SCHEMA"
 assert_present 'product_refs.*design_refs.*assertion_target|assertion_target.*product_refs.*design_refs' "$TEST_DESIGN_SKILL"
-assert_present 'reviewer_verdicts|三视角 Verdict' "$TEST_DESIGN_SKILL"
-assert_present '3 视角×max10轮' "$TEST_DESIGN_SKILL"
+assert_present 'reviewer_verdicts' "$TEST_DESIGN_SKILL"
 assert_present 'R2 / CONFIRMATION' "$TEST_DESIGN_SKILL"
 assert_present 'convergence_evidence' "$TEST_DESIGN_SKILL"
 assert_present 'obligation_id' "$TEST_CASES_SCHEMA"
 assert_present 'special_test_triggers' "$TEST_CASES_SCHEMA"
 assert_present 'source_ref' "$TEST_CASES_SCHEMA"
 assert_present 'traceability_matrix' "$TEST_DESIGN_PROJECTION"
-assert_present 'cross_unit_obligations|跨 UNIT 组合义务' "$TEST_DESIGN_PROJECTION"
+assert_present 'cross_unit_obligations' "$TEST_DESIGN_PROJECTION"
 assert_present 'reviewer_verdicts' "$TEST_DESIGN_PROJECTION"
 assert_present 'design_source_refs' "$TEST_DESIGN_PROJECTION"
 assert_present 'predecessor_case_refs.*successor_case_refs|successor_case_refs.*predecessor_case_refs' "$TEST_DESIGN_PROJECTION"
@@ -2432,10 +2423,6 @@ for removed_reference in \
   [ ! -e "$removed_reference" ] || fail "old specialty reference should be removed: ${removed_reference#"$ROOT"/}"
 done
 assert_present 'Example Mapping' "$TEST_DESIGN_METHODOLOGY"
-assert_present '等价类' "$TEST_DESIGN_METHODOLOGY"
-assert_present '边界值' "$TEST_DESIGN_METHODOLOGY"
-assert_present 'QA 冒烟' "$TEST_DESIGN_OBLIGATION_SHAPING"
-assert_present '性能' "$TEST_DESIGN_SPECIALTY_METHOD"
 assert_present 'assert_special_test_triggers' "$TEST_CASE_SPECIAL_RULES"
 assert_present 'assert_qa_handoff_obligation_ids' "$TEST_CASE_SPECIAL_RULES"
 assert_present 'quality_attributes' "$TEST_CASE_SPECIAL_RULES"
@@ -2464,7 +2451,6 @@ assert_present 'planning_readiness.*implementation_path|implementation_path.*pla
 assert_present 'goal_fidelity_review' "$TECH_LEAD_SKILL"
 assert_present 'scope_item_refs.*范围来源' "$TECH_LEAD_SKILL"
 assert_present 'validate_standard_chain_phase\.py --phase-dir' "$TECH_LEAD_SKILL"
-assert_present 'Task 合同' "$TECH_LEAD_SKILL"
 assert_present 'Mock-only' "$TECH_LEAD_SKILL"
 assert_present 'assertion_target' "$DEVELOPER_SKILL"
 assert_present 'evidence_expectation' "$DEVELOPER_SKILL"

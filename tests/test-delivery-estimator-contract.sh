@@ -55,8 +55,6 @@ assert_present '"rebaseline_rules"' "$SKILL_DIR/templates/estimate-input.templat
 assert_present '```mermaid' "$SKILL_DIR/projections/delivery-estimate-template.md"
 assert_present 'commitment_dates\.p80' "$SKILL_DIR/projections/delivery-estimate-template.md"
 assert_present 'total_human_investment_hours' "$SKILL_DIR/projections/delivery-estimate-template.md"
-assert_present '\| \{wbs_id\} \| \{task_id\} \| \{title\} \|' "$SKILL_DIR/projections/delivery-estimate-template.md"
-assert_present '\| \{wave\} \| \{task_ids\} \| \{max_parallel_workstreams\} \| \{max_parallel_ai_agents\} \|' "$SKILL_DIR/projections/delivery-estimate-template.md"
 
 python3 - "$CONTRACT" <<'PY'
 import json

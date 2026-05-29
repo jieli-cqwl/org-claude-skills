@@ -111,9 +111,6 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
             "$.review_conclusion",
         ],
         "test_analysis": {
-            "objectives": ["证明 UNIT-1 的建议回复闭环在开发前已有可执行测试义务和证据期望"],
-            "in_scope": ["单渠道文本消息成功路径", "上下文缺失失败路径", "重复回调边界路径"],
-            "out_of_scope": ["真实 QA 执行", "多渠道统一接入", "上线签核"],
             "risk_model": [{"risk_ref": "design.json#risks[0].risk_id", "risk_type": "context-risk", "test_depth": "positive, negative and boundary coverage"}],
             "strategy_by_quality_area": [{"quality_area": "operability", "strategy": "围绕 trace_id、上下文来源和人工确认状态设计可复验证据"}],
             "test_flow": [
@@ -123,8 +120,6 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
                     "expected_checkpoint": "每条回调都能映射到明确测试用例和 evidence expectation",
                 }
             ],
-            "environment_assumptions": ["Stage 2 当前只生成测试设计，不进入真实 qft-pai 执行环境"],
-            "data_assumptions": ["测试数据使用真实结构字段名占位，真实字段由后续 qft-pai 采证补齐"],
         },
         "traceability_matrix": [
             {
@@ -139,13 +134,11 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
         "ac_coverage_matrix": [
             {
                 "ac_id": unit["acceptance_criteria"][0]["ac_id"],
-                "covers": ["single callback suggestion package", "manual confirmation state", "failure handoff"],
                 "positive_case_refs": ["TC-001"],
                 "negative_case_refs": ["TC-002"],
                 "boundary_case_refs": ["TC-003"],
             }
         ],
-        "equivalence_matrix": [{"class": "valid text callback"}, {"class": "missing context callback"}, {"class": "duplicate callback"}],
         "test_cases": [
             case("TC-001", "valid text callback creates suggestion package", "positive", "developer", "suggestion package contains trace_id, context source and manual confirmation state"),
             case("TC-002", "missing context enters manual takeover", "negative", "verify", "system returns takeover reason and never auto-sends a reply"),
@@ -167,7 +160,6 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
                 "design_source_refs": ["design.json#verification_mapping[0].manager_vp_ref", "design.json#quality_attributes[0]"],
             }
         ],
-        "unit_coverage_view": [{"unit_id": unit["unit_id"], "ac_ids": [unit["acceptance_criteria"][0]["ac_id"]], "coverage_status": "COVERED"}],
         "design_gap_report": {"status": "NO_GAPS", "gaps": []},
         "cross_unit_obligations": [],
         "special_test_triggers": special_triggers(),

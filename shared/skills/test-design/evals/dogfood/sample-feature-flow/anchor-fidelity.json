@@ -11,7 +11,7 @@
     {
       "anchor_id": "TD-A1",
       "passed": true,
-      "evidence": "test_analysis.out_of_scope keeps QA execution and release sign-off outside test-design; review_conclusion closes before tech-lead handoff."
+      "evidence": "test_analysis.risk_model and test_flow carry source refs; review_conclusion closes before tech-lead handoff."
     },
     {
       "anchor_id": "TD-A2",

@@ -1,13 +1,13 @@
 <html><body><main><section id="phase-summary"><h2>phase-summary</h2><pre>[
   {
     &quot;source_ref&quot;: &quot;artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary&quot;,
-    &quot;json_pointer&quot;: &quot;/summary_text&quot;,
-    &quot;value&quot;: &quot;phase resumed after replan, quarantine restore, and user decision&quot;
+    &quot;json_pointer&quot;: &quot;/current_stage&quot;,
+    &quot;value&quot;: &quot;TASK_EXECUTION&quot;
   },
   {
     &quot;source_ref&quot;: &quot;artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary&quot;,
-    &quot;json_pointer&quot;: &quot;/current_stage&quot;,
-    &quot;value&quot;: &quot;TASK_EXECUTION&quot;
+    &quot;json_pointer&quot;: &quot;/status&quot;,
+    &quot;value&quot;: &quot;IN_PROGRESS&quot;
   },
   {
     &quot;source_ref&quot;: &quot;artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary&quot;,
@@ -52,7 +52,7 @@
   {
     &quot;source_ref&quot;: &quot;artifact://qa-result/sample-feature.phase-1.qa@active#gate-result&quot;,
     &quot;json_pointer&quot;: &quot;/release_recommendation&quot;,
-    &quot;value&quot;: &quot;CONDITIONAL_ALLOW&quot;
+    &quot;value&quot;: &quot;ALLOW&quot;
   },
   {
     &quot;source_ref&quot;: &quot;artifact://signoff-package/sample-feature.phase-1.signoff@active#release-recommendation&quot;,

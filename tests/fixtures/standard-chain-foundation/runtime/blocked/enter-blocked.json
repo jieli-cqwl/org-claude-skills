@@ -16,7 +16,6 @@
     "current_stage": "TASK_EXECUTION",
     "status": "IN_PROGRESS",
     "control_action": "BLOCK",
-    "summary_text": "blocked pending user decision",
     "tasks": []
   },
   "blocker": {

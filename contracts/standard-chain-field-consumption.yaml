@@ -1347,16 +1347,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume test_analysis from test-design artifact
+            consumed_for: sequence proof tasks from the risk model, quality strategy, and test flow checkpoints
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume test_analysis from test-design artifact
+            consumed_for: decide whether the test strategy is complete enough for delivery kickoff and QA routing
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume test_analysis from test-design artifact
+            consumed_for: understand the risk model and checkpoint flow behind required implementation evidence
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume test_analysis from test-design artifact
+            consumed_for: preserve the quality-area strategy while selecting and executing QA checks
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1365,16 +1365,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume traceability_matrix from test-design artifact
+            consumed_for: map product and design source refs to task proof targets
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume traceability_matrix from test-design artifact
+            consumed_for: audit delivery coverage back to the source refs behind each test case
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume traceability_matrix from test-design artifact
+            consumed_for: trace implementation evidence to the originating product and design obligations
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume traceability_matrix from test-design artifact
+            consumed_for: verify QA evidence covers every traced product and design obligation
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1383,34 +1383,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume ac_coverage_matrix from test-design artifact
+            consumed_for: plan task proof boundaries around unit acceptance coverage
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume ac_coverage_matrix from test-design artifact
+            consumed_for: gate closeout on explicit acceptance-criteria coverage
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume ac_coverage_matrix from test-design artifact
+            consumed_for: bind RED/GREEN and implementation evidence to covered AC ids
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume ac_coverage_matrix from test-design artifact
-            consume_mode: gate
-        required_when: test-design hands executable test contract to downstream roles
-        failure_effect: downstream execution can proceed without complete test obligations
-      equivalence_matrix:
-        producer: test-design
-        authority: test-design
-        consumers:
-          - consumer: tech-lead
-            consumed_for: consume equivalence_matrix from test-design artifact
-            consume_mode: transform
-          - consumer: delivery-owner
-            consumed_for: consume equivalence_matrix from test-design artifact
-            consume_mode: gate
-          - consumer: developer
-            consumed_for: consume equivalence_matrix from test-design artifact
-            consume_mode: handoff
-          - consumer: qa
-            consumed_for: consume equivalence_matrix from test-design artifact
+            consumed_for: compare QA outcomes against the accepted AC coverage rows
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1419,16 +1401,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume test_cases from test-design artifact
+            consumed_for: derive proving commands, task evidence targets, and execution order from concrete cases
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume test_cases from test-design artifact
+            consumed_for: route execution, verification, and QA around the concrete case set
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume test_cases from test-design artifact
+            consumed_for: implement against case preconditions, steps, expected results, and assertion targets
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume test_cases from test-design artifact
+            consumed_for: execute or confirm the accepted cases as QA obligations
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1437,16 +1419,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume qa_handoff_contract from test-design artifact
+            consumed_for: preserve QA obligation types and evidence contract refs in the execution plan
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume qa_handoff_contract from test-design artifact
+            consumed_for: decide QA dispatch, skip handling, and release gating from typed obligations
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume qa_handoff_contract from test-design artifact
+            consumed_for: produce evidence matching the obligation evidence_contract_ref values
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume qa_handoff_contract from test-design artifact
+            consumed_for: execute obligations by obligation_type, trigger_refs, skip_policy, and evidence_contract_ref
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1455,34 +1437,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume cross_unit_obligations from test-design artifact
+            consumed_for: plan cross-unit sequencing and shared proof boundaries
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume cross_unit_obligations from test-design artifact
+            consumed_for: monitor cross-unit closure before signoff or release recommendation
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume cross_unit_obligations from test-design artifact
+            consumed_for: implement shared journey or dependency obligations that span task boundaries
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume cross_unit_obligations from test-design artifact
-            consume_mode: gate
-        required_when: test-design hands executable test contract to downstream roles
-        failure_effect: downstream execution can proceed without complete test obligations
-      unit_coverage_view:
-        producer: test-design
-        authority: test-design
-        consumers:
-          - consumer: tech-lead
-            consumed_for: consume unit_coverage_view from test-design artifact
-            consume_mode: transform
-          - consumer: delivery-owner
-            consumed_for: consume unit_coverage_view from test-design artifact
-            consume_mode: gate
-          - consumer: developer
-            consumed_for: consume unit_coverage_view from test-design artifact
-            consume_mode: handoff
-          - consumer: qa
-            consumed_for: consume unit_coverage_view from test-design artifact
+            consumed_for: run cross-unit checks when their trigger refs apply
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1491,16 +1455,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume design_gap_report from test-design artifact
+            consumed_for: route unresolved design gaps to replan, owner decision, or blocked planning
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume design_gap_report from test-design artifact
+            consumed_for: require owner action before delivery proceeds on a known design gap
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume design_gap_report from test-design artifact
+            consumed_for: avoid implementing against a missing design artifact or unresolved decision
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume design_gap_report from test-design artifact
+            consumed_for: treat unresolved design gaps as release risk or QA blockers
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1509,16 +1473,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume special_test_triggers from test-design artifact
+            consumed_for: schedule additional proof tasks when trigger rules or threshold refs apply
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume special_test_triggers from test-design artifact
+            consumed_for: route extra QA, fix, or user-decision loops when a trigger fires
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume special_test_triggers from test-design artifact
+            consumed_for: produce implementation evidence for conditionally triggered cases
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume special_test_triggers from test-design artifact
+            consumed_for: select conditional QA checks from trigger_rule and threshold_ref
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1527,16 +1491,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume review_conclusion from test-design artifact
+            consumed_for: gate planning on closed test-design review and reviewed test-case digest
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume review_conclusion from test-design artifact
+            consumed_for: block delivery kickoff when test-design review remains open or stale
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume review_conclusion from test-design artifact
+            consumed_for: confirm the implementation test basis is reviewed and closed
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume review_conclusion from test-design artifact
+            consumed_for: trust test-design obligations only after review closure and digest validation
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1545,16 +1509,16 @@ artifacts:
         authority: test-design
         consumers:
           - consumer: tech-lead
-            consumed_for: consume issue_ledger from test-design artifact
+            consumed_for: turn remaining test-design issues into plan gaps, owner actions, or blockers
             consume_mode: transform
           - consumer: delivery-owner
-            consumed_for: consume issue_ledger from test-design artifact
+            consumed_for: decide whether unresolved test-design issues block delivery control
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume issue_ledger from test-design artifact
+            consumed_for: avoid implementing issue-affected behavior without recorded disposition
             consume_mode: handoff
           - consumer: qa
-            consumed_for: consume issue_ledger from test-design artifact
+            consumed_for: carry unresolved test-design issues into QA risk treatment
             consume_mode: gate
         required_when: test-design hands executable test contract to downstream roles
         failure_effect: downstream execution can proceed without complete test obligations
@@ -1567,16 +1531,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume planning_mode from tech-lead artifact
+            consumed_for: choose delivery orchestration rules that match the frozen planning mode
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume planning_mode from tech-lead artifact
+            consumed_for: understand whether execution is governed by standard-chain task control
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume planning_mode from tech-lead artifact
+            consumed_for: reject verification evidence produced under an incompatible planning mode
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume planning_mode from tech-lead artifact
+            consumed_for: align QA scheduling with the selected planning mode
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1585,16 +1549,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume plan_version from tech-lead artifact
+            consumed_for: bind delivery-state and task activation to the frozen plan version
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume plan_version from tech-lead artifact
+            consumed_for: record which plan version implementation evidence follows
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume plan_version from tech-lead artifact
+            consumed_for: detect stale developer evidence or verify results from an old plan
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume plan_version from tech-lead artifact
+            consumed_for: bind QA results to the current plan baseline
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1603,52 +1567,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume baseline_tasks_version_ref from tech-lead artifact
+            consumed_for: switch delivery control to the intended immutable task registry
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume baseline_tasks_version_ref from tech-lead artifact
+            consumed_for: cite the task registry baseline that implementation evidence must satisfy
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume baseline_tasks_version_ref from tech-lead artifact
+            consumed_for: compare developer active task refs against the frozen baseline
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume baseline_tasks_version_ref from tech-lead artifact
-            consume_mode: gate
-        required_when: tech-lead freezes execution plan for runtime execution
-        failure_effect: downstream roles can execute against an incomplete or stale plan
-      scope_freeze:
-        producer: tech-lead
-        authority: tech-lead
-        consumers:
-          - consumer: delivery-owner
-            consumed_for: consume scope_freeze from tech-lead artifact
-            consume_mode: gate
-          - consumer: developer
-            consumed_for: consume scope_freeze from tech-lead artifact
-            consume_mode: handoff
-          - consumer: verify
-            consumed_for: consume scope_freeze from tech-lead artifact
-            consume_mode: gate
-          - consumer: qa
-            consumed_for: consume scope_freeze from tech-lead artifact
-            consume_mode: gate
-        required_when: tech-lead freezes execution plan for runtime execution
-        failure_effect: downstream roles can execute against an incomplete or stale plan
-      task_list:
-        producer: tech-lead
-        authority: tech-lead
-        consumers:
-          - consumer: delivery-owner
-            consumed_for: consume task_list from tech-lead artifact
-            consume_mode: gate
-          - consumer: developer
-            consumed_for: consume task_list from tech-lead artifact
-            consume_mode: handoff
-          - consumer: verify
-            consumed_for: consume task_list from tech-lead artifact
-            consume_mode: gate
-          - consumer: qa
-            consumed_for: consume task_list from tech-lead artifact
+            consumed_for: ensure QA consumes evidence from the active task baseline
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1657,16 +1585,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume goal_source_refs from tech-lead artifact
+            consumed_for: audit that delivery tasks still trace to confirmed product goals
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume goal_source_refs from tech-lead artifact
+            consumed_for: keep implementation evidence tied to the source goals
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume goal_source_refs from tech-lead artifact
+            consumed_for: verify goal closure against the same source refs used for planning
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume goal_source_refs from tech-lead artifact
+            consumed_for: compare QA goal closure with the planned goal refs
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1675,16 +1603,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume constraint_source_refs from tech-lead artifact
+            consumed_for: audit that delivery control preserves design and product constraints
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume constraint_source_refs from tech-lead artifact
+            consumed_for: implement within the constraints that shaped the plan
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume constraint_source_refs from tech-lead artifact
+            consumed_for: reject evidence that violates referenced constraints
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume constraint_source_refs from tech-lead artifact
+            consumed_for: include referenced constraints in release-risk checks
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1693,16 +1621,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume obligation_source_refs from tech-lead artifact
+            consumed_for: audit that delivery covers each required test and QA obligation
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume obligation_source_refs from tech-lead artifact
+            consumed_for: produce evidence for the obligations assigned to implementation
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume obligation_source_refs from tech-lead artifact
+            consumed_for: validate implementation proof against required obligation refs
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume obligation_source_refs from tech-lead artifact
+            consumed_for: select QA checks from the obligations retained by planning
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1711,16 +1639,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume execution_basis_refs from tech-lead artifact
+            consumed_for: verify execution is based on reviewed design and test-design artifacts
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume execution_basis_refs from tech-lead artifact
+            consumed_for: locate the canonical artifacts that define implementation work
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume execution_basis_refs from tech-lead artifact
+            consumed_for: compare proof evidence against the artifacts used to create the plan
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume execution_basis_refs from tech-lead artifact
+            consumed_for: ensure QA consumes the same reviewed basis as implementation
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1729,16 +1657,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume planning_readiness from tech-lead artifact
+            consumed_for: block intake when readiness is not READY or blocking gaps remain
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume planning_readiness from tech-lead artifact
+            consumed_for: avoid starting implementation before planning blockers are closed
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume planning_readiness from tech-lead artifact
+            consumed_for: reject verification before the plan is ready for execution
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume planning_readiness from tech-lead artifact
+            consumed_for: avoid QA scheduling from a blocked or undecided plan
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1747,16 +1675,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume implementation_path from tech-lead artifact
+            consumed_for: orchestrate work packages, critical path, tasks[].batch ordering, and risk signals
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume implementation_path from tech-lead artifact
+            consumed_for: follow work package ownership, critical path, and tasks[].batch boundaries
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume implementation_path from tech-lead artifact
+            consumed_for: verify evidence in the order and tasks[].batch structure required by the plan
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume implementation_path from tech-lead artifact
+            consumed_for: schedule QA after critical-path and tasks[].batch evidence is available
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1765,16 +1693,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume goal_fidelity_review from tech-lead artifact
+            consumed_for: gate delivery on explicit coverage of product goals by tasks
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume goal_fidelity_review from tech-lead artifact
+            consumed_for: understand which task evidence proves each goal ref
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume goal_fidelity_review from tech-lead artifact
+            consumed_for: compare verify goal_closure rows against planned goal coverage
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume goal_fidelity_review from tech-lead artifact
+            consumed_for: validate QA closure against planned goal coverage
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1783,16 +1711,16 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume user_confirmation from tech-lead artifact
+            consumed_for: require explicit user confirmation before delivery activates the plan
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume user_confirmation from tech-lead artifact
+            consumed_for: avoid implementation before the user-confirmed plan baseline exists
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume user_confirmation from tech-lead artifact
+            consumed_for: reject verification against an unconfirmed planning baseline
             consume_mode: gate
           - consumer: qa
-            consumed_for: consume user_confirmation from tech-lead artifact
+            consumed_for: avoid QA execution from an unconfirmed plan
             consume_mode: gate
         required_when: tech-lead freezes execution plan for runtime execution
         failure_effect: downstream roles can execute against an incomplete or stale plan
@@ -1805,13 +1733,13 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume plan_version from tech-lead artifact
+            consumed_for: activate the task registry version that matches plan.json
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume plan_version from tech-lead artifact
+            consumed_for: record the task registry version used for implementation evidence
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume plan_version from tech-lead artifact
+            consumed_for: reject verify results from stale task registry versions
             consume_mode: gate
         required_when: tech-lead freezes task registry for runtime execution
         failure_effect: task execution and verification can drift from the active registry
@@ -1820,13 +1748,13 @@ artifacts:
         authority: tech-lead
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume tasks from tech-lead artifact
+            consumed_for: drive delivery-state task status and batch routing from immutable task definitions
             consume_mode: gate
           - consumer: developer
-            consumed_for: consume tasks from tech-lead artifact
+            consumed_for: implement assigned task ids with declared refs, dependencies, commands, and mock boundaries
             consume_mode: handoff
           - consumer: verify
-            consumed_for: consume tasks from tech-lead artifact
+            consumed_for: validate developer reports and verify results against declared task contracts
             consume_mode: gate
         required_when: tech-lead freezes task registry for runtime execution
         failure_effect: task execution and verification can drift from the active registry
@@ -1839,10 +1767,10 @@ artifacts:
         authority: consistency-auditor
         consumers:
           - consumer: tech-lead
-            consumed_for: consume decision_authority from consistency-auditor artifact
+            consumed_for: treat audit findings as advisory inputs rather than direct implementation authority
             consume_mode: reference
           - consumer: delivery-owner
-            consumed_for: consume decision_authority from consistency-auditor artifact
+            consumed_for: prevent advisory audit output from bypassing owner-controlled delivery decisions
             consume_mode: gate
         required_when: consistency-auditor reports advisory findings for owner routing
         failure_effect: owner action can be skipped or treated as authoritative implementation work
@@ -1851,10 +1779,10 @@ artifacts:
         authority: consistency-auditor
         consumers:
           - consumer: tech-lead
-            consumed_for: consume consumer from consistency-auditor artifact
+            consumed_for: route advisory findings to the intended downstream consumer context
             consume_mode: reference
           - consumer: delivery-owner
-            consumed_for: consume consumer from consistency-auditor artifact
+            consumed_for: verify the audit result targets this delivery control path before acting on it
             consume_mode: gate
         required_when: consistency-auditor reports advisory findings for owner routing
         failure_effect: owner action can be skipped or treated as authoritative implementation work
@@ -1863,10 +1791,10 @@ artifacts:
         authority: consistency-auditor
         consumers:
           - consumer: tech-lead
-            consumed_for: consume blocked_layers from consistency-auditor artifact
+            consumed_for: identify planning or task layers that must be corrected before execution proceeds
             consume_mode: reference
           - consumer: delivery-owner
-            consumed_for: consume blocked_layers from consistency-auditor artifact
+            consumed_for: block delivery routing when audited layers remain unresolved
             consume_mode: gate
         required_when: consistency-auditor reports advisory findings for owner routing
         failure_effect: owner action can be skipped or treated as authoritative implementation work
@@ -1875,10 +1803,10 @@ artifacts:
         authority: consistency-auditor
         consumers:
           - consumer: tech-lead
-            consumed_for: consume skipped_layers from consistency-auditor artifact
+            consumed_for: understand which layers were not audited before relying on audit coverage
             consume_mode: reference
           - consumer: delivery-owner
-            consumed_for: consume skipped_layers from consistency-auditor artifact
+            consumed_for: prevent skipped audit layers from being treated as verified
             consume_mode: gate
         required_when: consistency-auditor reports advisory findings for owner routing
         failure_effect: owner action can be skipped or treated as authoritative implementation work
@@ -1887,10 +1815,10 @@ artifacts:
         authority: consistency-auditor
         consumers:
           - consumer: tech-lead
-            consumed_for: consume tool_warning from consistency-auditor artifact
+            consumed_for: account for audit tool limitations while interpreting advisory findings
             consume_mode: reference
           - consumer: delivery-owner
-            consumed_for: consume tool_warning from consistency-auditor artifact
+            consumed_for: decide whether audit tool limitations require owner review before delivery advances
             consume_mode: gate
         required_when: consistency-auditor reports advisory findings for owner routing
         failure_effect: owner action can be skipped or treated as authoritative implementation work
@@ -1899,10 +1827,10 @@ artifacts:
         authority: consistency-auditor
         consumers:
           - consumer: tech-lead
-            consumed_for: consume findings from consistency-auditor artifact
+            consumed_for: convert audit findings into plan corrections, task changes, or owner questions
             consume_mode: reference
           - consumer: delivery-owner
-            consumed_for: consume findings from consistency-auditor artifact
+            consumed_for: route unresolved audit findings to fix, replan, blocker, or closeout decisions
             consume_mode: gate
         required_when: consistency-auditor reports advisory findings for owner routing
         failure_effect: owner action can be skipped or treated as authoritative implementation work
@@ -1911,10 +1839,10 @@ artifacts:
         authority: consistency-auditor
         consumers:
           - consumer: tech-lead
-            consumed_for: consume required_owner_action from consistency-auditor artifact
+            consumed_for: identify the owner action needed before technical planning can proceed
             consume_mode: reference
           - consumer: delivery-owner
-            consumed_for: consume required_owner_action from consistency-auditor artifact
+            consumed_for: record and verify owner-action consumption before clearing the audit gate
             consume_mode: gate
         required_when: consistency-auditor reports advisory findings for owner routing
         failure_effect: owner action can be skipped or treated as authoritative implementation work
@@ -1927,7 +1855,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume baseline_tasks_version_ref from user-decision-writer artifact
+            consumed_for: ensure the imported user decision applies to the expected task baseline
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -1936,7 +1864,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume active_tasks_version_ref from user-decision-writer artifact
+            consumed_for: reject user decisions bound to a stale active task registry
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -1945,7 +1873,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume current_stage from user-decision-writer artifact
+            consumed_for: apply the user decision only at the delivery stage that requested it
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -1954,7 +1882,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume decision from user-decision-writer artifact
+            consumed_for: choose the next delivery transition from the user's explicit approve, reject, request-change, or accept-risk decision
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -1963,7 +1891,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume decision_source from user-decision-writer artifact
+            consumed_for: distinguish direct user authority from imported or scripted decision records
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -1972,7 +1900,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume actor_id from user-decision-writer artifact
+            consumed_for: prove the decision came from an accountable actor
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -1981,7 +1909,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume sign_off_status from user-decision-writer artifact
+            consumed_for: update signoff state without inferring approval from release recommendation alone
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -1990,7 +1918,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume business_risk_acceptance_status from user-decision-writer artifact
+            consumed_for: require explicit risk acceptance status before proceeding with conditional release
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -1999,7 +1927,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume authority_proof_refs from user-decision-writer artifact
+            consumed_for: validate authority proof before applying user-controlled delivery changes
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -2008,7 +1936,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume decision_basis_refs from user-decision-writer artifact
+            consumed_for: bind the user decision to the artifacts and evidence shown for signoff
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -2017,7 +1945,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume director_lock_digests from user-decision-writer artifact
+            consumed_for: ensure user decision was made against the current Director-locked baseline
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -2026,7 +1954,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume decision_payload_digest from user-decision-writer artifact
+            consumed_for: detect tampering or drift in the imported user decision payload
             consume_mode: gate
         required_when: user decision is imported before closeout or rebaseline routing continues
         failure_effect: delivery-owner can apply an unauthorised or stale user decision
@@ -2111,7 +2039,7 @@ artifacts:
         authority: delivery-owner
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume baseline_tasks_version_ref from delivery-owner artifact
+            consumed_for: record which baseline is invalidated by the target change
             consume_mode: gate
         required_when: target change is recorded after baseline or runtime evidence exists
         failure_effect: target change can be applied without current task baseline or user authority proof
@@ -2120,7 +2048,7 @@ artifacts:
         authority: delivery-owner
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume active_tasks_version_ref from delivery-owner artifact
+            consumed_for: invalidate or rebaseline the active task registry affected by the target change
             consume_mode: gate
         required_when: target change is recorded after baseline or runtime evidence exists
         failure_effect: target change can be applied without current task baseline or user authority proof
@@ -2129,7 +2057,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume authority_proof_refs from delivery-owner artifact
+            consumed_for: prove user authority exists before accepting scope, AC, goal, task, or design changes
             consume_mode: gate
         required_when: target change is recorded after baseline or runtime evidence exists
         failure_effect: target change can be applied without current task baseline or user authority proof
@@ -2138,7 +2066,7 @@ artifacts:
         authority: user
         consumers:
           - consumer: delivery-owner
-            consumed_for: consume decision_basis_refs from delivery-owner artifact
+            consumed_for: trace the target change to the decision evidence that justified rebaseline
             consume_mode: gate
         required_when: target change is recorded after baseline or runtime evidence exists
         failure_effect: target change can be applied without current task baseline or user authority proof
@@ -2270,15 +2198,6 @@ artifacts:
             consume_mode: gate
         required_when: delivery-state records the next control action
         failure_effect: delivery can request an action inconsistent with state
-      summary_text:
-        producer: delivery-owner
-        authority: delivery-owner
-        consumers:
-          - consumer: consistency-auditor
-            consumed_for: compare human summary against canonical status fields
-            consume_mode: reference
-        required_when: delivery-state includes a summary
-        failure_effect: summary can mislead handoff without contradicting machine fields
       tasks:
         producer: delivery-owner
         authority: delivery-owner
@@ -2515,15 +2434,6 @@ artifacts:
             consume_mode: reference
         required_when: signoff package is generated
         failure_effect: stale observations can be presented as current
-      runtime_snapshot:
-        producer: delivery-owner
-        authority: delivery-owner
-        consumers:
-          - consumer: user
-            consumed_for: summarize runtime evidence for decision
-            consume_mode: handoff
-        required_when: user decision needs delivery evidence
-        failure_effect: user cannot inspect runtime basis
       active_blocker:
         producer: delivery-owner
         authority: delivery-owner

@@ -11,10 +11,8 @@
     "$.test_analysis",
     "$.traceability_matrix",
     "$.ac_coverage_matrix",
-    "$.equivalence_matrix",
     "$.test_cases",
     "$.qa_handoff_contract",
-    "$.unit_coverage_view",
     "$.design_gap_report",
     "$.cross_unit_obligations",
     "$.special_test_triggers",
@@ -22,22 +20,6 @@
     "$.issue_ledger"
   ],
   "test_analysis": {
-    "objectives": [
-      "Prove the login-homepage pilot has executable product, design, QA handoff, and observability coverage before downstream closure."
-    ],
-    "in_scope": [
-      "anonymous redirect",
-      "login form",
-      "valid and invalid credentials",
-      "homepage session",
-      "logout invalidation",
-      "access-log observability"
-    ],
-    "out_of_scope": [
-      "persistent identity storage",
-      "browser visual polish",
-      "production deployment"
-    ],
     "risk_model": [
       {
         "risk_ref": "design.json#risks[0].risk_id",
@@ -84,12 +66,6 @@
         ],
         "expected_checkpoint": "valid login, homepage rendering, and logout invalidation close the user journey"
       }
-    ],
-    "environment_assumptions": [
-      "tests run from repository root with Python standard-library HTTP support"
-    ],
-    "data_assumptions": [
-      "LOGIN_HOMEPAGE_USERNAME and LOGIN_HOMEPAGE_PASSWORD are supplied by the test harness"
     ]
   },
   "traceability_matrix": [
@@ -133,15 +109,6 @@
   "ac_coverage_matrix": [
     {
       "ac_id": "AC-T1-1",
-      "covers": [
-        "T1",
-        "anonymous redirect",
-        "login form",
-        "invalid login",
-        "TC-T1-1",
-        "TC-T1-NEG",
-        "TC-T1-BND"
-      ],
       "positive_case_refs": [
         "TC-T1-1"
       ],
@@ -154,15 +121,6 @@
     },
     {
       "ac_id": "AC-T2-1",
-      "covers": [
-        "T2",
-        "valid login",
-        "homepage",
-        "logout invalidation",
-        "TC-T2-1",
-        "TC-T2-NEG",
-        "TC-T2-BND"
-      ],
       "positive_case_refs": [
         "TC-T2-1"
       ],
@@ -175,13 +133,6 @@
     },
     {
       "ac_id": "AC-OBS-1",
-      "covers": [
-        "review-finding-observability",
-        "invalid login access log",
-        "TC-OBS-1",
-        "TC-OBS-NEG",
-        "TC-OBS-BND"
-      ],
       "positive_case_refs": [
         "TC-OBS-1"
       ],
@@ -191,23 +142,6 @@
       "boundary_case_refs": [
         "TC-OBS-BND"
       ]
-    }
-  ],
-  "equivalence_matrix": [
-    {
-      "class": "anonymous-user-without-session"
-    },
-    {
-      "class": "configured-user-valid-credential"
-    },
-    {
-      "class": "configured-user-invalid-credential"
-    },
-    {
-      "class": "stale-session-cookie-after-logout"
-    },
-    {
-      "class": "invalid-login-observability"
     }
   ],
   "test_cases": [
@@ -576,17 +510,6 @@
       ]
     }
   ],
-  "unit_coverage_view": [
-    {
-      "unit_id": "UNIT-1",
-      "ac_ids": [
-        "AC-T1-1",
-        "AC-T2-1",
-        "AC-OBS-1"
-      ],
-      "coverage_status": "COVERED"
-    }
-  ],
   "design_gap_report": {
     "status": "NO_GAPS",
     "gaps": []
@@ -594,7 +517,6 @@
   "cross_unit_obligations": [
     {
       "journey_id": "J-LOGIN-HOMEPAGE",
-      "journey_title": "login homepage validation journey",
       "participant_unit_refs": [
         "UNIT-1.json#unit_id"
       ],
@@ -722,7 +644,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:dd85da5e259b00d420e74f5c3baedad9c205bde5d4eb2d5136f36ae7ded7d5a2",
+        "reviewed_test_cases_digest": "sha256:f390b770802613ed0759b0b7b3aa749d3ac1722cfea137248d4e32b078520a36",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -732,7 +654,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:dd85da5e259b00d420e74f5c3baedad9c205bde5d4eb2d5136f36ae7ded7d5a2",
+        "reviewed_test_cases_digest": "sha256:f390b770802613ed0759b0b7b3aa749d3ac1722cfea137248d4e32b078520a36",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -742,7 +664,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:dd85da5e259b00d420e74f5c3baedad9c205bde5d4eb2d5136f36ae7ded7d5a2",
+        "reviewed_test_cases_digest": "sha256:f390b770802613ed0759b0b7b3aa749d3ac1722cfea137248d4e32b078520a36",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -768,7 +690,7 @@
         ]
       }
     ],
-    "reviewed_test_cases_digest": "sha256:dd85da5e259b00d420e74f5c3baedad9c205bde5d4eb2d5136f36ae7ded7d5a2",
+      "reviewed_test_cases_digest": "sha256:f390b770802613ed0759b0b7b3aa749d3ac1722cfea137248d4e32b078520a36",
     "closure_status": "CLOSED"
   },
   "issue_ledger": []

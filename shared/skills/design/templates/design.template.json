@@ -37,14 +37,11 @@
   "key_decisions": [
     {
       "decision_id": "D-001",
-      "summary": "<final architecture decision>",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-001",
       "fact_refs": [
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "<decision confirmation or final confirmation summary>"
+      ]
     }
   ],
   "option_analysis": [
@@ -153,7 +150,6 @@
     }
   ],
   "data_architecture": {
-    "summary": "<data model, storage, ownership, and flow summary>",
     "storage_decisions": [
       "<storage decision or explicit no data change>"
     ],
@@ -199,8 +195,6 @@
   "verification_mapping": [
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "<technical validation required by the design>",
-      "test_obligation": "<test-design or QA obligation>",
       "evidence_ref": "VP-001"
     }
   ],
@@ -277,8 +271,7 @@
     "confirmed_at": "1970-01-01T00:00:00Z",
     "source_refs": [],
     "inherited_constraints": [],
-    "rejected_constraints": [],
-    "confirmation_summary": "<what the user confirmed before inheritance>"
+    "rejected_constraints": []
   },
   "review_closure": {
     "reviewed_design_digest": "sha256:63829b7d9a51c4b8bd947d10aefcad52fa9149369692e4a921e3f467e69c5258",
@@ -310,7 +303,6 @@
     "status": "requires_confirmation",
     "confirmed_by": "user",
     "confirmed_at": "1970-01-01T00:00:00Z",
-    "summary": "<final confirmation summary>",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

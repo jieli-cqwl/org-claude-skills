@@ -51,6 +51,8 @@ schema = json.loads(
 task_schema = schema["allOf"][1]["properties"]["tasks"]["items"]
 required = set(task_schema["required"])
 properties = task_schema["properties"]
+require("task_title" not in required, "tasks.schema.json must not require display-only task_title")
+require("task_title" not in properties, "tasks.schema.json must not define display-only task_title")
 require("file_range" not in required, "tasks.schema.json must not require file_range")
 require("file_range" not in properties, "tasks.schema.json must not define file_range property")
 for prose_field in ("real_dependency_note", "mock_boundary_note"):
@@ -89,9 +91,43 @@ require(
 plan_schema = json.loads(
     (root / "shared/skills/tech-lead/contracts/plan.schema.json").read_text(encoding="utf-8")
 )
+plan_properties = plan_schema["allOf"][1]["properties"]
+plan_required = set(plan_schema["allOf"][1]["required"])
+for derived_field in ("scope_freeze", "task_list"):
+    require(
+        derived_field not in plan_required,
+        f"plan.schema.json must not require derived field {derived_field}",
+    )
+    require(
+        derived_field not in plan_properties,
+        f"plan.schema.json must not define derived field {derived_field}",
+    )
+planning_readiness = plan_schema["allOf"][1]["properties"]["planning_readiness"]
+planning_required = set(planning_readiness["required"])
+planning_properties = planning_readiness["properties"]
+require(
+    "summary" not in planning_required,
+    "plan.planning_readiness must not require prose summary",
+)
+require(
+    "summary" not in planning_properties,
+    "plan.planning_readiness must not define prose summary",
+)
+require(
+    planning_readiness.get("additionalProperties") is False,
+    "plan.planning_readiness must reject undeclared prose fields",
+)
 implementation_path = plan_schema["allOf"][1]["properties"]["implementation_path"]
 implementation_required = set(implementation_path["required"])
 implementation_properties = implementation_path["properties"]
+require(
+    "parallel_batches" not in implementation_required,
+    "plan.implementation_path must not require derived parallel_batches",
+)
+require(
+    "parallel_batches" not in implementation_properties,
+    "plan.implementation_path must not define derived parallel_batches",
+)
 for prose_field in ("summary", "dependency_strategy"):
     require(
         prose_field not in implementation_required,
@@ -101,18 +137,22 @@ for prose_field in ("summary", "dependency_strategy"):
         prose_field not in implementation_properties,
         f"plan.implementation_path must not define prose field {prose_field}",
     )
-parallel_batch_schema = implementation_properties["parallel_batches"]["items"]
 require(
-    "reason" not in set(parallel_batch_schema.get("required", [])),
-    "plan.implementation_path.parallel_batches must not require prose reason",
+    implementation_path.get("additionalProperties") is False,
+    "plan.implementation_path must reject undeclared derived fields",
+)
+wbs_schema = implementation_properties["wbs"]["items"]
+require(
+    "title" not in wbs_schema.get("required", []),
+    "plan.implementation_path.wbs must not require title prose",
 )
 require(
-    "reason" not in parallel_batch_schema.get("properties", {}),
-    "plan.implementation_path.parallel_batches must not define prose reason",
+    "title" not in wbs_schema.get("properties", {}),
+    "plan.implementation_path.wbs must not define title prose",
 )
 require(
-    parallel_batch_schema.get("additionalProperties") is False,
-    "plan.implementation_path.parallel_batches must reject undeclared prose fields",
+    wbs_schema.get("additionalProperties") is False,
+    "plan.implementation_path.wbs must reject undeclared display fields",
 )
 risk_signal_schema = implementation_properties["investment_risk_signals"]["items"]
 risk_signal_required = set(risk_signal_schema.get("required", []))
@@ -134,14 +174,147 @@ require(
     "plan.implementation_path.investment_risk_signals must reject undeclared prose fields",
 )
 
+plan_template = json.loads(
+    (root / "shared/skills/tech-lead/templates/plan.template.json").read_text(encoding="utf-8")
+)
+for derived_field in ("scope_freeze", "task_list"):
+    require(
+        derived_field not in plan_template,
+        f"plan.template.json must not include derived field {derived_field}",
+    )
+require(
+    "parallel_batches" not in plan_template.get("implementation_path", {}),
+    "plan.template.json implementation_path must not include derived parallel_batches",
+)
+require(
+    "summary" not in plan_template.get("planning_readiness", {}),
+    "plan.template.json planning_readiness must not include prose summary",
+)
+for index, row in enumerate(plan_template.get("implementation_path", {}).get("wbs", [])):
+    require(
+        "title" not in row,
+        f"plan.template.json implementation_path.wbs[{index}] must not include title",
+    )
+for source_root in (
+    root / "tests/fixtures/standard-chain-foundation",
+    root / "tests/fixtures/standard-chain-pilots",
+):
+    for path in sorted(source_root.rglob("plan*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for derived_field in ("scope_freeze", "task_list"):
+            require(
+                derived_field not in payload,
+                f"{path.relative_to(root)} must not include derived field {derived_field}",
+            )
+            require(
+                f"$.{derived_field}" not in payload.get("authoritative_fields", []),
+                f"{path.relative_to(root)} authoritative_fields must not include {derived_field}",
+            )
+        require(
+            "parallel_batches" not in payload.get("implementation_path", {}),
+            f"{path.relative_to(root)} implementation_path must not include derived parallel_batches",
+        )
+        for index, row in enumerate(payload.get("implementation_path", {}).get("wbs", [])):
+            require(
+                "title" not in row,
+                f"{path.relative_to(root)} implementation_path.wbs[{index}] must not include title",
+            )
+        readiness = payload.get("planning_readiness")
+        if isinstance(readiness, dict):
+            require(
+                "summary" not in readiness,
+                f"{path.relative_to(root)} planning_readiness must not include prose summary",
+            )
+projection_text = (root / "shared/skills/tech-lead/projections/plan-template.md").read_text(
+    encoding="utf-8"
+)
+require(
+    "summary:" not in projection_text,
+    "plan-template projection must not document planning_readiness summary",
+)
+require(
+    "title:" not in projection_text,
+    "plan-template projection must not document WBS title",
+)
+for derived_token in ("scope_freeze", "task_list", "parallel_batches"):
+    require(
+        derived_token not in projection_text,
+        f"plan-template projection must not document derived {derived_token}",
+    )
+tasks_template = json.loads(
+    (root / "shared/skills/tech-lead/templates/tasks.template.json").read_text(encoding="utf-8")
+)
+for index, row in enumerate(tasks_template.get("tasks", [])):
+    require("task_title" not in row, f"tasks.template.json tasks[{index}] must not include task_title")
+for source_root in (
+    root / "tests/fixtures/standard-chain-foundation",
+    root / "tests/fixtures/standard-chain-pilots",
+):
+    for path in sorted(source_root.rglob("tasks*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for index, row in enumerate(payload.get("tasks", [])):
+            require(
+                "task_title" not in row,
+                f"{path.relative_to(root)} tasks[{index}] must not include task_title",
+            )
+validator_text = (root / "tools/community/validate_canonical_rules.py").read_text(
+    encoding="utf-8"
+)
+require(
+    '"task_title"' not in validator_text,
+    "canonical validator allowed task fields must not include task_title",
+)
+builder_text = (
+    root / "tools/eval/scripts/validate_stage2_tech_lead_materials_builder.py"
+).read_text(encoding="utf-8")
+require(
+    '"summary":' not in builder_text,
+    "Stage 2 tech-lead builder must not generate planning_readiness summary",
+)
+require(
+    '"title":' not in builder_text,
+    "Stage 2 tech-lead builder must not generate WBS title",
+)
+
 
 field_contract = load_yaml(root / "contracts" / "standard-chain-field-consumption.yaml")
 fields_by_path = {
     artifact["path"]: artifact.get("fields", {})
     for artifact in field_contract.get("artifacts", [])
 }
+plan_consumption_fields = fields_by_path.get("docs/{feature}/phase-{N}/plan.json", {})
+for derived_field in ("scope_freeze", "task_list"):
+    require(
+        derived_field not in plan_consumption_fields,
+        f"field consumption must not declare derived plan field {derived_field}",
+    )
+implementation_consumption_text = json.dumps(
+    plan_consumption_fields.get("implementation_path", {}),
+    ensure_ascii=False,
+    sort_keys=True,
+)
+require(
+    "parallel_batches" not in implementation_consumption_text
+    and "parallel batches" not in implementation_consumption_text,
+    "field consumption must not route removed implementation_path.parallel_batches semantics",
+)
+require(
+    "tasks[].batch" in implementation_consumption_text,
+    "field consumption must route batch semantics through tasks[].batch",
+)
 
 standard_chain = load_yaml(root / "contracts" / "standard-chain.yaml")
+tech_lead = next(role for role in standard_chain["chain"] if role.get("name") == "tech-lead")
+plan_output = next(
+    output
+    for output in tech_lead.get("outputs", [])
+    if output.get("artifact") == "phase-{N}/plan.json"
+)
+for derived_field in ("scope_freeze", "task_list"):
+    require(
+        derived_field not in set(plan_output.get("key_fields", [])),
+        f"standard-chain plan key_fields must not include derived field {derived_field}",
+    )
 delivery_owner = next(
     role for role in standard_chain["chain"] if role.get("name") == "delivery-owner"
 )
@@ -334,11 +507,9 @@ if failures:
     raise SystemExit("\n".join(failures))
 PY
 
-assert_present "scope_item_refs.*范围来源" "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_absent "file_range" "$ROOT/shared/skills/tech-lead/SKILL.md"
 assert_absent "file_range" "$ROOT/shared/skills/developer/SKILL.md"
 assert_absent "file_range" "$ROOT/shared/skills/verify/SKILL.md"
-assert_present "QA ${BT}scope${BT} 只裁剪 QA_A-D 执行阶段" "$ROOT/shared/skills/qa/SKILL.md"
 assert_absent "file_range" "$ROOT/shared/skills/qa/SKILL.md"
 assert_absent "file_range" "$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_absent "file_range" "$ROOT/shared/skills/consistency-audit/references/check-matrix.md"

@@ -16,8 +16,6 @@
     "$.execution_basis_refs",
     "$.planning_mode",
     "$.plan_version",
-    "$.scope_freeze",
-    "$.task_list",
     "$.planning_readiness",
     "$.implementation_path",
     "$.goal_fidelity_review",
@@ -43,12 +41,6 @@
   "evidence_refs": [],
   "planning_mode": "standard-chain",
   "plan_version": "plan-v1",
-  "scope_freeze": [
-    "T1"
-  ],
-  "task_list": [
-    "T1"
-  ],
   "goal_fidelity_review": [
     {
       "goal_ref": "artifact://brief/login-homepage-pilot.brief@v1#goal-001",
@@ -83,7 +75,6 @@
   },
   "planning_readiness": {
     "status": "READY",
-    "summary": "Design confines the pilot to isolated example files and maps every HTTP behavior to tests.",
     "blocking_gaps": [],
     "decision_package": {
       "required": false,
@@ -95,7 +86,6 @@
     "wbs": [
       {
         "work_package_id": "WP-1",
-        "title": "Work package 1",
         "task_refs": [
           "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v1#task-T1"
         ]
@@ -103,15 +93,6 @@
     ],
     "critical_path": [
       "T1"
-    ],
-    "parallel_batches": [
-      {
-        "batch": 1,
-        "task_refs": [
-          "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v1#task-T1"
-        ],
-        "parallelizable": false
-      }
     ],
     "investment_risk_signals": [
       {

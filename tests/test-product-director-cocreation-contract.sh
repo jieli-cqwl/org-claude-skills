@@ -32,7 +32,6 @@ assert_json_ok() {
 }
 
 assert_absent 'Co-creation Mode|Finalization Mode' "$DIRECTOR"
-assert_absent 'HARD-GATE 只阻断|Finalization Gate 不满足|不得只输出' "$DIRECTOR"
 
 python3 - "$DIRECTOR" <<'PY'
 import re
@@ -51,9 +50,6 @@ match = re.search(r"^## HARD-GATE\n\n(?P<body>.*?)(?=^## )", text, re.M | re.S)
 if not match:
     raise SystemExit("missing HARD-GATE section")
 body = match.group("body").strip()
-required = "在你向用户呈现 Director baseline，并收到用户明确回复 `产品总监确认` 之前，不要把它当成已确认基线；用户确认检查点未闭合前，不得冻结基线。"
-if required not in body:
-    raise SystemExit("HARD-GATE missing minimal confirmed-baseline red line")
 for forbidden in [
     "技术债",
     "schema",
@@ -97,15 +93,6 @@ edge_count = flow_body.count("->")
 if edge_count > 10:
     raise SystemExit(f"flow too long: {edge_count} edges")
 
-for required in [
-    "## Checklist",
-    "必须按顺序完成这些事项",
-    "Explore demand context",
-    "Propose 2-3 Director baseline options",
-    "Get user approval section by section",
-]:
-    if required not in text:
-        raise SystemExit(f"missing Checklist contract: {required}")
 PY
 
 assert_json_ok "$EVALS"
@@ -143,8 +130,5 @@ for phrase in [
     if phrase not in pa15:
         raise SystemExit(f"PA-15 missing phrase: {phrase}")
 PY
-
-assert_present '^### 共创体感$' "$GRADER"
-assert_present '输出沿着探索、选项、推荐、确认推进' "$GRADER"
 
 printf '[PASS] product-director co-creation contract\n'

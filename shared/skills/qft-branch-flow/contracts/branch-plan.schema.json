@@ -24,6 +24,7 @@
         "dev-sync",
         "release-merge",
         "bugfix",
+        "bugfix-finish",
         "release-sync-before",
         "release-sync-after"
       ]
@@ -102,26 +103,11 @@
       "additionalProperties": false,
       "properties": {
         "confirmed": {
-          "type": "boolean"
+          "const": false
         },
         "branches": {
           "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "repo",
-              "branch"
-            ],
-            "additionalProperties": false,
-            "properties": {
-              "repo": {
-                "type": "string"
-              },
-              "branch": {
-                "type": "string"
-              }
-            }
-          }
+          "maxItems": 0
         }
       }
     }

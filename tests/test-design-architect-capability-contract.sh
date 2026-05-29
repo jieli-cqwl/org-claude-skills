@@ -39,7 +39,6 @@ if "LLM 主导" not in text and "你负责主导" not in text:
 if missing:
     raise SystemExit(f"missing role boundary terms: {missing}")
 PY
-assert_absent "boundary_behaviors\` 字段|只使用 \`input_params / output_params / error_codes / boundary_behaviors\` 字段" "$SKILL"
 assert_present 'boundary_behaviors' "$SCHEMA"
 assert_present 'boundary_behaviors' "$TEMPLATE"
 

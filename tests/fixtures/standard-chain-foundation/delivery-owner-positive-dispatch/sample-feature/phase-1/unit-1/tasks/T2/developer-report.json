@@ -20,7 +20,6 @@
   ],
   "task_id": "T2",
   "runtime_status": "VERIFIED",
-  "summary_text": "runtime state update dispatch task verified",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",
   "reviewable_anchor": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
   "file_changes": [

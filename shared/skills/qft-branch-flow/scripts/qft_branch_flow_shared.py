@@ -17,6 +17,7 @@ SCENARIOS = {
     "dev-sync",
     "release-merge",
     "bugfix",
+    "bugfix-finish",
     "release-sync-before",
     "release-sync-after",
 }

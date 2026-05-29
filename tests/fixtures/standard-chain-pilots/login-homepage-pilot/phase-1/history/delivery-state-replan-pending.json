@@ -15,6 +15,5 @@
   "current_stage": "REPLAN_PENDING",
   "status": "IN_PROGRESS",
   "control_action": "REPLAN",
-  "summary_text": "initial one-task plan superseded by two-task plan for clearer handoff evidence",
   "tasks": []
 }

@@ -34,9 +34,6 @@
               {
                 "type": "object",
                 "properties": {
-                  "goal_source_ref": {
-                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
-                  },
                   "execution_basis_ref": {
                     "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
                   },
@@ -45,7 +42,6 @@
                   }
                 },
                 "required": [
-                  "goal_source_ref",
                   "execution_basis_ref",
                   "evidence_ref"
                 ]
@@ -62,9 +58,6 @@
         "last_observed_at": {
           "type": "string",
           "format": "date-time"
-        },
-        "runtime_snapshot": {
-          "type": "string"
         },
         "active_blocker": {
           "type": "string"
@@ -156,7 +149,6 @@
         "goal_closure",
         "waiver_entries",
         "last_observed_at",
-        "runtime_snapshot",
         "active_blocker",
         "blocker_owner",
         "decision_basis_refs",
@@ -164,6 +156,11 @@
         "baseline_tasks_version_ref",
         "active_tasks_version_ref"
       ],
+      "not": {
+        "required": [
+          "runtime_snapshot"
+        ]
+      },
       "additionalProperties": true
     }
   ]

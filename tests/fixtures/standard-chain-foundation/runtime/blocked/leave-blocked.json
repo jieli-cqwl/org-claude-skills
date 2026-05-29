@@ -16,7 +16,6 @@
     "current_stage": "BLOCKED",
     "status": "BLOCKED",
     "control_action": "BLOCK",
-    "summary_text": "blocked pending user decision",
     "tasks": [],
     "blocker_id": "BLOCK-001",
     "blocker_owner": "user",

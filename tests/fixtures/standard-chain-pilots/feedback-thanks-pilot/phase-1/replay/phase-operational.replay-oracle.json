@@ -22,8 +22,7 @@
         "environment_ready": true,
         "dependency_ready": true,
         "risk_owner_ready": true,
-        "qa_handoff_ready": true,
-        "blocking_reason": "无"
+        "qa_handoff_ready": true
       },
       "blocker_id": "BLOCK-CLOSED-001",
       "blocked_from_stage": "TASK_EXECUTION",
@@ -222,7 +221,6 @@
       "baseline_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
       "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
       "last_observed_at": "2026-04-22T13:01:18Z",
-      "runtime_snapshot": "All task, review, QA, consistency, readiness, and replay gates include the 9-test feedback-thanks pilot evidence and resolved Content-Length review fix.",
       "decision_basis_refs": [
         "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#release",
         "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#round-1",
@@ -289,8 +287,8 @@
             "artifact://delivery-state/feedback-thanks-pilot.phase-1.delivery-state@active#phase-summary"
           ],
           "json_pointers": [
-            "/summary_text",
             "/current_stage",
+            "/status",
             "/control_action"
           ]
         },
@@ -333,7 +331,7 @@
         }
       },
       "rendered_artifact_ref": "artifact://projection-manifest/feedback-thanks-pilot.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
-      "rendered_content_digest": "sha256:919b7c4ec8e1a0fea1a33c3b5236abff4c5bb1f89875c151c9007de894ec0932"
+      "rendered_content_digest": "sha256:d56186468d88e74ae1627e9b492174ad6766300442e871a3da11d3342d114b2e"
     }
   },
   "proof": {

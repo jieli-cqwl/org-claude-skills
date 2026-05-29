@@ -121,12 +121,10 @@ do
   assert_present 'canonical `design.json`' "$design_prompt"
   assert_absent 'design/MOD-\*|ADR-\*|design\.json\.review_conclusion|\bADR\b|MOD-[0-9]|brief\.md|prd\.md|UNIT-\*\.md|test-cases\.md' "$design_prompt"
 done
-assert_absent 'artifact-registry.json.*只用于理解 AC|存在性、active 状态和引用解析由前置脚本或 gate 判定' "$ROOT/shared/skills/developer/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/review/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present '调度 `/commit`' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'PM handoff gate' "$ROOT/shared/skills/product-manager/SKILL.md"
 assert_present 'validate_product_closure.py' "$ROOT/shared/skills/product-manager/SKILL.md"
 for standard_skill in \
@@ -185,11 +183,6 @@ done
 [ ! -e "$ROOT/shared/agents/claude/designer.md" ] || fail "designer should remain a manual skill, not a delivery-owner dispatch agent"
 [ ! -e "$ROOT/shared/agents/claude/tech-lead.md" ] || fail "tech-lead should remain a manual skill, not a delivery-owner dispatch agent"
 [ ! -e "$ROOT/shared/agents/claude/test-designer.md" ] || fail "test-designer should remain a manual skill, not a delivery-owner dispatch agent"
-assert_present '加载 developer skill' "$ROOT/shared/agents/claude/developer.md"
 [ ! -e "$ROOT/shared/agents/claude/code-reviewer.md" ] || fail "local code-reviewer agent contract should be retired in favor of Superpowers reviewer semantics"
-assert_present '加载 verify skill' "$ROOT/shared/agents/claude/verifier.md"
-assert_present '加载 qa skill' "$ROOT/shared/agents/claude/qa.md"
-assert_present '加载 fix skill' "$ROOT/shared/agents/claude/fixer.md"
-assert_present '加载 consistency-audit skill' "$ROOT/shared/agents/claude/consistency-auditor.md"
 
 echo "[PASS] standard chain cutover"

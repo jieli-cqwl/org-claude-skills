@@ -26,19 +26,12 @@
             "type": "object",
             "required": [
               "decision_id",
-              "summary",
               "decision_state",
-              "verdict",
               "option_ref",
-              "fact_refs",
-              "user_confirmation"
+              "fact_refs"
             ],
             "properties": {
               "decision_id": {
-                "type": "string",
-                "minLength": 1
-              },
-              "summary": {
                 "type": "string",
                 "minLength": 1
               },
@@ -47,10 +40,6 @@
                 "enum": [
                   "已冻结"
                 ]
-              },
-              "verdict": {
-                "type": "string",
-                "minLength": 1
               },
               "option_ref": {
                 "type": "string",
@@ -63,13 +52,9 @@
                   "type": "string",
                   "minLength": 1
                 }
-              },
-              "user_confirmation": {
-                "type": "string",
-                "minLength": 1
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         },
         "option_analysis": {
@@ -473,16 +458,11 @@
           "description": "数据架构：storage_decisions、data_flows、consistency_strategy",
           "type": "object",
           "required": [
-            "summary",
             "storage_decisions",
             "data_flows",
             "consistency_strategy"
           ],
           "properties": {
-            "summary": {
-              "type": "string",
-              "minLength": 1
-            },
             "storage_decisions": {
               "type": "array",
               "minItems": 1,
@@ -549,27 +529,17 @@
           }
         },
         "verification_mapping": {
-          "description": "验证映射；每条 Manager VP 或 exit condition 对应 design_validation、test_obligation 和 evidence_ref",
+          "description": "验证映射；每条 Manager VP 或 exit condition 对应下游可消费的 evidence_ref，测试义务由 test-design 结构化承接",
           "type": "array",
           "minItems": 1,
           "items": {
             "type": "object",
             "required": [
               "manager_vp_ref",
-              "design_validation",
-              "test_obligation",
               "evidence_ref"
             ],
             "properties": {
               "manager_vp_ref": {
-                "type": "string",
-                "minLength": 1
-              },
-              "design_validation": {
-                "type": "string",
-                "minLength": 1
-              },
-              "test_obligation": {
                 "type": "string",
                 "minLength": 1
               },
@@ -578,7 +548,7 @@
                 "minLength": 1
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         },
         "unit_coverage": {
@@ -885,8 +855,7 @@
             "confirmed_at",
             "source_refs",
             "inherited_constraints",
-            "rejected_constraints",
-            "confirmation_summary"
+            "rejected_constraints"
           ],
           "properties": {
             "status": {
@@ -921,10 +890,6 @@
                 "type": "string",
                 "minLength": 1
               }
-            },
-            "confirmation_summary": {
-              "type": "string",
-              "minLength": 1
             }
           },
           "additionalProperties": true
@@ -1019,8 +984,7 @@
                 "type": "object",
                 "required": [
                   "finding_id",
-                  "target",
-                  "summary"
+                  "target"
                 ],
                 "properties": {
                   "finding_id": {
@@ -1028,10 +992,6 @@
                     "minLength": 1
                   },
                   "target": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "summary": {
                     "type": "string",
                     "minLength": 1
                   }
@@ -1049,7 +1009,6 @@
             "status",
             "confirmed_by",
             "confirmed_at",
-            "summary",
             "accepted_refs"
           ],
           "properties": {
@@ -1067,10 +1026,6 @@
             "confirmed_at": {
               "type": "string",
               "format": "date-time",
-              "minLength": 1
-            },
-            "summary": {
-              "type": "string",
               "minLength": 1
             },
             "accepted_refs": {

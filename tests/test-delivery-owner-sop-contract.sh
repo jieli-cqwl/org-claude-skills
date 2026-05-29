@@ -516,7 +516,7 @@ payload = json.load(open(sys.argv[1], encoding="utf-8"))
 assert payload["status"] == "BLOCKED"
 assert payload["decision"] == "PACKET_BLOCKED"
 assert payload["failure_code"] == "PACKET_INPUT_INCOMPLETE"
-for field in ["baseline_artifacts", "test_obligations", "implementation_evidence", "verification_evidence"]:
+for field in ["baseline_artifacts", "qa_handoff_obligations", "implementation_evidence", "verification_evidence"]:
     assert field in payload["fields"]
 PY
 

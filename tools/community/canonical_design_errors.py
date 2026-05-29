@@ -33,8 +33,8 @@ def manager_ref_bad_format(path: str, ref: str, array_fields: list[str]) -> str:
         f"Expected: 'phase-prd.<array_field>[<index>]' "
         f"(e.g. 'phase-prd.exit_conditions[0]'). "
         f"Available array fields in phase-prd.json: {array_fields}. "
-        f"If you need to cite an AC, decision or risk, write it in "
-        f"verification_mapping[*].design_validation instead."
+        f"If you need to cite an AC, decision or risk, use the owning "
+        f"structured field instead of manager_vp_ref."
     )
 
 

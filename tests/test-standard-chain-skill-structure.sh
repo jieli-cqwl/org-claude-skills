@@ -208,7 +208,7 @@ assert_present 'completion_check\.sh' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_absent 'validate_canonical_schema.py' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_absent 'validate_standard_chain_phase.py' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 
-assert_present 'Handoff gate.*preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"|preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON".*Handoff gate' "$MANAGER"
+assert_present 'preflight_check\.sh --brief "\$BRIEF_JSON" --phase-prd "\$PHASE_PRD_JSON"' "$MANAGER"
 assert_absent 'references/conversation-guide\.md' "$MANAGER"
 assert_present 'references/self-check\.md' "$MANAGER"
 assert_absent 'references/pm-quality-guide\.md' "$MANAGER"
@@ -231,7 +231,6 @@ assert_present 'PM handoff gate' "$MANAGER"
 assert_absent 'product-manager/scripts/completion_check\.sh|hook payload' "$MANAGER"
 
 assert_present 'digraph developer_flow' "$DEVELOPER"
-assert_absent 'artifact-registry.json.*只用于理解 AC|存在性、active 状态和引用解析由前置脚本或 gate 判定' "$DEVELOPER"
 assert_present 'shared/skills/developer/templates/developer-report.template.json' "$DEVELOPER"
 
 printf '[PASS] standard-chain skill structure full gate\n'

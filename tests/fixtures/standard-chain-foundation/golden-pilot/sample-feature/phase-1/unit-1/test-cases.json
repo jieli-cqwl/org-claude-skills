@@ -11,10 +11,8 @@
     "$.test_analysis",
     "$.traceability_matrix",
     "$.ac_coverage_matrix",
-    "$.equivalence_matrix",
     "$.test_cases",
     "$.qa_handoff_contract",
-    "$.unit_coverage_view",
     "$.design_gap_report",
     "$.cross_unit_obligations",
     "$.special_test_triggers",
@@ -22,19 +20,6 @@
     "$.issue_ledger"
   ],
   "test_analysis": {
-    "objectives": [
-      "Prove the runtime-control UNIT satisfies product acceptance and design verification obligations before implementation starts."
-    ],
-    "in_scope": [
-      "UNIT-1 acceptance criteria",
-      "canonical schema and registry behavior",
-      "runtime state and readiness gate behavior",
-      "QA handoff obligations"
-    ],
-    "out_of_scope": [
-      "QA execution result",
-      "release sign-off decision"
-    ],
     "risk_model": [
       {
         "risk_ref": "design.json#risks[0].risk_id",
@@ -63,12 +48,6 @@
         ],
         "expected_checkpoint": "canonical runtime contracts validate before downstream handoff"
       }
-    ],
-    "environment_assumptions": [
-      "canonical validators run from the repository root"
-    ],
-    "data_assumptions": [
-      "golden phase fixture contains stable product and design refs"
     ]
   },
   "traceability_matrix": [
@@ -91,11 +70,6 @@
   "ac_coverage_matrix": [
     {
       "ac_id": "AC-T1-1",
-      "covers": [
-        "T1",
-        "foundation contracts",
-        "TC-T1-1"
-      ],
       "positive_case_refs": [
         "TC-T1-1"
       ],
@@ -108,11 +82,6 @@
     },
     {
       "ac_id": "AC-T2-1",
-      "covers": [
-        "T2",
-        "runtime state tooling",
-        "TC-T2-1"
-      ],
       "positive_case_refs": [
         "TC-T2-1"
       ],
@@ -122,14 +91,6 @@
       "boundary_case_refs": [
         "TC-T2-BND"
       ]
-    }
-  ],
-  "equivalence_matrix": [
-    {
-      "class": "valid-foundation-contract"
-    },
-    {
-      "class": "valid-runtime-state-transition"
     }
   ],
   "test_cases": [
@@ -383,16 +344,6 @@
       ]
     }
   ],
-  "unit_coverage_view": [
-    {
-      "unit_id": "UNIT-1",
-      "ac_ids": [
-        "AC-T1-1",
-        "AC-T2-1"
-      ],
-      "coverage_status": "COVERED"
-    }
-  ],
   "design_gap_report": {
     "status": "NO_GAPS",
     "gaps": []
@@ -400,7 +351,6 @@
   "cross_unit_obligations": [
     {
       "journey_id": "J-RUNTIME-CONTROL",
-      "journey_title": "runtime control validation journey",
       "participant_unit_refs": [
         "UNIT-1.json#unit_id"
       ],
@@ -514,7 +464,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:8baad561a884456db2df9f983088f3f32c7da717c738d43228307b2f266d39a1",
+        "reviewed_test_cases_digest": "sha256:b445664df66960e8f97cd8826e3c26568a0f6244067c9a517f801289df017420",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -524,7 +474,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:8baad561a884456db2df9f983088f3f32c7da717c738d43228307b2f266d39a1",
+        "reviewed_test_cases_digest": "sha256:b445664df66960e8f97cd8826e3c26568a0f6244067c9a517f801289df017420",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -534,7 +484,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:8baad561a884456db2df9f983088f3f32c7da717c738d43228307b2f266d39a1",
+        "reviewed_test_cases_digest": "sha256:b445664df66960e8f97cd8826e3c26568a0f6244067c9a517f801289df017420",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -560,7 +510,7 @@
         ]
       }
     ],
-    "reviewed_test_cases_digest": "sha256:8baad561a884456db2df9f983088f3f32c7da717c738d43228307b2f266d39a1",
+      "reviewed_test_cases_digest": "sha256:b445664df66960e8f97cd8826e3c26568a0f6244067c9a517f801289df017420",
     "closure_status": "CLOSED"
   },
   "issue_ledger": []

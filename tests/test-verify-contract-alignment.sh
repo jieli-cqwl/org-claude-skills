@@ -50,7 +50,6 @@ with_fixture() {
 
 assert_skill_flow_is_real_verifier_sop() {
   assert_present 'digraph verify_flow' "$SKILL"
-  assert_present '`PHASE_DIR` 和 `TASK_ID` 优先来自用户或派发输入' "$SKILL"
   assert_present '\$PHASE_DIR/artifact-registry\.json' "$SKILL"
   assert_present 'shared/skills/verify/scripts/preflight_check\.sh --phase-dir "\$PHASE_DIR" --task-id "\$TASK_ID"' "$SKILL"
   assert_present 'shared/skills/verify/templates/verify-result\.template\.json' "$SKILL"
@@ -124,23 +123,32 @@ assert_preflight_blocks_missing_test_refs() {
   rm -rf "$(dirname "$workspace")" "$output"
 }
 
-assert_preflight_accepts_test_obligations_schema() {
-  local tmp_root phase_dir output
-  tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/verify-preflight-obligations.XXXXXX")"
-  output="$(mktemp "${TMPDIR:-/tmp}/verify-preflight-obligations.out.XXXXXX")"
-  phase_dir="$tmp_root/phase-1"
-  cp -R "$ROOT/docs/feature--quanfangtong-homepage-entry-center/phase-1" "$phase_dir"
-  jq '.active_revision_id as $active | (.revisions[] | select(.revision_id == $active) | .entries[] | select(.artifact_type == "developer-report")) |= (.lifecycle_state = "FINALIZED" | .active_for_consumption = true | .version = "v1")' "$phase_dir/artifact-registry.json" >"$phase_dir/artifact-registry.tmp.json"
-  mv "$phase_dir/artifact-registry.tmp.json" "$phase_dir/artifact-registry.json"
-  jq '.runtime_status = "BLOCKED" | .blocked_reason = "synthetic blocked developer-report probe" | .missing_inputs = ["synthetic input"] | .failure_contract = {"status":"BLOCKED","failure_code":"MISSING_INPUT","reason":"synthetic blocked developer-report probe","owner":"developer","safe_to_continue":false,"next_action":"return to developer","evidence_refs":["synthetic-probe"],"user_message":"synthetic blocked developer-report probe"}' "$phase_dir/unit-1/tasks/T1/developer-report.json" >"$phase_dir/unit-1/tasks/T1/developer-report.tmp.json"
-  mv "$phase_dir/unit-1/tasks/T1/developer-report.tmp.json" "$phase_dir/unit-1/tasks/T1/developer-report.json"
+assert_preflight_blocks_legacy_test_obligations_anchor() {
+  local workspace phase_dir output
+  workspace="$(with_fixture)"
+  output="$(mktemp "${TMPDIR:-/tmp}/verify-preflight-legacy-obligations.XXXXXX")"
+  phase_dir="$workspace/phase-1"
+  jq '(.tasks[] | select(.task_id == "T1") | .test_refs) = [
+      "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#LEGACY-OBLIGATION"
+    ]' "$phase_dir/tasks.json" >"$phase_dir/tasks.tmp.json"
+  mv "$phase_dir/tasks.tmp.json" "$phase_dir/tasks.json"
+  jq '.test_obligations = [{
+      "obligation_id": "LEGACY-OBLIGATION",
+      "source_ac_ref": "AC-T1-1",
+      "expected_result": "legacy obligation must not be consumed",
+      "evidence_expectation": "legacy evidence",
+      "evidence_method": "legacy method",
+      "evidence_refs": ["legacy-ref"]
+    }]' "$phase_dir/unit-1/test-cases.json" >"$phase_dir/unit-1/test-cases.tmp.json"
+  mv "$phase_dir/unit-1/test-cases.tmp.json" "$phase_dir/unit-1/test-cases.json"
 
   if run_preflight "$phase_dir" T1 "$output"; then
-    fail "verify preflight should keep BLOCKED developer-report status as an input blocker"
+    cat "$output" >&2
+    fail "verify preflight should block legacy test_obligations anchors"
   fi
-  jq -e '.status == "BLOCKED" and .failure_code == "DEVELOPER_REPORT_INVALID" and .owner == "developer" and (.reason | contains("runtime_status is BLOCKED"))' "$output" >/dev/null \
-    || fail "verify preflight should accept test_obligations anchors before routing BLOCKED developer report"
-  rm -rf "$tmp_root" "$output"
+  jq -e '.status == "BLOCKED" and .failure_code == "UNRESOLVED_REF" and (.reason | contains("test_ref anchor not found"))' "$output" >/dev/null \
+    || fail "legacy test_obligations block output is not actionable"
+  rm -rf "$(dirname "$workspace")" "$output"
 }
 
 assert_preflight_blocks_invalid_tdd_evidence() {
@@ -169,7 +177,7 @@ assert_manifest_declares_preflight
 assert_preflight_passes
 assert_preflight_blocks_missing_developer_report
 assert_preflight_blocks_missing_test_refs
-assert_preflight_accepts_test_obligations_schema
+assert_preflight_blocks_legacy_test_obligations_anchor
 assert_preflight_blocks_invalid_tdd_evidence
 
 printf '[PASS] verify contract alignment\n'

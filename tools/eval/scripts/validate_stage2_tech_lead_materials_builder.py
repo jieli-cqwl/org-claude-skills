@@ -90,7 +90,6 @@ def build_tasks_artifact(test_design_package: dict[str, Any]) -> dict[str, Any]:
     envelope = common_envelope("tasks", f"{PHASE_ID}.tasks", "tech-lead", digest)
     task_1 = {
         "task_id": "T1",
-        "task_title": "establish message callback suggestion orchestration",
         "phase_ref": refs["phase_ref"],
         "unit_refs": [refs["unit_ref"]],
         "scope_item_refs": [refs["phase_ref"]],
@@ -117,7 +116,6 @@ def build_tasks_artifact(test_design_package: dict[str, Any]) -> dict[str, Any]:
     }
     task_2 = {
         "task_id": "T2",
-        "task_title": "close traceability idempotency and manual-confirmation proof",
         "phase_ref": refs["phase_ref"],
         "unit_refs": [refs["unit_ref"]],
         "scope_item_refs": [refs["phase_ref"], refs["qa_handoff_ref"]],
@@ -189,8 +187,6 @@ def build_plan_artifact(
             "$.execution_basis_refs",
             "$.planning_mode",
             "$.plan_version",
-            "$.scope_freeze",
-            "$.task_list",
             "$.planning_readiness",
             "$.implementation_path",
             "$.goal_fidelity_review",
@@ -216,11 +212,8 @@ def build_plan_artifact(
         "evidence_refs": [],
         "planning_mode": "standard-chain",
         "plan_version": PLAN_VERSION,
-        "scope_freeze": ["T1", "T2"],
-        "task_list": ["T1", "T2"],
         "planning_readiness": {
             "status": "READY",
-            "summary": "Confirmed product, design, and test-design baselines are sufficient for delivery-owner intake.",
             "blocking_gaps": [],
             "decision_package": {
                 "required": False,
@@ -232,28 +225,14 @@ def build_plan_artifact(
             "wbs": [
                 {
                     "work_package_id": "WP-1",
-                    "title": "Message callback suggestion orchestration",
                     "task_refs": [task_ref_1],
                 },
                 {
                     "work_package_id": "WP-2",
-                    "title": "Observability and delivery proof",
                     "task_refs": [task_ref_2],
                 },
             ],
             "critical_path": ["T1", "T2"],
-            "parallel_batches": [
-                {
-                    "batch": 1,
-                    "task_refs": [task_ref_1],
-                    "parallelizable": False,
-                },
-                {
-                    "batch": 2,
-                    "task_refs": [task_ref_2],
-                    "parallelizable": False,
-                },
-            ],
             "investment_risk_signals": [
                 {
                     "risk_id": "IR-1",
@@ -339,11 +318,22 @@ def build_artifact_registry(
             "$.scope_ref",
             "$.registry_revision",
             "$.active_revision_id",
+            "$.runtime_artifact_policy",
             "$.revisions",
         ],
         "scope_ref": scope_ref,
         "registry_revision": "rev-1",
         "active_revision_id": "rev-1",
+        "runtime_artifact_policy": {
+            "active_uniqueness": "one_active_entry_per_scope_artifact_type",
+            "required_runtime_artifacts": [
+                "developer-report",
+                "verify-result",
+                "code-review-result",
+                "qa-result",
+                "consistency-audit-result",
+            ],
+        },
         "revisions": [
             {
                 "revision_id": "rev-1",

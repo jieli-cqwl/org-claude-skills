@@ -20,7 +20,6 @@
   "tasks": [
     {
       "task_id": "T1",
-      "task_title": "freeze foundation contracts",
       "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
       "unit_refs": [],
       "scope_item_refs": [

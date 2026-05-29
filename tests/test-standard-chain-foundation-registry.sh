@@ -169,7 +169,7 @@ REQUIRED_SCHEMA_FIELDS = {
     "phase-prd": {"director_confirmation"},
     "unit-definition": {"trigger", "core_behavior", "observable_result", "feature_refs", "flow_refs", "risk_refs", "rule_refs", "integration_context", "verification_plan", "design_decision_candidates", "priority", "priority_basis", "dependencies"},
     "design": {"co_creation_summary", "constraint_inheritance_confirmation", "review_closure", "final_confirmation", "option_analysis", "runtime_facts", "interfaces", "migration_plan", "verification_plan", "rollback_plan", "modules", "data_architecture", "cross_cutting_concerns", "verification_mapping", "unit_coverage", "impact_scope", "planning_constraints", "product_handoff", "risks", "risk_response"},
-    "test-cases": {"qa_handoff_contract", "unit_coverage_view", "design_gap_report", "special_test_triggers", "review_conclusion", "issue_ledger"},
+    "test-cases": {"qa_handoff_contract", "design_gap_report", "special_test_triggers", "review_conclusion", "issue_ledger"},
     "plan": {"goal_source_refs", "constraint_source_refs", "obligation_source_refs", "execution_basis_refs", "planning_readiness", "implementation_path", "goal_fidelity_review", "user_confirmation"},
     "qa-result": {"uncovered_boundary", "conditional_release_basis", "not_executed_reason", "ruled_out_issues", "stage_results", "obligation_results", "issue_ledger"},
     "consistency-audit-result": {"decision_authority", "consumer", "audit_scope", "blocked_layers", "skipped_layers", "tool_warning", "findings", "required_owner_action", "runtime_chain"},

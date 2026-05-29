@@ -14,6 +14,7 @@ SCENARIOS = {
     "dev-sync",
     "release-merge",
     "bugfix",
+    "bugfix-finish",
     "release-sync-before",
     "release-sync-after",
 }
@@ -50,6 +51,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     validate_parser.add_argument("--input")
 
+    preflight_parser = subparsers.add_parser(
+        "preflight", help="check repositories before executing a plan"
+    )
+    preflight_parser.add_argument("--input")
+    preflight_parser.add_argument(
+        "--repo-root",
+        default=".",
+        help="directory containing selected project repositories",
+    )
+
     return parser
 
 
@@ -63,7 +74,12 @@ def main() -> int:
             core.validate_plan(plan)
             print(json.dumps(plan, ensure_ascii=False, indent=2))
             return 0
-        core.validate_plan(core.read_input_plan(args.input))
+        plan = core.read_input_plan(args.input)
+        core.validate_plan(plan)
+        if args.command == "preflight":
+            result = core.preflight_plan(plan, args.repo_root)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["status"] == "ok" else 1
         return 0
     except core.FlowError as exc:
         print(str(exc), file=sys.stderr)

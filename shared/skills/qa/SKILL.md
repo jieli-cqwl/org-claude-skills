@@ -148,7 +148,7 @@ qa 负责写入 Phase 级 `qa-result.json`；进入提交准备或 full consiste
 条件字段：
 - `conditional_release_basis`：`release_recommendation=CONDITIONAL_ALLOW` 时必填。
 - `browser_tool` / `entry_url` / `browser_evidence`：任一 `qa_handoff_contract` 命中 `browser_required` 时必填；`browser_evidence` 至少含 screenshot / trace / video / browser log / Playwright / webapp-testing 锚点之一，不得为纯 API / CLI 证据。
-- `obligation_results[]`：逐条对应 `qa_handoff_contract[].obligation_id`，并覆盖相关 `cross_unit_obligations`；包含 `source_refs`、`evidence_refs`、`qa_stage`、`gate_result` 和摘要；REQUIRED 义务在 readiness 时必须 PASS。
+- `obligation_results[]`：逐条对应 `qa_handoff_contract[].obligation_id`，并覆盖相关 `cross_unit_obligations`；包含 `source_refs`、`evidence_refs`、`qa_stage` 和 `gate_result`；REQUIRED 义务在 readiness 时必须 PASS。
 
 `FAIL` 项必须使用稳定 `issue_id=QAR-XXX`，并带完整 triage 字段。`issue_ledger[]` 的 `owner_hint` 必须取 `fixer / developer / product-manager / design` 之一。
 

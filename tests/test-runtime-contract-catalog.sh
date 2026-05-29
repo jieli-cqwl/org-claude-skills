@@ -74,8 +74,4 @@ for path in \
     || fail "missing collaboration boundary sentence: $path"
 done
 
-if rg -F '先验收共享前置；无法拆出时串行执行' "$ROOT/shared/rules/执行纪律.md" "$ROOT/shared/reference/影响范围分析.md" >/dev/null 2>&1; then
-  fail "collaboration boundary wording must name the shared prerequisite task and independent boundary"
-fi
-
 echo "[PASS] runtime contract inline"

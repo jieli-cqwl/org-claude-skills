@@ -29,7 +29,7 @@
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
-        "说明 planning readiness 通过；给出 WBS、implementation path、critical path、dependency strategy、parallel batches、investment/risk signals；说明每个 Task 合同覆盖来源追踪、依赖批次、验收证据和风险可见性，具体字段与必填项按 tasks.schema.json / tasks.template.json 执行；明确 scope_item_refs 说明范围来源，实际变更范围由 developer 自主分析。",
+        "说明 planning readiness 通过；给出 WBS、implementation path、critical path、dependency strategy、tasks[].batch 分批策略、investment/risk signals；说明每个 Task 合同覆盖来源追踪、依赖批次、验收证据和风险可见性，具体字段与必填项按 tasks.schema.json / tasks.template.json 执行；明确 scope_item_refs 说明范围来源，实际变更范围由 developer 自主分析。",
         "明确 planning readiness 结论",
         "给出 WBS / work packages / executable tasks",
         "给出关键路径、依赖关系和并行批次",
@@ -104,7 +104,7 @@
     },
     {
       "id": "PA-4",
-      "anchor": "实施计划必须表达 WBS、critical path、dependencies、parallel batches 和 investment/risk signals",
+      "anchor": "实施计划必须表达 WBS、critical path、dependencies、tasks[].batch 分批策略和 investment/risk signals",
       "weight": 1
     },
     {

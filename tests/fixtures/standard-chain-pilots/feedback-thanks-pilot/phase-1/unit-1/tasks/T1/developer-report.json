@@ -22,7 +22,6 @@
   "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
   "task_id": "T1",
   "runtime_status": "VERIFIED",
-  "summary_text": "root redirect, feedback form, blank validation, body-length rejection, and invalid-submission access log verified",
   "reviewable_anchor": "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
   "file_changes": [
     "tests/test_feedback_thanks_app.py",

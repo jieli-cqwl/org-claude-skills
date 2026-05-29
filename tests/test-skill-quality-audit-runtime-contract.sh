@@ -18,8 +18,6 @@ grep -q '^name: skill-quality-audit$' "$SKILL" \
   || fail "skill name must be skill-quality-audit"
 grep -q '^description: "Use when ' "$SKILL" \
   || fail "description must describe trigger conditions"
-! grep -Eiq '^description:.*(audits|scores|reports|workflow|five-step|评分|审查流程)' "$SKILL" \
-  || fail "description must not summarize workflow"
 grep -q '^allowed-tools: Read, Write, Glob, Grep, Agent, Bash(python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py:\*), Bash(python3 shared/skills/skill-quality-audit/scripts/classify_audit_artifact.py:\*)$' "$SKILL" \
   || fail "skill-quality-audit must allow audit outputs, agent claim review, and only approved Bash scripts"
 ! grep -Eq '^allowed-tools:.*(^|, )Bash(,|$)' "$SKILL" \
@@ -38,8 +36,6 @@ grep -Fq 'Do NOT ask the user for report paths' "$SKILL" \
   || fail "skill-quality-audit must not require user-provided report paths"
 grep -Fq 'fall back to `/tmp`' "$SKILL" \
   || fail "skill-quality-audit must define artifact path fallback"
-! grep -Eiq 'edit target|rewrite target|execute remediation|执行落地|策略制定后.*修改' "$SKILL" \
-  || fail "skill-quality-audit must not claim modification authority"
 grep -Fq 'allow_implicit_invocation: false' "$AGENT" \
   || fail "skill-quality-audit must disable implicit invocation for Codex"
 

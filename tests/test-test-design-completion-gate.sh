@@ -56,7 +56,8 @@ elif mutation == "unknown-gap-type":
                     "UNIT-1.json#acceptance_criteria[0].ac_id"
                 ],
                 "owner": "product-manager",
-                "next_action": "clarify acceptance criteria",
+                "required_artifact_ref": "phase-prd.json#exit_conditions[0]",
+                "decision_needed": False,
                 "blocking": False,
             }
         ],
@@ -72,7 +73,8 @@ elif mutation == "blocking-gap":
                     "UNIT-1.json#acceptance_criteria[0].ac_id"
                 ],
                 "owner": "product-manager",
-                "next_action": "clarify acceptance criteria",
+                "required_artifact_ref": "phase-prd.json#exit_conditions[0]",
+                "decision_needed": True,
                 "blocking": True,
             }
         ],

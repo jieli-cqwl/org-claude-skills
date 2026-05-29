@@ -17,7 +17,6 @@
       "current_stage": "TASK_EXECUTION",
       "status": "IN_PROGRESS",
       "control_action": "CONTINUE",
-      "summary_text": "wrong producer",
       "tasks": []
     }
   ]

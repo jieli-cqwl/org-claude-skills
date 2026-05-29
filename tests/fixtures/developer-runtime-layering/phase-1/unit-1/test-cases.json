@@ -4,10 +4,7 @@
   "schema_version": "1.0.0",
   "ac_coverage_matrix": [
     {
-      "ac_id": "AC-T1-1",
-      "covers": [
-        "T1"
-      ]
+      "ac_id": "AC-T1-1"
     }
   ],
   "test_cases": [

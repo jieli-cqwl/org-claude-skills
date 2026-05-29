@@ -17,7 +17,6 @@
   ],
   "task_id": "T1",
   "runtime_status": "IN_PROGRESS",
-  "summary_text": "implementation in progress",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "evidence_refs": [
     "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root"

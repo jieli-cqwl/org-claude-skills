@@ -37,27 +37,21 @@
   "key_decisions": [
     {
       "decision_id": "D-001",
-      "summary": "registry controls path discovery",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-001-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
+      ]
     },
     {
       "decision_id": "D-002",
-      "summary": "delivery-state controls phase stage",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-002-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff."
+      ]
     }
   ],
   "option_analysis": [
@@ -259,7 +253,6 @@
     }
   ],
   "data_architecture": {
-    "summary": "Standard-chain runtime control data is stored in canonical JSON artifacts and resolved through the active registry.",
     "storage_decisions": [
       "artifact-registry.json stores active artifact revisions",
       "delivery-state.json stores phase and task runtime status"
@@ -307,20 +300,14 @@
   "verification_mapping": [
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "standard-chain phase validation must pass against the golden phase directory",
-      "test_obligation": "cover schema, registry, readiness, and replay oracle checks",
       "evidence_ref": "VP-DESIGN-001"
     },
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "VP-DESIGN-002 must be covered by the design verification closure.",
-      "test_obligation": "Carry VP-DESIGN-002 into downstream test-design, verify, or release evidence.",
       "evidence_ref": "VP-DESIGN-002"
     },
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "VP-DESIGN-003 must be covered by the design verification closure.",
-      "test_obligation": "Carry VP-DESIGN-003 into downstream test-design, verify, or release evidence.",
       "evidence_ref": "VP-DESIGN-003"
     }
   ],
@@ -408,30 +395,29 @@
       "canonical JSON remains the runtime source of truth",
       "validators fail closed when required handoff evidence is missing"
     ],
-    "rejected_constraints": [],
-    "confirmation_summary": "User confirmed inherited runtime-control constraints before freezing design decisions."
+    "rejected_constraints": []
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:e5860caedd7b5d04d372b581fceb9d5bea9d218ad0c856fd300ac13ee69565ba",
+    "reviewed_design_digest": "sha256:ad21165be8d59241b150ecd3c497ee5d5428863a56f82e90cc9201c440e76553",
     "reviewed_at": "1970-01-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:e5860caedd7b5d04d372b581fceb9d5bea9d218ad0c856fd300ac13ee69565ba"
+        "reviewed_design_digest": "sha256:ad21165be8d59241b150ecd3c497ee5d5428863a56f82e90cc9201c440e76553"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:e5860caedd7b5d04d372b581fceb9d5bea9d218ad0c856fd300ac13ee69565ba"
+        "reviewed_design_digest": "sha256:ad21165be8d59241b150ecd3c497ee5d5428863a56f82e90cc9201c440e76553"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:e5860caedd7b5d04d372b581fceb9d5bea9d218ad0c856fd300ac13ee69565ba"
+        "reviewed_design_digest": "sha256:ad21165be8d59241b150ecd3c497ee5d5428863a56f82e90cc9201c440e76553"
       }
     ],
     "resolved_failures": [],
@@ -441,7 +427,6 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "2026-04-14T00:00:00Z",
-    "summary": "User confirmed the S11 design outcome and accepted the canonical design artifact for downstream handoff.",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

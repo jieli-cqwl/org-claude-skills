@@ -220,10 +220,7 @@ def _assert_frozen_decision(
         raise ValueError(f"design key_decisions[{index}] must be an object")
     for field in (
         "decision_id",
-        "summary",
-        "verdict",
         "option_ref",
-        "user_confirmation",
     ):
         _require_non_empty_string(
             decision.get(field), f"key_decisions[{index}].{field}"
@@ -298,7 +295,7 @@ def _assert_data_architecture(payload: dict) -> None:
     data_architecture = _require_non_empty_dict(
         payload.get("data_architecture"), "data_architecture"
     )
-    for field in ("summary", "consistency_strategy"):
+    for field in ("consistency_strategy",):
         _require_non_empty_string(
             data_architecture.get(field), f"data_architecture.{field}"
         )

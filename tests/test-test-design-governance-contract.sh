@@ -42,7 +42,7 @@ for field in test_analysis traceability_matrix cross_unit_obligations; do
   assert_jq '.authoritative_fields | index("$.'$field'") != null' "$TEMPLATE"
 done
 
-for field in objectives in_scope out_of_scope risk_model strategy_by_quality_area test_flow environment_assumptions data_assumptions; do
+for field in risk_model strategy_by_quality_area test_flow; do
   assert_jq '.allOf[1].properties.test_analysis.required | index("'$field'") != null' "$SCHEMA"
   assert_jq '.test_analysis | has("'$field'")' "$TEMPLATE"
 done
@@ -56,25 +56,27 @@ for value in positive negative boundary exclusion specialty; do
   assert_jq '.allOf[1].properties.test_cases.items.properties.case_type.enum | index("'$value'") != null' "$SCHEMA"
 done
 
-for field in gap_id gap_type blocking_refs owner next_action blocking; do
+for field in gap_id gap_type blocking_refs owner required_artifact_ref decision_needed blocking; do
   assert_jq "$gap_required | index(\"$field\") != null" "$SCHEMA"
 done
 
 assert_jq '.design_gap_report.gaps | type == "array"' "$TEMPLATE"
 
 assert_jq '.allOf[1].properties.qa_handoff_contract.items.properties.qa_stage.enum == ["QA_A","QA_B","QA_C","QA_D","NFR"]' "$SCHEMA"
-for field in obligation_id trigger_source evidence_expectation design_source_refs; do
+for field in obligation_id obligation_type trigger_refs design_source_refs skip_policy evidence_contract_ref; do
   assert_jq "$qa_handoff_required | index(\"$field\") != null" "$SCHEMA"
   assert_jq '.qa_handoff_contract[0] | has("'$field'")' "$TEMPLATE"
 done
 
-for field in journey_id journey_title participant_unit_refs local_unit_ref sequence_index predecessor_case_refs successor_case_refs handoff_obligation_refs composition_status gap_refs; do
+for field in journey_id participant_unit_refs local_unit_ref sequence_index predecessor_case_refs successor_case_refs handoff_obligation_refs composition_status gap_refs; do
   assert_jq '.allOf[1].properties.cross_unit_obligations.items.required | index("'$field'") != null' "$SCHEMA"
 done
+assert_jq '.allOf[1].properties.cross_unit_obligations.items.required | index("journey_title") == null' "$SCHEMA"
+assert_jq '.allOf[1].properties.cross_unit_obligations.items.properties.journey_title == null' "$SCHEMA"
 assert_jq '.allOf[1].properties.cross_unit_obligations.items.properties.composition_status.enum == ["COMPOSABLE","BLOCKED_GAP"]' "$SCHEMA"
 assert_jq '.cross_unit_obligations[0].handoff_obligation_refs[0] == .qa_handoff_contract[0].obligation_id' "$TEMPLATE"
 
-for field in trigger_id trigger_type source_ref condition qa_stage handling; do
+for field in trigger_id trigger_type source_ref trigger_rule threshold_ref qa_stage handling; do
   assert_jq "$special_trigger_required | index(\"$field\") != null" "$SCHEMA"
   assert_jq '.special_test_triggers[0] | has("'$field'")' "$TEMPLATE"
 done
@@ -95,7 +97,7 @@ assert_jq '. as $root | any($root.special_test_triggers[]; .handling == "TYPED_G
 assert_jq '.allOf[1].properties.review_conclusion.required | index("reviewer_verdicts") != null' "$SCHEMA"
 assert_jq '.allOf[1].properties.review_conclusion.required | index("reviewed_test_cases_digest") != null' "$SCHEMA"
 assert_jq '.allOf[1].properties.review_conclusion.properties.reviewed_test_cases_digest.pattern == "^sha256:[0-9a-f]{64}$"' "$SCHEMA"
-for field in perspective verdict issue_count review_round evidence; do
+for field in perspective verdict issue_count review_round evidence_refs; do
   assert_jq "$reviewer_verdict_required | index(\"$field\") != null" "$SCHEMA"
 done
 assert_jq "$reviewer_verdict_required | index(\"reviewed_test_cases_digest\") != null" "$SCHEMA"

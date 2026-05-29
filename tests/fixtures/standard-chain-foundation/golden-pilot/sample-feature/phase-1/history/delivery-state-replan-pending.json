@@ -16,7 +16,6 @@
   "current_stage": "REPLAN_PENDING",
   "status": "IN_PROGRESS",
   "control_action": "REPLAN",
-  "summary_text": "replan requested",
   "kickoff": {
     "status": "READY",
     "plan_version_ref": "artifact://plan/sample-feature.phase-1.plan@plan-v1#plan-version",
@@ -24,8 +23,7 @@
     "environment_ready": true,
     "dependency_ready": true,
     "risk_owner_ready": true,
-    "qa_handoff_ready": true,
-    "blocking_reason": "无"
+    "qa_handoff_ready": true
   },
   "tasks": []
 }

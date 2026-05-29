@@ -112,7 +112,6 @@ assert_present '"verification_mapping"' "$ROOT/shared/skills/design/contracts/de
 assert_present '"evidence_ref"' "$ROOT/shared/skills/design/contracts/design.schema.json"
 
 assert_present 'Task Packet' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present '调度 `/commit`' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'developer agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'verifier agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'qa agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
@@ -135,7 +134,7 @@ assert_absent 'PAUSED_RISK' "$ROOT/shared/skills/delivery-owner/templates/status
 assert_present 'PAUSED_FOR_USER_DECISION' "$ROOT/shared/skills/delivery-owner/templates/user-decision-package.template.md"
 assert_present 'NEEDS_RESOURCE' "$ROOT/shared/skills/delivery-owner/templates/user-decision-package.template.md"
 
-assert_absent 'signoff_ready|control_decision_check|gap_delta|rebaseline_needed|主 Agent|不是 developer|不要用于|你只保留交付状态|对应 role agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+assert_absent 'signoff_ready|control_decision_check|gap_delta|rebaseline_needed' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_absent 'routing-and-packet|evidence-and-followup|intake-and-state|escalation-and-signoff' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 [ ! -d "$ROOT/shared/skills/delivery-owner-h" ] \
   || fail "historical delivery-owner-h must be deleted"

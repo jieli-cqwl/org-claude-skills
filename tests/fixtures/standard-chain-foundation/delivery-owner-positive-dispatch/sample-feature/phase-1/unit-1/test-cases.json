@@ -11,10 +11,8 @@
     "$.test_analysis",
     "$.traceability_matrix",
     "$.ac_coverage_matrix",
-    "$.equivalence_matrix",
     "$.test_cases",
     "$.qa_handoff_contract",
-    "$.unit_coverage_view",
     "$.design_gap_report",
     "$.cross_unit_obligations",
     "$.special_test_triggers",
@@ -22,19 +20,6 @@
     "$.issue_ledger"
   ],
   "test_analysis": {
-    "objectives": [
-      "Prove delivery-owner dispatch can consume canonical product and design obligations before implementation starts."
-    ],
-    "in_scope": [
-      "delivery-owner dispatch contract",
-      "registry path discovery",
-      "delivery-state runtime status",
-      "readiness validation handoff"
-    ],
-    "out_of_scope": [
-      "actual developer implementation",
-      "release sign-off decision"
-    ],
     "risk_model": [
       {
         "risk_ref": "design.json#risks[0].risk_id",
@@ -59,12 +44,6 @@
         ],
         "expected_checkpoint": "delivery owner can dispatch ready tasks from canonical runtime state"
       }
-    ],
-    "environment_assumptions": [
-      "dispatch eval reads the fixture as canonical input"
-    ],
-    "data_assumptions": [
-      "phase-prd unit index identifies the local UNIT for this dispatch fixture"
     ]
   },
   "traceability_matrix": [
@@ -242,9 +221,6 @@
   "ac_coverage_matrix": [
     {
       "ac_id": "AC-1",
-      "covers": [
-        "delivery owner dispatch"
-      ],
       "positive_case_refs": [
         "TC-1"
       ],
@@ -256,20 +232,6 @@
       ]
     }
   ],
-  "equivalence_matrix": [
-    {
-      "class": "valid-dispatch"
-    }
-  ],
-  "unit_coverage_view": [
-    {
-      "unit_id": "UNIT-1",
-      "ac_ids": [
-        "AC-1"
-      ],
-      "coverage_status": "COVERED"
-    }
-  ],
   "design_gap_report": {
     "status": "NO_GAPS",
     "gaps": []
@@ -277,7 +239,6 @@
   "cross_unit_obligations": [
     {
       "journey_id": "J-DISPATCH",
-      "journey_title": "delivery owner dispatch journey",
       "participant_unit_refs": [
         "UNIT-1.json#unit_id"
       ],
@@ -390,7 +351,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:be85812856bda86c479528b9fe6c1e5df276db48079c1769c177fedcfc463ecd",
+        "reviewed_test_cases_digest": "sha256:4cff32ae33af5eb9ccb9e9259bd4e4789bc2a2a9dcb721e2e6c72da6806c30f4",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -400,7 +361,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:be85812856bda86c479528b9fe6c1e5df276db48079c1769c177fedcfc463ecd",
+        "reviewed_test_cases_digest": "sha256:4cff32ae33af5eb9ccb9e9259bd4e4789bc2a2a9dcb721e2e6c72da6806c30f4",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -410,7 +371,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:be85812856bda86c479528b9fe6c1e5df276db48079c1769c177fedcfc463ecd",
+        "reviewed_test_cases_digest": "sha256:4cff32ae33af5eb9ccb9e9259bd4e4789bc2a2a9dcb721e2e6c72da6806c30f4",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -436,7 +397,7 @@
         ]
       }
     ],
-    "reviewed_test_cases_digest": "sha256:be85812856bda86c479528b9fe6c1e5df276db48079c1769c177fedcfc463ecd",
+      "reviewed_test_cases_digest": "sha256:4cff32ae33af5eb9ccb9e9259bd4e4789bc2a2a9dcb721e2e6c72da6806c30f4",
     "closure_status": "CLOSED"
   },
   "issue_ledger": []

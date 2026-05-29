@@ -30,9 +30,14 @@
       ]
     },
     "bugfix": {
-      "description": "从版本分支创建 BUG 分支，修复后合回版本分支",
+      "description": "从版本分支创建 BUG 分支",
       "steps": [
-        "create_bug_branch",
+        "create_bug_branch"
+      ]
+    },
+    "bugfix-finish": {
+      "description": "修复完成后将 BUG 分支合回版本分支",
+      "steps": [
         "merge_bug_to_release"
       ]
     },

@@ -26,8 +26,8 @@
         "artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary"
       ],
       "json_pointers": [
-        "/summary_text",
         "/current_stage",
+        "/status",
         "/control_action"
       ]
     },
@@ -72,5 +72,5 @@
   "generated_at": "2026-04-14T04:10:00Z",
   "renderer_version": "1.0.0",
   "rendered_artifact_ref": "artifact://projection-manifest/sample-feature.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
-  "rendered_content_digest": "sha256:62a8a52229a20862e7661e050875aa560aff1bdb94d4cdcc4118b5cd92c6a1dc"
+  "rendered_content_digest": "sha256:f187a95950560b1b62d0e5d2c6c433cf56a2977d00710b131a72f217c95ccf9c"
 }

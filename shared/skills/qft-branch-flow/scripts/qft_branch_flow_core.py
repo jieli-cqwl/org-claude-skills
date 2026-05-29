@@ -9,6 +9,7 @@ from typing import Any
 _SHARED: ModuleType | None = None
 _PLAN: ModuleType | None = None
 _VALIDATE: ModuleType | None = None
+_PREFLIGHT: ModuleType | None = None
 
 
 def load_module(name: str) -> ModuleType:
@@ -45,6 +46,13 @@ def validate_module() -> ModuleType:
     return _VALIDATE
 
 
+def preflight_module() -> ModuleType:
+    global _PREFLIGHT
+    if _PREFLIGHT is None:
+        _PREFLIGHT = load_module("qft_branch_flow_preflight")
+    return _PREFLIGHT
+
+
 FlowError = shared().FlowError
 
 
@@ -54,6 +62,12 @@ def make_plan(args: Any) -> dict[str, Any]:
 
 def validate_plan(plan: dict[str, Any]) -> None:
     validate_module().validate_plan(plan)
+
+
+def preflight_plan(
+    plan: dict[str, Any], repo_root: str | None = None
+) -> dict[str, Any]:
+    return preflight_module().preflight_plan(plan, repo_root)
 
 
 def read_input_plan(path: str | None) -> dict[str, Any]:

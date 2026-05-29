@@ -5,7 +5,6 @@
 ## Planning Readiness
 
 - status: {READY, BLOCKED, READY_WITH_USER_DECISION}
-- summary: {输入是否足够进入 WBS 计划}
 - blocking_gaps: {无 / gap 列表}
 - decision_package: {无 / 用户裁决选项与推荐路径}
 
@@ -30,7 +29,7 @@
 
 ## Goal Fidelity
 
-| goal_source_ref | Task refs | execution_basis_ref | status | note |
+| goal_ref | Task refs | execution_basis_ref | status | note |
 | --- | --- | --- | --- | --- |
 | {artifact://brief/...#goal-001} | T1 | {artifact://design/...#key-decisions} | COVERED | {说明} |
 
@@ -54,13 +53,6 @@
 - mock_boundary: {mock_allowed, allowed_for, final_acceptance_requires_real_evidence=true}
 - AC:
   1. {可 assert 的验收标准}
-
-## Dependency And Batch Plan
-
-| Batch | Task refs | Parallelizable |
-| --- | --- | --- |
-| 1 | T1 | false |
-| 2 | T2, T3 | true |
 
 ## User Confirmation
 

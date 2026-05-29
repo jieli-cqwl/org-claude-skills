@@ -37,63 +37,48 @@
   "key_decisions": [
     {
       "decision_id": "D-001",
-      "summary": "Use Python http.server and unittest so the pilot adds no external runtime dependency.",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-001-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final feedback/thanks design outcome for downstream handoff."
+      ]
     },
     {
       "decision_id": "D-002",
-      "summary": "Store submissions server-side in memory behind a threading.Lock because the validation target is local workflow continuity, not durable data.",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-002-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final feedback/thanks design outcome for downstream handoff."
+      ]
     },
     {
       "decision_id": "D-003",
-      "summary": "Generate opaque thanks-page ids with secrets.token_urlsafe so URLs do not expose user input.",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-003-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final feedback/thanks design outcome for downstream handoff."
+      ]
     },
     {
       "decision_id": "D-004",
-      "summary": "Escape name and message with html.escape before rendering the thanks page.",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-004-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final feedback/thanks design outcome for downstream handoff."
+      ]
     },
     {
       "decision_id": "D-005",
-      "summary": "Use real HTTP requests in tests so QA evidence follows the same boundary as a user journey.",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-005-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final feedback/thanks design outcome for downstream handoff."
+      ]
     }
   ],
   "interface_boundary": [
@@ -454,7 +439,6 @@
     }
   ],
   "data_architecture": {
-    "summary": "Valid feedback submissions are stored in an in-memory dictionary behind a threading lock; no durable storage or external datasource is introduced.",
     "storage_decisions": [
       "Use process-local in-memory storage because the pilot validates standard-chain flow, not persistence."
     ],
@@ -501,20 +485,14 @@
   "verification_mapping": [
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "Real HTTP tests cover feedback form, validation, malformed body handling, thanks-page rendering, missing ids, and access logs.",
-      "test_obligation": "Run feedback HTTP acceptance tests and negative-path tests.",
       "evidence_ref": "VP-FEEDBACK-001"
     },
     {
       "manager_vp_ref": "phase-prd.exit_conditions[1]",
-      "design_validation": "Standard-chain validators must accept the upgraded canonical design, tests, readiness, and replay artifacts.",
-      "test_obligation": "Run phase, readiness, and replay validators for docs/feedback-thanks-pilot/phase-1.",
       "evidence_ref": "VP-FEEDBACK-002"
     },
     {
       "manager_vp_ref": "phase-prd.exit_conditions[2]",
-      "design_validation": "Review, QA, consistency audit, signoff, and user decision artifacts must resolve through the active registry.",
-      "test_obligation": "Run release readiness closure validation.",
       "evidence_ref": "VP-FEEDBACK-003"
     }
   ],
@@ -606,30 +584,29 @@
       "canonical JSON remains the runtime source of truth",
       "validators fail closed when required handoff evidence is missing"
     ],
-    "rejected_constraints": [],
-    "confirmation_summary": "User confirmed inherited runtime-control constraints before freezing design decisions."
+    "rejected_constraints": []
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:ff8e19cd706f41dc2302cf84b0105e0e456866553c333ed8fd46db663a7305e2",
+    "reviewed_design_digest": "sha256:4d5ba08128032439bec3742421be18d7900bd09750569799f1efff3e5a44d642",
     "reviewed_at": "2026-04-22T12:49:43Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:ff8e19cd706f41dc2302cf84b0105e0e456866553c333ed8fd46db663a7305e2"
+        "reviewed_design_digest": "sha256:4d5ba08128032439bec3742421be18d7900bd09750569799f1efff3e5a44d642"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:ff8e19cd706f41dc2302cf84b0105e0e456866553c333ed8fd46db663a7305e2"
+        "reviewed_design_digest": "sha256:4d5ba08128032439bec3742421be18d7900bd09750569799f1efff3e5a44d642"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:ff8e19cd706f41dc2302cf84b0105e0e456866553c333ed8fd46db663a7305e2"
+        "reviewed_design_digest": "sha256:4d5ba08128032439bec3742421be18d7900bd09750569799f1efff3e5a44d642"
       }
     ],
     "resolved_failures": [],
@@ -639,7 +616,6 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "2026-04-22T12:49:43Z",
-    "summary": "User confirmed the final feedback/thanks design outcome for downstream handoff.",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

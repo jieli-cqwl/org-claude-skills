@@ -17,7 +17,6 @@
       "current_stage": "TASK_EXECUTION",
       "status": "IN_PROGRESS",
       "control_action": "CONTINUE",
-      "summary_text": "runtime moved to v2",
       "tasks": [
         {
           "task_id": "T1",
@@ -49,7 +48,6 @@
     "tasks": [
       {
         "task_id": "T1",
-        "task_title": "runtime validation",
         "task_state": "ACTIVE",
         "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
         "unit_refs": [

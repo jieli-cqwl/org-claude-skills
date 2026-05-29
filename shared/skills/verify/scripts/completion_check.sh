@@ -49,7 +49,6 @@ run_canonical_verify_gate() {
     elif ! jq -e '
         ((.task_id // "") | type == "string" and length > 0)
         and ((.runtime_status // "") | type == "string" and length > 0)
-        and ((.summary_text // "") | type == "string" and length > 0)
         and (.task_scope | type == "array" and length > 0)
         and ((.reviewable_anchor // "") | type == "string" and length > 0)
         and (.file_changes | type == "array" and length > 0)

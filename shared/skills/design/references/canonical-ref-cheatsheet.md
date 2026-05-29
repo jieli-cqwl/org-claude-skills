@@ -6,7 +6,7 @@
 
 - `verification_mapping[*].manager_vp_ref` 只允许 `phase-prd.<field>[<index>]`。
 - 可用字段来自 `phase-prd.json` 数组字段，例如 `exit_conditions[0]`、`business_flows[1]`、`rule_mappings[2]`。
-- AC 编号、设计决策和中文说明写入 `design_validation`。
+- AC 编号写入 `unit_coverage[*].ac_refs`；设计决策写入 `key_decisions` / `option_analysis`；下游测试义务由 `test-cases.json` 结构化承接。
 
 常见 FAIL：
 - `unsupported manager ref`

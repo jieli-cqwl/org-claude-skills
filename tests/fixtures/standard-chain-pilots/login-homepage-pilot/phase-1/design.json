@@ -37,51 +37,39 @@
   "key_decisions": [
     {
       "decision_id": "D-001",
-      "summary": "Use Python http.server and unittest so the pilot adds no external runtime dependency.",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-001-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final login/homepage design outcome for downstream handoff."
+      ]
     },
     {
       "decision_id": "D-002",
-      "summary": "Read LOGIN_HOMEPAGE_USERNAME and LOGIN_HOMEPAGE_PASSWORD from environment variables to keep credentials deployment-owned.",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-002-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final login/homepage design outcome for downstream handoff."
+      ]
     },
     {
       "decision_id": "D-003",
-      "summary": "Store sessions server-side in memory and expose only an opaque HttpOnly SameSite=Lax cookie to the client.",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-003-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final login/homepage design outcome for downstream handoff."
+      ]
     },
     {
       "decision_id": "D-004",
-      "summary": "Use real HTTP requests in tests so QA evidence follows the same boundary as a user journey.",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-004-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final login/homepage design outcome for downstream handoff."
+      ]
     }
   ],
   "interface_boundary": [
@@ -420,7 +408,6 @@
     }
   ],
   "data_architecture": {
-    "summary": "Session tokens are stored in process-local memory; credentials are read from environment variables; no durable storage or external datasource is introduced.",
     "storage_decisions": [
       "Use in-memory session storage because the pilot validates standard-chain flow, not production session durability."
     ],
@@ -467,20 +454,14 @@
   "verification_mapping": [
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "Real HTTP tests cover anonymous redirect, login form, valid login, invalid login, homepage, logout, stale cookie, and access-log behavior.",
-      "test_obligation": "Run login-homepage HTTP acceptance and negative-path tests.",
       "evidence_ref": "VP-LOGIN-001"
     },
     {
       "manager_vp_ref": "phase-prd.exit_conditions[1]",
-      "design_validation": "Standard-chain validators must accept the upgraded canonical design, tests, readiness, and replay artifacts.",
-      "test_obligation": "Run phase, readiness, and replay validators for docs/login-homepage-pilot/phase-1.",
       "evidence_ref": "VP-LOGIN-002"
     },
     {
       "manager_vp_ref": "phase-prd.exit_conditions[2]",
-      "design_validation": "Review, QA, consistency audit, signoff, and user decision artifacts must resolve through the active registry.",
-      "test_obligation": "Run release readiness closure validation.",
       "evidence_ref": "VP-LOGIN-003"
     }
   ],
@@ -578,30 +559,29 @@
       "canonical JSON remains the runtime source of truth",
       "validators fail closed when required handoff evidence is missing"
     ],
-    "rejected_constraints": [],
-    "confirmation_summary": "User confirmed inherited runtime-control constraints before freezing design decisions."
+    "rejected_constraints": []
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:57efccab43343ff154dba59fc9cb1a507838735a876370d26a792c0520f39ac3",
+    "reviewed_design_digest": "sha256:2915de947f73931d25c71e37770955fe18637d4b6d497f61b8d5f77a3b9f4446",
     "reviewed_at": "2026-04-22T12:23:37Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:57efccab43343ff154dba59fc9cb1a507838735a876370d26a792c0520f39ac3"
+        "reviewed_design_digest": "sha256:2915de947f73931d25c71e37770955fe18637d4b6d497f61b8d5f77a3b9f4446"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:57efccab43343ff154dba59fc9cb1a507838735a876370d26a792c0520f39ac3"
+        "reviewed_design_digest": "sha256:2915de947f73931d25c71e37770955fe18637d4b6d497f61b8d5f77a3b9f4446"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:57efccab43343ff154dba59fc9cb1a507838735a876370d26a792c0520f39ac3"
+        "reviewed_design_digest": "sha256:2915de947f73931d25c71e37770955fe18637d4b6d497f61b8d5f77a3b9f4446"
       }
     ],
     "resolved_failures": [],
@@ -611,7 +591,6 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "2026-04-22T12:23:37Z",
-    "summary": "User confirmed the final login/homepage design outcome for downstream handoff.",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

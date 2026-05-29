@@ -16,11 +16,11 @@
           "source_artifact_refs": [
             "artifact://delivery-state/{feature}.phase-{N}.delivery-state@active#phase-summary"
           ],
-          "json_pointers": [
-            "/summary_text",
-            "/current_stage",
-            "/control_action"
-          ]
+        "json_pointers": [
+          "/current_stage",
+          "/status",
+          "/control_action"
+        ]
         },
         "task-runtime": {
           "source_artifact_refs": [

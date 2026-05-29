@@ -82,9 +82,12 @@ for field_name in [
 
 test_schema = json.loads((ROOT / "shared/skills/test-design/contracts/test-cases.schema.json").read_text(encoding="utf-8"))
 test_properties = next(item for item in reversed(test_schema["allOf"]) if "properties" in item)
-for field_name in ["unit_coverage_view", "design_gap_report", "special_test_triggers"]:
+for field_name in ["design_gap_report", "special_test_triggers"]:
     if field_name not in test_properties.get("required", []):
         raise SystemExit(f"test-cases schema must require {field_name}")
+for field_name in ["equivalence_matrix", "unit_coverage_view"]:
+    if field_name in test_properties.get("properties", {}):
+        raise SystemExit(f"test-cases schema must not define derived field {field_name}")
 
 signoff_schema = json.loads(
     (ROOT / "shared/skills/delivery-owner/contracts/signoff-package.schema.json").read_text(encoding="utf-8")
@@ -94,6 +97,15 @@ if "takeover_note" in signoff_properties["properties"]:
     raise SystemExit("signoff-package schema must not carry takeover_note in active runtime artifact")
 if "takeover_note" in signoff_properties.get("required", []):
     raise SystemExit("signoff-package schema must not require takeover_note")
+if "runtime_snapshot" in signoff_properties["properties"]:
+    raise SystemExit("signoff-package schema must not carry prose runtime_snapshot")
+if "runtime_snapshot" in signoff_properties.get("required", []):
+    raise SystemExit("signoff-package schema must not require prose runtime_snapshot")
+goal_extension = signoff_properties["properties"]["goal_closure"]["items"]["allOf"][1]
+if "goal_source_ref" in goal_extension.get("properties", {}):
+    raise SystemExit("signoff-package goal_closure must not duplicate goal_ref as goal_source_ref")
+if "goal_source_ref" in goal_extension.get("required", []):
+    raise SystemExit("signoff-package goal_closure must not require duplicate goal_source_ref")
 
 signoff_template = json.loads(
     (ROOT / "shared/skills/delivery-owner/templates/signoff-package.template.json").read_text(encoding="utf-8")
@@ -102,10 +114,41 @@ if "takeover_note" in signoff_template:
     raise SystemExit("signoff-package template must not include takeover_note")
 if "$.takeover_note" in signoff_template.get("authoritative_fields", []):
     raise SystemExit("signoff-package authoritative_fields must not include $.takeover_note")
+if "runtime_snapshot" in signoff_template:
+    raise SystemExit("signoff-package template must not include runtime_snapshot")
+if "$.runtime_snapshot" in signoff_template.get("authoritative_fields", []):
+    raise SystemExit("signoff-package authoritative_fields must not include $.runtime_snapshot")
+for index, row in enumerate(signoff_template.get("goal_closure", [])):
+    if "goal_source_ref" in row:
+        raise SystemExit(f"signoff-package template goal_closure[{index}] must not include duplicate goal_source_ref")
 
 design_template = json.loads((ROOT / "shared/skills/design/templates/design.template.json").read_text(encoding="utf-8"))
 if "warn_followups" in design_template["product_handoff"]:
     raise SystemExit("design template product_handoff must not include warn_followups")
+
+delivery_state_schema = json.loads(
+    (ROOT / "shared/skills/delivery-owner/contracts/delivery-state.schema.json").read_text(encoding="utf-8")
+)
+delivery_state_properties = next(item for item in reversed(delivery_state_schema["allOf"]) if "properties" in item)
+kickoff_schema = delivery_state_properties["properties"]["kickoff"]
+if "blocking_reason" in kickoff_schema.get("properties", {}):
+    raise SystemExit("delivery-state kickoff must not carry prose blocking_reason")
+if "blocking_reason" in kickoff_schema.get("required", []):
+    raise SystemExit("delivery-state kickoff must not require prose blocking_reason")
+if "summary_text" in delivery_state_properties.get("properties", {}):
+    raise SystemExit("delivery-state schema must not carry prose summary_text")
+if "summary_text" in delivery_state_properties.get("required", []):
+    raise SystemExit("delivery-state schema must not require prose summary_text")
+
+delivery_state_template = json.loads(
+    (ROOT / "shared/skills/delivery-owner/templates/delivery-state.template.json").read_text(encoding="utf-8")
+)
+if "blocking_reason" in delivery_state_template.get("kickoff", {}):
+    raise SystemExit("delivery-state template kickoff must not include prose blocking_reason")
+if "summary_text" in delivery_state_template:
+    raise SystemExit("delivery-state template must not include prose summary_text")
+if "$.summary_text" in delivery_state_template.get("authoritative_fields", []):
+    raise SystemExit("delivery-state authoritative_fields must not include $.summary_text")
 
 artifact_defs = [
     output
@@ -117,6 +160,13 @@ signoff_artifact = next(
 )
 if "takeover_note" in signoff_artifact.get("key_fields", []):
     raise SystemExit("standard-chain signoff-package key_fields must not include takeover_note")
+delivery_state_artifact = next(
+    item for item in artifact_defs if item["artifact"] == "phase-{N}/delivery-state.json"
+)
+if "summary_text" in delivery_state_artifact.get("key_fields", []):
+    raise SystemExit("standard-chain delivery-state key_fields must not include summary_text")
+if "runtime_snapshot" in signoff_artifact.get("key_fields", []):
+    raise SystemExit("standard-chain signoff-package key_fields must not include runtime_snapshot")
 signoff_consumption = next(
     artifact["fields"]
     for artifact in field_consumption["artifacts"]
@@ -124,13 +174,36 @@ signoff_consumption = next(
 )
 if "takeover_note" in signoff_consumption:
     raise SystemExit("field-consumption signoff-package must not include takeover_note")
+if "runtime_snapshot" in signoff_consumption:
+    raise SystemExit("field-consumption signoff-package must not include runtime_snapshot")
+delivery_state_consumption = next(
+    artifact["fields"]
+    for artifact in field_consumption["artifacts"]
+    if artifact["path"] == "docs/{feature}/phase-{N}/delivery-state.json"
+)
+if "summary_text" in delivery_state_consumption:
+    raise SystemExit("field-consumption delivery-state must not include summary_text")
 
 phase_dir = ROOT / "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1"
 signoff = json.loads((phase_dir / "signoff-package.json").read_text(encoding="utf-8"))
+delivery_state = json.loads((phase_dir / "delivery-state.json").read_text(encoding="utf-8"))
 decision = json.loads((phase_dir / "user-decision.json").read_text(encoding="utf-8"))
 design = json.loads((phase_dir / "design.json").read_text(encoding="utf-8"))
 if "takeover_note" in signoff:
     raise SystemExit("golden signoff-package must not include takeover_note")
+if "runtime_snapshot" in signoff:
+    raise SystemExit("golden signoff-package must not include runtime_snapshot")
+if "$.runtime_snapshot" in signoff.get("authoritative_fields", []):
+    raise SystemExit("golden signoff-package authoritative_fields must not include $.runtime_snapshot")
+if "blocking_reason" in delivery_state.get("kickoff", {}):
+    raise SystemExit("golden delivery-state kickoff must not include prose blocking_reason")
+if "summary_text" in delivery_state:
+    raise SystemExit("golden delivery-state must not include prose summary_text")
+if "$.summary_text" in delivery_state.get("authoritative_fields", []):
+    raise SystemExit("golden delivery-state authoritative_fields must not include $.summary_text")
+for index, row in enumerate(signoff.get("goal_closure", [])):
+    if "goal_source_ref" in row:
+        raise SystemExit(f"golden signoff-package goal_closure[{index}] must not include duplicate goal_source_ref")
 if "warn_followups" in design["product_handoff"]:
     raise SystemExit("golden design product_handoff must not include warn_followups")
 if signoff.get("current_stage") != "CLOSED":
@@ -182,6 +255,12 @@ active_entries = [
 active_types = {entry.get("artifact_type") for entry in active_entries}
 if "consistency-audit-result" not in active_types:
     raise SystemExit("golden registry must activate consistency-audit-result")
+
+readiness_closure_text = (ROOT / "tools/community/readiness_closure_checks.py").read_text(
+    encoding="utf-8"
+)
+if "goal_source_ref" in readiness_closure_text:
+    raise SystemExit("readiness closure checks must consume goal_ref, not duplicate goal_source_ref")
 PY
 
 tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/standard-chain-closure.XXXXXX")"

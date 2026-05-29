@@ -20,7 +20,6 @@
   "tasks": [
     {
       "task_id": "T1",
-      "task_title": "implement feedback form and required-field validation",
       "phase_ref": "artifact://phase-prd/feedback-thanks-pilot.phase-1.prd@v1#phase-goal",
       "unit_refs": [
         "artifact://unit-definition/feedback-thanks-pilot.phase-1.unit-1@v1#unit"

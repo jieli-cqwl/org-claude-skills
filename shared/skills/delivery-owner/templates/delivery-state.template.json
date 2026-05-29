@@ -12,7 +12,6 @@
     "$.current_stage",
     "$.status",
     "$.control_action",
-    "$.summary_text",
     "$.kickoff",
     "$.tasks",
     "$.progress_signal",
@@ -29,7 +28,6 @@
   "current_stage": "TASK_EXECUTION",
   "status": "IN_PROGRESS",
   "control_action": "CONTINUE",
-  "summary_text": "phase is actively executing task T1",
   "progress_signal": "gap_judgment_changed",
   "consecutive_no_progress_count": 0,
   "owner_action_consumption": [],
@@ -40,8 +38,7 @@
     "environment_ready": true,
     "dependency_ready": true,
     "risk_owner_ready": true,
-    "qa_handoff_ready": true,
-    "blocking_reason": "无"
+    "qa_handoff_ready": true
   },
   "tasks": [
     {

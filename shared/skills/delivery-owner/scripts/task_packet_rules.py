@@ -112,7 +112,7 @@ ROLE_INPUT_CATEGORIES = {
     },
     "consistency-auditor": {
         "baseline_artifacts": ("plan.json", "tasks.json", "design.json"),
-        "test_obligations": (
+        "qa_handoff_obligations": (
             "test-cases.json",
             "qa_handoff_contract",
             "cross_unit_obligations",
@@ -159,7 +159,7 @@ ROLE_INPUT_CATEGORIES = {
 
 CONSISTENCY_AUDIT_FINAL_INPUT_CATEGORIES = {
     "baseline_artifacts": ("plan.json", "tasks.json", "design.json"),
-    "test_obligations": (
+    "qa_handoff_obligations": (
         "test-cases.json",
         "qa_handoff_contract",
         "cross_unit_obligations",

@@ -462,18 +462,6 @@
       "timeout_sec": 180
     },
     {
-      "id": "delivery-acceptance-bottom-line",
-      "command": [
-        "bash",
-        "tests/test-delivery-acceptance-bottom-line.sh"
-      ],
-      "area": "other",
-      "tier": "full",
-      "tags": [],
-      "parallel_safe": true,
-      "timeout_sec": 180
-    },
-    {
       "id": "runtime-integrity",
       "command": [
         "bash",

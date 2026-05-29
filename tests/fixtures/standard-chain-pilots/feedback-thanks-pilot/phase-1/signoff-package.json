@@ -17,7 +17,6 @@
     "$.sign_off_status",
     "$.business_risk_acceptance_status",
     "$.last_observed_at",
-    "$.runtime_snapshot",
     "$.active_blocker",
     "$.blocker_owner",
     "$.decision_basis_refs"
@@ -29,7 +28,6 @@
   "sign_off_status": "SIGNED_OFF",
   "business_risk_acceptance_status": "NOT_REQUIRED",
   "last_observed_at": "2026-04-22T13:01:18Z",
-  "runtime_snapshot": "All task, review, QA, consistency, readiness, and replay gates include the 9-test feedback-thanks pilot evidence and resolved Content-Length review fix.",
   "active_blocker": "none",
   "blocker_owner": "none",
   "decision_basis_refs": [
@@ -41,91 +39,78 @@
   "goal_closure": [
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#goal-001",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#goal-001",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#release",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#goal-002",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#goal-002",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#release",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-001",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-001",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-002",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-002",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-003",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-003",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-004",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-004",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-005",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-005",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-006",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-006",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-007",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-007",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-008",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-008",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-009",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#ac-009",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#delivery-plan-phase-1",
-      "goal_source_ref": "artifact://brief/feedback-thanks-pilot.brief@v1#delivery-plan-phase-1",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#release",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://phase-prd/feedback-thanks-pilot.phase-1.prd@v1#phase-goal",
-      "goal_source_ref": "artifact://phase-prd/feedback-thanks-pilot.phase-1.prd@v1#phase-goal",
       "execution_basis_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/feedback-thanks-pilot.phase-1.qa@v1#release",
       "result": "MET"

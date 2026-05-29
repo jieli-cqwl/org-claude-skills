@@ -174,7 +174,6 @@ def build_oracle_record(phase_dir: Path) -> dict:
                 "baseline_tasks_version_ref": signoff["baseline_tasks_version_ref"],
                 "active_tasks_version_ref": signoff["active_tasks_version_ref"],
                 "last_observed_at": signoff.get("last_observed_at"),
-                "runtime_snapshot": signoff.get("runtime_snapshot"),
                 "decision_basis_refs": signoff.get("decision_basis_refs", []),
                 "release_recommendation": signoff["release_recommendation"],
                 "goal_closure[].result": [

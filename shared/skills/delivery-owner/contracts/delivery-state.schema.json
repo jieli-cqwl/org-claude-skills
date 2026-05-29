@@ -21,9 +21,6 @@
         "control_action": {
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/control_action"
         },
-        "summary_text": {
-          "type": "string"
-        },
         "kickoff": {
           "type": "object",
           "properties": {
@@ -85,9 +82,6 @@
                 "user_confirmation_ref"
               ],
               "additionalProperties": false
-            },
-            "blocking_reason": {
-              "type": "string"
             }
           },
           "required": [
@@ -97,8 +91,7 @@
             "environment_ready",
             "dependency_ready",
             "risk_owner_ready",
-            "qa_handoff_ready",
-            "blocking_reason"
+            "qa_handoff_ready"
           ],
           "additionalProperties": false
         },
@@ -244,12 +237,18 @@
         "current_stage",
         "status",
         "control_action",
-        "summary_text",
         "kickoff",
         "tasks",
         "active_tasks_version_ref"
       ],
       "allOf": [
+        {
+          "not": {
+            "required": [
+              "summary_text"
+            ]
+          }
+        },
         {
           "if": {
             "required": [
@@ -265,6 +264,7 @@
             "required": [
               "blocker_id",
               "blocker_owner",
+              "blocker_reason_code",
               "blocker_basis_refs",
               "resume_stage",
               "next_action",
@@ -287,6 +287,7 @@
             "required": [
               "blocker_id",
               "blocker_owner",
+              "blocker_reason_code",
               "blocker_basis_refs",
               "resume_stage",
               "next_action",
@@ -312,6 +313,37 @@
             "required": [
               "blocker_id",
               "blocker_owner",
+              "blocker_reason_code",
+              "blocker_basis_refs",
+              "resume_stage",
+              "next_action",
+              "resume_condition"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kickoff"
+            ],
+            "properties": {
+              "kickoff": {
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "const": "BLOCKED"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "blocker_id",
+              "blocker_owner",
+              "blocker_reason_code",
               "blocker_basis_refs",
               "resume_stage",
               "next_action",

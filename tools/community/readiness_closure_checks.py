@@ -138,14 +138,10 @@ def assert_goal_closure_refs(
     for index, item in enumerate(closure, start=1):
         if not isinstance(item, dict):
             continue
-        if item.get("goal_ref") != item.get("goal_source_ref"):
-            raise ValueError(
-                f"goal_closure[{index}].goal_ref must match goal_source_ref"
-            )
         assert_ref_resolves(
-            str(item.get("goal_source_ref", "")),
+            str(item.get("goal_ref", "")),
             anchor_index,
-            f"goal_closure[{index}].goal_source_ref",
+            f"goal_closure[{index}].goal_ref",
             split_artifact_ref,
         )
         assert_ref_resolves(
@@ -209,7 +205,7 @@ def assert_partial_waivers(
             f"signoff-package waiver scope_refs must target closed upstream goals: {sorted(unexpected_waiver_refs)}"
         )
     for item in partial:
-        source_ref = str(item.get("goal_source_ref", ""))
+        source_ref = str(item.get("goal_ref", ""))
         if source_ref not in waiver_scope_refs:
             raise ValueError(
                 f"PARTIAL goal closure requires waiver scope_ref for {source_ref}"
@@ -239,7 +235,7 @@ def assert_signoff_closure(
     if not isinstance(closure, list) or not closure:
         raise ValueError("signoff-package goal_closure must be non-empty")
     source_refs = [
-        str(item.get("goal_source_ref", ""))
+        str(item.get("goal_ref", ""))
         for item in closure
         if isinstance(item, dict)
     ]

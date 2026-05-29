@@ -52,9 +52,5 @@ grep -Eq '@AGENTS\.md' "$PROJECT_MEMORY_AUDIT" \
   || fail "project-memory should not require duplicated CLAUDE/AGENTS bodies"
 ! grep -Eq 'tail -n\+2 CLAUDE\.md' "$PROJECT_MEMORY_AUDIT" \
   || fail "project-memory audit should not require duplicated CLAUDE/AGENTS bodies"
-! grep -Eq '正文 diff|grep -c '\''\^## '\'' CLAUDE\.md' "$PROJECT_MEMORY_SKILL" \
-  || fail "project-memory completion proof should not validate CLAUDE.md as duplicated prose"
-! grep -Eq '正文 diff|grep -c '\''\^## '\'' CLAUDE\.md' "$PROJECT_MEMORY_AUDIT" \
-  || fail "project-memory audit should not validate CLAUDE.md as duplicated prose"
 
 printf '[PASS] entry doc source contract\n'

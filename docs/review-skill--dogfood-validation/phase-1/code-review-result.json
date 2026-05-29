@@ -1,0 +1,132 @@
+{
+  "artifact_type": "code-review-result",
+  "artifact_id": "review-skill-dogfood-validation.phase-1.review",
+  "schema_version": "1.0.0",
+  "producer": "review",
+  "produced_at": "2026-05-29T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.gate_result",
+    "$.active_tasks_version_ref",
+    "$.dimension_verdicts",
+    "$.findings",
+    "$.excluded",
+    "$.evidence_integrity",
+    "$.review_conclusion"
+  ],
+  "gate_result": "PASS",
+  "review_round": 2,
+  "active_tasks_version_ref": "artifact://tasks/review-skill-dogfood-validation.phase-1.tasks@dogfood-v1#task-registry",
+  "dimension_verdicts": {
+    "review_a": "REVIEW_A_OK",
+    "review_b": "REVIEW_B_OK",
+    "review_c": "REVIEW_C_OK",
+    "correctness": "OK",
+    "safety": "OK",
+    "error_handling": "OK",
+    "concurrency_state": "OK",
+    "design": "OK",
+    "test_coverage": "OK",
+    "backward_compatibility": "OK",
+    "comment_accuracy": "OK",
+    "performance": "OK",
+    "observability": "OK"
+  },
+  "findings": [],
+  "excluded": [
+    {
+      "issue_id": "EP-A-001",
+      "summary": "nested Agent/subagent invocation regression was investigated and excluded; allowed-tools no longer includes Agent and the runtime contract test only finds forbidden tokens inside its own assertions.",
+      "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#excluded-runtime-contract"
+    },
+    {
+      "issue_id": "EP-B-001",
+      "summary": "missing or malformed evidence_integrity records were investigated and excluded; test-review-canonical-result-gate covers missing, extra, and duplicate EI rows across hook and schema validation.",
+      "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#excluded-missing-ei"
+    },
+    {
+      "issue_id": "EP-C-001",
+      "summary": "quick-gate omission was investigated and excluded; tests/gate-plan.json includes review-canonical-result-gate and review-runtime-contract as quick review canaries.",
+      "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#excluded-quick-gate"
+    }
+  ],
+  "evidence_integrity": {
+    "applicability": "applicable",
+    "trigger_refs": [
+      "shared/skills/review/SKILL.md",
+      "shared/skills/review/contracts/code-review-result.schema.json",
+      "shared/skills/review/scripts/completion_check.sh",
+      "shared/skills/review/templates/code-review-result.template.json",
+      "tests/test-review-canonical-result-gate.sh",
+      "tests/test-review-runtime-contract.sh",
+      "tests/gate-plan.json"
+    ],
+    "checks": [
+      {
+        "id": "EI-1",
+        "status": "EXCLUDED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#ei-1"
+      },
+      {
+        "id": "EI-2",
+        "status": "EXCLUDED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#ei-2"
+      },
+      {
+        "id": "EI-3",
+        "status": "EXCLUDED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#schema-rejects-extra-duplicate-ei"
+      },
+      {
+        "id": "EI-4",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#ei-4"
+      },
+      {
+        "id": "EI-5",
+        "status": "EXCLUDED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#ei-5"
+      },
+      {
+        "id": "EI-6",
+        "status": "EXCLUDED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#schema-gate-aligned"
+      },
+      {
+        "id": "EI-7",
+        "status": "EXCLUDED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#ei-7"
+      },
+      {
+        "id": "EI-8",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#ei-8"
+      },
+      {
+        "id": "EI-9",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#ei-9"
+      },
+      {
+        "id": "EI-10",
+        "status": "EXCLUDED",
+        "evidence_ref": "artifact://evidence/review-skill-dogfood-validation.phase-1.review@dogfood-v1#extra-duplicate-ei-regression"
+      }
+    ]
+  },
+  "review_conclusion": "APPROVE",
+  "resolved_findings": [
+    {
+      "finding_id": "REV-EI-SCHEMA-001",
+      "severity": "S2",
+      "dimension": "design/test_coverage/evidence_integrity",
+      "file_path": "shared/skills/review/contracts/code-review-result.schema.json",
+      "line_number": 241,
+      "status": "RESOLVED",
+      "red_evidence": "Before the schema fix, validate_canonical_schema.py accepted a code-review-result artifact with an eleventh evidence_integrity.checks item while completion_check.sh rejected it.",
+      "green_evidence": "After adding maxItems: 10, per-ID contains constraints, and extra/duplicate EI negative tests, validate_canonical_schema.py rejects extra and duplicate EI rows and tests/test-review-canonical-result-gate.sh passes."
+    }
+  ]
+}

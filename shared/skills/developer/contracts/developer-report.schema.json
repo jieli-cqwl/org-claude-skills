@@ -224,9 +224,6 @@
             "PARTIAL"
           ]
         },
-        "summary_text": {
-          "type": "string"
-        },
         "task_scope": {
           "description": "Developer's self-determined impact scope based on impact analysis; used for self-consistency check and verify review.",
           "type": "array",
@@ -359,7 +356,6 @@
         "artifact_type",
         "task_id",
         "runtime_status",
-        "summary_text",
         "task_scope",
         "active_tasks_version_ref",
         "evidence_refs",
@@ -369,6 +365,13 @@
         "self_testing"
       ],
       "allOf": [
+        {
+          "not": {
+            "required": [
+              "summary_text"
+            ]
+          }
+        },
         {
           "if": {
             "properties": {

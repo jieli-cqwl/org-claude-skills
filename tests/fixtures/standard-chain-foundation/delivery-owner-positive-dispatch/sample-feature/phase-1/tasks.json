@@ -19,7 +19,6 @@
   "tasks": [
     {
       "task_id": "T1",
-      "task_title": "build registry resolver dispatch path",
       "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
       "design_refs": [
         "artifact://design/sample-feature.phase-1.design@v1#interface-boundary"
@@ -57,7 +56,6 @@
     },
     {
       "task_id": "T2",
-      "task_title": "build delivery-state update path",
       "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
       "design_refs": [
         "artifact://design/sample-feature.phase-1.design@v1#interface-boundary"
@@ -95,7 +93,6 @@
     },
     {
       "task_id": "T3",
-      "task_title": "wire readiness validation",
       "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
       "design_refs": [
         "artifact://design/sample-feature.phase-1.design@v1#quality-attributes"

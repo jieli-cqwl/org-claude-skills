@@ -45,6 +45,8 @@ def make_plan(args: Any) -> dict[str, Any]:
     release_branch = branch_name(policy, "release", version=version)
     if args.scenario == "bugfix":
         return make_bugfix_plan(args, policy, version, projects, release_branch)
+    if args.scenario == "bugfix-finish":
+        return make_bugfix_finish_plan(args, policy, version, projects, release_branch)
     if args.scenario == "dev-sync":
         return make_dev_sync_plan(args, registry, version, projects)
     if args.scenario == "release-merge":
@@ -96,11 +98,22 @@ def make_bugfix_plan(
     release_branch: str,
 ) -> dict[str, Any]:
     target_branch = branch_name(policy, "bugfix", version=version)
-    steps = []
-    for repo in projects:
-        steps.append(step(repo, release_branch, target_branch, "create_branch"))
-        steps.append(step(repo, target_branch, release_branch, "merge"))
+    steps = [
+        step(repo, release_branch, target_branch, "create_branch") for repo in projects
+    ]
     return base_plan(args.scenario, version, projects, target_branch, steps)
+
+
+def make_bugfix_finish_plan(
+    args: Any,
+    policy: dict[str, Any],
+    version: str,
+    projects: list[str],
+    release_branch: str,
+) -> dict[str, Any]:
+    target_branch = branch_name(policy, "bugfix", version=version)
+    steps = [step(repo, target_branch, release_branch, "merge") for repo in projects]
+    return base_plan(args.scenario, version, projects, release_branch, steps)
 
 
 def make_dev_sync_plan(

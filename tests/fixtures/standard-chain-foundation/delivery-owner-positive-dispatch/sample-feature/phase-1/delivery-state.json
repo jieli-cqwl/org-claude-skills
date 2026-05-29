@@ -25,8 +25,7 @@
     "environment_ready": true,
     "dependency_ready": true,
     "risk_owner_ready": true,
-    "qa_handoff_ready": true,
-    "blocking_reason": "无"
+    "qa_handoff_ready": true
   },
   "tasks": []
 }

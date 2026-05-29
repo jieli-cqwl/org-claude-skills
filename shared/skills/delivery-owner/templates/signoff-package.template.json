@@ -17,7 +17,6 @@
     "$.sign_off_status",
     "$.business_risk_acceptance_status",
     "$.last_observed_at",
-    "$.runtime_snapshot",
     "$.active_blocker",
     "$.blocker_owner",
     "$.decision_basis_refs",
@@ -30,7 +29,6 @@
   "sign_off_status": "PENDING",
   "business_risk_acceptance_status": "NOT_REQUIRED",
   "last_observed_at": "2026-04-14T00:05:00Z",
-  "runtime_snapshot": "phase closeout is waiting for explicit sign-off",
   "active_blocker": "无",
   "blocker_owner": "无",
   "decision_basis_refs": [
@@ -106,28 +104,24 @@
   "goal_closure": [
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
-      "goal_source_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
       "execution_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
-      "goal_source_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
       "execution_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#ac-001",
-      "goal_source_ref": "artifact://brief/sample-feature.brief@v1#ac-001",
       "execution_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#ac-trace",
       "result": "MET"
     },
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#delivery-plan-phase-1",
-      "goal_source_ref": "artifact://brief/sample-feature.brief@v1#delivery-plan-phase-1",
       "execution_basis_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#execution-basis-refs",
       "evidence_ref": "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
       "result": "MET"

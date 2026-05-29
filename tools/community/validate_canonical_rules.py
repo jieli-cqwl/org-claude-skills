@@ -40,7 +40,6 @@ from update_delivery_state import assert_task_runtime_alignment
 
 TASK_ALLOWED_FIELDS = {
     "task_id",
-    "task_title",
     "task_state",
     "phase_ref",
     "unit_refs",

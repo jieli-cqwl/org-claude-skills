@@ -248,10 +248,10 @@ validate_goal_closure_refs() {
 
   [ -n "$(printf '%s\n' "$rows" | sed '/^$/d')" ] || fail "repo pilot acceptance-summary 缺少目标闭环数据行"
   while IFS=$'\t' read -r goal_ref execution_ref evidence_ref; do
-    [ -n "$goal_ref" ] || fail "repo pilot acceptance-summary 的 goal_source_ref 不能为空"
+    [ -n "$goal_ref" ] || fail "repo pilot acceptance-summary 的 goal_ref 不能为空"
     [ -n "$execution_ref" ] || fail "repo pilot acceptance-summary 的 execution_basis_ref 不能为空"
     [ -n "$evidence_ref" ] || fail "repo pilot acceptance-summary 的 evidence_ref 不能为空"
-    validate_ref_exists "$goal_ref" "$acceptance_dir" "goal_source_ref"
+    validate_ref_exists "$goal_ref" "$acceptance_dir" "goal_ref"
     validate_ref_exists "$execution_ref" "$acceptance_dir" "execution_basis_ref"
     while IFS= read -r evidence_item; do
       [ -n "$evidence_item" ] || continue
@@ -270,11 +270,11 @@ validate_rollout_acceptance_summary() {
     grep -Fq "$heading" "$acceptance_file" || fail "repo pilot acceptance-summary 缺少章节：${heading}"
   done
 
-  for key in kickoff_status plan_version_ref preflight_evidence_ref last_observed_at runtime_snapshot current_plan_version_ref current_plan_version_value qa_report_release_recommendation acceptance_release_recommendation residual_risk uncovered_boundary conditional_release_basis not_executed_reason sign_off_status business_risk_acceptance_status; do
+  for key in kickoff_status plan_version_ref preflight_evidence_ref last_observed_at current_plan_version_ref current_plan_version_value qa_report_release_recommendation acceptance_release_recommendation residual_risk uncovered_boundary conditional_release_basis not_executed_reason sign_off_status business_risk_acceptance_status; do
     assert_scalar_present "$acceptance_file" "$key" "repo pilot acceptance-summary"
   done
 
-  grep -Fq '| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap_text |' "$acceptance_file" || fail "repo pilot acceptance-summary 缺少目标闭环表头"
+  grep -Fq '| 目标 | goal_ref | execution_basis_ref | evidence_ref | result | remaining_gap_text |' "$acceptance_file" || fail "repo pilot acceptance-summary 缺少目标闭环表头"
   validate_goal_closure_refs "$acceptance_file" "$base_dir"
 
   qa_release="$(extract_scalar_field "$qa_file" "release_recommendation")"
@@ -446,7 +446,6 @@ EOF
 
 ## 最新状态摘要
 - last_observed_at: 2026-04-12T10:00:00+08:00
-- runtime_snapshot: full rollout pilot ready
 - active_blocker: 无
 - blocker_owner: 无
 - decision_basis: dev-report.md#${dev_anchor} + qa-report.md#验收汇总 + plan.md#计划版本
@@ -491,7 +490,7 @@ EOF
 - risk_acceptance_basis: 无
 
 ## 目标闭环
-| 目标 | goal_source_ref | execution_basis_ref | evidence_ref | result | remaining_gap_text |
+| 目标 | goal_ref | execution_basis_ref | evidence_ref | result | remaining_gap_text |
 |------|-----------------|---------------------|--------------|--------|--------------------|
 | rollout gate full 覆盖 | brief.md#目标与成功标准 | plan.md#计划版本 | dev-report.md#${dev_anchor} + qa-report.md#qa-a-unit-summary | 已达成 | 无 |
 | 试点包可作为 Full rollout 证据 | prd.md#阶段目标 | test-cases.md#QA-交接契约 | qa-report.md#qa-summary + dev-report.md#fresh-proving-output-task-1 | 已达成 | 无 |
@@ -547,7 +546,7 @@ issue_ledger_anchor: qa-report.md#fail-details
 | UNIT-1 | unit-1 | test-cases.md | OK | - | pilot AC 全通过 |
 
 ### QA_A 交接义务承接
-| UNIT | test_obligation | qa_stage | requiredness | 状态 | evidence | not_executed_reason |
+| UNIT | qa_handoff_obligation | qa_stage | requiredness | 状态 | evidence | not_executed_reason |
 |------|-----------------|----------|--------------|------|----------|---------------------|
 | UNIT-1 | 冒烟 | QA_A | REQUIRED | DONE | qa-report.md#qa-a-unit-summary | N/A |
 | UNIT-1 | API/接口 | QA_A | CONDITIONAL | DONE | qa-report.md#qa-a-unit-summary | N/A |
@@ -702,7 +701,7 @@ expect_rollout_gate_fail "$TMP_ROOT/missing-goal-closure/pilot-evidence.md" "rol
 
 create_rollout_fixture "$TMP_ROOT/invalid-goal-source" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/brief\.md#目标与成功标准/brief.md#missing-goal-anchor/' "$TMP_ROOT/invalid-goal-source/acceptance-summary.md"
-expect_rollout_gate_fail "$TMP_ROOT/invalid-goal-source/pilot-evidence.md" "invalid goal_source_ref should fail rollout gate"
+expect_rollout_gate_fail "$TMP_ROOT/invalid-goal-source/pilot-evidence.md" "invalid goal_ref should fail rollout gate"
 
 create_rollout_fixture "$TMP_ROOT/missing-qa-details" "v1" "v1" "v1" "v1" "total=30; 角色边界=4; Kickoff=4; 偏差治理=4; 完整门禁=4; 目标闭环=5; 证据卫生=5; 团队可用性=4"
 perl -0pi -e 's/\n## 已排除潜在问题[\s\S]*?\n## 结果/\n## 结果/' "$TMP_ROOT/missing-qa-details/qa-report.md"

@@ -22,7 +22,6 @@
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
   "task_id": "T2",
   "runtime_status": "VERIFIED",
-  "summary_text": "runtime state tooling is being verified",
   "reviewable_anchor": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
   "file_changes": [
     "tools/community/update_delivery_state.py",

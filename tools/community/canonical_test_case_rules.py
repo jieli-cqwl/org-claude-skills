@@ -27,23 +27,30 @@ def assert_test_cases_contract(payload: dict, artifacts: list[dict]) -> None:
         return
 
     support = supporting_artifacts(artifacts)
-    _assert_ac_coverage_matrix(payload)
+    _assert_ac_coverage_matrix(payload, support)
     assert_test_case_semantics(payload, support)
     verdict = _assert_review_conclusion(payload)
     _assert_issue_ledger(payload, verdict)
     _assert_qa_handoff_contract(payload, support["design.json"])
 
 
-def _assert_ac_coverage_matrix(payload: dict) -> None:
+def _assert_ac_coverage_matrix(payload: dict, support: dict[str, dict]) -> None:
     case_types = _case_type_index(payload)
+    task_ac_ids = _task_test_ac_ids(support.get("tasks.json"))
     rows = _require_non_empty_list(
         payload.get("ac_coverage_matrix"), "ac_coverage_matrix"
     )
+    coverage_ac_ids: set[str] = set()
     for index, row in enumerate(rows):
         if not isinstance(row, dict):
             raise ValueError(
                 f"test-cases ac_coverage_matrix[{index}] must be an object"
             )
+        ac_id = row.get("ac_id")
+        _require_non_empty_string(ac_id, f"ac_coverage_matrix[{index}].ac_id")
+        if ac_id in coverage_ac_ids:
+            raise ValueError(f"test-cases duplicate ac_coverage_matrix.ac_id: {ac_id}")
+        coverage_ac_ids.add(str(ac_id))
         positive_refs = _require_string_list(
             row.get("positive_case_refs"),
             f"ac_coverage_matrix[{index}].positive_case_refs",
@@ -70,6 +77,37 @@ def _assert_ac_coverage_matrix(payload: dict) -> None:
                 "test-cases negative+boundary coverage must be >= positive coverage "
                 f"for ac_coverage_matrix[{index}]"
             )
+    if task_ac_ids:
+        unknown = sorted(coverage_ac_ids - task_ac_ids)
+        if unknown:
+            raise ValueError(
+                "test-cases ac_coverage_matrix.ac_id contains unknown task test_refs: "
+                f"{unknown}"
+            )
+        missing = sorted(task_ac_ids - coverage_ac_ids)
+        if missing:
+            raise ValueError(
+                "test-cases ac_coverage_matrix must cover every task test_refs AC anchor: "
+                f"{missing}"
+            )
+
+
+def _task_test_ac_ids(tasks: dict | None) -> set[str]:
+    if not isinstance(tasks, dict):
+        return set()
+    ac_ids: set[str] = set()
+    for task in tasks.get("tasks", []):
+        if not isinstance(task, dict):
+            continue
+        for ref in task.get("test_refs", []):
+            if not isinstance(ref, str):
+                continue
+            if not ref.startswith("artifact://test-cases/") or "#" not in ref:
+                continue
+            anchor = ref.rsplit("#", 1)[1]
+            if anchor.startswith("AC-"):
+                ac_ids.add(anchor)
+    return ac_ids
 
 
 def _case_type_index(payload: dict) -> dict[str, str]:

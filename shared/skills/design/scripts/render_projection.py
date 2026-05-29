@@ -156,7 +156,7 @@ def render_adr(
     index: int,
 ) -> str:
     decision_id = one_line(decision.get("decision_id")) or f"D-{index:03d}"
-    title = one_line(decision.get("summary")) or decision_id
+    title = decision_id
     selected = next(
         (
             option
@@ -180,10 +180,9 @@ def render_adr(
             f"### ADR-{index:03d}: {title[:80]}",
             "",
             f"Decision: {decision_id}",
-            "Status: Accepted",
+            f"Status: {one_line(decision.get('decision_state'))}",
             f"Selected Option: {selected_summary}",
             f"Evaluation: {decision_basis}",
-            f"User Confirmation: {one_line(decision.get('user_confirmation'))}",
             f"Evidence Refs: {', '.join(fact_refs)}",
             "",
             "## Alternatives",

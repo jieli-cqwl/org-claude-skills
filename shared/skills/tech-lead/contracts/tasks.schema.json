@@ -45,7 +45,6 @@
             "type": "object",
             "required": [
               "task_id",
-              "task_title",
               "phase_ref",
               "unit_refs",
               "scope_item_refs",
@@ -63,9 +62,6 @@
             ],
             "properties": {
               "task_id": {
-                "type": "string"
-              },
-              "task_title": {
                 "type": "string"
               },
               "phase_ref": {

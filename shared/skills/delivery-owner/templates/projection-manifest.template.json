@@ -21,8 +21,8 @@
         "artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary"
       ],
       "json_pointers": [
-        "/summary_text",
         "/current_stage",
+        "/status",
         "/control_action"
       ]
     }

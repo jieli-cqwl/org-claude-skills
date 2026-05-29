@@ -239,6 +239,7 @@
             "checks": {
               "type": "array",
               "minItems": 10,
+              "maxItems": 10,
               "items": {
                 "type": "object",
                 "required": [
@@ -285,7 +286,129 @@
                   }
                 },
                 "additionalProperties": false
-              }
+              },
+              "allOf": [
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-1"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-2"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-3"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-4"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-5"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-6"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-7"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-8"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-9"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "id": {
+                        "const": "EI-10"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                }
+              ]
             }
           },
           "allOf": [

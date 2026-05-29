@@ -689,7 +689,6 @@ tasks_path = Path(sys.argv[1])
 payload = json.loads(tasks_path.read_text(encoding="utf-8"))
 payload["tasks"].append({
     "task_id": "T3",
-    "task_title": "missing runtime evidence",
     "phase_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
     "unit_refs": [],
     "scope_item_refs": [],
@@ -1279,7 +1278,6 @@ from pathlib import Path
 signoff_path = Path(sys.argv[1])
 signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
 signoff["goal_closure"][0]["goal_ref"] = "artifact://brief/sample-feature.brief@v1#goal-002"
-signoff["goal_closure"][0]["goal_source_ref"] = "artifact://brief/sample-feature.brief@v1#goal-002"
 signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 if python3 "$SCRIPT" \
@@ -1288,35 +1286,6 @@ if python3 "$SCRIPT" \
   --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_duplicate_goal_closure.out 2>&1; then
   cat /tmp/t6_duplicate_goal_closure.out >&2
   fail "readiness gate should reject signoff goal_closure that duplicates another goal while omitting a required business goal"
-fi
-
-cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/signoff-goal-ref-drift"
-python3 - \
-  "$TMP_DIR/signoff-goal-ref-drift/phase-1/signoff-package.json" \
-  "$TMP_DIR/signoff-goal-ref-drift/phase-1/replay/phase-operational.replay-oracle.json" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-signoff_path = Path(sys.argv[1])
-oracle_path = Path(sys.argv[2])
-
-signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
-signoff["goal_closure"][0]["goal_ref"] = "artifact://brief/sample-feature.brief@v1#goal-002"
-signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-oracle = json.loads(oracle_path.read_text(encoding="utf-8"))
-oracle["artifacts"]["signoff-package"]["goal_closure[].result"] = [
-    row["result"] for row in signoff["goal_closure"]
-]
-oracle_path.write_text(json.dumps(oracle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-PY
-if python3 "$SCRIPT" \
-  --phase-dir "$TMP_DIR/signoff-goal-ref-drift/phase-1" \
-  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
-  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_signoff_goal_ref_drift.out 2>&1; then
-  cat /tmp/t6_signoff_goal_ref_drift.out >&2
-  fail "readiness gate should reject signoff goal_ref drift from goal_source_ref"
 fi
 
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/signoff-extra-goal-closure"
@@ -1333,7 +1302,6 @@ oracle_path = Path(sys.argv[2])
 signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
 extra = dict(signoff["goal_closure"][0])
 extra["goal_ref"] = "artifact://brief/sample-feature.brief@v1#goal-extra"
-extra["goal_source_ref"] = "artifact://brief/sample-feature.brief@v1#goal-extra"
 signoff["goal_closure"].append(extra)
 signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -1360,7 +1328,6 @@ from pathlib import Path
 signoff_path = Path(sys.argv[1])
 signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
 signoff["goal_closure"][1]["goal_ref"] = "artifact://brief/sample-feature.brief@v1#goal-999"
-signoff["goal_closure"][1]["goal_source_ref"] = "artifact://brief/sample-feature.brief@v1#goal-999"
 signoff["waiver_entries"][0]["scope_refs"] = ["artifact://brief/sample-feature.brief@v1#goal-999"]
 signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY

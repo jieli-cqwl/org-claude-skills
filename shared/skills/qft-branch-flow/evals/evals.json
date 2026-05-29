@@ -44,8 +44,8 @@
         "展示 APP qft-harmonyos-vue3 和 H5 qft-universal.gitersal。",
         "来源版本分支为 V.0301。",
         "目标 BUG 分支为 3.0.0.MASTER_BUG_0301。",
-        "合并方向是 BUG 分支到 V.0301。",
-        "计划包含修复后将 BUG 分支合回 V.0301。",
+        "计划只包含从 V.0301 创建 BUG 分支，不包含修复后合回。",
+        "说明修复完成后需要另行执行 bugfix-finish 将 BUG 分支合回 V.0301。",
         "本地 Git 写操作确认和 push 确认是分开的。",
         "push 单独确认。"
       ],

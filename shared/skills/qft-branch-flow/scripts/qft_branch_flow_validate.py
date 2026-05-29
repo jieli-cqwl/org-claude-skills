@@ -41,6 +41,7 @@ def validate_plan(plan: dict[str, Any]) -> None:
         "create-dev": validate_create_dev,
         "dev-sync": validate_dev_sync,
         "bugfix": validate_bugfix,
+        "bugfix-finish": validate_bugfix_finish,
         "release-merge": validate_release_merge,
         "release-sync-before": validate_release_sync_before,
         "release-sync-after": validate_release_sync_after,
@@ -59,7 +60,7 @@ def validate_shape(plan: dict[str, Any], registry: dict[str, dict[str, str]]) ->
     if not isinstance(plan["target_branch"], str) or not plan["target_branch"]:
         raise FlowError("target_branch must be non-empty string")
     validate_steps(plan["steps"], projects)
-    validate_push(plan["push"], projects)
+    validate_push(plan["push"])
 
 
 def require_plan_fields(plan: dict[str, Any]) -> None:
@@ -132,27 +133,19 @@ def validate_step(item: Any, index: int, projects: set[str]) -> None:
             raise FlowError(f"step {index} {key} must be non-empty string")
 
 
-def validate_push(push: Any, projects: set[str]) -> None:
+def validate_push(push: Any) -> None:
     if not isinstance(push, dict):
         raise FlowError("push must be an object")
     require_exact_fields(push, {"confirmed", "branches"}, "push")
     if not isinstance(push["confirmed"], bool):
         raise FlowError("push.confirmed must be boolean")
+    if push["confirmed"]:
+        raise FlowError("push.confirmed must be false before local execution")
     branches = push["branches"]
     if not isinstance(branches, list):
         raise FlowError("push.branches must be an array")
-    for index, item in enumerate(branches, start=1):
-        validate_push_branch(item, index, projects)
-
-
-def validate_push_branch(item: Any, index: int, projects: set[str]) -> None:
-    if not isinstance(item, dict):
-        raise FlowError(f"push branch {index} must contain repo and branch")
-    require_exact_fields(item, {"repo", "branch"}, f"push branch {index}")
-    if item["repo"] not in projects:
-        raise FlowError(f"push branch {index} repo is not selected: {item['repo']}")
-    if not isinstance(item["branch"], str) or not item["branch"]:
-        raise FlowError(f"push branch {index} branch must be non-empty string")
+    if branches:
+        raise FlowError("push.branches must be empty before local execution")
 
 
 def require_exact_fields(item: dict[str, Any], fields: set[str], label: str) -> None:
@@ -219,12 +212,29 @@ def validate_bugfix(
     release_branch = branch_name(policy, "release", version=plan["version"])
     expected_target = branch_name(policy, "bugfix", version=plan["version"])
     require_target(plan, expected_target)
-    expected_steps = []
-    for repo in plan["projects"]:
-        expected_steps.append((repo, release_branch, expected_target, "create_branch"))
-        expected_steps.append((repo, expected_target, release_branch, "merge"))
+    expected_steps = [
+        (repo, release_branch, expected_target, "create_branch")
+        for repo in plan["projects"]
+    ]
     require_steps(
-        plan, expected_steps, f"bugfix must merge BUG branch back to {release_branch}"
+        plan, expected_steps, f"bugfix must create BUG branch from {release_branch}"
+    )
+
+
+def validate_bugfix_finish(
+    plan: dict[str, Any], registry: dict[str, dict[str, str]], policy: dict[str, Any]
+) -> None:
+    del registry
+    release_branch = branch_name(policy, "release", version=plan["version"])
+    bug_branch = branch_name(policy, "bugfix", version=plan["version"])
+    require_target(plan, release_branch)
+    expected_steps = [
+        (repo, bug_branch, release_branch, "merge") for repo in plan["projects"]
+    ]
+    require_steps(
+        plan,
+        expected_steps,
+        f"bugfix-finish must merge BUG branch back to {release_branch}",
     )
 
 

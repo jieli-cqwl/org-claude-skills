@@ -72,12 +72,9 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
         "key_decisions": [
             {
                 "decision_id": "D-001",
-                "summary": "采用单入口消息编排模块承接回调、上下文装配、agent 调度和建议回复生成。",
                 "decision_state": "已冻结",
-                "verdict": "selected",
                 "option_ref": "OPT-001",
                 "fact_refs": ["design.json#runtime_facts[0]"],
-                "user_confirmation": "PM 已确认 P0 先证明单渠道文本消息闭环，设计只冻结边界和验证义务。",
             }
         ],
         "option_analysis": [
@@ -172,7 +169,6 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
             }
         ],
         "data_architecture": {
-            "summary": "单闭环围绕 message_id、tenant_id、conversation_id 和 trace_id 建立状态记录；建议回复只作为待确认数据。",
             "storage_decisions": [
                 "保留原始回调摘要、上下文来源摘要、agent 调度结果和人工确认状态"
             ],
@@ -210,8 +206,6 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
         "verification_mapping": [
             {
                 "manager_vp_ref": "phase-prd.exit_conditions[0]",
-                "design_validation": "输入单条文本回调后必须形成建议回复包和人工确认状态。",
-                "test_obligation": "test-design 必须覆盖成功、上下文缺失和 agent 调度失败三类路径。",
                 "evidence_ref": "VP-001",
             }
         ],
@@ -289,7 +283,6 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
                 "本阶段不承诺多渠道统一接入",
                 "本阶段不进入代码实现",
             ],
-            "confirmation_summary": "PM 冻结的 WHAT 和非目标全部继承，design 只冻结 HOW 边界。",
         },
     }
     reviewed_digest = reviewed_design_digest(design)
@@ -323,7 +316,6 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
         "status": "confirmed",
         "confirmed_by": "design",
         "confirmed_at": "2026-05-14T02:25:00Z",
-        "summary": "设计包已冻结，可交给 test-design 生成测试义务和用例。",
         "accepted_refs": [
             "design.json#key_decisions[0].decision_id",
             "design.json#interfaces[0].interface_id",

@@ -11,10 +11,8 @@
     "$.test_analysis",
     "$.traceability_matrix",
     "$.ac_coverage_matrix",
-    "$.equivalence_matrix",
     "$.test_cases",
     "$.qa_handoff_contract",
-    "$.unit_coverage_view",
     "$.design_gap_report",
     "$.cross_unit_obligations",
     "$.special_test_triggers",
@@ -22,18 +20,6 @@
     "$.issue_ledger"
   ],
   "test_analysis": {
-    "objectives": [
-      "Prove the selected UNIT satisfies product acceptance criteria and design verification obligations before implementation starts."
-    ],
-    "in_scope": [
-      "UNIT-1 acceptance criteria",
-      "design verification mapping",
-      "QA handoff obligations"
-    ],
-    "out_of_scope": [
-      "QA execution results",
-      "release sign-off"
-    ],
     "risk_model": [
       {
         "risk_ref": "design.json#risk_response[0].risk_id",
@@ -57,17 +43,11 @@
         ],
         "expected_checkpoint": "artifact map is generated and validated"
       }
-    ],
-    "environment_assumptions": [
-      "canonical schema validation runs locally with jq and Python available"
-    ],
-    "data_assumptions": [
-      "fixture bundle contains stable UNIT and design refs"
     ]
   },
   "traceability_matrix": [
     {
-      "product_ref": "phase-prd.json#acceptance_summary[0]",
+      "product_ref": "brief.json#business_goals[0]",
       "unit_ref": "UNIT-1.json#unit_id",
       "ac_ref": "UNIT-1.json#acceptance_criteria[0].ac_id",
       "design_ref": "design.json#verification_mapping[0].manager_vp_ref",
@@ -80,9 +60,6 @@
   "ac_coverage_matrix": [
     {
       "ac_id": "AC-1",
-      "covers": [
-        "bundle digest"
-      ],
       "positive_case_refs": [
         "TC-1"
       ],
@@ -92,11 +69,6 @@
       "boundary_case_refs": [
         "TC-3"
       ]
-    }
-  ],
-  "equivalence_matrix": [
-    {
-      "class": "valid-bundle"
     }
   ],
   "test_cases": [
@@ -245,15 +217,6 @@
       ]
     }
   ],
-  "unit_coverage_view": [
-    {
-      "unit_id": "UNIT-1",
-      "ac_ids": [
-        "AC-1"
-      ],
-      "coverage_status": "COVERED"
-    }
-  ],
   "design_gap_report": {
     "status": "HAS_GAPS",
     "gaps": [
@@ -273,7 +236,6 @@
   "cross_unit_obligations": [
     {
       "journey_id": "J-RUNTIME-CONTROL",
-      "journey_title": "runtime control validation journey",
       "participant_unit_refs": [
         "UNIT-1.json#unit_id"
       ],

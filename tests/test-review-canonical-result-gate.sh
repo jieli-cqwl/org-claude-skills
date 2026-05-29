@@ -138,6 +138,20 @@ remove_evidence_integrity() {
   mv "$target.tmp" "$target"
 }
 
+append_extra_evidence_integrity_check() {
+  local target="$1"
+
+  jq '.evidence_integrity.checks += [.evidence_integrity.checks[0]]' "$target" > "$target.tmp"
+  mv "$target.tmp" "$target"
+}
+
+duplicate_evidence_integrity_check_id() {
+  local target="$1"
+
+  jq '.evidence_integrity.checks[9].id = .evidence_integrity.checks[0].id' "$target" > "$target.tmp"
+  mv "$target.tmp" "$target"
+}
+
 valid_workspace="$TMP_ROOT/valid"
 prepare_workspace "$valid_workspace"
 run_review_hook "$valid_workspace" "review-valid"
@@ -184,6 +198,26 @@ assert_hook_blocked_with \
   "missing evidence integrity record" \
   "evidence_integrity"
 assert_schema_rejects_phase "$missing_ei_workspace" "missing evidence integrity schema"
+
+extra_ei_workspace="$TMP_ROOT/extra-evidence-integrity-check"
+prepare_workspace "$extra_ei_workspace"
+append_extra_evidence_integrity_check "$(review_result_path "$extra_ei_workspace")"
+run_review_hook "$extra_ei_workspace" "review-extra-evidence-integrity-check"
+assert_hook_blocked_with \
+  "$extra_ei_workspace" \
+  "extra evidence integrity check" \
+  "exactly one EI-1..EI-10 check"
+assert_schema_rejects_phase "$extra_ei_workspace" "extra evidence integrity check schema"
+
+duplicate_ei_workspace="$TMP_ROOT/duplicate-evidence-integrity-check-id"
+prepare_workspace "$duplicate_ei_workspace"
+duplicate_evidence_integrity_check_id "$(review_result_path "$duplicate_ei_workspace")"
+run_review_hook "$duplicate_ei_workspace" "review-duplicate-evidence-integrity-check-id"
+assert_hook_blocked_with \
+  "$duplicate_ei_workspace" \
+  "duplicate evidence integrity check id" \
+  "exactly one EI-1..EI-10 check"
+assert_schema_rejects_phase "$duplicate_ei_workspace" "duplicate evidence integrity check schema"
 
 line_workspace="$TMP_ROOT/line-out-of-range"
 prepare_workspace "$line_workspace"

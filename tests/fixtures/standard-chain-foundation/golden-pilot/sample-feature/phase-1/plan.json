@@ -16,8 +16,6 @@
     "$.execution_basis_refs",
     "$.planning_mode",
     "$.plan_version",
-    "$.scope_freeze",
-    "$.task_list",
     "$.planning_readiness",
     "$.implementation_path",
     "$.goal_fidelity_review",
@@ -38,14 +36,6 @@
   "evidence_refs": [],
   "planning_mode": "standard-chain",
   "plan_version": "plan-v2",
-  "scope_freeze": [
-    "T1",
-    "T2"
-  ],
-  "task_list": [
-    "T1",
-    "T2"
-  ],
   "goal_fidelity_review": [
     {
       "goal_ref": "artifact://brief/sample-feature.brief@v1#goal-001",
@@ -73,7 +63,6 @@
   },
   "planning_readiness": {
     "status": "READY",
-    "summary": "design inputs are sufficient for standard-chain planning",
     "blocking_gaps": [],
     "decision_package": {
       "required": false,
@@ -85,14 +74,12 @@
     "wbs": [
       {
         "work_package_id": "WP-1",
-        "title": "Work package 1",
         "task_refs": [
           "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1"
         ]
       },
       {
         "work_package_id": "WP-2",
-        "title": "Work package 2",
         "task_refs": [
           "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2"
         ]
@@ -101,16 +88,6 @@
     "critical_path": [
       "T1",
       "T2"
-    ],
-    "parallel_batches": [
-      {
-        "batch": 1,
-        "task_refs": [
-          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
-          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2"
-        ],
-        "parallelizable": true
-      }
     ],
     "investment_risk_signals": [
       {

@@ -24,8 +24,7 @@
         "environment_ready": true,
         "dependency_ready": true,
         "risk_owner_ready": true,
-        "qa_handoff_ready": true,
-        "blocking_reason": "无"
+        "qa_handoff_ready": true
       },
       "blocker_id": "BLOCK-001",
       "blocked_from_stage": "TASK_EXECUTION",
@@ -226,7 +225,6 @@
       "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
       "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
       "last_observed_at": "2026-04-14T03:39:00Z",
-      "runtime_snapshot": "phase gates are green with signed-off residual automation risk",
       "decision_basis_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
         "artifact://code-review-result/sample-feature.phase-1.review@v1#round-1",
@@ -288,8 +286,8 @@
             "artifact://delivery-state/sample-feature.phase-1.delivery-state@active#phase-summary"
           ],
           "json_pointers": [
-            "/summary_text",
             "/current_stage",
+            "/status",
             "/control_action"
           ]
         },
@@ -332,7 +330,7 @@
         }
       },
       "rendered_artifact_ref": "artifact://projection-manifest/sample-feature.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
-      "rendered_content_digest": "sha256:62a8a52229a20862e7661e050875aa560aff1bdb94d4cdcc4118b5cd92c6a1dc"
+      "rendered_content_digest": "sha256:f187a95950560b1b62d0e5d2c6c433cf56a2977d00710b131a72f217c95ccf9c"
     }
   },
   "proof": {

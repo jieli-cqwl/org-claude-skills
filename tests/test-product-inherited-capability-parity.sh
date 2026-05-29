@@ -68,7 +68,6 @@ assert_absent 'references/product-thinking-contract\.md' "$DIRECTOR_SKILL"
 assert_present 'references/review-orchestration\.md' "$MANAGER_SKILL"
 assert_absent 'references/review-orchestration\.md#|references/[^`[:space:]]+-contract\.md|Contract v1' "$MANAGER_SKILL"
 
-assert_present '召集 agent teams' "$MANAGER_REVIEW_ORCHESTRATION"
 assert_present '^allowed-tools: .*TeamCreate' "$MANAGER_SKILL"
 assert_present '^allowed-tools: .*SendMessage' "$MANAGER_SKILL"
 assert_present '^allowed-tools: .*TeamDelete' "$MANAGER_SKILL"
@@ -81,7 +80,6 @@ assert_terms_present "$MANAGER_REVIEW_ORCHESTRATION" "projection source boundary
 
 assert_present 'PR-\* / AR-\* / TR-\* / HIS-\*' "$MANAGER_REVIEW_TEMPLATE"
 assert_present 'Review Round' "$MANAGER_REVIEW_TEMPLATE"
-assert_present '未关闭 Issue IDs' "$MANAGER_REVIEW_TEMPLATE"
 assert_present 'Issue Count.*PR-\* / AR-\* / TR-\*' "$MANAGER_REVIEW_TEMPLATE"
 assert_present 'HIS-\*' "$MANAGER_REVIEW_TEMPLATE"
 

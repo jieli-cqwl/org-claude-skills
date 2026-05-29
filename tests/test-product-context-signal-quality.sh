@@ -99,44 +99,6 @@ assert_audit_round_count() {
   fi
 }
 
-assert_manager_review_owner_boundary() {
-  local file="$1"
-  python3 - "$file" <<'PY'
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-text = path.read_text(encoding="utf-8")
-requirements = {
-    "handoff_gate": ["handoff", "阻断"],
-    "review_step": ["Agent review", "评审"],
-    "delivery_confirmation": ["Delivery", "交付确认"],
-}
-missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
-if missing:
-    raise SystemExit(f"{path}: missing manager review owner boundary: {', '.join(missing)}")
-PY
-}
-
-assert_manager_warn_carryover_contract() {
-  local file="$1"
-  python3 - "$file" <<'PY'
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-text = path.read_text(encoding="utf-8")
-requirements = {
-    "warn": ["WARN"],
-    "review_conclusion": ["review_conclusion"],
-    "issue_ledger": ["issue_ledger"],
-}
-missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
-if missing:
-    raise SystemExit(f"{path}: missing manager WARN carryover contract: {', '.join(missing)}")
-PY
-}
-
 assert_director_evaluator_rejects_missing_phase_goal() {
   local evaluator="$1"
   python3 - "$evaluator" <<'PY'
@@ -223,23 +185,6 @@ if "phase-prd.json.phase_goal must be a non-empty string" not in failures:
 PY
 }
 
-assert_manager_fail_rerun_contract() {
-  local file="$1"
-  python3 - "$file" <<'PY'
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-text = path.read_text(encoding="utf-8")
-requirements = {
-    "fail_view_rerun": ["FAIL", "重新提交", "视角", "评审"],
-}
-missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
-if missing:
-    raise SystemExit(f"{path}: missing manager FAIL rerun contract: {', '.join(missing)}")
-PY
-}
-
 DIRECTOR_SKILL="$ROOT/shared/skills/product-director/SKILL.md"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
 DIRECTOR_PROBLEM_GUIDE="$ROOT/shared/skills/product-director/references/problem-clarification.md"
@@ -280,24 +225,11 @@ test -f "$DESIGN_TEMPLATE" || fail "missing design template: $DESIGN_TEMPLATE"
 test -f "$TECH_LEAD_SKILL" || fail "missing tech-lead skill: $TECH_LEAD_SKILL"
 
 assert_absent '至少 10 轮|10 轮审计|审计结果进入任务证据|T7|T8' "$DESIGN_DOC" "design doc process noise"
-assert_manager_review_owner_boundary "$MANAGER_SKILL" "manager review owner boundary"
-assert_section_present "$MANAGER_SKILL" "## The Process" '\*\*Agent review\*\*' "manager review owner boundary"
-assert_section_present "$MANAGER_SKILL" "## The Process" 'reviewed_bundle_digest' "manager review owner boundary"
 
 assert_present 'brief\.json\.review_conclusion' "$MANAGER_REVIEW" "manager review artifact definition"
 assert_present 'issue_ledger' "$MANAGER_REVIEW" "manager review artifact definition"
-
-assert_section_present "$DIRECTOR_SKILL" "## 流程" '"Explore demand context" -> "Ask one clarifying question"' "director flow sequence"
-assert_section_present "$DIRECTOR_SKILL" "## 流程" 'Self-review and gates' "director flow diagram"
-assert_section_present "$MANAGER_SKILL" "## 流程" '"AC" -> "Verification Plan"' "manager flow sequence"
-assert_section_present "$MANAGER_SKILL" "## 流程" 'Verification Plan' "manager flow diagram"
-assert_section_present "$MANAGER_SKILL" "## The Process" '\*\*Verification Plan\*\*' "manager flow details"
-assert_section_present "$MANAGER_SKILL" "## The Process" '\*\*Handoff gate\*\*' "manager flow details"
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$DIRECTOR_SKILL" "director flow narrative noise"
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$MANAGER_SKILL" "manager flow narrative noise"
-assert_section_present "$DIRECTOR_SKILL" "## The Process" 'references/problem-clarification\.md' "director natural process"
-assert_section_present "$DIRECTOR_SKILL" "## The Process" 'references/final-artifacts\.md' "director finalization route"
-assert_section_absent "$DIRECTOR_SKILL" "## The Process" '\| Step \| Read \| Advance when \| Stop when \|' "director process table noise"
 assert_absent 'references/conversation-guide\.md' "$DIRECTOR_SKILL" "director removed conversation guide"
 python3 - "$DIRECTOR_SKILL" <<'PY'
 import re
@@ -313,19 +245,10 @@ for forbidden in [
         raise SystemExit(f"unexpected Director section: {forbidden}")
 PY
 assert_section_absent "$DIRECTOR_SKILL" "## HARD-GATE" 'director_confirmation|locked_field_digest' "director runtime-lock noise"
-assert_absent 'digest|locked_field|director_confirmation' "$DIRECTOR_FINAL_GUIDE" "director runtime-lock finalization noise"
 assert_present 'product-director-ledger\.json' "$DIRECTOR_FINAL_GUIDE" "director ledger artifact boundary"
 assert_director_evaluator_rejects_missing_phase_goal "$DIRECTOR_CONTENT_EVALUATOR"
 
-
-
-
-assert_present '召集 agent teams' "$MANAGER_REVIEW" "review orchestration"
-assert_present '3 视角×max10轮' "$MANAGER_REVIEW" "review orchestration"
 assert_present 'CONFIRMATION' "$MANAGER_REVIEW" "review orchestration"
-assert_manager_fail_rerun_contract "$MANAGER_REVIEW"
-assert_manager_warn_carryover_contract "$MANAGER_REVIEW" "review orchestration"
-
 assert_audit_round_count "$AUDIT_LOOP_RECORD" 10
 
 if [ "$failures" -ne 0 ]; then

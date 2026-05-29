@@ -108,6 +108,9 @@ from pathlib import Path
 
 phase_dir = Path(sys.argv[1])
 manifest = json.loads((phase_dir / "views/phase-operational.projection-manifest.json").read_text(encoding="utf-8"))
+phase_summary = manifest["section_source_map"]["phase-summary"]
+assert "/summary_text" not in phase_summary["json_pointers"]
+assert "/status" in phase_summary["json_pointers"]
 scenario = {
     "artifacts": [manifest],
     "projection": {
@@ -136,7 +139,7 @@ from pathlib import Path
 
 path = Path(sys.argv[1])
 payload = json.loads(path.read_text(encoding="utf-8"))
-payload["summary_text"] = "</pre><script>alert(1)</script>"
+payload["status"] = "</pre><script>alert(1)</script>"
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 python3 "$ROOT/tools/community/materialize_canonical_html.py" \

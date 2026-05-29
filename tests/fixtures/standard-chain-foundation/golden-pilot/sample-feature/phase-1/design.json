@@ -37,27 +37,21 @@
   "key_decisions": [
     {
       "decision_id": "D-001",
-      "summary": "registry controls path discovery",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-001-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final standard-chain runtime design outcome for downstream handoff."
+      ]
     },
     {
       "decision_id": "D-002",
-      "summary": "delivery-state controls phase stage",
       "decision_state": "已冻结",
-      "verdict": "selected",
       "option_ref": "OPT-D-002-A",
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
-      ],
-      "user_confirmation": "User confirmed the final standard-chain runtime design outcome for downstream handoff."
+      ]
     }
   ],
   "option_analysis": [
@@ -260,7 +254,6 @@
     }
   ],
   "data_architecture": {
-    "summary": "Standard-chain runtime control data is stored in canonical JSON artifacts and resolved through the active registry.",
     "storage_decisions": [
       "artifact-registry.json stores active artifact revisions",
       "delivery-state.json stores phase and task runtime status"
@@ -308,20 +301,14 @@
   "verification_mapping": [
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "standard-chain phase validation must pass against the golden phase directory",
-      "test_obligation": "cover schema, registry, readiness, and replay oracle checks",
       "evidence_ref": "VP-DESIGN-001"
     },
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "VP-DESIGN-002 must be covered by the design verification closure.",
-      "test_obligation": "Carry VP-DESIGN-002 into downstream test-design, verify, or release evidence.",
       "evidence_ref": "VP-DESIGN-002"
     },
     {
       "manager_vp_ref": "phase-prd.exit_conditions[0]",
-      "design_validation": "VP-DESIGN-003 must be covered by the design verification closure.",
-      "test_obligation": "Carry VP-DESIGN-003 into downstream test-design, verify, or release evidence.",
       "evidence_ref": "VP-DESIGN-003"
     }
   ],
@@ -409,30 +396,29 @@
       "canonical JSON remains the runtime source of truth",
       "validators fail closed when required handoff evidence is missing"
     ],
-    "rejected_constraints": [],
-    "confirmation_summary": "User confirmed inherited runtime-control constraints before freezing design decisions."
+    "rejected_constraints": []
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:e09c39b4f73590e06955489baca8643b2bb733a57b93b26048399775145ee0ec",
+    "reviewed_design_digest": "sha256:d868f43aeeb137114ec5997a372357d46f9b2d56e9dc5c3ea8a6998bb7ae533c",
     "reviewed_at": "2026-04-14T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:e09c39b4f73590e06955489baca8643b2bb733a57b93b26048399775145ee0ec"
+        "reviewed_design_digest": "sha256:d868f43aeeb137114ec5997a372357d46f9b2d56e9dc5c3ea8a6998bb7ae533c"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:e09c39b4f73590e06955489baca8643b2bb733a57b93b26048399775145ee0ec"
+        "reviewed_design_digest": "sha256:d868f43aeeb137114ec5997a372357d46f9b2d56e9dc5c3ea8a6998bb7ae533c"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:e09c39b4f73590e06955489baca8643b2bb733a57b93b26048399775145ee0ec"
+        "reviewed_design_digest": "sha256:d868f43aeeb137114ec5997a372357d46f9b2d56e9dc5c3ea8a6998bb7ae533c"
       }
     ],
     "resolved_failures": [],
@@ -442,7 +428,6 @@
     "status": "confirmed",
     "confirmed_by": "user",
     "confirmed_at": "2026-04-14T00:00:00Z",
-    "summary": "User confirmed the final standard-chain runtime design outcome for downstream handoff.",
     "accepted_refs": [
       "design.json#key_decisions",
       "design.json#interfaces",

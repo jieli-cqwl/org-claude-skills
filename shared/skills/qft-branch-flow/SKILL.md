@@ -19,7 +19,7 @@ model: sonnet
 4. 操作计划必须由 `scripts/qft_branch_flow.py plan` 生成，并由 `scripts/qft_branch_flow.py validate` 校验通过；不要手写最终执行计划。
 5. Git 写操作前必须先确认已校验计划，再确认执行。
 6. push 必须在本地创建/合并完成后单独确认。
-7. 工作区不干净、来源分支缺失、目标分支冲突或 remote 不匹配时，阻塞对应项目；不要静默跳过。
+7. 工作区不干净、remote 不匹配、preflight 阻塞或用户未确认时，阻塞对应项目；不要静默跳过。
 
 ## Workflow
 
@@ -29,8 +29,8 @@ model: sonnet
 | 2. 项目确认 | 项目编号列表 | 展示业务名、仓库名和主分支 | 已确认 project set | 未知项目或未确认则停留本步 |
 | 3. 分支信息确认 | 场景所需字段 | 生成或识别分支名并回显 | 已确认 branch inputs | 字段缺失或用户修改则回到本步 |
 | 4. 计划生成与校验 | scenario、projects、branch inputs | 调用 `plan` 生成 JSON，再调用 `validate` 校验 | 已校验 plan.json | validate 失败则阻塞 Git 检查 |
-| 5. 执行前检查 | 已校验 plan.json | 检查仓库、remote、工作区、来源分支、目标分支和同步状态 | 通过/阻塞项目分组 | 存在阻塞时由用户选择继续范围 |
-| 6. 执行与 push | 用户确认执行或推送 | 执行本地 Git 操作；push 单独确认 | 完成、未执行、下一步 | 冲突或 Git 失败时停止并报告项目状态 |
+| 5. 执行前检查 | 已校验 plan.json | 调用 `preflight` 输出结构化检查结果 | 通过/阻塞项目分组 | preflight 非 0 或存在 blocker 时阻塞对应项目 |
+| 6. 执行与 push | 用户确认执行或推送 | 只对 preflight 通过项目执行本地 Git 操作；push 单独确认 | 完成、未执行、下一步 | 冲突或 Git 失败时停止并报告项目状态 |
 
 ## 分支规范
 
@@ -59,7 +59,7 @@ model: sonnet
 合并方向：
 
 - 业务提测/发版：业务开发分支 -> `V.版本号` -> 项目主分支。
-- 紧急 BUG：先从 `V.版本号` 创建紧急 BUG 分支，修复完成后再将紧急 BUG 分支合回 `V.版本号`，最后由 `V.版本号` 回合项目主分支。
+- 线上 BUG：先执行 `bugfix` 从 `V.版本号` 创建紧急 BUG 分支；修复完成后再执行 `bugfix-finish` 将 BUG 分支合回 `V.版本号`。两个阶段必须分开确认，不得在创建 BUG 分支时同时合回。
 - 日常同步：项目主分支 -> 当前业务开发分支。
 - 上线前同步：项目主分支 -> `V.版本号`。
 - 业务分支和 BUG 分支同时存在时，以业务分支为准。
@@ -73,7 +73,12 @@ model: sonnet
 - 计划结构以 `contracts/branch-plan.schema.json` 为准。Load timing: 第 4 步生成计划前读取；purpose: 校验计划字段和步骤结构；output: 合法 plan JSON；consumer: Git 检查和执行步骤；verification: `python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
 - 生成计划：`python3 scripts/qft_branch_flow.py plan <scenario> --projects <repo1,repo2> --version <版本号> ...`
 - 校验计划：`python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
-- `ensure_branch` 表示目标分支存在则使用现有分支，不存在才从来源分支创建；执行前检查必须验证目标分支状态。
+- `bugfix` 只创建 BUG 分支；`bugfix-finish` 只在修复完成后将 BUG 分支合回版本分支。
+- 执行前检查必须调用：`python3 scripts/qft_branch_flow.py preflight --input <plan.json> --repo-root <多仓父目录>`。调用前先让用户确认 `<多仓父目录>`；preflight 输出为唯一检查依据，不要用自然语言自行推断 Git 状态。
+- preflight 必须按项目展示 resolved path，并用 `origin` URL 与 `project-registry.json` 的 `remote_url` 做归一化匹配；不要只用仓库名判断 remote。
+- preflight action 口径：`create_branch` 要求来源存在且与远端一致、目标精确不存在且无大小写冲突；`ensure_branch` 允许目标不存在，存在则要求目标与远端一致，不存在则要求来源可用于创建；`merge` 要求来源和目标都存在且与远端一致。
+- preflight 只报告需要同步的 blocker，不自动 `pull`；`pull` 会改变本地分支，必须由用户在本向导外处理或另行确认后再重跑 preflight。
+- 第 4 步 plan 中 `push.confirmed` 必须为 `false`，`push.branches` 必须为空；push 只能在本地操作完成后作为第 6 步运行态单独确认。
 - `target_branch` 为 `<project-main-branch>` 时，表示每个项目使用自己的主分支；实际 Git 目标以 `steps[*].target_branch` 为准。
 - `validate` 失败时停止；只能回到前序步骤修正输入或计划，不进入 Git 检查和执行。
 
@@ -138,7 +143,8 @@ model: sonnet
 - 开发需求：名字缩写、需求编号、版本号（月日，如 `0301`）、是否 `_DELAY`。
 - 日常同步：版本号、业务开发分支名；计划将项目主分支合入业务开发分支。
 - 提测/发版：版本号、业务分支名；计划先确保版本分支可用，再将业务分支合入版本分支。
-- 线上 BUG：版本号、来源版本分支 `V.版本号`、目标 BUG 分支 `3.0.0.MASTER_BUG_版本号`；计划必须包含从 `V.版本号` 创建 BUG 分支，以及修复后将 BUG 分支合回 `V.版本号`。
+- 上线 BUG 创建：版本号、来源版本分支 `V.版本号`、目标 BUG 分支 `3.0.0.MASTER_BUG_版本号`；计划只包含从 `V.版本号` 创建 BUG 分支。
+- 上线 BUG 完成：版本号、已修复 BUG 分支 `3.0.0.MASTER_BUG_版本号`、目标版本分支 `V.版本号`；计划只包含将 BUG 分支合回 `V.版本号`。
 - 上线回合：选择上线前同步（主分支 -> 版本分支）或上线后回合（版本分支 -> 主分支）。
 
 生成或识别分支名后先回显，等待 `确认`。
@@ -174,16 +180,23 @@ python3 scripts/qft_branch_flow.py validate --input plan.json
 
 ### 第 5 步：执行前检查
 
-计划确认后才运行检查。每个项目至少检查：
+计划确认后只调用 preflight，不自行组合 Git 检查结论：
 
-- 当前目录是否是 Git 仓库。
-- remote 是否匹配仓库名。
-- 工作区是否干净。
-- 来源分支是否存在。
-- 目标分支是否已存在。
-- 本地和远端状态是否需要 fetch/pull。
+```bash
+python3 scripts/qft_branch_flow.py preflight --input plan.json --repo-root <多仓父目录>
+```
 
-按通过/阻塞分组展示。存在阻塞时，让用户选择“只继续通过项目”或“全部停止”。
+preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时，按 blocker 输出展示阻塞原因和下一步；不要把 `create_branch` 的目标分支不存在解释为阻塞。
+
+每个 action 的判定口径：
+
+| action | 来源分支 | 目标分支 | 阻塞条件 |
+| --- | --- | --- | --- |
+| `create_branch` | 必须存在且与远端一致 | 必须精确不存在，且不能有大小写近似远端引用 | 来源缺失/落后远端、目标已存在、目标大小写冲突、remote 检查失败 |
+| `ensure_branch` | 目标不存在时必须存在且与远端一致 | 存在则复用；不存在则从来源创建 | 目标大小写冲突、目标存在但落后远端、目标不存在且来源不可用 |
+| `merge` | 必须存在且与远端一致 | 必须存在且与远端一致 | 来源/目标缺失、落后远端、大小写冲突、remote 检查失败 |
+
+按 preflight 通过/阻塞分组展示。存在阻塞时，让用户选择“只继续通过项目”或“全部停止”。
 
 ### 第 6 步：执行与 push
 
@@ -206,6 +219,7 @@ python3 scripts/qft_branch_flow.py validate --input plan.json
 ## Git 执行边界
 
 - 允许执行 `git status`、`git remote -v`、`git branch`、`git fetch`、`git switch`、`git merge`、`git push`。
+- 不使用 `git pull`；preflight 发现落后远端时阻塞，由用户在向导外处理或另行确认同步后重跑 preflight。
 - 遇到冲突立即停止，列出冲突文件；不要自动解决冲突。
 - 不自动删除分支；删除属于维护动作，当前只提示规范，不执行。
 - 不使用 `git reset --hard`、`git clean`、强推或跳过 hook。
@@ -228,7 +242,8 @@ python3 scripts/qft_branch_flow.py validate --input plan.json
 ## Verification
 
 - 计划生成后必须运行 `python3 scripts/qft_branch_flow.py validate --input <plan.json>`；只有 exit 0 且 plan JSON 符合 schema 才能进入 Git 检查。
-- 执行前检查必须逐项目展示仓库、remote、工作区、来源分支、目标分支和同步状态；任一失败项进入阻塞分组。
+- 执行前必须运行 `python3 scripts/qft_branch_flow.py preflight --input <plan.json> --repo-root <多仓父目录>`；只有 exit 0 且目标项目 `status=ok` 才能执行。
+- preflight 输出必须逐项目展示仓库、remote、工作区、来源分支、目标分支和同步状态；所有 blocker 原样保留，不得改写成其他 Git 结论。
 - 本地写操作后必须用 `git status` 和目标分支存在性证明结果；push 后必须显示已推送的 remote 和 branch。
 - 输出分组必须包含已完成、未执行和下一步，供用户继续处理阻塞项目。
 
@@ -242,4 +257,5 @@ python3 scripts/qft_branch_flow.py validate --input plan.json
 | 创建分支和 push 一起确认 | 本地写操作确认一次，push 单独确认 |
 | 手写最终执行计划 | 用 `scripts/qft_branch_flow.py plan` 生成，并用 `validate` 校验通过后再展示 |
 | validate 失败后继续执行 | 回到前序步骤修正输入或计划，通过后再进入 Git 检查 |
+| 自行解释 Git 状态、不跑 preflight | 用 `preflight` 结构化结果作为唯一执行前检查依据 |
 | 一个项目失败后静默跳过 | 标为阻塞，并询问是否继续其他通过项目 |

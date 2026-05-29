@@ -24,14 +24,9 @@
 
 | 视图项 | JSON 来源 |
 |--------|-----------|
-| 测试目标 | `test_analysis.objectives[]` |
-| 测试范围 | `test_analysis.in_scope[]` |
-| 不测范围 | `test_analysis.out_of_scope[]` |
 | 风险模型 | `test_analysis.risk_model[]` |
 | 质量策略 | `test_analysis.strategy_by_quality_area[]` |
 | 测试流程 | `test_analysis.test_flow[]` |
-| 环境假设 | `test_analysis.environment_assumptions[]` |
-| 数据假设 | `test_analysis.data_assumptions[]` |
 
 ## traceability_matrix / 追踪矩阵
 
@@ -50,23 +45,11 @@
 | 专项测试 | N |
 | 合计 | N |
 
-## unit_coverage_view / UNIT 覆盖视图
-
-| UNIT | 闭环目标 | 关联 AC | 用例编号 | 覆盖状态 |
-|------|----------|---------|---------|---------|
-| UNIT-1 | ... | AC-U1-01, AC-U1-02 | TC-U1-001, TC-U1-002 | COVERED |
-
 ## ac_coverage_matrix / AC 覆盖矩阵
 
 | UNIT | AC 编号 | AC 描述 | 用例编号 | 覆盖状态 |
 |------|---------|---------|----------|----------|
 | UNIT-1 | AC-U1-01 | ... | TC-U1-001, TC-U1-002, TC-U1-003 | COVERED |
-
-## equivalence_matrix / 等价性对照矩阵
-
-| scope_item_id | 关联 AC | 关联 TC | 对照输入 | 不变量 | 结果状态 | 备注 |
-|---------------|---------|---------|----------|--------|----------|------|
-| SCOPE-P1U1-001 | AC-U1-01 | TC-U1-001, TC-U1-003 | [老/新输入对照] | [行为不变量] | EQ-COVERED | [证据链接] |
 
 ## design_gap_report / Gap 报告
 
@@ -104,9 +87,9 @@
 
 ## cross_unit_obligations / 跨 UNIT 组合义务
 
-| journey_id | journey_title | participant_unit_refs | local_unit_ref | sequence_index | predecessor_case_refs | successor_case_refs | handoff_obligation_refs | composition_status | gap_refs |
-|------------|---------------|-----------------------|----------------|----------------|-----------------------|---------------------|-------------------------|--------------------|----------|
-| J-001 | 核心旅程 | UNIT-1.json#unit_id, UNIT-2.json#unit_id | UNIT-1.json#unit_id | 0 | [] | TC-U2-001 | QHO-E2E | COMPOSABLE | [] |
+| journey_id | participant_unit_refs | local_unit_ref | sequence_index | predecessor_case_refs | successor_case_refs | handoff_obligation_refs | composition_status | gap_refs |
+|------------|-----------------------|----------------|----------------|-----------------------|---------------------|-------------------------|--------------------|----------|
+| J-001 | UNIT-1.json#unit_id, UNIT-2.json#unit_id | UNIT-1.json#unit_id | 0 | [] | TC-U2-001 | QHO-E2E | COMPOSABLE | [] |
 
 ## special_test_triggers / 专项测试触发依据与展开策略
 

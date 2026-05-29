@@ -11,6 +11,7 @@ fail() {
 }
 
 required_references=(
+  "协作判断.md"
   "全栈开发.md"
   "完成前验证.md"
   "影响范围分析.md"

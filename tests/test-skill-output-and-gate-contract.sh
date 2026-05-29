@@ -601,7 +601,6 @@ assert_standard_chain_control_contract() {
   assert_absent 'signoff_ready|control_decision_check|gap_delta|rebaseline_needed' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
   assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
-  assert_present 'Task 实现 owner' "$ROOT/shared/skills/developer/SKILL.md"
   assert_present 'brief\.json\.review_conclusion' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
   assert_present 'issue_ledger' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
   assert_absent 'product-manager-review\.md' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
@@ -721,7 +720,6 @@ PY
 
 assert_planning_projection_context_contract() {
   local pm_skill="$ROOT/shared/skills/product-manager/SKILL.md"
-  local pm_review="$ROOT/shared/skills/product-manager/references/review-orchestration.md"
   local pm_evals="$ROOT/shared/skills/product-manager/evals/evals.json"
   local design_skill="$ROOT/shared/skills/design/SKILL.md"
 
@@ -749,7 +747,6 @@ assert_planning_projection_context_contract() {
   assert_present '"id": "canonical-review-required"' "$pm_evals"
   assert_present 'PM owner 自检通过后' "$pm_evals"
   assert_present 'reviewed_bundle_digest' "$pm_skill"
-  assert_present '召集 agent teams' "$pm_review"
 
   assert_present '^allowed-tools: .*Bash' "$design_skill"
   assert_present '^allowed-tools: .*Agent' "$design_skill"

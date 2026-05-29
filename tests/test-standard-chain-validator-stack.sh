@@ -405,6 +405,36 @@ if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$bloc
   fail "schema validator should reject blocked delivery-state without recovery fields"
 fi
 
+kickoff_blocked_missing_recovery="$TMP_DIR/kickoff-blocked-missing-recovery.json"
+python3 - "$positive_scenario" "$kickoff_blocked_missing_recovery" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for artifact in payload["artifacts"]:
+    if artifact["artifact_type"] == "delivery-state":
+        artifact["kickoff"]["status"] = "BLOCKED"
+        artifact["current_stage"] = "TASK_EXECUTION"
+        artifact["status"] = "IN_PROGRESS"
+        artifact["control_action"] = "CONTINUE"
+        for key in (
+            "blocker_id",
+            "blocker_owner",
+            "blocker_reason_code",
+            "blocker_basis_refs",
+            "resume_stage",
+            "next_action",
+            "resume_condition",
+        ):
+            artifact.pop(key, None)
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$kickoff_blocked_missing_recovery" >/tmp/t3_kickoff_blocked_missing_recovery.out 2>&1; then
+  cat /tmp/t3_kickoff_blocked_missing_recovery.out >&2
+  fail "schema validator should reject kickoff.status=BLOCKED without structured recovery fields"
+fi
+
 bad_progress_owner_changed="$TMP_DIR/bad-progress-owner-changed.json"
 python3 - "$positive_scenario" "$bad_progress_owner_changed" <<'PY'
 import json

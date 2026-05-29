@@ -12,7 +12,6 @@
     "$.current_stage",
     "$.status",
     "$.control_action",
-    "$.summary_text",
     "$.kickoff",
     "$.tasks"
   ],
@@ -20,7 +19,6 @@
   "current_stage": "CLOSED",
   "status": "CLOSED",
   "control_action": "CLOSE",
-  "summary_text": "feedback form plus thanks page pilot has verified tasks, resolved review findings, QA, consistency audit, signoff, and delegated user decision.",
   "kickoff": {
     "status": "READY",
     "plan_version_ref": "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#plan-version",
@@ -28,8 +26,7 @@
     "environment_ready": true,
     "dependency_ready": true,
     "risk_owner_ready": true,
-    "qa_handoff_ready": true,
-    "blocking_reason": "无"
+    "qa_handoff_ready": true
   },
   "tasks": [
     {

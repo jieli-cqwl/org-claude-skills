@@ -60,32 +60,28 @@
       "gate_result": "PASS",
       "evidence_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#gate-result"
-      ],
-      "summary": "real HTTP smoke and 6 AC/review-fix checks passed"
+      ]
     },
     {
       "qa_stage": "QA_B",
       "gate_result": "PASS",
       "evidence_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#ac-trace"
-      ],
-      "summary": "full login-home-logout journey passed with cookie assertions"
+      ]
     },
     {
       "qa_stage": "QA_C",
       "gate_result": "PASS",
       "evidence_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#issue-ledger"
-      ],
-      "summary": "invalid credential, stale-cookie recovery, and access-log observability checks passed"
+      ]
     },
     {
       "qa_stage": "QA_D",
       "gate_result": "PASS",
       "evidence_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#release"
-      ],
-      "summary": "release readiness artifacts are present for downstream validation"
+      ]
     }
   ],
   "obligation_results": [
@@ -98,8 +94,7 @@
       ],
       "evidence_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#gate-result"
-      ],
-      "summary": "login smoke obligation passed"
+      ]
     },
     {
       "obligation_id": "QHO-LOGIN-JOURNEY",
@@ -110,8 +105,7 @@
       ],
       "evidence_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#ac-trace"
-      ],
-      "summary": "login-home-logout journey obligation passed"
+      ]
     },
     {
       "obligation_id": "QHO-LOGIN-NEGATIVE",
@@ -122,8 +116,7 @@
       ],
       "evidence_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#issue-ledger"
-      ],
-      "summary": "negative credential and recovery obligation passed"
+      ]
     },
     {
       "obligation_id": "QHO-LOGIN-CLOSURE",
@@ -134,8 +127,7 @@
       ],
       "evidence_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#release"
-      ],
-      "summary": "release closure obligation passed"
+      ]
     },
     {
       "obligation_id": "QHO-LOGIN-OBS",
@@ -146,8 +138,7 @@
       ],
       "evidence_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#issue-ledger"
-      ],
-      "summary": "access-log observability obligation passed"
+      ]
     }
   ]
 }

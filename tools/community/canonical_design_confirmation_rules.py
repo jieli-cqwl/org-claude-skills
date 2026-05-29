@@ -134,10 +134,6 @@ def _assert_constraint_inheritance(payload: dict) -> None:
             _require_non_empty_string(
                 value, f"constraint_inheritance_confirmation.{field}[{index}]"
             )
-    _require_non_empty_string(
-        inheritance.get("confirmation_summary"),
-        "constraint_inheritance_confirmation.confirmation_summary",
-    )
 
 
 def _assert_review_digest(review: dict) -> str:
@@ -226,10 +222,9 @@ def _assert_warn_followups(review: dict, warn_finding_refs: set[str]) -> None:
         _require_non_empty_string(
             finding_id, f"review_closure.warn_followups[{index}].finding_id"
         )
-        for field in ("target", "summary"):
-            _require_non_empty_string(
-                row.get(field), f"review_closure.warn_followups[{index}].{field}"
-            )
+        _require_non_empty_string(
+            row.get("target"), f"review_closure.warn_followups[{index}].target"
+        )
         if isinstance(finding_id, str):
             followup_ids.add(finding_id)
         if row.get("target") not in DESIGN_WARN_TARGETS:
@@ -259,7 +254,7 @@ def _assert_final_confirmation(payload: dict, top_level_ref_assert) -> None:
     )
     if final.get("status") != "confirmed":
         raise ValueError("design final_confirmation.status must be confirmed")
-    for field in ("confirmed_by", "confirmed_at", "summary"):
+    for field in ("confirmed_by", "confirmed_at"):
         _require_non_empty_string(final.get(field), f"final_confirmation.{field}")
     accepted_refs = _require_string_list(
         final.get("accepted_refs"), "final_confirmation.accepted_refs"

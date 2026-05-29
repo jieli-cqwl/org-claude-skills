@@ -30,6 +30,19 @@ def item(name: str) -> dict:
     return props[name]["items"]
 
 
+decision = item("key_decisions")
+for field in ("summary", "verdict", "user_confirmation"):
+    require(field not in decision["required"], f"key_decisions must not require {field} prose")
+    require(field not in decision["properties"], f"key_decisions must not define {field} prose")
+require(
+    {"decision_id", "decision_state", "option_ref", "fact_refs"} <= set(decision["required"]),
+    "key_decisions must require structural decision fields",
+)
+require(
+    decision.get("additionalProperties") is False,
+    "key_decisions must reject undeclared prose fields",
+)
+
 co_creation = item("co_creation_summary")
 for field in ("stage_name", "question_or_focus", "user_response_summary"):
     require(field not in co_creation["required"], f"co_creation_summary must not require {field}")
@@ -104,6 +117,126 @@ response = item("risk_response")
 require("architecture_response" not in response["required"], "risk_response must not require architecture_response prose")
 require("architecture_response" not in response["properties"], "risk_response must not define architecture_response prose")
 require("response_type" in response["required"], "risk_response must require response_type")
+
+data_architecture = props["data_architecture"]
+require("summary" not in data_architecture["required"], "data_architecture must not require summary prose")
+require("summary" not in data_architecture["properties"], "data_architecture must not define summary prose")
+
+final_confirmation = props["final_confirmation"]
+require("summary" not in final_confirmation["required"], "final_confirmation must not require summary prose")
+require("summary" not in final_confirmation["properties"], "final_confirmation must not define summary prose")
+
+inheritance = props["constraint_inheritance_confirmation"]
+require(
+    "confirmation_summary" not in inheritance["required"],
+    "constraint_inheritance_confirmation must not require confirmation_summary prose",
+)
+require(
+    "confirmation_summary" not in inheritance["properties"],
+    "constraint_inheritance_confirmation must not define confirmation_summary prose",
+)
+
+warn_followup = props["review_closure"]["properties"]["warn_followups"]["items"]
+require(
+    "summary" not in warn_followup["required"],
+    "review_closure.warn_followups must not require summary prose",
+)
+require(
+    "summary" not in warn_followup["properties"],
+    "review_closure.warn_followups must not define summary prose",
+)
+
+verification = item("verification_mapping")
+for field in ("design_validation", "test_obligation"):
+    require(field not in verification["required"], f"verification_mapping must not require {field}")
+    require(field not in verification["properties"], f"verification_mapping must not define {field}")
+require(
+    set(verification["required"]) == {"manager_vp_ref", "evidence_ref"},
+    "verification_mapping must require only manager_vp_ref and evidence_ref",
+)
+require(
+    set(verification["properties"]) == {"manager_vp_ref", "evidence_ref"},
+    "verification_mapping must define only manager_vp_ref and evidence_ref",
+)
+require(
+    verification.get("additionalProperties") is False,
+    "verification_mapping must reject undeclared fields",
+)
+
+template = json.loads(
+    (root / "shared/skills/design/templates/design.template.json").read_text(encoding="utf-8")
+)
+for index, row in enumerate(template.get("key_decisions", [])):
+    for field in ("summary", "verdict", "user_confirmation"):
+        require(field not in row, f"design template key_decisions[{index}] must not include {field}")
+require("summary" not in template.get("data_architecture", {}), "design template data_architecture must not include summary")
+require("summary" not in template.get("final_confirmation", {}), "design template final_confirmation must not include summary")
+require(
+    "confirmation_summary" not in template.get("constraint_inheritance_confirmation", {}),
+    "design template constraint_inheritance_confirmation must not include confirmation_summary",
+)
+for index, row in enumerate(template.get("verification_mapping", [])):
+    for field in ("design_validation", "test_obligation"):
+        require(field not in row, f"design template verification_mapping[{index}] must not include {field}")
+
+for source_root in (
+    root / "shared/skills/design",
+    root / "tests/fixtures/standard-chain-foundation",
+    root / "tests/fixtures/standard-chain-pilots",
+):
+    for path in sorted(source_root.rglob("design.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for index, row in enumerate(payload.get("key_decisions", [])):
+            for field in ("summary", "verdict", "user_confirmation"):
+                require(
+                    field not in row,
+                    f"{path.relative_to(root)} key_decisions[{index}] must not include {field}",
+                )
+        require(
+            "summary" not in payload.get("data_architecture", {}),
+            f"{path.relative_to(root)} data_architecture must not include summary",
+        )
+        require(
+            "summary" not in payload.get("final_confirmation", {}),
+            f"{path.relative_to(root)} final_confirmation must not include summary",
+        )
+        require(
+            "confirmation_summary" not in payload.get("constraint_inheritance_confirmation", {}),
+            f"{path.relative_to(root)} constraint_inheritance_confirmation must not include confirmation_summary",
+        )
+        for index, row in enumerate(
+            payload.get("review_closure", {}).get("warn_followups", [])
+        ):
+            require(
+                "summary" not in row,
+                f"{path.relative_to(root)} review_closure.warn_followups[{index}] must not include summary",
+            )
+        for index, row in enumerate(payload.get("verification_mapping", [])):
+            for field in ("design_validation", "test_obligation"):
+                require(
+                    field not in row,
+                    f"{path.relative_to(root)} verification_mapping[{index}] must not include {field}",
+                )
+
+for path in (
+    root / "tools/community/canonical_design_trace_rules.py",
+    root / "tools/community/canonical_design_errors.py",
+    root / "tools/community/canonical_design_rules.py",
+    root / "tools/community/canonical_design_confirmation_rules.py",
+    root / "tools/eval/scripts/validate_stage2_design_materials_builder.py",
+    root / "shared/skills/design/references/canonical-ref-cheatsheet.md",
+    root / "shared/skills/design/scripts/render_projection.py",
+):
+    text = path.read_text(encoding="utf-8")
+    for field in ("design_validation", "test_obligation"):
+        require(field not in text, f"{path.relative_to(root)} must not mention removed design field {field}")
+    for field in (
+        "data_architecture.summary",
+        "final_confirmation.summary",
+        "constraint_inheritance_confirmation.confirmation_summary",
+        'decision.get("summary")',
+    ):
+        require(field not in text, f"{path.relative_to(root)} must not mention removed design summary field {field}")
 
 if failures:
     raise SystemExit("\n".join(failures))

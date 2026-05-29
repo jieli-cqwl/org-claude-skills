@@ -44,7 +44,7 @@ def canonical_ref_list(value: Any, field: str) -> list[str]:
     return refs
 
 
-def collect_test_obligations(phase_dir: Path) -> dict[str, dict[str, Any]]:
+def collect_qa_handoff_obligations(phase_dir: Path) -> dict[str, dict[str, Any]]:
     obligations: dict[str, dict[str, Any]] = {}
     test_case_paths = sorted(phase_dir.glob("unit-*/test-cases.json"))
     if not test_case_paths:
@@ -120,7 +120,7 @@ def collect_obligation_results(qa_result: dict[str, Any]) -> dict[str, dict[str,
 
 def assert_runtime_chain_closed(phase_dir: Path) -> None:
     phase_dir = phase_dir.resolve()
-    obligations = collect_test_obligations(phase_dir)
+    obligations = collect_qa_handoff_obligations(phase_dir)
     results = collect_obligation_results(load_json(phase_dir / "qa-result.json"))
 
     unknown_results = sorted(set(results) - set(obligations))

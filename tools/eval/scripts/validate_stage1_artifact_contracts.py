@@ -74,7 +74,8 @@ def check_typed_gap(repo_root: Path) -> dict[str, Any]:
         "gap_type",
         "blocking_refs",
         "owner",
-        "next_action",
+        "required_artifact_ref",
+        "decision_needed",
         "blocking",
     }
     expected_gap_types = {"PRODUCT_GAP", "DESIGN_GAP", "TESTABILITY_GAP", "SCOPE_DRIFT", "TRACE_CONFLICT"}
@@ -201,7 +202,6 @@ def check_task_packet(repo_root: Path) -> dict[str, Any]:
 
     expected_task_fields = {
         "task_id",
-        "task_title",
         "phase_ref",
         "unit_refs",
         "scope_item_refs",
@@ -264,7 +264,6 @@ def check_signoff_gate(repo_root: Path) -> dict[str, Any]:
         "goal_closure",
         "waiver_entries",
         "last_observed_at",
-        "runtime_snapshot",
         "active_blocker",
         "blocker_owner",
         "decision_basis_refs",

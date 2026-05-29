@@ -22,8 +22,7 @@
         "environment_ready": true,
         "dependency_ready": true,
         "risk_owner_ready": true,
-        "qa_handoff_ready": true,
-        "blocking_reason": "无"
+        "qa_handoff_ready": true
       },
       "blocker_id": "BLOCK-CLOSED-001",
       "blocked_from_stage": "TASK_EXECUTION",
@@ -222,7 +221,6 @@
       "baseline_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
       "active_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
       "last_observed_at": "2026-04-22T12:25:33Z",
-      "runtime_snapshot": "All task, review, QA, consistency, readiness, and replay gates include the 6-test login-homepage pilot evidence.",
       "decision_basis_refs": [
         "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#release",
         "artifact://code-review-result/login-homepage-pilot.phase-1.review@v1#round-1",
@@ -285,8 +283,8 @@
             "artifact://delivery-state/login-homepage-pilot.phase-1.delivery-state@active#phase-summary"
           ],
           "json_pointers": [
-            "/summary_text",
             "/current_stage",
+            "/status",
             "/control_action"
           ]
         },
@@ -329,7 +327,7 @@
         }
       },
       "rendered_artifact_ref": "artifact://projection-manifest/login-homepage-pilot.phase-1.phase-operational.projection-manifest@v1#html-output:phase-operational.html",
-      "rendered_content_digest": "sha256:68f5da1627bd3ef72b878e506202b2f0c79cb17a5b5aa68673322893aa5781f5"
+      "rendered_content_digest": "sha256:9f63cdd248ed44c3cc269785d89edc416db7bcac2afc31a22239979ddd26e60d"
     }
   },
   "proof": {

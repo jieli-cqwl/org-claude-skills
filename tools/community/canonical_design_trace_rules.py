@@ -33,12 +33,7 @@ def _assert_verification_mapping(payload: dict, phase_prd: dict) -> None:
     for index, mapping in enumerate(mappings):
         if not isinstance(mapping, dict):
             raise ValueError(f"design verification_mapping[{index}] must be an object")
-        for field in (
-            "manager_vp_ref",
-            "design_validation",
-            "test_obligation",
-            "evidence_ref",
-        ):
+        for field in ("manager_vp_ref", "evidence_ref"):
             _require_non_empty_string(
                 mapping.get(field), f"verification_mapping[{index}].{field}"
             )

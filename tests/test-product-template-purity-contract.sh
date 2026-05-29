@@ -97,7 +97,7 @@ jq -e '
   and (.issue_ledger? | not)
 ' "$DIRECTOR_PHASE_JSON" >/dev/null || fail "director phase JSON template must define canonical Director handoff envelope"
 
-assert_absent 'UX-0[0-9]|以上为起始项|按产品实际情况增删|分页规范|敏感信息.*脱敏|前端控制|后端控制|页面功能[[:space:]]*\\|[[:space:]]*各模块入口|表单校验[[:space:]]*\\|[[:space:]]*必填项校验|安全控制[[:space:]]*\\|[[:space:]]*敏感字段|端：前端 / 后端 / 全栈' "$MANAGER_PHASE"
+assert_absent 'UX-0[0-9]|frontend_control|backend_control|security_control' "$MANAGER_PHASE"
 
 assert_line_count_at_most 115 "$MANAGER_BRIEF"
 assert_line_count_at_most 80 "$MANAGER_REVIEW"

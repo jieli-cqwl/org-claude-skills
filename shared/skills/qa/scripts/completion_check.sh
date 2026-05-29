@@ -106,9 +106,9 @@ validate_qa_result() {
 		        and (.ruled_out_issues | type == "array" and length >= 2)
 		        and (.stage_results | type == "array" and length >= 4)
 		        and (["QA_A", "QA_B", "QA_C", "QA_D"] - ([.stage_results[].qa_stage] | unique) | length == 0)
-		        and all(.stage_results[]; ((.gate_result // "") | IN("PASS", "FAIL", "CONDITIONAL", "NOT_RUN", "N_A")) and (.evidence_refs | type == "array" and length > 0) and ((.summary // "") | type == "string" and length > 0))
+		        and all(.stage_results[]; ((.gate_result // "") | IN("PASS", "FAIL", "CONDITIONAL", "NOT_RUN", "N_A")) and (.evidence_refs | type == "array" and length > 0))
 		        and (.obligation_results | type == "array" and length > 0)
-		        and all(.obligation_results[]; ((.obligation_id // "") | test("^QHO-[A-Z0-9-]+$")) and ((.qa_stage // "") | IN("QA_A", "QA_B", "QA_C", "QA_D", "NFR")) and ((.gate_result // "") | IN("PASS", "FAIL", "CONDITIONAL", "NOT_RUN", "N_A")) and (.source_refs | type == "array" and length > 0) and (.evidence_refs | type == "array" and length > 0) and ((.summary // "") | type == "string" and length > 0))
+		        and all(.obligation_results[]; ((.obligation_id // "") | test("^QHO-[A-Z0-9-]+$")) and ((.qa_stage // "") | IN("QA_A", "QA_B", "QA_C", "QA_D", "NFR")) and ((.gate_result // "") | IN("PASS", "FAIL", "CONDITIONAL", "NOT_RUN", "N_A")) and (.source_refs | type == "array" and length > 0) and (.evidence_refs | type == "array" and length > 0))
 		        and (.issue_ledger | type == "array")
 	    ' "$target" >/dev/null 2>&1; then
 	        add_failure "qa-result.json missing baseline refs, active refs, gate result, release recommendation, risk fields, ruled_out_issues, obligation_results, or issue_ledger: $target"

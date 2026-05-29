@@ -49,6 +49,12 @@ def supporting_artifacts(artifacts: list[dict]) -> dict[str, dict]:
         "phase-prd.json": _first_artifact(artifacts, "phase-prd"),
         "design.json": _first_artifact(artifacts, "design"),
     }
+    tasks = next(
+        (artifact for artifact in artifacts if artifact.get("artifact_type") == "tasks"),
+        None,
+    )
+    if tasks is not None:
+        support["tasks.json"] = tasks
     for artifact in artifacts:
         if artifact.get("artifact_type") != "unit-definition":
             continue
@@ -117,14 +123,6 @@ def _assert_enum(value: object, allowed: set[str], path: str) -> str:
 
 def _assert_test_analysis(payload: dict, support: dict[str, dict]) -> None:
     analysis = _require_non_empty_dict(payload.get("test_analysis"), "test_analysis")
-    for field in (
-        "objectives",
-        "in_scope",
-        "out_of_scope",
-        "environment_assumptions",
-        "data_assumptions",
-    ):
-        _require_string_list(analysis.get(field), f"test_analysis.{field}")
     _assert_risk_model(analysis, support)
     _assert_quality_strategy(analysis)
     _assert_test_flow(analysis, support)
@@ -316,7 +314,6 @@ def _assert_cross_unit_row(
 ) -> None:
     journey_id = row.get("journey_id")
     _require_non_empty_string(journey_id, f"{path}.journey_id")
-    _require_non_empty_string(row.get("journey_title"), f"{path}.journey_title")
     participant_refs = _assert_source_refs(
         row.get("participant_unit_refs"), support, f"{path}.participant_unit_refs"
     )

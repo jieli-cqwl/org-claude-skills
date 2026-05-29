@@ -18,6 +18,7 @@ python3 "$VALIDATOR" \
   --field-consumption "$CONTRACT"
 
 python3 - "$ROOT/contracts/standard-chain.yaml" "$CONTRACT" <<'PY'
+import re
 import sys
 from pathlib import Path
 
@@ -26,6 +27,22 @@ from runtime_yaml import load_yaml
 
 standard_chain = load_yaml(Path(sys.argv[1]))
 field_consumption = load_yaml(Path(sys.argv[2]))
+
+generic_consumption = []
+for artifact in field_consumption.get("artifacts", []):
+    artifact_path = artifact.get("path")
+    for field_name, field in (artifact.get("fields") or {}).items():
+        for index, consumer in enumerate(field.get("consumers") or []):
+            consumed_for = consumer.get("consumed_for", "")
+            if re.fullmatch(r"consume [A-Za-z0-9_.-]+ from [A-Za-z0-9_-]+ artifact", consumed_for):
+                generic_consumption.append(
+                    f"{artifact_path}.{field_name}.consumers[{index}].consumed_for"
+                )
+if generic_consumption:
+    raise SystemExit(
+        "field consumption must explain concrete downstream use, not generic consume phrasing: "
+        + ", ".join(generic_consumption)
+    )
 
 duplicates = []
 for stage in standard_chain.get("chain", []):

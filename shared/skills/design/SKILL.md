@@ -135,15 +135,15 @@ Option Tradeoff:
 - 模块/服务边界、数据所有权或跨边界协作读取 `references/service-decomposition.md`，用于划分 owner、依赖和协作边界。
 - 已有系统迁移、并行运行或替换策略读取 `references/legacy-modernization.md`，用于确定演进阶段和回滚路径。
 - 先给推荐方案和事实锚点，再给备选方案、取舍、失效条件和一个确认问题。
-- 冻结决策时记录最终选择、备选关系、事实锚点、失效条件和用户确认。
-- `option_analysis` 按 `decision_ref` 写 2+ 方案、取舍和事实锚点；`key_decisions` 写最终选择、失效条件和用户确认。
+- 冻结决策时记录最终选择、备选关系、事实锚点和失效条件。
+- `option_analysis` 按 `decision_ref` 写 2+ 方案、取舍和事实锚点；`key_decisions` 写最终选择、冻结状态、失效条件和事实锚点。
 - 每个决策最终只能进入四种状态：已冻结、转风险、已输出上游回流包、明确不做。
 
 Decision Shape:
 
-- 每个 `key_decisions` 项必须写清 `decision_id`、summary、verdict、`option_ref`、`fact_refs` 和 `user_confirmation`。
+- 每个 `key_decisions` 项必须写清 `decision_id`、`decision_state`、`option_ref` 和 `fact_refs`。
 - 每个冻结决策必须能回指同一 `decision_id` 的 `option_analysis.decision_ref`；备选方案使用 `option_analysis.decision_status` 和 `option_analysis.evaluation.fit/cost/risk` 表达取舍结果。
-- 决策驱动写入 `input_analysis` 或 key decision summary；下游影响写入 `impact_scope`；验证义务写入 `verification_mapping`。
+- 决策驱动写入 `input_analysis`、`option_analysis.evaluation` 或 `fact_refs`；下游影响写入 `impact_scope`；验证映射只保留 manager/evidence 引用，测试义务由 `/test-design` 结构化承接。
 - 推荐不是偏好陈述；推荐必须由事实、质量属性优先级、可逆性、风险代价或实现约束支撑。
 - 被拒方案必须说明为什么此 Phase 不选；失效条件必须说明什么事实出现时需要重开决策。
 
@@ -154,7 +154,7 @@ Design Synthesis:
 - 数据架构写清对象、owner、写入者、读取者、存储、流向、一致性、迁移或补偿影响；没有数据变化时写清沿用依据。
 - 定义接口契约前读取 `references/interface-spec.md`，用于写清 input、output、error 和 boundary behavior。
 - 处理技术风险、迁移风险或回滚触发条件前读取 `references/risk-assessment.md`，用于确定风险优先级、缓解动作、验证方式和升级路径。
-- 建立 verification mapping：每条 PM 验收点或 exit condition 对应设计验证、测试义务和 evidence ref。
+- 建立 verification mapping：每条 PM 验收点或 exit condition 对应可解析的 evidence ref；断言、fixture 边界和失败场景由 `/test-design` 从该映射结构化派生。
 - 无法被 `/test-design`、`/tech-lead` 或 developer 消费的描述不算完成；在拥有环节补齐可消费字段后再继续。
 - 进入自检前汇报接口 input/output/error 语义摘要、推荐方案、备选方案、取舍、用户裁决和仍需解决的阻断条件。
 

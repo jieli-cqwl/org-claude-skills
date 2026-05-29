@@ -136,13 +136,18 @@ make_browser_required() {
   jq '
     .qa_handoff_contract += [{
       "obligation_id": "QHO-BROWSER-JOURNEY",
-      "test_obligation": "E2E browser journey",
-      "trigger_source": "web entrypoint",
+      "obligation_type": "BROWSER_FLOW",
+      "trigger_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
       "qa_stage": "QA_B",
       "requiredness": "REQUIRED",
       "execution_mode": "browser_required",
-      "skip_rule": "must explain if not executed",
-      "evidence_expectation": "browser trace or screenshot"
+      "skip_policy": "NOT_SKIPPABLE",
+      "evidence_contract_ref": "QHO-BROWSER-JOURNEY#browser-evidence",
+      "design_source_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ]
     }]
   ' "$test_cases" > "$test_cases.tmp"
   mv "$test_cases.tmp" "$test_cases"
@@ -166,8 +171,7 @@ add_browser_evidence() {
       ],
       "evidence_refs": [
         "artifact://qa-result/sample-feature.phase-1.qa@v1#browser-evidence"
-      ],
-      "summary": "browser journey evidence recorded"
+      ]
     }]
   ' "$qa_result" > "$qa_result.tmp"
   mv "$qa_result.tmp" "$qa_result"

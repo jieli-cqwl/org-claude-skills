@@ -22,7 +22,6 @@
   "active_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
   "task_id": "T2",
   "runtime_status": "VERIFIED",
-  "summary_text": "valid session, homepage, and logout invalidation behavior verified",
   "reviewable_anchor": "artifact://developer-report/login-homepage-pilot.phase-1.unit-1.task-T2.developer-report@v1#tdd-evidence-index",
   "file_changes": [
     "tests/test_login_homepage_app.py",

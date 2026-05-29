@@ -22,7 +22,6 @@
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "task_id": "T1",
   "runtime_status": "VERIFIED",
-  "summary_text": "runtime layering verified report fixture",
   "reviewable_anchor": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
   "file_changes": [
     "src/runtime-layering.ts"
