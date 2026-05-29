@@ -459,7 +459,7 @@
       "tier": "full",
       "tags": [],
       "parallel_safe": false,
-      "timeout_sec": 180
+      "timeout_sec": 90
     },
     {
       "id": "delivery-acceptance-bottom-line",
@@ -471,7 +471,7 @@
       "tier": "full",
       "tags": [],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 90
     },
     {
       "id": "runtime-integrity",
@@ -641,10 +641,13 @@
         "tests/test-review-canonical-result-gate.sh"
       ],
       "area": "review",
-      "tier": "full",
-      "tags": [],
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "review"
+      ],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 90
     },
     {
       "id": "review-runtime-contract",
@@ -653,10 +656,13 @@
         "tests/test-review-runtime-contract.sh"
       ],
       "area": "review",
-      "tier": "full",
-      "tags": [],
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "review"
+      ],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 90
     },
     {
       "id": "eval-fixtures-contract",
