@@ -36,10 +36,9 @@ def co_creation_summary() -> list[dict[str, Any]]:
     return [
         {
             "stage_id": stage_id,
-            "stage_name": stage_id,
-            "question_or_focus": focus,
-            "user_response_summary": f"{focus} 已基于 PM package 确认",
+            "confirmation_status": "CONFIRMED",
             "decision_refs": ["design.json#key_decisions[0].decision_id"],
+            "evidence_refs": ["design.json#key_decisions[0].decision_id"],
         }
         for stage_id, focus in rows
     ]
@@ -85,17 +84,15 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
             {
                 "option_id": "OPT-001",
                 "decision_ref": "D-001",
-                "summary": "单入口状态机：统一接收回调并在一个编排模块内暴露状态、trace 和人工确认。",
-                "tradeoff": "收益是链路可观测且易验收；成本是初期只覆盖单渠道文本消息；失败条件是无法保留 trace。",
-                "verdict": "selected",
+                "decision_status": "SELECTED",
+                "evaluation": {"fit": "HIGH", "cost": "MEDIUM", "risk": "MEDIUM"},
                 "fact_refs": ["design.json#runtime_facts[0]"],
             },
             {
                 "option_id": "OPT-002",
                 "decision_ref": "D-001",
-                "summary": "按消息来源分入口再汇聚：每个渠道先做独立处理后再进入统一调度。",
-                "tradeoff": "收益是未来多渠道扩展更直接；成本是 Stage 2 范围过大且会削弱单闭环验收焦点。",
-                "verdict": "rejected",
+                "decision_status": "REJECTED",
+                "evaluation": {"fit": "MEDIUM", "cost": "HIGH", "risk": "HIGH"},
                 "fact_refs": ["design.json#runtime_facts[0]"],
             },
         ],
@@ -106,7 +103,6 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
             {
                 "interface_id": "IF-001",
                 "owner": "MOD-001",
-                "contract_summary": "输入三方文本消息回调和租户/会话标识，输出建议回复包、trace_id、上下文摘要和人工确认状态。",
                 "error_modes": [
                     "validation_error",
                     "context_missing",
@@ -137,8 +133,9 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
                 ],
                 "boundary_behaviors": [
                     {
-                        "scenario": "上下文不足、重复回调或 agent 调度失败时不得自动外发。",
-                        "expected_behavior": "返回同一 trace 状态或进入人工接管，并保留建议回复包不可外发状态。",
+                        "behavior_type": "degraded_mode",
+                        "trigger_ref": "design.json#interfaces[0].error_codes[0].code",
+                        "expected_outcome": "BLOCK",
                         "verification_ref": "VP-001",
                     }
                 ],
@@ -151,11 +148,17 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
             {
                 "attribute": "operability",
                 "priority": "P0",
-                "key_scenarios": [
+                "scenario_refs": [
                     "客服需要定位任意建议回复来自哪条消息、哪些上下文和哪次 agent 调度"
                 ],
-                "target_metrics": ["每次处理必须生成 trace_id 并保留上下文来源摘要"],
-                "tradeoff_points": ["暂不追求多渠道吞吐，优先保证单闭环可观测"],
+                "target_metrics": [
+                    {
+                        "metric_id": "M-1",
+                        "metric_name": "traceability",
+                        "threshold": "trace_id and context source recorded",
+                        "unit": "contract",
+                    }
+                ],
                 "verification_refs": ["VP-001"],
             }
         ],
@@ -181,25 +184,25 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
         "cross_cutting_concerns": [
             {
                 "concern": "auth",
-                "decision": "按租户隔离消息处理和人工确认视图。",
+                "decision_ref": "design.json#key_decisions[0].decision_id",
                 "owner": "MOD-001",
                 "verification_refs": ["VP-001"],
             },
             {
                 "concern": "error",
-                "decision": "上下文不足或调度失败必须进入人工接管。",
+                "decision_ref": "design.json#key_decisions[0].decision_id",
                 "owner": "MOD-001",
                 "verification_refs": ["VP-001"],
             },
             {
                 "concern": "log",
-                "decision": "每次处理输出 trace_id、上下文来源和调度结果摘要。",
+                "decision_ref": "design.json#key_decisions[0].decision_id",
                 "owner": "MOD-001",
                 "verification_refs": ["VP-001"],
             },
             {
                 "concern": "config",
-                "decision": "自动外发开关在本阶段固定关闭。",
+                "decision_ref": "design.json#key_decisions[0].decision_id",
                 "owner": "MOD-001",
                 "verification_refs": ["VP-001"],
             },
@@ -223,7 +226,8 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
             {
                 "scope_item_id": "SCOPE-001",
                 "affected_modules": ["MOD-001"],
-                "impact": "新增消息建议回复编排边界，保护不自动外发和失败接管。",
+                "impact_type": "CHANGE",
+                "required_action": "VERIFY",
                 "verification_refs": ["VP-001"],
             }
         ],
@@ -231,7 +235,8 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
             {
                 "constraint_id": "PLAN-CON-001",
                 "constraint_type": "sequencing",
-                "description": "test-design 先验收设计义务，再由 tech-lead 拆实现任务。",
+                "constraint_rule": "ORDERING",
+                "enforcement_type": "SEQUENCING",
                 "owner": "tech-lead",
             }
         ],
@@ -242,20 +247,19 @@ def build_design_artifact(pm_package: dict[str, Any]) -> dict[str, Any]:
                 "phase-prd.json#review_conclusion",
             ],
             "open_failures": [],
-            "warn_followups": [],
         },
         "risks": [
             {
                 "risk_id": "R-001",
-                "description": "上下文不足时建议回复可能误导客服。",
-                "severity": "medium",
+                "risk_type": "TECHNICAL",
+                "severity": "MEDIUM",
                 "source_ref": "phase-prd.json#exit_conditions",
             }
         ],
         "risk_response": [
             {
                 "risk_id": "R-001",
-                "architecture_response": "上下文不足时不生成自动外发结果，只生成接管原因和补充上下文提示。",
+                "response_type": "MITIGATE",
                 "verification_refs": ["VP-001"],
             }
         ],

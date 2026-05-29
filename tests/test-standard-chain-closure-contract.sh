@@ -19,7 +19,11 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
+
 ROOT = Path(sys.argv[1])
+standard_chain = yaml.safe_load((ROOT / "contracts/standard-chain.yaml").read_text(encoding="utf-8"))
+field_consumption = yaml.safe_load((ROOT / "contracts/standard-chain-field-consumption.yaml").read_text(encoding="utf-8"))
 catalog = json.loads((ROOT / "shared/runtime/standard-chain-catalog.json").read_text(encoding="utf-8"))
 artifacts = catalog.get("artifacts", {})
 
@@ -45,6 +49,12 @@ if "obligation_results" not in qa_properties.get("required", []):
 
 design_schema = json.loads((ROOT / "shared/skills/design/contracts/design.schema.json").read_text(encoding="utf-8"))
 design_properties = next(item for item in reversed(design_schema["allOf"]) if "properties" in item)
+product_handoff_schema = design_properties["properties"]["product_handoff"]
+product_handoff_properties = product_handoff_schema.get("properties", {})
+if "warn_followups" in product_handoff_properties:
+    raise SystemExit("design product_handoff must not carry warn_followups; review_closure owns WARN routing")
+if "warn_followups" in product_handoff_schema.get("required", []):
+    raise SystemExit("design product_handoff must not require warn_followups")
 for field_name in [
     "co_creation_summary",
     "constraint_inheritance_confirmation",
@@ -76,9 +86,53 @@ for field_name in ["unit_coverage_view", "design_gap_report", "special_test_trig
     if field_name not in test_properties.get("required", []):
         raise SystemExit(f"test-cases schema must require {field_name}")
 
+signoff_schema = json.loads(
+    (ROOT / "shared/skills/delivery-owner/contracts/signoff-package.schema.json").read_text(encoding="utf-8")
+)
+signoff_properties = next(item for item in reversed(signoff_schema["allOf"]) if "properties" in item)
+if "takeover_note" in signoff_properties["properties"]:
+    raise SystemExit("signoff-package schema must not carry takeover_note in active runtime artifact")
+if "takeover_note" in signoff_properties.get("required", []):
+    raise SystemExit("signoff-package schema must not require takeover_note")
+
+signoff_template = json.loads(
+    (ROOT / "shared/skills/delivery-owner/templates/signoff-package.template.json").read_text(encoding="utf-8")
+)
+if "takeover_note" in signoff_template:
+    raise SystemExit("signoff-package template must not include takeover_note")
+if "$.takeover_note" in signoff_template.get("authoritative_fields", []):
+    raise SystemExit("signoff-package authoritative_fields must not include $.takeover_note")
+
+design_template = json.loads((ROOT / "shared/skills/design/templates/design.template.json").read_text(encoding="utf-8"))
+if "warn_followups" in design_template["product_handoff"]:
+    raise SystemExit("design template product_handoff must not include warn_followups")
+
+artifact_defs = [
+    output
+    for step in standard_chain["chain"]
+    for output in step.get("outputs", [])
+]
+signoff_artifact = next(
+    item for item in artifact_defs if item["artifact"] == "phase-{N}/signoff-package.json"
+)
+if "takeover_note" in signoff_artifact.get("key_fields", []):
+    raise SystemExit("standard-chain signoff-package key_fields must not include takeover_note")
+signoff_consumption = next(
+    artifact["fields"]
+    for artifact in field_consumption["artifacts"]
+    if artifact["path"] == "docs/{feature}/phase-{N}/signoff-package.json"
+)
+if "takeover_note" in signoff_consumption:
+    raise SystemExit("field-consumption signoff-package must not include takeover_note")
+
 phase_dir = ROOT / "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1"
 signoff = json.loads((phase_dir / "signoff-package.json").read_text(encoding="utf-8"))
 decision = json.loads((phase_dir / "user-decision.json").read_text(encoding="utf-8"))
+design = json.loads((phase_dir / "design.json").read_text(encoding="utf-8"))
+if "takeover_note" in signoff:
+    raise SystemExit("golden signoff-package must not include takeover_note")
+if "warn_followups" in design["product_handoff"]:
+    raise SystemExit("golden design product_handoff must not include warn_followups")
 if signoff.get("current_stage") != "CLOSED":
     raise SystemExit("golden signoff-package must represent CLOSED final signoff")
 if signoff.get("sign_off_status") != "SIGNED_OFF":
@@ -281,6 +335,47 @@ PY
 fi
 grep -Eq 'code-review-result.produced_at|fix-result freshness' /tmp/standard-chain-closure-stale-review-after-fix.out \
   || fail "stale post-fix review failure should name code-review-result freshness"
+
+stale_developer_after_fix_dir="$tmp_dir/stale-developer-after-fix/sample-feature"
+mkdir -p "$(dirname "$stale_developer_after_fix_dir")"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$stale_developer_after_fix_dir"
+add_fix_result "$stale_developer_after_fix_dir/phase-1" "2026-04-14T03:15:00Z"
+python3 - "$stale_developer_after_fix_dir/phase-1" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+phase_dir = Path(sys.argv[1])
+for index, verify_path in enumerate(sorted(phase_dir.glob("unit-*/tasks/*/verify-result.json")), start=1):
+    payload = json.loads(verify_path.read_text(encoding="utf-8"))
+    payload["produced_at"] = f"2026-04-14T03:16:1{index}Z"
+    verify_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+for relative, produced_at in {
+    "code-review-result.json": "2026-04-14T03:17:00Z",
+    "qa-result.json": "2026-04-14T03:18:00Z",
+    "consistency-audit-result.json": "2026-04-14T03:19:00Z",
+}.items():
+    path = phase_dir / relative
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["produced_at"] = produced_at
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 - "$ROOT" "$stale_developer_after_fix_dir/phase-1" >/tmp/standard-chain-closure-stale-developer-after-fix.out 2>&1 <<'PY'; then
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+phase_dir = Path(sys.argv[2])
+sys.path.insert(0, str(root / "tools/community"))
+
+from delivery_owner_optional_artifacts import assert_optional_fix_result_freshness
+
+assert_optional_fix_result_freshness(phase_dir)
+PY
+  fail "readiness must reject developer-report that predates active fix-result"
+fi
+grep -Eq 'developer-report.produced_at|fix-result freshness' /tmp/standard-chain-closure-stale-developer-after-fix.out \
+  || fail "stale post-fix developer failure should name developer-report freshness"
 
 stale_signoff_dir="$tmp_dir/stale-signoff/sample-feature"
 mkdir -p "$(dirname "$stale_signoff_dir")"

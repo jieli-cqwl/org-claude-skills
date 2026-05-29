@@ -4,4 +4,5 @@ interface:
   default_prompt: "Use $github-repo-radar to find and evaluate GitHub repositories with evidence-backed action states."
 
 policy:
+  codex_execution: subagent_clean
   allow_implicit_invocation: false

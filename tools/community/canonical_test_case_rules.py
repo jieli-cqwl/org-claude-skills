@@ -110,7 +110,10 @@ def _assert_review_conclusion(payload: dict) -> str:
         raise ValueError(
             "test-cases review_conclusion.verdict must be PASS or WARN at completion"
         )
-    _require_non_empty_string(review.get("summary"), "review_conclusion.summary")
+    if review.get("closure_status") != "CLOSED":
+        raise ValueError(
+            "test-cases review_conclusion.closure_status must be CLOSED"
+        )
     review_round = review.get("review_round")
     if not isinstance(review_round, str) or not re.fullmatch(r"R[0-9]+", review_round):
         raise ValueError("test-cases review_conclusion.review_round must be R<N>")
@@ -176,7 +179,9 @@ def _assert_reviewer_verdicts(
             raise ValueError(
                 f"test-cases reviewer_verdicts[{index}].reviewed_test_cases_digest must match review_conclusion.reviewed_test_cases_digest"
             )
-        _require_non_empty_string(row.get("evidence"), f"reviewer_verdicts[{index}].evidence")
+        _require_non_empty_list(
+            row.get("evidence_refs"), f"reviewer_verdicts[{index}].evidence_refs"
+        )
     missing = REVIEW_PERSPECTIVES - seen
     if missing:
         raise ValueError(f"test-cases missing reviewer perspectives: {sorted(missing)}")
@@ -222,8 +227,8 @@ def _assert_convergence_control(row: dict, index: int) -> None:
         raise ValueError(
             f"test-cases convergence_evidence[{index}].control_action is invalid"
         )
-    _require_non_empty_string(
-        row.get("evidence"), f"convergence_evidence[{index}].evidence"
+    _require_non_empty_list(
+        row.get("evidence_refs"), f"convergence_evidence[{index}].evidence_refs"
     )
 
 
@@ -246,10 +251,10 @@ def _assert_issue_ledger_row(row: object, index: int) -> None:
         "issue_id",
         "review_round",
         "status",
-        "evidence",
-        "handling_record",
+        "handling_action",
     ):
         _require_non_empty_string(row.get(field), f"issue_ledger[{index}].{field}")
+    _require_non_empty_list(row.get("evidence_refs"), f"issue_ledger[{index}].evidence_refs")
     if row.get("status") not in {"CLOSED", "DEFERRED"}:
         raise ValueError(
             f"test-cases issue_ledger[{index}].status must be CLOSED or DEFERRED"
@@ -306,13 +311,19 @@ def _actual_qa_design_refs(payload: dict, design: dict) -> set[str]:
 
 
 def _assert_qa_handoff_row(row: dict, index: int) -> None:
-    for field in (
-        "test_obligation",
-        "trigger_source",
-        "skip_rule",
-        "evidence_expectation",
-    ):
-        _require_non_empty_string(row.get(field), f"qa_handoff_contract[{index}].{field}")
+    _require_non_empty_string(
+        row.get("obligation_type"), f"qa_handoff_contract[{index}].obligation_type"
+    )
+    _require_non_empty_list(
+        row.get("trigger_refs"), f"qa_handoff_contract[{index}].trigger_refs"
+    )
+    _require_non_empty_string(
+        row.get("skip_policy"), f"qa_handoff_contract[{index}].skip_policy"
+    )
+    _require_non_empty_string(
+        row.get("evidence_contract_ref"),
+        f"qa_handoff_contract[{index}].evidence_contract_ref",
+    )
     _assert_enum(row.get("qa_stage"), QA_STAGES, f"qa_handoff_contract[{index}].qa_stage")
     _assert_enum(
         row.get("requiredness"),

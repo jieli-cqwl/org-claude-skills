@@ -15,6 +15,7 @@ POST_FIX_FIXED_EVIDENCE_FILES = (
     ("consistency-audit-result.produced_at", "consistency-audit-result.json"),
 )
 POST_FIX_TASK_EVIDENCE_GLOBS = (
+    ("developer-report.produced_at", "unit-*/tasks/*/developer-report.json"),
     ("verify-result.produced_at", "unit-*/tasks/*/verify-result.json"),
 )
 

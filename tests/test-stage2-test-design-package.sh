@@ -88,7 +88,8 @@ payload["test_cases"]["design_gap_report"] = {
             "gap_type": "DESIGN_GAP",
             "blocking_refs": ["design.json#rollback_plan[0]"],
             "owner": "design",
-            "next_action": "补齐回滚策略后重新生成 test-design package",
+            "required_artifact_ref": "design.json#rollback_plan[0]",
+            "decision_needed": True,
             "blocking": True,
         }
     ],

@@ -7,7 +7,7 @@ Runtime integration decides whether a Skill can be discovered, invoked, installe
 - `SKILL.md`: name, description, allowed tools, workflow, output, verification.
 - `agents/openai.yaml`: implicit invocation policy.
 - references, scripts, templates, contracts, test prompts, evals, fixtures.
-- `contracts/skill-runtime-surface.json`: mode, owner, reason, retired names.
+- `contracts/skill-runtime-surface.json`: mode, owner, reason, Codex execution context, agent-backed binding, retired names.
 - `install.sh`: shared skill checks and retired-skill guards.
 - `tests/run-all.sh`, `tests/run-focused.sh`, `tests/gate-plan.json`.
 - active README and active `shared/skills/*/evals/**` consumers.

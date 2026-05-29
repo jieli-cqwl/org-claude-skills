@@ -13,11 +13,14 @@ TARGET_STAGES = {
     "product-director",
     "product-manager",
     "design",
+    "test-design",
+    "tech-lead",
     "developer",
     "fix",
     "review",
     "verify",
     "qa",
+    "consistency-auditor",
     "delivery-owner",
 }
 ALLOWED_CONSUME_MODES = {"reference", "transform", "gate", "handoff"}
@@ -273,7 +276,9 @@ def standard_chain_requirements(
             path = canonical_artifact_path(str(artifact))
             required_consumers = output_consumers(output_data, path, inferred)
             if not required_consumers:
-                continue
+                raise ValueError(
+                    f"chain.{stage_name}.{artifact}.key_fields must have at least one explicit or inferred consumer"
+                )
             for field in normalized_key_fields:
                 required.append((str(stage_name), path, field, required_consumers))
     return required

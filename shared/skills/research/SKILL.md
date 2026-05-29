@@ -1,6 +1,7 @@
 ---
 name: research
 user-invocable: true
+disable-model-invocation: true
 description: "Use when external information may guide action: adoption decisions, candidate selection, claim review, community object identification, team judgment, or solution scouting."
 argument-hint: "[调研主题]"
 context: fork

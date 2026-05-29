@@ -156,16 +156,18 @@ chain:
         key_fields: [scope_ref, registry_revision, active_revision_id, runtime_artifact_policy.required_runtime_artifacts, revisions]
         terminal: true
       - artifact: "phase-{N}/signoff-package.json"
-        key_fields: [baseline_tasks_version_ref, active_tasks_version_ref, current_stage, release_recommendation, goal_closure, waiver_entries, sign_off_status, business_risk_acceptance_status, last_observed_at, runtime_snapshot, active_blocker, blocker_owner, takeover_note, decision_basis_refs, runtime_evidence_matrix]
+        key_fields: [baseline_tasks_version_ref, active_tasks_version_ref, current_stage, release_recommendation, goal_closure, waiver_entries, sign_off_status, business_risk_acceptance_status, last_observed_at, runtime_snapshot, active_blocker, blocker_owner, decision_basis_refs, runtime_evidence_matrix]
         terminal: true
       - artifact: "phase-{N}/user-decision.json"
         operation: import_user_decision
         upstream_producer: user-decision-writer
         key_fields: [baseline_tasks_version_ref, active_tasks_version_ref, current_stage, decision, decision_source, actor_id, sign_off_status, business_risk_acceptance_status, authority_proof_refs, decision_basis_refs, director_lock_digests, decision_payload_digest]
+        consumers: [delivery-owner]
         terminal: true
       - artifact: "phase-{N}/target-change.json"
         operation: record_target_change
         key_fields: [baseline_tasks_version_ref, active_tasks_version_ref, changed_target_type, affected_refs, invalidates_refs, superseded_evidence_refs, rebaseline_required, rebaseline_owner, required_fresh_proof_after_rebaseline, authority_proof_refs, decision_basis_refs]
+        consumers: [product-director, tech-lead, delivery-owner]
         terminal: true
 
 co_creation_ledgers:

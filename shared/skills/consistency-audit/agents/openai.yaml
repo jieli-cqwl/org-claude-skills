@@ -4,4 +4,7 @@ interface:
   default_prompt: "Use $consistency-audit to audit canonical artifacts, UNIT/AC/Task/test_ref traces, and delivery-chain consistency for [feature]."
 
 policy:
+  allow_nested_agents: false
+  agent_type: consistency-auditor
+  execution_kind: agent_backed
   allow_implicit_invocation: false

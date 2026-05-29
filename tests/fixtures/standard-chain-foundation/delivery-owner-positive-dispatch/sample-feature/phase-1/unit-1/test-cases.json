@@ -176,26 +176,31 @@
   "qa_handoff_contract": [
     {
       "obligation_id": "QHO-STATIC-CONTRACT",
-      "test_obligation": "static contract validation",
-      "trigger_source": "canonical schemas and registry catalog",
+      "obligation_type": "STATIC_CONTRACT",
+      "trigger_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
       "qa_stage": "QA_A",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "schema and contract gate output",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-STATIC-CONTRACT#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[0].manager_vp_ref"
       ]
     },
     {
       "obligation_id": "QHO-RUNTIME-REPLAY",
-      "test_obligation": "runtime replay",
-      "trigger_source": "phase projection replay oracle",
+      "obligation_type": "RUNTIME_REPLAY",
+      "trigger_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#verification_mapping[1].manager_vp_ref"
+      ],
       "qa_stage": "QA_B",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "replay oracle plus readiness gate evidence",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-RUNTIME-REPLAY#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[0].manager_vp_ref",
         "design.json#verification_mapping[1].manager_vp_ref"
@@ -203,13 +208,16 @@
     },
     {
       "obligation_id": "QHO-RECOVERY-COVERAGE",
-      "test_obligation": "negative and recovery coverage",
-      "trigger_source": "delivery-state blocked and replan scenarios",
+      "obligation_type": "NEGATIVE_RECOVERY",
+      "trigger_refs": [
+        "design.json#verification_mapping[2].manager_vp_ref",
+        "design.json#risk_response[0].risk_id"
+      ],
       "qa_stage": "QA_C",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "blocked/recovery fixture evidence",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-RECOVERY-COVERAGE#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[2].manager_vp_ref",
         "design.json#risk_response[0].risk_id"
@@ -217,13 +225,15 @@
     },
     {
       "obligation_id": "QHO-RELEASE-CLOSURE",
-      "test_obligation": "release readiness closure",
-      "trigger_source": "signoff package and user decision",
+      "obligation_type": "RELEASE_READINESS",
+      "trigger_refs": [
+        "design.json#product_handoff.accepted_refs"
+      ],
       "qa_stage": "QA_D",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "final signoff closure evidence",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-RELEASE-CLOSURE#evidence",
       "design_source_refs": [
         "design.json#product_handoff.accepted_refs"
       ]
@@ -288,7 +298,8 @@
       "trigger_id": "ST-QA-DEPENDENCY-SAFE-PARALLELISM",
       "trigger_type": "quality_attribute",
       "source_ref": "design.json#quality_attributes[0]",
-      "condition": "dependency-safe parallelism requires dispatch dependency validation",
+      "trigger_rule": "QUALITY_ATTRIBUTE_REQUIRED",
+      "threshold_ref": "design.json#quality_attributes[0]",
       "qa_stage": "QA_A",
       "handling": "TEST_CASE",
       "test_case_refs": [
@@ -300,7 +311,8 @@
       "trigger_id": "ST-QA-FRESH-PROVING-EVIDENCE",
       "trigger_type": "quality_attribute",
       "source_ref": "design.json#quality_attributes[1]",
-      "condition": "fresh proving evidence requires stale runtime state rejection",
+      "trigger_rule": "QUALITY_ATTRIBUTE_REQUIRED",
+      "threshold_ref": "design.json#quality_attributes[1]",
       "qa_stage": "QA_C",
       "handling": "TEST_CASE",
       "test_case_refs": [
@@ -311,7 +323,8 @@
       "trigger_id": "ST-DATA-RUNTIME-CONTROL",
       "trigger_type": "data_architecture",
       "source_ref": "design.json#data_architecture",
-      "condition": "canonical registry and delivery-state data flow requires consistency validation",
+      "trigger_rule": "DATA_FLOW_REQUIRED",
+      "threshold_ref": "design.json#data_architecture",
       "qa_stage": "QA_A",
       "handling": "QA_HANDOFF",
       "qa_handoff_obligation_refs": [
@@ -323,7 +336,8 @@
       "trigger_id": "ST-XC-AUTH",
       "trigger_type": "cross_cutting_concern",
       "source_ref": "design.json#cross_cutting_concerns[0]",
-      "condition": "repository permission boundary must be preserved during dispatch",
+      "trigger_rule": "CROSS_CUTTING_REQUIRED",
+      "threshold_ref": "design.json#cross_cutting_concerns[0]",
       "qa_stage": "NFR",
       "handling": "QA_HANDOFF",
       "qa_handoff_obligation_refs": [
@@ -334,7 +348,8 @@
       "trigger_id": "ST-XC-ERROR",
       "trigger_type": "cross_cutting_concern",
       "source_ref": "design.json#cross_cutting_concerns[1]",
-      "condition": "dispatch validators must fail closed with actionable artifact evidence",
+      "trigger_rule": "CROSS_CUTTING_REQUIRED",
+      "threshold_ref": "design.json#cross_cutting_concerns[1]",
       "qa_stage": "QA_C",
       "handling": "TEST_CASE",
       "test_case_refs": [
@@ -345,7 +360,8 @@
       "trigger_id": "ST-XC-LOG",
       "trigger_type": "cross_cutting_concern",
       "source_ref": "design.json#cross_cutting_concerns[2]",
-      "condition": "validation output is the audit trail for dispatch readiness",
+      "trigger_rule": "CROSS_CUTTING_REQUIRED",
+      "threshold_ref": "design.json#cross_cutting_concerns[2]",
       "qa_stage": "QA_A",
       "handling": "QA_HANDOFF",
       "qa_handoff_obligation_refs": [
@@ -356,7 +372,8 @@
       "trigger_id": "ST-XC-CONFIG",
       "trigger_type": "cross_cutting_concern",
       "source_ref": "design.json#cross_cutting_concerns[3]",
-      "condition": "registry digest and catalog paths configure artifact discovery",
+      "trigger_rule": "CROSS_CUTTING_REQUIRED",
+      "threshold_ref": "design.json#cross_cutting_concerns[3]",
       "qa_stage": "QA_A",
       "handling": "TEST_CASE",
       "test_case_refs": [
@@ -366,7 +383,6 @@
   ],
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "coverage and QA handoff contract are frozen",
     "review_round": "R2",
     "reviewer_verdicts": [
       {
@@ -374,24 +390,30 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "test-quality confirmation review closed with executable dispatch, handoff, and trigger coverage",
-        "reviewed_test_cases_digest": "sha256:55959344845f786fc077a140e32ed6812303634c83bd68cc93111fce2b2629a9"
+        "reviewed_test_cases_digest": "sha256:be85812856bda86c479528b9fe6c1e5df276db48079c1769c177fedcfc463ecd",
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewed_test_cases_digest"
+        ]
       },
       {
         "perspective": "product",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "product confirmation review closed with dispatch scope and constraints preserved",
-        "reviewed_test_cases_digest": "sha256:55959344845f786fc077a140e32ed6812303634c83bd68cc93111fce2b2629a9"
+        "reviewed_test_cases_digest": "sha256:be85812856bda86c479528b9fe6c1e5df276db48079c1769c177fedcfc463ecd",
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewed_test_cases_digest"
+        ]
       },
       {
         "perspective": "architecture",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "architecture confirmation review closed with design refs, QA handoff, and specialty triggers covered",
-        "reviewed_test_cases_digest": "sha256:55959344845f786fc077a140e32ed6812303634c83bd68cc93111fce2b2629a9"
+        "reviewed_test_cases_digest": "sha256:be85812856bda86c479528b9fe6c1e5df276db48079c1769c177fedcfc463ecd",
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewed_test_cases_digest"
+        ]
       }
     ],
     "convergence_evidence": [
@@ -400,17 +422,22 @@
         "result": "PASS",
         "fail_count": 0,
         "control_action": "CONFIRMATION",
-        "evidence": "initial full-pass test-design review triggered the required confirmation round"
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewer_verdicts"
+        ]
       },
       {
         "round": "R2",
         "result": "PASS",
         "fail_count": 0,
         "control_action": "COMPLETE",
-        "evidence": "confirmation review closed with no open test-design findings"
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewer_verdicts"
+        ]
       }
     ],
-    "reviewed_test_cases_digest": "sha256:55959344845f786fc077a140e32ed6812303634c83bd68cc93111fce2b2629a9"
+    "reviewed_test_cases_digest": "sha256:be85812856bda86c479528b9fe6c1e5df276db48079c1769c177fedcfc463ecd",
+    "closure_status": "CLOSED"
   },
   "issue_ledger": []
 }

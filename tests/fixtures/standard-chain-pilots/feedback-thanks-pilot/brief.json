@@ -48,11 +48,51 @@
     "Escape submitted content before rendering the thanks page so the user-visible journey covers an XSS-sensitive boundary."
   ],
   "non_functional_requirements": [
-    "Exercise the feature through a real local HTTP server, not a mocked request object.",
-    "Keep implementation and test files below the repository 400-line file limit.",
-    "Keep the pilot isolated under examples/feedback_thanks_app and tests/test_feedback_thanks_app.py.",
-    "Preserve BaseHTTPRequestHandler access logs so review and QA can observe negative paths.",
-    "Reject malformed negative Content-Length and oversized form bodies before accepting feedback."
+    {
+      "requirement_id": "NFR-1",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    },
+    {
+      "requirement_id": "NFR-2",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    },
+    {
+      "requirement_id": "NFR-3",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    },
+    {
+      "requirement_id": "NFR-4",
+      "quality_attribute": "OBSERVABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    },
+    {
+      "requirement_id": "NFR-5",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    }
   ],
   "scope_boundaries": [
     "In scope: feedback form, required-field validation, submission redirect, thanks page rendering, HTML escaping, missing-id handling, and canonical chain evidence.",
@@ -158,7 +198,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:27c3ed6af3638f99c5bdaa68292d2940403c0e3e425f91cce9c41a3f5e924f30"
+          "reviewed_bundle_digest": "sha256:cf3d77bb40b3bc781a1a5eec9d814825ea40b83dd277b257d21ff6bdb57c5e4b"
         },
         {
           "perspective": "architecture",
@@ -176,7 +216,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:27c3ed6af3638f99c5bdaa68292d2940403c0e3e425f91cce9c41a3f5e924f30"
+          "reviewed_bundle_digest": "sha256:cf3d77bb40b3bc781a1a5eec9d814825ea40b83dd277b257d21ff6bdb57c5e4b"
         },
         {
           "perspective": "test",
@@ -194,7 +234,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:27c3ed6af3638f99c5bdaa68292d2940403c0e3e425f91cce9c41a3f5e924f30"
+          "reviewed_bundle_digest": "sha256:cf3d77bb40b3bc781a1a5eec9d814825ea40b83dd277b257d21ff6bdb57c5e4b"
         }
       ],
       "convergence_evidence": [
@@ -207,7 +247,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:27c3ed6af3638f99c5bdaa68292d2940403c0e3e425f91cce9c41a3f5e924f30"
+      "reviewed_bundle_digest": "sha256:cf3d77bb40b3bc781a1a5eec9d814825ea40b83dd277b257d21ff6bdb57c5e4b"
     }
   },
   "issue_ledger": [],

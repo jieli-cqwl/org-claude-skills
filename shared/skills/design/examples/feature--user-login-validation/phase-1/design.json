@@ -94,9 +94,12 @@
     {
       "option_id": "OPT-D-001-A",
       "decision_ref": "D-001",
-      "summary": "bcrypt cost=12 存储密码哈希。",
-      "tradeoff": "成熟安全基线，cost=12 单次 ~250ms 可接受；升级 cost 需重新 hash，已在 option B 评估。",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[3]"
       ]
@@ -104,9 +107,12 @@
     {
       "option_id": "OPT-D-001-B",
       "decision_ref": "D-001",
-      "summary": "argon2id 做密码哈希。",
-      "tradeoff": "内存硬算法更抗 GPU 攻击，但需要新增依赖，团队熟悉度低，拒绝。",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[3]"
       ]
@@ -114,9 +120,12 @@
     {
       "option_id": "OPT-D-002-A",
       "decision_ref": "D-002",
-      "summary": "HttpOnly + SameSite=Lax Cookie 携带会话标识。",
-      "tradeoff": "JS 无法读取阻断 XSS 窃取；SameSite=Lax 允许顶级导航登录但拦截大多数 CSRF。",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[2]"
       ]
@@ -124,9 +133,12 @@
     {
       "option_id": "OPT-D-002-B",
       "decision_ref": "D-002",
-      "summary": "Authorization Bearer token 由前端 localStorage 持有。",
-      "tradeoff": "方便跨域 API 调用，但 localStorage 对 XSS 无防护，与安全基线冲突，拒绝。",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[2]"
       ]
@@ -134,9 +146,12 @@
     {
       "option_id": "OPT-D-003-A",
       "decision_ref": "D-003",
-      "summary": "Redis SET session:{uuid} EX 1800；成功校验时 EXPIRE 刷新。",
-      "tradeoff": "复用现有 Redis 集群零新增依赖；Redis 故障时全站强制重新登录是已接受风险。",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[1]"
       ]
@@ -144,9 +159,12 @@
     {
       "option_id": "OPT-D-003-B",
       "decision_ref": "D-003",
-      "summary": "会话存在 MySQL sessions 表，定时任务清理过期数据。",
-      "tradeoff": "持久性更好，但引入数据库压力、清理任务和新表结构，超出 Phase 1 边界，拒绝。",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[1]"
       ]
@@ -154,9 +172,12 @@
     {
       "option_id": "OPT-D-004-A",
       "decision_ref": "D-004",
-      "summary": "统一 401 '账号或密码错误' + 固定 200ms 延迟响应。",
-      "tradeoff": "同时覆盖消息内容和响应时序两个侧信道；200ms 对 UX 影响可接受。",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]"
       ]
@@ -164,9 +185,12 @@
     {
       "option_id": "OPT-D-004-B",
       "decision_ref": "D-004",
-      "summary": "仅统一错误消息，不加延迟。",
-      "tradeoff": "响应时间差仍可被枚举（bcrypt 验证 vs 查库 miss），拒绝。",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]"
       ]
@@ -176,19 +200,30 @@
     {
       "attribute": "security",
       "priority": "P0",
-      "key_scenarios": [
+      "scenario_refs": [
         "攻击者通过登录接口枚举账号是否存在",
         "攻击者通过数据库泄漏恢复用户密码",
         "攻击者通过 XSS 窃取会话标识"
       ],
       "target_metrics": [
-        "账号存在与不存在的 401 响应时间差 <= 20ms",
-        "密码存储算法为 bcrypt cost>=12 或等价强度",
-        "会话 Cookie 必须 HttpOnly 且无法被 document.cookie 读取"
-      ],
-      "tradeoff_points": [
-        "bcrypt cost=12 单次 ~250ms；登录接口延迟提升 250ms 可接受",
-        "HttpOnly Cookie 牺牲前端 JS 持有令牌的灵活性换取 XSS 抵抗"
+        {
+          "metric_id": "M-1-1",
+          "metric_name": "security",
+          "threshold": "账号存在与不存在的 401 响应时间差 <= 20ms",
+          "unit": "contract"
+        },
+        {
+          "metric_id": "M-1-2",
+          "metric_name": "security",
+          "threshold": "密码存储算法为 bcrypt cost>=12 或等价强度",
+          "unit": "contract"
+        },
+        {
+          "metric_id": "M-1-3",
+          "metric_name": "security",
+          "threshold": "会话 Cookie 必须 HttpOnly 且无法被 document.cookie 读取",
+          "unit": "contract"
+        }
       ],
       "verification_refs": [
         "VP-LOGIN-AUTH",
@@ -199,14 +234,16 @@
     {
       "attribute": "reliability",
       "priority": "P1",
-      "key_scenarios": [
+      "scenario_refs": [
         "Redis 故障时登录接口的降级行为"
       ],
       "target_metrics": [
-        "Redis 不可用时，登录接口返回 503 且不产生未持久化的会话"
-      ],
-      "tradeoff_points": [
-        "选择 Redis 存储会话，接受'Redis 故障则全站强制重新登录'的后果"
+        {
+          "metric_id": "M-2-1",
+          "metric_name": "reliability",
+          "threshold": "Redis 不可用时，登录接口返回 503 且不产生未持久化的会话",
+          "unit": "contract"
+        }
       ],
       "verification_refs": [
         "VP-LOGIN-REDIS-FAIL"
@@ -217,7 +254,6 @@
     {
       "interface_id": "IF-LOGIN",
       "owner": "MOD-AUTH-API",
-      "contract_summary": "POST /api/login 接受账号密码，校验后下发 HttpOnly 会话 Cookie。",
       "error_modes": [
         "账号不存在或密码错误",
         "请求体格式错误",
@@ -270,18 +306,21 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "valid credentials with supported session store",
-          "expected_behavior": "POST /api/login returns 200 with public user data and a Set-Cookie header containing HttpOnly, SameSite=Lax, and Max-Age=1800",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[0].interface_id",
+          "expected_outcome": "PERSIST",
           "verification_ref": "VP-LOGIN-XSS"
         },
         {
-          "scenario": "missing fields, unknown account, or wrong password",
-          "expected_behavior": "validation failures return BAD_REQUEST where applicable; credential failures return the uniform INVALID_CREDENTIALS response without account enumeration",
+          "behavior_type": "not_found",
+          "trigger_ref": "design.json#interfaces[0].interface_id",
+          "expected_outcome": "RETURN_ERROR",
           "verification_ref": "VP-LOGIN-AUTH"
         },
         {
-          "scenario": "Redis session store unavailable while creating a session",
-          "expected_behavior": "login returns SESSION_STORE_UNAVAILABLE/503 and leaves no partially usable session state",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[0].interface_id",
+          "expected_outcome": "PERSIST",
           "verification_ref": "VP-LOGIN-REDIS-FAIL"
         }
       ]
@@ -289,7 +328,6 @@
     {
       "interface_id": "IF-LOGOUT",
       "owner": "MOD-AUTH-API",
-      "contract_summary": "POST /api/logout 失效服务端会话并下发过期 Cookie；幂等，无会话也返回 200。",
       "error_modes": [
         "Redis 不可用"
       ],
@@ -318,13 +356,15 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "logout with active, missing, or stale session cookie",
-          "expected_behavior": "logout is idempotent, clears the browser cookie, invalidates server state when present, and prevents stale cookie reuse",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[1].interface_id",
+          "expected_outcome": "EXPIRE_SESSION",
           "verification_ref": "VP-LOGIN-AUTH"
         },
         {
-          "scenario": "Redis is unavailable during logout",
-          "expected_behavior": "the API returns the configured service-unavailable error without reporting logout success for state that could not be invalidated",
+          "behavior_type": "state_transition",
+          "trigger_ref": "design.json#interfaces[1].interface_id",
+          "expected_outcome": "RETURN_ERROR",
           "verification_ref": "VP-LOGIN-REDIS-FAIL"
         }
       ]
@@ -332,7 +372,6 @@
     {
       "interface_id": "IF-SESSION-VALIDATE",
       "owner": "MOD-SESSION",
-      "contract_summary": "内部中间件：校验请求 Cookie 中的会话标识，有效则刷新 TTL 并附加 user 到请求上下文。",
       "error_modes": [
         "会话不存在",
         "会话过期",
@@ -368,13 +407,15 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "valid, missing, expired, or reused session id",
-          "expected_behavior": "valid sessions attach user_context and refresh TTL; missing, expired, or reused ids return SESSION_INVALID and require login",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[2].interface_id",
+          "expected_outcome": "EXPIRE_SESSION",
           "verification_ref": "VP-LOGIN-SESSION"
         },
         {
-          "scenario": "Redis unavailable while validating a session",
-          "expected_behavior": "middleware returns SESSION_STORE_UNAVAILABLE and does not attach user_context from stale or guessed data",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[2].interface_id",
+          "expected_outcome": "PERSIST",
           "verification_ref": "VP-LOGIN-REDIS-FAIL"
         }
       ]
@@ -431,7 +472,7 @@
   "cross_cutting_concerns": [
     {
       "concern": "auth",
-      "decision": "bcrypt 密码哈希 + HttpOnly Cookie 会话 + Redis TTL 滑动过期",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-AUTH-API",
       "verification_refs": [
         "VP-LOGIN-AUTH",
@@ -440,7 +481,7 @@
     },
     {
       "concern": "error",
-      "decision": "登录失败统一 401 '账号或密码错误' + 200ms 延迟；其他失败有对应的 code/message",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-AUTH-API",
       "verification_refs": [
         "VP-LOGIN-ENUM"
@@ -448,7 +489,7 @@
     },
     {
       "concern": "log",
-      "decision": "登录失败记录 username + remote_ip + reason（仅 INVALID_CREDENTIALS / BAD_REQUEST），不记录密码；登录成功记录 user_id + session_id",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-AUTH-API",
       "verification_refs": [
         "VP-LOGIN-AUDIT"
@@ -456,7 +497,7 @@
     },
     {
       "concern": "config",
-      "decision": "Redis 连接复用现有配置 REDIS_URL；bcrypt cost 由环境变量 BCRYPT_COST 控制默认 12",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-AUTH-API",
       "verification_refs": [
         "VP-LOGIN-AUTH"
@@ -557,7 +598,8 @@
       "affected_modules": [
         "MOD-AUTH-API"
       ],
-      "impact": "users 表新增 password_hash 字段，需要一次 schema migration；现有查询无需改动（字段可空）",
+      "impact_type": "NONE",
+      "required_action": "VERIFY",
       "verification_refs": [
         "VP-LOGIN-AUTH"
       ]
@@ -567,7 +609,8 @@
       "affected_modules": [
         "MOD-SESSION"
       ],
-      "impact": "Redis 新增 session:{uuid} key 空间，按 1800 秒 TTL 自动回收；预计峰值 10k 键，内存占用 < 5MB",
+      "impact_type": "CHANGE",
+      "required_action": "VERIFY",
       "verification_refs": [
         "VP-LOGIN-SESSION"
       ]
@@ -577,7 +620,8 @@
       "affected_modules": [
         "MOD-SESSION"
       ],
-      "impact": "所有受保护 API 新增 IF-SESSION-VALIDATE 中间件；未受保护路由显式声明白名单",
+      "impact_type": "CHANGE",
+      "required_action": "VERIFY",
       "verification_refs": [
         "VP-LOGIN-SESSION"
       ]
@@ -587,19 +631,22 @@
     {
       "constraint_id": "CON-LOGIN-BCRYPT-COST",
       "constraint_type": "configuration",
-      "description": "BCRYPT_COST 环境变量默认 12，上线前压测确认单次 ~250ms 可接受",
+      "constraint_rule": "ORDERING",
+      "enforcement_type": "SEQUENCING",
       "owner": "developer"
     },
     {
       "constraint_id": "CON-LOGIN-REDIS-REUSE",
       "constraint_type": "dependency",
-      "description": "只允许复用现有 Redis 集群；不引入新中间件",
+      "constraint_rule": "ORDERING",
+      "enforcement_type": "SEQUENCING",
       "owner": "developer"
     },
     {
       "constraint_id": "CON-LOGIN-EXISTING-USERS",
       "constraint_type": "scope",
-      "description": "存量用户（password_hash 为空）Phase 1 不参与登录；Phase 2 处理迁移",
+      "constraint_rule": "ORDERING",
+      "enforcement_type": "SEQUENCING",
       "owner": "tech-lead"
     }
   ],
@@ -610,53 +657,49 @@
       "brief.json#non_functional_requirements",
       "phase-prd.json#exit_conditions"
     ],
-    "open_failures": [],
-    "warn_followups": []
+    "open_failures": []
   },
   "risks": [
     {
       "risk_id": "RISK-LOGIN-BCRYPT-PERF",
-      "description": "bcrypt cost=12 在高并发登录下可能成为 CPU 瓶颈",
-      "severity": "medium",
+      "risk_type": "TECHNICAL",
+      "severity": "MEDIUM",
       "source_ref": "design.json#key_decisions[0]"
     },
     {
       "risk_id": "RISK-LOGIN-REDIS-SPOF",
-      "description": "Redis 单点故障会导致全站登录不可用且存量会话丢失",
-      "severity": "medium",
+      "risk_type": "TECHNICAL",
+      "severity": "MEDIUM",
       "source_ref": "design.json#key_decisions[2]"
     },
     {
       "risk_id": "RISK-LOGIN-ENUM-RESIDUAL",
-      "description": "200ms 延迟无法抵消所有时序差异（如 DB 查询 miss 极快），可能仍有微弱枚举信号",
-      "severity": "low",
+      "risk_type": "TECHNICAL",
+      "severity": "LOW",
       "source_ref": "design.json#key_decisions[3]"
     }
   ],
   "risk_response": [
     {
       "risk_id": "RISK-LOGIN-BCRYPT-PERF",
-      "architecture_response": "登录接口单独限流 10 qps/IP；必要时把 bcrypt 移到独立 worker",
+      "response_type": "MITIGATE",
       "verification_refs": [
         "VP-LOGIN-AUTH"
-      ],
-      "escalation_path": "压测指标超标时回到 design 重新评估 cost 或选择更高效算法"
+      ]
     },
     {
       "risk_id": "RISK-LOGIN-REDIS-SPOF",
-      "architecture_response": "Redis 不可用时登录接口返回 503；监控告警 5 分钟内上报运维",
+      "response_type": "MITIGATE",
       "verification_refs": [
         "VP-LOGIN-REDIS-FAIL"
-      ],
-      "escalation_path": "集群频繁故障时升级为 Redis Sentinel 或回到 design 评估持久化策略"
+      ]
     },
     {
       "risk_id": "RISK-LOGIN-ENUM-RESIDUAL",
-      "architecture_response": "接受为 Phase 1 残留风险；Phase 2 评估统一走 bcrypt 伪校验路径",
+      "response_type": "MITIGATE",
       "verification_refs": [
         "VP-LOGIN-ENUM"
-      ],
-      "escalation_path": "安全团队告警出现账号枚举攻击时升级"
+      ]
     }
   ],
   "migration_plan": [
@@ -691,25 +734,25 @@
     "confirmation_summary": "用户确认继承 brief 的 feasibility_constraints 和 NFR 作为设计硬约束"
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:08c4d2df92de697ee6b4f08836cf789c45132b748b1314f5d9726b1e00c18383",
+    "reviewed_design_digest": "sha256:12895eebf8946449db5ebda8850fb9fc5e9f0d630450e467cdfce7f63b2252a1",
     "reviewed_at": "2026-05-10T10:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:08c4d2df92de697ee6b4f08836cf789c45132b748b1314f5d9726b1e00c18383",
+        "reviewed_design_digest": "sha256:12895eebf8946449db5ebda8850fb9fc5e9f0d630450e467cdfce7f63b2252a1",
         "finding_refs": []
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:08c4d2df92de697ee6b4f08836cf789c45132b748b1314f5d9726b1e00c18383",
+        "reviewed_design_digest": "sha256:12895eebf8946449db5ebda8850fb9fc5e9f0d630450e467cdfce7f63b2252a1",
         "finding_refs": []
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
-        "reviewed_design_digest": "sha256:08c4d2df92de697ee6b4f08836cf789c45132b748b1314f5d9726b1e00c18383",
+        "reviewed_design_digest": "sha256:12895eebf8946449db5ebda8850fb9fc5e9f0d630450e467cdfce7f63b2252a1",
         "finding_refs": []
       }
     ],
@@ -730,65 +773,79 @@
   "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "stage_name": "stakeholders-and-concerns",
-      "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
-      "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#input_analysis"
+      ],
+      "evidence_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "stage_name": "architecture-significant-requirements",
-      "question_or_focus": "确认硬约束和力场：bcrypt、Redis 复用、防账号枚举、30 分钟过期",
-      "user_response_summary": "User 确认上述均为 P0 硬约束，允许 Phase 1 不处理存量用户",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#input_analysis"
+      ],
+      "evidence_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "stage_name": "current-state-evidence",
-      "question_or_focus": "确认 security 为 P0、reliability 为 P1；冻结 4 个决策点",
-      "user_response_summary": "User 确认质量属性排序和 4 个决策点（D-001~D-004）",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#runtime_facts"
+      ],
+      "evidence_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "stage_name": "complexity-model",
-      "question_or_focus": "4 个决策各自的 2 方案对比",
-      "user_response_summary": "User 选择：bcrypt / HttpOnly Cookie / Redis TTL / 统一 401+200ms 延迟",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#quality_attributes"
+      ],
+      "evidence_refs": [
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "stage_name": "decision-discovery",
-      "question_or_focus": "确认 IF-LOGIN / IF-LOGOUT / IF-SESSION-VALIDATE 契约",
-      "user_response_summary": "User 确认三个接口契约和 3 个模块边界",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#key_decisions"
+      ],
+      "evidence_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "stage_name": "option-tradeoff",
-      "question_or_focus": "确认 VP-LOGIN-* 验证映射、Redis 降级和风险回应",
-      "user_response_summary": "User 确认 6 个 VP、3 个风险及对应回应",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#option_analysis",
+        "design.json#key_decisions"
+      ],
+      "evidence_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "stage_name": "design-synthesis",
-      "question_or_focus": "确认 CON-* 规划约束与 product_handoff READY",
-      "user_response_summary": "User 确认 3 个 planning_constraint 和 handoff 就绪",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#modules",
+        "design.json#interfaces",
+        "design.json#migration_plan",
+        "design.json#verification_plan",
+        "design.json#rollback_plan",
+        "design.json#planning_constraints",
+        "design.json#impact_scope"
+      ],
+      "evidence_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",

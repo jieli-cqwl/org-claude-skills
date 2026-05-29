@@ -82,7 +82,6 @@
     }
   },
   "implementation_path": {
-    "summary": "Implementation path is organized by WBS work packages, dependency order, and frozen task contracts.",
     "wbs": [
       {
         "work_package_id": "WP-1",
@@ -103,7 +102,6 @@
       "T1",
       "T2"
     ],
-    "dependency_strategy": "Follow task dependencies and batch order from tasks.json.",
     "parallel_batches": [
       {
         "batch": 1,
@@ -111,15 +109,21 @@
           "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
           "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2"
         ],
-        "parallelizable": true,
-        "reason": "Parallelism depends on depends_on and shared_files constraints."
+        "parallelizable": true
       }
     ],
     "investment_risk_signals": [
       {
-        "signal": "fixture-baseline",
-        "impact": "Fixture baseline preserves standard-chain validation behavior.",
-        "owner": "tech-lead"
+        "risk_id": "IR-1",
+        "signal_type": "INTEGRATION_RISK",
+        "impact_level": "MEDIUM",
+        "owner": "tech-lead",
+        "source_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1"
+        ],
+        "mitigation_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1"
+        ]
       }
     ]
   }

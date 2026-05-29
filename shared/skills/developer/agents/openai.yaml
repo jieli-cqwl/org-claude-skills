@@ -4,4 +4,7 @@ interface:
   default_prompt: "Use $developer to implement the task with TDD."
 
 policy:
+  allow_nested_agents: false
+  agent_type: developer
+  execution_kind: agent_backed
   allow_implicit_invocation: false

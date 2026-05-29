@@ -155,7 +155,8 @@ def _assert_impact_scope(payload: dict, module_ids: set[str]) -> None:
             )
         seen_scope_ids.add(scope_item_id)
         _assert_impact_modules(row, index, module_ids)
-        _require_non_empty_string(row.get("impact"), f"impact_scope[{index}].impact")
+        for field in ("impact_type", "required_action"):
+            _require_non_empty_string(row.get(field), f"impact_scope[{index}].{field}")
         _require_non_empty_list(
             row.get("verification_refs"), f"impact_scope[{index}].verification_refs"
         )
@@ -193,7 +194,7 @@ def _assert_planning_constraints(payload: dict) -> None:
                 f"design planning_constraints duplicate constraint_id: {constraint_id}"
             )
         seen_constraint_ids.add(constraint_id)
-        for field in ("constraint_type", "description", "owner"):
+        for field in ("constraint_type", "constraint_rule", "enforcement_type", "owner"):
             _require_non_empty_string(
                 row.get(field), f"planning_constraints[{index}].{field}"
             )
@@ -239,14 +240,14 @@ def _assert_single_risk_response(response: object, index: int) -> None:
     if not isinstance(response, dict):
         raise ValueError(f"design risk_response[{index}] must be an object")
     _require_non_empty_string(
-        response.get("architecture_response"),
-        f"risk_response[{index}].architecture_response",
+        response.get("response_type"),
+        f"risk_response[{index}].response_type",
     )
     verification_refs = response.get("verification_refs")
-    escalation_path = response.get("escalation_path")
+    escalation_owner = response.get("escalation_owner")
     if (
         not isinstance(verification_refs, list) or not verification_refs
-    ) and not escalation_path:
+    ) and not escalation_owner:
         raise ValueError(
             err.risk_response_missing_containment(index, response.get("risk_id"))
         )

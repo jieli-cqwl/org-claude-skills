@@ -1,6 +1,6 @@
 # Implementation Order
 
-结论：已按 1-6 与 8 的可证明合同项推进实现；7 仅处理本次证据充分的 `owner_responsibility` prose，不扩大到 Design/Test/Tech 大面积字段清理。
+结论：1-8 的目标内字段合同已完成第一轮实现；当前仍不能声明最终交付，因为 quick/full 门禁和连续两轮复检尚未完成。
 
 以下顺序按 Codex 复核收敛后执行；当前仍不声明实现完成。
 
@@ -26,6 +26,6 @@
 | 4 | partial-done | artifact-registry runtime policy 已进入 schema/template/key_fields/field-consumption；signoff runtime evidence 已有现存 readiness 覆盖，本轮未扩大改动。 |
 | 5 | done | fix-result field-consumption 已补；`delivery_owner_optional_artifacts.py` 拒绝 post-fix stale review/QA/signoff/decision evidence。 |
 | 6 | done | `validate_canonical_rules.py` 与 `validate_standard_chain_readiness.py` 固化 PASS+ALLOW 唯一路径，其它 QA route 需要 owner route 且 readiness 不关闭。 |
-| 7 | scoped | 本轮只删除 `artifact-registry.runtime_artifact_policy.owner_responsibility` 这类已证实无 gate value 的 prose；其它 needs-human-decision prose 仍留在 conflicts，后续需单独产品判断。 |
+| 7 | done-first-pass | 已删除 `artifact-registry.runtime_artifact_policy.owner_responsibility`、`signoff-package.takeover_note`、`design.product_handoff.warn_followups`、`plan.implementation_path` 解释性 prose；已把 `brief.non_functional_requirements`、Design prose、Test-design handoff/gap/review prose、`tasks.real_dependency_note/mock_boundary_note` 与 `plan.investment_risk_signals` 结构化。 |
 | 8 | done | `tests/test-delivery-owner-source-anchor-contract.sh` 已从整行字符串锁定改为结构化 YAML 校验。 |
-| 9 | quick-pass/full-blocked | 专项测试已通过；`bash tests/run-all.sh --quick` 已 24/24 通过。`bash tests/run-all.sh` 受 `shared/rules/*` 并行改动导致的安装 quick-check 源漂移阻断；失败 group 单独复跑通过。 |
+| 9 | pending | 专项测试已通过；当前最终 diff 尚未重新取得 `bash tests/run-all.sh --quick`、`bash tests/run-all.sh`、`git diff --check` 与两轮复检证据。 |

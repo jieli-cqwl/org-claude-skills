@@ -19,7 +19,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
    - 不执行 QA、不做 release recommendation、不替代 `/tech-lead` 拆任务。
    - Why: 本 Skill 的完成边界是冻结可消费测试义务，不是验证实现或批准发布。
 3. TD-HG-3 阻断缺口不得 handoff
-   - 任一 typed gap 为 `blocking=true` 时停止交给 `/tech-lead`，报告证据、owner 和 next_action。
+   - 任一 typed gap 为 `blocking=true` 时停止交给 `/tech-lead`，报告 evidence refs、owner、required_artifact_ref 和 decision_needed。
    - Why: blocking gap 会让 task、开发自测或 QA 验收建立在不可验证前提上。
 4. TD-HG-4 reviewer FAIL 不得完成
    - 三视角 review 任一视角存在 unresolved `FAIL` 时必须修正或停止报告阻塞。
@@ -105,7 +105,7 @@ digraph test_design_flow {
 7. Gap Routing
 
 - typed gap 只使用：`PRODUCT_GAP`、`DESIGN_GAP`、`SCOPE_DRIFT`、`TRACE_CONFLICT`、`TESTABILITY_GAP`、`EQ_GAP`。
-- 每个 gap 必须有 evidence refs、owner、next_action 和 blocking 裁决。
+- 每个 gap 必须有 evidence refs、owner、required_artifact_ref、decision_needed 和 blocking 裁决。
 - `blocking=true` 时停止 handoff。
 
 7.5. Owner Self-Check
@@ -125,7 +125,7 @@ digraph test_design_flow {
 - 架构 reviewer 读取 `references/testdesign-arch-reviewer-prompt.md`，只提取架构一致性审查范围、verdict 格式和 evidence 要求。
 - reviewer 只输出审查报告，不创建、修改或签收 `test-cases.json`。
 - 你复核 findings，修正测试设计，写入 `review_conclusion.reviewer_verdicts[]` 与 `issue_ledger`；每个 reviewer verdict 必须回显同一个 `reviewed_test_cases_digest`。
-- 你复核三视角 findings，记录最终裁决、修正依据和未承接风险；最终记录必须同时覆盖 `review_conclusion.final_verdict`、已采纳修正的 evidence refs、未采纳或延后风险的 owner / next_action，并可追溯到 `issue_ledger` 与 `convergence_evidence[]`。
+- 你复核三视角 findings，记录最终裁决、修正依据和未承接风险；最终记录必须同时覆盖 `review_conclusion.verdict`、已采纳修正的 evidence refs、未采纳或延后风险的 `issue_ledger[].handling_action / evidence_refs`，并可追溯到 `convergence_evidence[]`。
 - 评审循环为 `3 视角×max10轮`；首轮全 PASS 仍进入 `R2 / CONFIRMATION`。
 - 任一 `FAIL`：复核 evidence → 系统性修正 `test-cases.json` → 只重提 FAIL 视角。
 - 连续 2 轮 FAIL 数不减少时请求用户裁决；同一 issue 连续 3 轮未关闭或 max10 后仍 FAIL 时标记 BLOCKED。

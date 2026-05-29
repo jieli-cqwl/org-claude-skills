@@ -268,7 +268,11 @@ def _assert_gap_row(row: object, support: dict[str, dict], path: str) -> str:
     _assert_enum(row.get("gap_type"), GAP_TYPES, f"{path}.gap_type")
     _assert_source_refs(row.get("blocking_refs"), support, f"{path}.blocking_refs")
     _assert_enum(row.get("owner"), GAP_OWNERS, f"{path}.owner")
-    _require_non_empty_string(row.get("next_action"), f"{path}.next_action")
+    _require_non_empty_string(
+        row.get("required_artifact_ref"), f"{path}.required_artifact_ref"
+    )
+    if not isinstance(row.get("decision_needed"), bool):
+        raise ValueError(f"test-cases {path}.decision_needed must be boolean")
     if not isinstance(row.get("blocking"), bool):
         raise ValueError(f"test-cases {path}.blocking must be boolean")
     if row["blocking"]:

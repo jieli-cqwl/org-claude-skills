@@ -51,9 +51,12 @@
     {
       "option_id": "OPT-001",
       "decision_ref": "D-001",
-      "summary": "<first materially different option>",
-      "tradeoff": "<benefit, cost, risk, and failure condition>",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]"
       ]
@@ -61,9 +64,12 @@
     {
       "option_id": "OPT-002",
       "decision_ref": "D-001",
-      "summary": "<second materially different option>",
-      "tradeoff": "<benefit, cost, risk, and failure condition>",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]"
       ]
@@ -76,7 +82,6 @@
     {
       "interface_id": "IF-001",
       "owner": "<module or component owner>",
-      "contract_summary": "<what callers can rely on>",
       "error_modes": [
         "<validation, business, or system error mode>"
       ],
@@ -105,8 +110,9 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "<permission, idempotency, concurrency, timeout, retry, degraded-mode, or state transition case>",
-          "expected_behavior": "<observable behavior downstream can test>",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[0].interface_id",
+          "expected_outcome": "ALLOW",
           "verification_ref": "VP-001"
         }
       ]
@@ -119,14 +125,16 @@
     {
       "attribute": "<performance | reliability | security | operability | maintainability | cost_efficiency>",
       "priority": "P0",
-      "key_scenarios": [
+      "scenario_refs": [
         "<scenario that makes this quality attribute necessary>"
       ],
       "target_metrics": [
-        "<measurable target or threshold>"
-      ],
-      "tradeoff_points": [
-        "<tradeoff accepted by the design>"
+        {
+          "metric_id": "M-1-1",
+          "metric_name": "<performance | reliability | security | operability | maintainability | cost_efficiency>",
+          "threshold": "<measurable target or threshold>",
+          "unit": "contract"
+        }
       ],
       "verification_refs": [
         "VP-001"
@@ -157,7 +165,7 @@
   "cross_cutting_concerns": [
     {
       "concern": "auth",
-      "decision": "<auth or permission decision>",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "<owner>",
       "verification_refs": [
         "VP-001"
@@ -165,7 +173,7 @@
     },
     {
       "concern": "error",
-      "decision": "<error handling decision>",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "<owner>",
       "verification_refs": [
         "VP-001"
@@ -173,7 +181,7 @@
     },
     {
       "concern": "log",
-      "decision": "<logging or tracing decision>",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "<owner>",
       "verification_refs": [
         "VP-001"
@@ -181,7 +189,7 @@
     },
     {
       "concern": "config",
-      "decision": "<configuration decision>",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "<owner>",
       "verification_refs": [
         "VP-001"
@@ -214,7 +222,8 @@
       "affected_modules": [
         "MOD-001"
       ],
-      "impact": "<what changes for implementation, testing, operation, or users>",
+      "impact_type": "CHANGE",
+      "required_action": "VERIFY",
       "verification_refs": [
         "VP-001"
       ]
@@ -224,7 +233,8 @@
     {
       "constraint_id": "PLAN-CON-001",
       "constraint_type": "<sequencing | dependency | rollout | ownership>",
-      "description": "<constraint tech-lead must honor>",
+      "constraint_rule": "ORDERING",
+      "enforcement_type": "SEQUENCING",
       "owner": "tech-lead"
     }
   ],
@@ -234,23 +244,20 @@
       "brief.json#delivery_confirmation",
       "phase-prd.json#review_conclusion"
     ],
-    "open_failures": [],
-    "warn_followups": [
-      "<WARN item accepted for downstream handling, if any>"
-    ]
+    "open_failures": []
   },
   "risks": [
     {
       "risk_id": "R-001",
-      "description": "<architecture risk>",
-      "severity": "<low | medium | high>",
+      "risk_type": "TECHNICAL",
+      "severity": "HIGH",
       "source_ref": "<brief, phase-prd, UNIT, code, or runtime fact ref>"
     }
   ],
   "risk_response": [
     {
       "risk_id": "R-001",
-      "architecture_response": "<mitigation, validation, fallback, or escalation>",
+      "response_type": "MITIGATE",
       "verification_refs": [
         "VP-001"
       ]
@@ -313,66 +320,81 @@
   "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "stage_name": "stakeholders-and-concerns",
-      "question_or_focus": "确认设计消费者、架构显著关注点和责任边界",
-      "user_response_summary": "<confirmed user answer>",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#input_analysis"
+      ],
+      "evidence_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "stage_name": "architecture-significant-requirements",
-      "question_or_focus": "确认架构显著需求、质量属性和约束继承",
-      "user_response_summary": "<confirmed user answer>",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#input_analysis"
+      ],
+      "evidence_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "stage_name": "current-state-evidence",
-      "question_or_focus": "确认当前系统事实、运行时证据和证据强度",
-      "user_response_summary": "<confirmed user answer>",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#runtime_facts"
+      ],
+      "evidence_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "stage_name": "complexity-model",
-      "question_or_focus": "确认复杂度来源、最小可行架构和演化边界",
-      "user_response_summary": "<confirmed user answer>",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#input_analysis",
+        "design.json#quality_attributes"
+      ],
+      "evidence_refs": [
         "design.json#input_analysis",
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "stage_name": "decision-discovery",
-      "question_or_focus": "确认必须冻结的架构决策、遗漏风险和优先级",
-      "user_response_summary": "<confirmed user answer>",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#key_decisions"
+      ],
+      "evidence_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "stage_name": "option-tradeoff",
-      "question_or_focus": "确认候选方案取舍、失效条件和最终选择",
-      "user_response_summary": "<confirmed user answer>",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#option_analysis",
+        "design.json#key_decisions"
+      ],
+      "evidence_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "stage_name": "design-synthesis",
-      "question_or_focus": "确认设计合成结果和下游交接义务",
-      "user_response_summary": "<confirmed user answer>",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#modules",
+        "design.json#interfaces",
+        "design.json#migration_plan",
+        "design.json#verification_plan",
+        "design.json#rollback_plan",
+        "design.json#planning_constraints",
+        "design.json#impact_scope"
+      ],
+      "evidence_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",

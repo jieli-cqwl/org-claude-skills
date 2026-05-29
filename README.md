@@ -39,7 +39,7 @@
 - active scope registry：`contracts/active-doc-scope.yaml`
 - context artifact ownership：`contracts/context-artifact-ownership.yaml`
 - Skill 质量维度：`shared/skills/skill-quality-audit/references/audit-dimensions.md`
-- Skill runtime surface：`contracts/skill-runtime-surface.json`，统一声明 auto/manual/off 与 Claude/Codex 安装策略
+- Skill runtime surface：`contracts/skill-runtime-surface.json`，统一声明 auto/manual/off、Codex 执行上下文策略、agent-backed 绑定与 Claude/Codex 安装策略
 - Planning with Files：`community/skills-sh/skills/planning-with-files` 作为手动触发的第三方 scratchpad skill 纳入安装与 `skill-pull` 更新管理；不得替代 `standard-chain` canonical artifacts
 
 ## 快速开始

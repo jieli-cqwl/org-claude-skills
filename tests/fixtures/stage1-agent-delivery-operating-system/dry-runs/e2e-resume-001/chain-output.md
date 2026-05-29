@@ -111,7 +111,7 @@ planning_strategy:
 
 task_contract:
 
-- 每个 task 必须带 unit_refs、design_refs、test_refs、acceptance_targets、proving_command、evidence_target、mock_boundary_note。
+- 每个 task 必须带 unit_refs、design_refs、test_refs、acceptance_targets、proving_command、real_dependency_refs、evidence_target、mock_boundary。
 - mock 只允许用于外部依赖替身，最终验收必须保留真实接口 evidence target。
 - stop_condition: 任一 task 缺 trace evidence、错误码证据或人工确认状态，暂停给 delivery-owner。
 

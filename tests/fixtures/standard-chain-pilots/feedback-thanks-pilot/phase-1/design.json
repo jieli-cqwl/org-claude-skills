@@ -104,49 +104,55 @@
     {
       "attribute": "real local HTTP path",
       "priority": "P0",
-      "key_scenarios": [
+      "scenario_refs": [
         "feedback form and thanks page are verified through real localhost HTTP requests"
       ],
-      "tradeoff_points": [
-        "standard-library HTTP keeps runtime dependencies low while preserving user-journey evidence"
+      "target_metrics": [
+        {
+          "metric_id": "M-1-1",
+          "metric_name": "real local HTTP path",
+          "threshold": "real local HTTP path: referenced verification evidence (VP-FEEDBACK-001) passes for the described scenario",
+          "unit": "contract"
+        }
       ],
       "verification_refs": [
         "VP-FEEDBACK-001"
-      ],
-      "target_metrics": [
-        "real local HTTP path: referenced verification evidence (VP-FEEDBACK-001) passes for the described scenario"
       ]
     },
     {
       "attribute": "safe user content rendering",
       "priority": "P0",
-      "key_scenarios": [
+      "scenario_refs": [
         "thanks page renders submitted name and message without executing user content"
       ],
-      "tradeoff_points": [
-        "server-side escaping is simple and sufficient for the isolated pilot"
+      "target_metrics": [
+        {
+          "metric_id": "M-2-1",
+          "metric_name": "safe user content rendering",
+          "threshold": "safe user content rendering: referenced verification evidence (VP-FEEDBACK-002) passes for the described scenario",
+          "unit": "contract"
+        }
       ],
       "verification_refs": [
         "VP-FEEDBACK-002"
-      ],
-      "target_metrics": [
-        "safe user content rendering: referenced verification evidence (VP-FEEDBACK-002) passes for the described scenario"
       ]
     },
     {
       "attribute": "observable negative submissions",
       "priority": "P1",
-      "key_scenarios": [
+      "scenario_refs": [
         "invalid feedback submissions remain visible in default HTTP access logs"
       ],
-      "tradeoff_points": [
-        "default logging is enough for the pilot and avoids introducing logging dependencies"
+      "target_metrics": [
+        {
+          "metric_id": "M-3-1",
+          "metric_name": "observable negative submissions",
+          "threshold": "observable negative submissions: referenced verification evidence (VP-FEEDBACK-003) passes for the described scenario",
+          "unit": "contract"
+        }
       ],
       "verification_refs": [
         "VP-FEEDBACK-003"
-      ],
-      "target_metrics": [
-        "observable negative submissions: referenced verification evidence (VP-FEEDBACK-003) passes for the described scenario"
       ]
     }
   ],
@@ -154,9 +160,12 @@
     {
       "option_id": "OPT-D-001-A",
       "decision_ref": "D-001",
-      "summary": "Use Python http.server and unittest with no external dependency.",
-      "tradeoff": "Lower UI realism but gives deterministic real HTTP evidence without stack setup noise.",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -165,9 +174,12 @@
     {
       "option_id": "OPT-D-001-B",
       "decision_ref": "D-001",
-      "summary": "Introduce a frontend framework and browser-app build pipeline.",
-      "tradeoff": "More product-like UI but adds dependencies unrelated to the pilot validation target.",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -176,9 +188,12 @@
     {
       "option_id": "OPT-D-002-A",
       "decision_ref": "D-002",
-      "summary": "Keep submissions in memory behind a threading.Lock.",
-      "tradeoff": "Matches local workflow continuity while avoiding unnecessary storage setup.",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -187,9 +202,12 @@
     {
       "option_id": "OPT-D-002-B",
       "decision_ref": "D-002",
-      "summary": "Introduce a durable database or file-backed queue.",
-      "tradeoff": "Adds persistence but increases migration and cleanup work outside the pilot goal.",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -198,9 +216,12 @@
     {
       "option_id": "OPT-D-003-A",
       "decision_ref": "D-003",
-      "summary": "Generate opaque thanks-page ids with secrets.token_urlsafe.",
-      "tradeoff": "Avoids leaking user input and keeps ids unpredictable with minimal code.",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -209,9 +230,12 @@
     {
       "option_id": "OPT-D-003-B",
       "decision_ref": "D-003",
-      "summary": "Use sequential, timestamp, or input-derived thanks-page ids.",
-      "tradeoff": "Easier to inspect but leaks ordering or user-derived information.",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -220,9 +244,12 @@
     {
       "option_id": "OPT-D-004-A",
       "decision_ref": "D-004",
-      "summary": "Escape submitted name and message on server-side rendering.",
-      "tradeoff": "Keeps the rendered thanks page safe even when client validation is bypassed.",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -231,9 +258,12 @@
     {
       "option_id": "OPT-D-004-B",
       "decision_ref": "D-004",
-      "summary": "Rely on client-side validation or raw template interpolation.",
-      "tradeoff": "Less server code but leaves XSS risk in the generated response.",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -242,9 +272,12 @@
     {
       "option_id": "OPT-D-005-A",
       "decision_ref": "D-005",
-      "summary": "Use real HTTP requests in tests against the running server boundary.",
-      "tradeoff": "Costs a little setup time but proves the route, cookie, and rendering path together.",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -253,9 +286,12 @@
     {
       "option_id": "OPT-D-005-B",
       "decision_ref": "D-005",
-      "summary": "Test handlers directly with unit-only calls.",
-      "tradeoff": "Faster tests but misses wiring, HTTP semantics, and browser-facing behavior.",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -271,7 +307,6 @@
     {
       "interface_id": "IF-FEEDBACK-FORM",
       "owner": "examples/feedback_thanks_app/app.py",
-      "contract_summary": "GET / redirects to /feedback and GET /feedback renders the feedback form with name and message fields.",
       "error_modes": [
         "unknown route"
       ],
@@ -300,8 +335,9 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "root and form page navigation plus unknown route",
-          "expected_behavior": "GET / redirects to /feedback, GET /feedback renders required fields, and unknown routes remain a controlled not-found response",
+          "behavior_type": "not_found",
+          "trigger_ref": "design.json#interfaces[0].interface_id",
+          "expected_outcome": "REDIRECT",
           "verification_ref": "VP-FEEDBACK-001"
         }
       ]
@@ -309,7 +345,6 @@
     {
       "interface_id": "IF-FEEDBACK-SUBMIT",
       "owner": "examples/feedback_thanks_app/app.py",
-      "contract_summary": "POST /feedback validates required fields, stores valid submissions, and redirects to /thanks?id={id}.",
       "error_modes": [
         "invalid form length",
         "blank name",
@@ -348,8 +383,9 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "blank, oversized, malformed, and valid feedback submissions",
-          "expected_behavior": "invalid submissions return the documented error path without persistence; valid submissions are stored once and redirect to a thanks id",
+          "behavior_type": "validation",
+          "trigger_ref": "design.json#interfaces[1].interface_id",
+          "expected_outcome": "REDIRECT",
           "verification_ref": "VP-FEEDBACK-001"
         }
       ]
@@ -357,7 +393,6 @@
     {
       "interface_id": "IF-THANKS-PAGE",
       "owner": "examples/feedback_thanks_app/app.py",
-      "contract_summary": "GET /thanks?id={id} renders escaped feedback content for known ids and a readable not-found page for unknown ids.",
       "error_modes": [
         "missing id",
         "unknown id",
@@ -388,8 +423,9 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "known, missing, and unknown feedback id lookup",
-          "expected_behavior": "known ids render escaped feedback content; missing or unknown ids render a readable controlled response without leaking stored records",
+          "behavior_type": "not_found",
+          "trigger_ref": "design.json#interfaces[2].interface_id",
+          "expected_outcome": "PERSIST",
           "verification_ref": "VP-FEEDBACK-001"
         }
       ]
@@ -430,7 +466,7 @@
   "cross_cutting_concerns": [
     {
       "concern": "auth",
-      "decision": "No authentication is required for the feedback pilot; anonymous form submission is intentional.",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-FEEDBACK-APP",
       "verification_refs": [
         "VP-FEEDBACK-001"
@@ -438,7 +474,7 @@
     },
     {
       "concern": "error",
-      "decision": "Blank fields, malformed Content-Length, oversized bodies, missing ids, and unknown ids return readable errors.",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-FEEDBACK-APP",
       "verification_refs": [
         "VP-FEEDBACK-001",
@@ -447,7 +483,7 @@
     },
     {
       "concern": "log",
-      "decision": "Invalid submissions keep default HTTP access-log observability.",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-FEEDBACK-APP",
       "verification_refs": [
         "VP-FEEDBACK-003"
@@ -455,7 +491,7 @@
     },
     {
       "concern": "config",
-      "decision": "The app introduces no external configuration; runtime remains standard-library only.",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-FEEDBACK-APP",
       "verification_refs": [
         "VP-FEEDBACK-001"
@@ -504,7 +540,8 @@
       "affected_modules": [
         "MOD-FEEDBACK-APP"
       ],
-      "impact": "Adds isolated feedback form, validation, in-memory submission storage, thanks page, and access-log observability.",
+      "impact_type": "CHANGE",
+      "required_action": "VERIFY",
       "verification_refs": [
         "VP-FEEDBACK-001",
         "VP-FEEDBACK-003"
@@ -515,7 +552,8 @@
     {
       "constraint_id": "CON-FEEDBACK-STD-LIB",
       "constraint_type": "dependency",
-      "description": "Keep the pilot on Python standard-library HTTP and unittest without introducing external runtime dependencies.",
+      "constraint_rule": "ORDERING",
+      "enforcement_type": "SEQUENCING",
       "owner": "developer"
     }
   ],
@@ -525,39 +563,36 @@
       "brief.json#acceptance_criteria",
       "phase-prd.json#exit_conditions"
     ],
-    "open_failures": [],
-    "warn_followups": []
+    "open_failures": []
   },
   "risks": [
     {
       "risk_id": "RISK-FEEDBACK-MEMORY",
-      "description": "In-memory submission storage is not durable and is only suitable for the isolated pilot.",
-      "severity": "low",
+      "risk_type": "TECHNICAL",
+      "severity": "LOW",
       "source_ref": "brief.json#scope_boundaries"
     },
     {
       "risk_id": "RISK-FEEDBACK-OBS",
-      "description": "Invalid submissions must remain observable without adding a logging dependency.",
-      "severity": "medium",
+      "risk_type": "TECHNICAL",
+      "severity": "MEDIUM",
       "source_ref": "phase-prd.json#exit_conditions"
     }
   ],
   "risk_response": [
     {
       "risk_id": "RISK-FEEDBACK-MEMORY",
-      "architecture_response": "Keep storage explicitly scoped to the local pilot and document rollback as removing the isolated example.",
+      "response_type": "MITIGATE",
       "verification_refs": [
         "VP-FEEDBACK-001"
-      ],
-      "escalation_path": "If durable storage becomes a requirement, return to design before implementation."
+      ]
     },
     {
       "risk_id": "RISK-FEEDBACK-OBS",
-      "architecture_response": "Use default HTTP access logs and cover invalid submissions in tests.",
+      "response_type": "MITIGATE",
       "verification_refs": [
         "VP-FEEDBACK-003"
-      ],
-      "escalation_path": "If richer audit semantics are required, escalate to design for logging architecture."
+      ]
     }
   ],
   "constraint_inheritance_confirmation": {
@@ -575,26 +610,26 @@
     "confirmation_summary": "User confirmed inherited runtime-control constraints before freezing design decisions."
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:673b85adec5871ba3678fe824dc8680e3e1dec398b3679077941b6d7319c138e",
+    "reviewed_design_digest": "sha256:ff8e19cd706f41dc2302cf84b0105e0e456866553c333ed8fd46db663a7305e2",
     "reviewed_at": "2026-04-22T12:49:43Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:673b85adec5871ba3678fe824dc8680e3e1dec398b3679077941b6d7319c138e"
+        "reviewed_design_digest": "sha256:ff8e19cd706f41dc2302cf84b0105e0e456866553c333ed8fd46db663a7305e2"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:673b85adec5871ba3678fe824dc8680e3e1dec398b3679077941b6d7319c138e"
+        "reviewed_design_digest": "sha256:ff8e19cd706f41dc2302cf84b0105e0e456866553c333ed8fd46db663a7305e2"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:673b85adec5871ba3678fe824dc8680e3e1dec398b3679077941b6d7319c138e"
+        "reviewed_design_digest": "sha256:ff8e19cd706f41dc2302cf84b0105e0e456866553c333ed8fd46db663a7305e2"
       }
     ],
     "resolved_failures": [],
@@ -614,65 +649,79 @@
   "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "stage_name": "stakeholders-and-concerns",
-      "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
-      "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#input_analysis"
+      ],
+      "evidence_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "stage_name": "architecture-significant-requirements",
-      "question_or_focus": "confirm the feedback form scope and observable journey",
-      "user_response_summary": "User confirmed the pilot must prove form rendering, required-field failure, thanks-page rendering, escaping, and not-found behavior through real HTTP.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#input_analysis"
+      ],
+      "evidence_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "stage_name": "current-state-evidence",
-      "question_or_focus": "confirm repository facts that affect this pilot",
-      "user_response_summary": "User confirmed the second pilot reuses the isolated standard-library HTTP pattern while covering a different form-submission workflow.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#runtime_facts"
+      ],
+      "evidence_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "stage_name": "complexity-model",
-      "question_or_focus": "choose the simplest architecture that still proves feedback continuity",
-      "user_response_summary": "User selected in-memory submission storage with opaque ids because the phase validates workflow continuity, not durable data.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#quality_attributes"
+      ],
+      "evidence_refs": [
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "stage_name": "decision-discovery",
-      "question_or_focus": "confirm module, interface, and boundary contracts",
-      "user_response_summary": "User confirmed the key decisions are runtime choice, submission storage, opaque id generation, escaping, and real HTTP verification.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#key_decisions"
+      ],
+      "evidence_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "stage_name": "option-tradeoff",
-      "question_or_focus": "confirm migration, verification, rollback, and risk response",
-      "user_response_summary": "User confirmed selected options keep the pilot isolated, protect submitted text, and preserve rollback by removing the example app and tests.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#option_analysis",
+        "design.json#key_decisions"
+      ],
+      "evidence_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "stage_name": "design-synthesis",
-      "question_or_focus": "confirm planning constraints and impact scope",
-      "user_response_summary": "User confirmed downstream consumers need concrete form, submit, thanks-page, verification, risk, and rollback contracts.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#modules",
+        "design.json#interfaces",
+        "design.json#migration_plan",
+        "design.json#verification_plan",
+        "design.json#rollback_plan",
+        "design.json#planning_constraints",
+        "design.json#impact_scope"
+      ],
+      "evidence_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",

@@ -92,49 +92,55 @@
     {
       "attribute": "real local HTTP path",
       "priority": "P0",
-      "key_scenarios": [
+      "scenario_refs": [
         "anonymous redirect, login form, valid login, homepage, logout, and stale cookie paths are verified through real localhost HTTP requests"
       ],
-      "tradeoff_points": [
-        "standard-library HTTP avoids unrelated stack introduction while preserving journey-level evidence"
+      "target_metrics": [
+        {
+          "metric_id": "M-1-1",
+          "metric_name": "real local HTTP path",
+          "threshold": "real local HTTP path: referenced verification evidence (VP-LOGIN-001) passes for the described scenario",
+          "unit": "contract"
+        }
       ],
       "verification_refs": [
         "VP-LOGIN-001"
-      ],
-      "target_metrics": [
-        "real local HTTP path: referenced verification evidence (VP-LOGIN-001) passes for the described scenario"
       ]
     },
     {
       "attribute": "configuration-owned credentials",
       "priority": "P0",
-      "key_scenarios": [
+      "scenario_refs": [
         "login credentials are supplied through environment variables instead of hardcoded values"
       ],
-      "tradeoff_points": [
-        "environment variables are sufficient for the pilot and avoid a config service dependency"
+      "target_metrics": [
+        {
+          "metric_id": "M-2-1",
+          "metric_name": "configuration-owned credentials",
+          "threshold": "configuration-owned credentials: referenced verification evidence (VP-LOGIN-002) passes for the described scenario",
+          "unit": "contract"
+        }
       ],
       "verification_refs": [
         "VP-LOGIN-002"
-      ],
-      "target_metrics": [
-        "configuration-owned credentials: referenced verification evidence (VP-LOGIN-002) passes for the described scenario"
       ]
     },
     {
       "attribute": "session invalidation",
       "priority": "P0",
-      "key_scenarios": [
+      "scenario_refs": [
         "logout clears server-side session state and stale cookies cannot access the homepage"
       ],
-      "tradeoff_points": [
-        "in-memory sessions keep the pilot isolated while exercising auth-like behavior"
+      "target_metrics": [
+        {
+          "metric_id": "M-3-1",
+          "metric_name": "session invalidation",
+          "threshold": "session invalidation: referenced verification evidence (VP-LOGIN-003) passes for the described scenario",
+          "unit": "contract"
+        }
       ],
       "verification_refs": [
         "VP-LOGIN-003"
-      ],
-      "target_metrics": [
-        "session invalidation: referenced verification evidence (VP-LOGIN-003) passes for the described scenario"
       ]
     }
   ],
@@ -142,9 +148,12 @@
     {
       "option_id": "OPT-D-001-A",
       "decision_ref": "D-001",
-      "summary": "Use Python http.server and unittest with no external dependency.",
-      "tradeoff": "Lower UI realism but gives deterministic real HTTP evidence without stack setup noise.",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -153,9 +162,12 @@
     {
       "option_id": "OPT-D-001-B",
       "decision_ref": "D-001",
-      "summary": "Introduce a frontend framework and browser-app build pipeline.",
-      "tradeoff": "More product-like UI but adds dependencies unrelated to the pilot validation target.",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -164,9 +176,12 @@
     {
       "option_id": "OPT-D-002-A",
       "decision_ref": "D-002",
-      "summary": "Read credentials from environment variables at process start.",
-      "tradeoff": "Keeps secrets deployment-owned and testable without committing sensitive defaults.",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -175,9 +190,12 @@
     {
       "option_id": "OPT-D-002-B",
       "decision_ref": "D-002",
-      "summary": "Store pilot credentials in source or canonical product artifacts.",
-      "tradeoff": "Simpler local startup but leaks secret ownership into design and fixtures.",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -186,9 +204,12 @@
     {
       "option_id": "OPT-D-003-A",
       "decision_ref": "D-003",
-      "summary": "Store sessions server-side and expose only an opaque HttpOnly SameSite cookie.",
-      "tradeoff": "Keeps session state out of the browser while accepting in-memory pilot limits.",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -197,9 +218,12 @@
     {
       "option_id": "OPT-D-003-B",
       "decision_ref": "D-003",
-      "summary": "Put user identity or session state directly in a client-readable cookie.",
-      "tradeoff": "Reduces server state but exposes tampering and privacy risk.",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -208,9 +232,12 @@
     {
       "option_id": "OPT-D-004-A",
       "decision_ref": "D-004",
-      "summary": "Use real HTTP requests in tests against the running server boundary.",
-      "tradeoff": "Costs a little setup time but proves the route, cookie, and rendering path together.",
-      "verdict": "selected",
+      "decision_status": "SELECTED",
+      "evaluation": {
+        "fit": "HIGH",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -219,9 +246,12 @@
     {
       "option_id": "OPT-D-004-B",
       "decision_ref": "D-004",
-      "summary": "Test handlers directly with unit-only calls.",
-      "tradeoff": "Faster tests but misses wiring, HTTP semantics, and browser-facing behavior.",
-      "verdict": "rejected",
+      "decision_status": "REJECTED",
+      "evaluation": {
+        "fit": "MEDIUM",
+        "cost": "MEDIUM",
+        "risk": "MEDIUM"
+      },
       "fact_refs": [
         "design.json#runtime_facts[0]",
         "design.json#runtime_facts[0]"
@@ -237,7 +267,6 @@
     {
       "interface_id": "IF-LOGIN-HANDLER",
       "owner": "examples/login_homepage_app/app.py",
-      "contract_summary": "GET /login renders the form; POST /login validates configured credentials and returns a session cookie on success.",
       "error_modes": [
         "missing credential configuration",
         "invalid form length",
@@ -275,8 +304,9 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "valid, invalid, and malformed login submissions",
-          "expected_behavior": "valid credentials create a server-side session cookie and redirect; invalid or malformed credentials do not create an authenticated session and keep a stable failure response",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[0].interface_id",
+          "expected_outcome": "REDIRECT",
           "verification_ref": "VP-LOGIN-001"
         }
       ]
@@ -284,7 +314,6 @@
     {
       "interface_id": "IF-HOME-SESSION",
       "owner": "examples/login_homepage_app/app.py",
-      "contract_summary": "GET / redirects anonymous users and renders homepage content for active session cookies.",
       "error_modes": [
         "missing session cookie",
         "unknown session token",
@@ -315,8 +344,9 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "anonymous, valid, and stale session cookie access to home",
-          "expected_behavior": "anonymous or stale cookies redirect to login; a valid active session renders the protected homepage without exposing session internals",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[1].interface_id",
+          "expected_outcome": "REDIRECT",
           "verification_ref": "VP-LOGIN-001"
         }
       ]
@@ -324,7 +354,6 @@
     {
       "interface_id": "IF-LOGOUT",
       "owner": "examples/login_homepage_app/app.py",
-      "contract_summary": "POST /logout removes the server-side token and sends an expired session cookie.",
       "error_modes": [
         "logout without cookie",
         "reused stale cookie"
@@ -354,13 +383,15 @@
       ],
       "boundary_behaviors": [
         {
-          "scenario": "logout with active, missing, or stale session cookie",
-          "expected_behavior": "logout is idempotent, clears the browser cookie, invalidates server state when present, and prevents stale cookie reuse",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[2].interface_id",
+          "expected_outcome": "EXPIRE_SESSION",
           "verification_ref": "VP-LOGIN-001"
         },
         {
-          "scenario": "logout receives an already-cleared or unknown session cookie",
-          "expected_behavior": "logout still redirects to login, sends an expired cookie, and leaves no active session",
+          "behavior_type": "permission",
+          "trigger_ref": "design.json#interfaces[2].interface_id",
+          "expected_outcome": "REDIRECT",
           "verification_ref": "VP-LOGIN-001"
         }
       ]
@@ -401,7 +432,7 @@
   "cross_cutting_concerns": [
     {
       "concern": "auth",
-      "decision": "Use environment-owned credentials, opaque HttpOnly SameSite=Lax cookies, and server-side session invalidation.",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-LOGIN-APP",
       "verification_refs": [
         "VP-LOGIN-001",
@@ -410,7 +441,7 @@
     },
     {
       "concern": "error",
-      "decision": "Missing config, invalid form length, invalid credentials, unknown sessions, and unknown routes return readable failures.",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-LOGIN-APP",
       "verification_refs": [
         "VP-LOGIN-001"
@@ -418,7 +449,7 @@
     },
     {
       "concern": "log",
-      "decision": "Invalid login attempts remain visible in default HTTP access logs.",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-LOGIN-APP",
       "verification_refs": [
         "VP-LOGIN-002"
@@ -426,7 +457,7 @@
     },
     {
       "concern": "config",
-      "decision": "Credentials are supplied by LOGIN_HOMEPAGE_USERNAME and LOGIN_HOMEPAGE_PASSWORD environment variables.",
+      "decision_ref": "design.json#verification_mapping",
       "owner": "MOD-LOGIN-APP",
       "verification_refs": [
         "VP-LOGIN-002"
@@ -474,7 +505,8 @@
       "affected_modules": [
         "MOD-LOGIN-APP"
       ],
-      "impact": "Adds isolated login, homepage, logout, credential config, session cookie, and stale-cookie handling.",
+      "impact_type": "CHANGE",
+      "required_action": "VERIFY",
       "verification_refs": [
         "VP-LOGIN-001",
         "VP-LOGIN-003"
@@ -485,13 +517,15 @@
     {
       "constraint_id": "CON-LOGIN-STD-LIB",
       "constraint_type": "dependency",
-      "description": "Keep the pilot on Python standard-library HTTP and unittest without introducing external runtime dependencies.",
+      "constraint_rule": "ORDERING",
+      "enforcement_type": "SEQUENCING",
       "owner": "developer"
     },
     {
       "constraint_id": "CON-LOGIN-CONFIG",
       "constraint_type": "configuration",
-      "description": "Do not hardcode login credentials; keep them environment-owned.",
+      "constraint_rule": "ORDERING",
+      "enforcement_type": "SEQUENCING",
       "owner": "developer"
     }
   ],
@@ -501,39 +535,36 @@
       "brief.json#acceptance_criteria",
       "phase-prd.json#exit_conditions"
     ],
-    "open_failures": [],
-    "warn_followups": []
+    "open_failures": []
   },
   "risks": [
     {
       "risk_id": "RISK-LOGIN-MEMORY",
-      "description": "In-memory sessions are not durable and are suitable only for the isolated pilot.",
-      "severity": "low",
+      "risk_type": "TECHNICAL",
+      "severity": "LOW",
       "source_ref": "brief.json#scope_boundaries"
     },
     {
       "risk_id": "RISK-LOGIN-CONFIG",
-      "description": "Missing or hardcoded credentials would weaken the pilot auth boundary.",
-      "severity": "medium",
+      "risk_type": "TECHNICAL",
+      "severity": "MEDIUM",
       "source_ref": "phase-prd.json#exit_conditions"
     }
   ],
   "risk_response": [
     {
       "risk_id": "RISK-LOGIN-MEMORY",
-      "architecture_response": "Keep sessions explicitly scoped to the local pilot and verify logout invalidates server-side state.",
+      "response_type": "MITIGATE",
       "verification_refs": [
         "VP-LOGIN-003"
-      ],
-      "escalation_path": "If durable sessions are required, return to design before implementation."
+      ]
     },
     {
       "risk_id": "RISK-LOGIN-CONFIG",
-      "architecture_response": "Require credentials from environment variables and test missing/invalid configuration behavior.",
+      "response_type": "MITIGATE",
       "verification_refs": [
         "VP-LOGIN-002"
-      ],
-      "escalation_path": "If credential management expands, escalate to design for config architecture."
+      ]
     }
   ],
   "constraint_inheritance_confirmation": {
@@ -551,26 +582,26 @@
     "confirmation_summary": "User confirmed inherited runtime-control constraints before freezing design decisions."
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:bc30852510b93c8be5142396fc97a31f94de16a556deea6a905c4ed8de3e422f",
+    "reviewed_design_digest": "sha256:57efccab43343ff154dba59fc9cb1a507838735a876370d26a792c0520f39ac3",
     "reviewed_at": "2026-04-22T12:23:37Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:bc30852510b93c8be5142396fc97a31f94de16a556deea6a905c4ed8de3e422f"
+        "reviewed_design_digest": "sha256:57efccab43343ff154dba59fc9cb1a507838735a876370d26a792c0520f39ac3"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:bc30852510b93c8be5142396fc97a31f94de16a556deea6a905c4ed8de3e422f"
+        "reviewed_design_digest": "sha256:57efccab43343ff154dba59fc9cb1a507838735a876370d26a792c0520f39ac3"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:bc30852510b93c8be5142396fc97a31f94de16a556deea6a905c4ed8de3e422f"
+        "reviewed_design_digest": "sha256:57efccab43343ff154dba59fc9cb1a507838735a876370d26a792c0520f39ac3"
       }
     ],
     "resolved_failures": [],
@@ -590,65 +621,79 @@
   "co_creation_summary": [
     {
       "stage_id": "stakeholders-and-concerns",
-      "stage_name": "stakeholders-and-concerns",
-      "question_or_focus": "Confirmed stakeholders, consumers, and architecture concerns for this phase.",
-      "user_response_summary": "confirmed stakeholders, consumers, and architecture concerns",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#input_analysis"
+      ],
+      "evidence_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "architecture-significant-requirements",
-      "stage_name": "architecture-significant-requirements",
-      "question_or_focus": "confirm the login/homepage scope and observable journey",
-      "user_response_summary": "User confirmed the pilot must prove login form, credential failure, homepage session, logout invalidation, and observability through real HTTP.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#input_analysis"
+      ],
+      "evidence_refs": [
         "design.json#input_analysis"
       ]
     },
     {
       "stage_id": "current-state-evidence",
-      "stage_name": "current-state-evidence",
-      "question_or_focus": "confirm the current repository facts that affect the design",
-      "user_response_summary": "User confirmed the repository has no existing product web app, so the pilot stays isolated in a standard-library example app.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#runtime_facts"
+      ],
+      "evidence_refs": [
         "design.json#runtime_facts"
       ]
     },
     {
       "stage_id": "complexity-model",
-      "stage_name": "complexity-model",
-      "question_or_focus": "choose the simplest architecture that still proves the user journey",
-      "user_response_summary": "User selected standard-library HTTP with in-memory sessions because the phase validates the delivery chain, not production session durability.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#quality_attributes"
+      ],
+      "evidence_refs": [
         "design.json#quality_attributes"
       ]
     },
     {
       "stage_id": "decision-discovery",
-      "stage_name": "decision-discovery",
-      "question_or_focus": "confirm module, interface, and boundary contracts",
-      "user_response_summary": "User confirmed the key decisions are runtime choice, credential source, session boundary, and real HTTP verification.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#key_decisions"
+      ],
+      "evidence_refs": [
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "option-tradeoff",
-      "stage_name": "option-tradeoff",
-      "question_or_focus": "confirm migration, verification, rollback, and risk response",
-      "user_response_summary": "User confirmed the selected options keep dependencies minimal, isolate the pilot, and preserve rollback by removing the example app and tests.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#option_analysis",
+        "design.json#key_decisions"
+      ],
+      "evidence_refs": [
         "design.json#option_analysis",
         "design.json#key_decisions"
       ]
     },
     {
       "stage_id": "design-synthesis",
-      "stage_name": "design-synthesis",
-      "question_or_focus": "confirm planning constraints and impact scope",
-      "user_response_summary": "User confirmed downstream consumers need interfaces, verification mapping, risk response, and rollback plan tied to login/homepage behavior.",
+      "confirmation_status": "CONFIRMED",
       "decision_refs": [
+        "design.json#modules",
+        "design.json#interfaces",
+        "design.json#migration_plan",
+        "design.json#verification_plan",
+        "design.json#rollback_plan",
+        "design.json#planning_constraints",
+        "design.json#impact_scope"
+      ],
+      "evidence_refs": [
         "design.json#modules",
         "design.json#interfaces",
         "design.json#migration_plan",

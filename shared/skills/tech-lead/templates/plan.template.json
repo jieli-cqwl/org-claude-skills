@@ -56,7 +56,6 @@
     }
   },
   "implementation_path": {
-    "summary": "Deliver the phase through a dependency-first foundation task followed by feature completion tasks.",
     "wbs": [
       {
         "work_package_id": "WP-1",
@@ -77,30 +76,34 @@
       "T1",
       "T2"
     ],
-    "dependency_strategy": "T1 establishes shared contracts before T2 consumes them.",
     "parallel_batches": [
       {
         "batch": 1,
         "task_refs": [
           "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
         ],
-        "parallelizable": false,
-        "reason": "Foundation contracts are the dependency root."
+        "parallelizable": false
       },
       {
         "batch": 2,
         "task_refs": [
           "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T2"
         ],
-        "parallelizable": true,
-        "reason": "Feature tasks may split by non-overlapping files after T1."
+        "parallelizable": true
       }
     ],
     "investment_risk_signals": [
       {
-        "signal": "shared-contract-change",
-        "impact": "Changes affect downstream developer, verify, and QA evidence paths.",
-        "owner": "tech-lead"
+        "risk_id": "IR-1",
+        "signal_type": "INTEGRATION_RISK",
+        "impact_level": "HIGH",
+        "owner": "tech-lead",
+        "source_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
+        ],
+        "mitigation_refs": [
+          "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T2"
+        ]
       }
     ]
   },

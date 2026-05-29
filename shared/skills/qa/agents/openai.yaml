@@ -4,4 +4,7 @@ interface:
   default_prompt: "Use $qa after verifier PASS and developer handoff to run real-world verification, actively explore, and emit a release recommendation."
 
 policy:
+  allow_nested_agents: false
+  agent_type: qa
+  execution_kind: agent_backed
   allow_implicit_invocation: false

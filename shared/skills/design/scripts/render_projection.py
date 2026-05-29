@@ -131,16 +131,17 @@ def table_row(cells: list[Any]) -> str:
 
 def render_option_table(options: list[dict[str, Any]]) -> list[str]:
     rows = [
-        table_row(["Option", "Verdict", "Tradeoff", "Fact refs"]),
+        table_row(["Option", "Status", "Evaluation", "Fact refs"]),
         "| --- | --- | --- | --- |",
     ]
     for option in options:
+        evaluation = option.get("evaluation")
         rows.append(
             table_row(
                 [
                     option.get("option_id"),
-                    option.get("verdict"),
-                    option.get("tradeoff"),
+                    option.get("decision_status"),
+                    evaluation if isinstance(evaluation, dict) else "",
                     option.get("fact_refs"),
                 ]
             )
@@ -164,12 +165,9 @@ def render_adr(
         ),
         None,
     )
-    selected_summary = (
-        one_line(selected.get("summary"))
-        if selected
-        else one_line(decision.get("option_ref"))
-    )
-    tradeoff = one_line(selected.get("tradeoff")) if selected else ""
+    selected_summary = one_line(decision.get("option_ref"))
+    evaluation = selected.get("evaluation") if selected else {}
+    decision_basis = one_line(evaluation) if isinstance(evaluation, dict) else ""
     fact_refs_raw = decision.get("fact_refs")
     fact_refs = (
         [one_line(ref) for ref in fact_refs_raw]
@@ -184,7 +182,7 @@ def render_adr(
             f"Decision: {decision_id}",
             "Status: Accepted",
             f"Selected Option: {selected_summary}",
-            f"Reason: {tradeoff}",
+            f"Evaluation: {decision_basis}",
             f"User Confirmation: {one_line(decision.get('user_confirmation'))}",
             f"Evidence Refs: {', '.join(fact_refs)}",
             "",

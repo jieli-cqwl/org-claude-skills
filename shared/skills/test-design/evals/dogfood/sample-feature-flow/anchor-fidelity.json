@@ -26,7 +26,7 @@
     {
       "anchor_id": "TD-A4",
       "passed": true,
-      "evidence": "qa_handoff_contract[] includes obligation_id, trigger_source, qa_stage, requiredness, execution_mode, skip_rule, evidence_expectation, and design_source_refs."
+      "evidence": "qa_handoff_contract[] includes obligation_id, obligation_type, trigger_refs, qa_stage, requiredness, execution_mode, skip_policy, evidence_contract_ref, and design_source_refs."
     },
     {
       "anchor_id": "TD-A5",

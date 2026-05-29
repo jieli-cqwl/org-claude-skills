@@ -24,7 +24,6 @@ global_docs = {
     "rules/执行纪律.md",
     "rules/文档管理.md",
     "reference/测试规范.md",
-    "reference/代码复用.md",
     "reference/完成前验证.md",
     "reference/设计原则.md",
     "reference/影响范围分析.md",

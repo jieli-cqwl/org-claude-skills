@@ -132,7 +132,7 @@ def _assert_design_error_code(
 def _assert_design_interface(interface: object, index: int) -> None:
     if not isinstance(interface, dict):
         raise ValueError(f"design interfaces[{index}] must be an object")
-    for field in ("interface_id", "owner", "contract_summary"):
+    for field in ("interface_id", "owner"):
         _require_non_empty_string(interface.get(field), f"interfaces[{index}].{field}")
     _require_string_list(
         interface.get("error_modes"), f"interfaces[{index}].error_modes"
@@ -161,7 +161,7 @@ def _assert_design_interface(interface: object, index: int) -> None:
             raise ValueError(
                 f"design interfaces[{index}].boundary_behaviors[{behavior_index}] must be an object"
             )
-        for field in ("scenario", "expected_behavior", "verification_ref"):
+        for field in ("behavior_type", "trigger_ref", "expected_outcome", "verification_ref"):
             _require_non_empty_string(
                 behavior.get(field),
                 f"interfaces[{index}].boundary_behaviors[{behavior_index}].{field}",
@@ -182,9 +182,16 @@ def _collect_option_analysis(payload: dict) -> dict[str, set[str]]:
             raise ValueError(
                 f"design option_analysis[{option_index}] must be an object"
             )
-        for field in ("option_id", "decision_ref", "summary", "tradeoff", "verdict"):
+        for field in ("option_id", "decision_ref", "decision_status"):
             _require_non_empty_string(
                 option.get(field), f"option_analysis[{option_index}].{field}"
+            )
+        evaluation = _require_non_empty_dict(
+            option.get("evaluation"), f"option_analysis[{option_index}].evaluation"
+        )
+        for field in ("fit", "cost", "risk"):
+            _require_non_empty_string(
+                evaluation.get(field), f"option_analysis[{option_index}].evaluation.{field}"
             )
         fact_refs = _require_string_list(
             option.get("fact_refs"), f"option_analysis[{option_index}].fact_refs"
@@ -323,7 +330,7 @@ def _assert_cross_cutting_concerns(payload: dict) -> None:
                 f"design cross_cutting_concerns[{index}] must be an object"
             )
         _require_non_empty_string(
-            concern.get("decision"), f"cross_cutting_concerns[{index}].decision"
+            concern.get("decision_ref"), f"cross_cutting_concerns[{index}].decision_ref"
         )
         _require_non_empty_string(
             concern.get("owner"), f"cross_cutting_concerns[{index}].owner"
@@ -345,12 +352,22 @@ def _assert_quality_attributes(payload: dict) -> None:
             _require_non_empty_string(
                 attribute.get(field), f"quality_attributes[{index}].{field}"
             )
-        for field in (
-            "key_scenarios",
-            "target_metrics",
-            "tradeoff_points",
-            "verification_refs",
-        ):
-            _require_string_list(
-                attribute.get(field), f"quality_attributes[{index}].{field}"
-            )
+        _require_string_list(
+            attribute.get("scenario_refs"), f"quality_attributes[{index}].scenario_refs"
+        )
+        metrics = _require_non_empty_list(
+            attribute.get("target_metrics"), f"quality_attributes[{index}].target_metrics"
+        )
+        for metric_index, metric in enumerate(metrics):
+            if not isinstance(metric, dict):
+                raise ValueError(
+                    f"design quality_attributes[{index}].target_metrics[{metric_index}] must be an object"
+                )
+            for field in ("metric_id", "metric_name", "threshold", "unit"):
+                _require_non_empty_string(
+                    metric.get(field),
+                    f"quality_attributes[{index}].target_metrics[{metric_index}].{field}",
+                )
+        _require_string_list(
+            attribute.get("verification_refs"), f"quality_attributes[{index}].verification_refs"
+        )

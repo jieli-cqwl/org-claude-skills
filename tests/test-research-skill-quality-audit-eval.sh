@@ -247,9 +247,6 @@ if checklist[: len(expected)] != expected:
         "research checklist must mirror brainstorming-style ordered execution; got: "
         + ", ".join(checklist[: len(expected)])
     )
-
-if "The ONLY allowed next action after a completed formal research report is the user-confirmed handoff target." not in text:
-    raise SystemExit("research terminal state must block unconfirmed downstream handoff")
 PY
 }
 

@@ -97,8 +97,8 @@ Task 数量多不等于拆错。大需求出现 10+ Task 很常见，只要每�
 | evidence_target | 验证产物路径 | 证据放哪？ |
 | depends_on | 依赖分析 | 先做什么才能做这个？ |
 | shared_files | 文件冲突分析 | 和谁冲突？ |
-| real_dependency_note | 真实依赖描述 | 实际运行需要什么？ |
-| mock_boundary_note | Mock 边界说明 | 哪些可 Mock、哪些必须真实？ |
+| real_dependency_refs | 真实依赖证据引用 | 实际运行依赖哪些已确认事实或真实集成证据？ |
+| mock_boundary | Mock 边界对象 | 是否允许 Mock、只允许在哪些验证层级、最终验收是否强制真实证据？ |
 
 以下字段在后续步骤分配：`batch`、`critical_path_role` 在 step 5 排序后确定；`wbs_ref` 对应 step 2 的工作包编号。
 

@@ -449,7 +449,6 @@ EOF
 - runtime_snapshot: full rollout pilot ready
 - active_blocker: 无
 - blocker_owner: 无
-- takeover_note: 无
 - decision_basis: dev-report.md#${dev_anchor} + qa-report.md#验收汇总 + plan.md#计划版本
 - current_plan_version_ref: plan.md#计划版本
 - current_plan_version_value: ${acceptance_plan_version}

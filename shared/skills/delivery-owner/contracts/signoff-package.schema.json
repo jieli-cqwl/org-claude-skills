@@ -72,9 +72,6 @@
         "blocker_owner": {
           "type": "string"
         },
-        "takeover_note": {
-          "type": "string"
-        },
         "decision_basis_refs": {
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
         },
@@ -162,7 +159,6 @@
         "runtime_snapshot",
         "active_blocker",
         "blocker_owner",
-        "takeover_note",
         "decision_basis_refs",
         "runtime_evidence_matrix",
         "baseline_tasks_version_ref",

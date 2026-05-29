@@ -70,9 +70,9 @@
 
 ## design_gap_report / Gap 报告
 
-| gap_id | gap_type | blocking_refs | owner | next_action | blocking |
-|--------|----------|---------------|-------|-------------|----------|
-| GAP-001 | DESIGN_GAP | design.json#... | design | 补齐接口约束 | true |
+| gap_id | gap_type | blocking_refs | owner | required_artifact_ref | decision_needed | blocking |
+|--------|----------|---------------|-------|-----------------------|-----------------|----------|
+| GAP-001 | DESIGN_GAP | design.json#... | design | design.json#interfaces[0] | true | true |
 
 无问题时展示：无 blocking typed gap。
 
@@ -96,11 +96,11 @@
 
 ## qa_handoff_contract / QA 交接契约
 
-| obligation_id | test_obligation | trigger_source | qa_stage | requiredness | execution_mode | skip_rule | evidence_expectation | design_source_refs |
-|---------------|-----------------|----------------|----------|--------------|----------------|-----------|----------------------|--------------------|
-| QHO-SMOKE | 冒烟 | 默认强制 | QA_A | REQUIRED | non_browser_ok | 不可跳过 | 启动命令 + 健康检查 + 关键入口可用 | design.json#verification_mapping[0].manager_vp_ref |
-| QHO-E2E | E2E | 核心用户旅程 / 跨 UNIT 数据流 / Web-H5 入口行为 | QA_B | REQUIRED/CONDITIONAL | browser_required / non_browser_ok | 未触发时写明原因 | 旅程表 + 数据流转证据 | design.json#verification_mapping[0].manager_vp_ref |
-| QHO-NFR | NFR | 性能/安全/契约等专项触发 | NFR | CONDITIONAL | non_browser_ok | 未触发或延后时写明原因 | 专项证据或延后说明 | design.json#quality_attributes[0] |
+| obligation_id | obligation_type | trigger_refs | qa_stage | requiredness | execution_mode | skip_policy | evidence_contract_ref | design_source_refs |
+|---------------|-----------------|--------------|----------|--------------|----------------|-------------|-----------------------|--------------------|
+| QHO-SMOKE | RELEASE_READINESS | design.json#verification_mapping[0] | QA_A | REQUIRED | non_browser_ok | NOT_SKIPPABLE | artifact://qa-result/{feature}.phase-{N}.qa@active#smoke | design.json#verification_mapping[0].manager_vp_ref |
+| QHO-E2E | BROWSER_FLOW | design.json#verification_mapping[0] | QA_B | REQUIRED/CONDITIONAL | browser_required / non_browser_ok | RECORD_NOT_EXECUTED_REASON | artifact://qa-result/{feature}.phase-{N}.qa@active#e2e | design.json#verification_mapping[0].manager_vp_ref |
+| QHO-NFR | NFR | design.json#quality_attributes[0] | NFR | CONDITIONAL | non_browser_ok | RECORD_NOT_EXECUTED_REASON | artifact://qa-result/{feature}.phase-{N}.qa@active#nfr | design.json#quality_attributes[0] |
 
 ## cross_unit_obligations / 跨 UNIT 组合义务
 
@@ -110,33 +110,34 @@
 
 ## special_test_triggers / 专项测试触发依据与展开策略
 
-| trigger_id | trigger_type | source_ref | condition | qa_stage | handling | backing refs |
-|------------|--------------|------------|-----------|----------|----------|--------------|
-| ST-001 | quality_attribute | design.json#quality_attributes[0] | [命中信号或风险证据] | NFR | QA_HANDOFF | QHO-NFR |
+| trigger_id | trigger_type | source_ref | trigger_rule | threshold_ref | qa_stage | handling | backing refs |
+|------------|--------------|------------|--------------|---------------|----------|----------|--------------|
+| ST-001 | quality_attribute | design.json#quality_attributes[0] | QUALITY_ATTRIBUTE_REQUIRED | design.json#quality_attributes[0].target_metrics[0] | NFR | QA_HANDOFF | QHO-NFR |
 
 ## review_conclusion / 审查结论
 
 | 字段 | JSON 来源 |
 |------|-----------|
 | reviewed_test_cases_digest | `review_conclusion.reviewed_test_cases_digest` |
+| closure_status | `review_conclusion.closure_status` |
 
 ### reviewer_verdicts / 三视角 Verdict
 
-| 视角 | perspective | Verdict | Issue Count | Review Round | reviewed_test_cases_digest | Evidence |
-|------|-------------|---------|-------------|--------------|----------------------------|----------|
-| 测试质量 | test_quality | PASS | 0 | R2 | sha256:<64 hex> | 测试质量确认轮无阻塞问题 |
-| 产品 | product | PASS | 0 | R2 | sha256:<64 hex> | 产品确认轮无阻塞问题 |
-| 架构 | architecture | PASS | 0 | R2 | sha256:<64 hex> | 架构确认轮无阻塞问题 |
+| 视角 | perspective | Verdict | Issue Count | Review Round | reviewed_test_cases_digest | Evidence Refs |
+|------|-------------|---------|-------------|--------------|----------------------------|---------------|
+| 测试质量 | test_quality | PASS | 0 | R2 | sha256:<64 hex> | test-cases.json#review_conclusion.reviewed_test_cases_digest |
+| 产品 | product | PASS | 0 | R2 | sha256:<64 hex> | test-cases.json#review_conclusion.reviewed_test_cases_digest |
+| 架构 | architecture | PASS | 0 | R2 | sha256:<64 hex> | test-cases.json#review_conclusion.reviewed_test_cases_digest |
 
 ### issue_ledger / 审查问题台账
 
-| Issue ID | 视角 | Severity | Status | Evidence Anchor | Handoff Target | Review Round | 处理摘要 |
-|----------|------|----------|--------|-----------------|----------------|--------------|---------|
-| TQR-001 | 测试质量 | P1 | RESOLVED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#traceability-matrix | TC-U1-001 | R1 | 已补齐用例映射 |
+| Issue ID | Review Round | Status | Evidence Refs | Handling Action |
+|----------|--------------|--------|---------------|-----------------|
+| TQR-001 | R1 | CLOSED | artifact://test-cases/{feature}.phase-{N}.unit-{N}.test-cases@vX#traceability-matrix | FIXED |
 
 ### convergence_evidence / 收敛轮次摘要
 
-| 轮次 | 结果 | FAIL数 | 未关闭 Issue IDs | 控制动作 | 说明 |
-|------|------|-------|------------------|----------|------|
-| R1 | FAIL | 1 | TAR-001 | CONTINUE | 首轮发现等价性缺口，进入修复 |
-| R2 | PASS | 0 | 无 | CONFIRMATION | 确认轮复核通过，允许进入 tech-lead |
+| 轮次 | 结果 | FAIL数 | 控制动作 | Evidence Refs |
+|------|------|-------|----------|---------------|
+| R1 | FAIL | 1 | CONTINUE | test-cases.json#review_conclusion.reviewer_verdicts |
+| R2 | PASS | 0 | CONFIRMATION | test-cases.json#review_conclusion.reviewer_verdicts |

@@ -496,13 +496,16 @@
   "qa_handoff_contract": [
     {
       "obligation_id": "QHO-FEEDBACK-SMOKE",
-      "test_obligation": "real HTTP smoke and AC verification",
-      "trigger_source": "feedback-thanks UNIT acceptance criteria",
+      "obligation_type": "STATIC_CONTRACT",
+      "trigger_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#verification_mapping[1].manager_vp_ref"
+      ],
       "qa_stage": "QA_A",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' output with 9 tests",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-FEEDBACK-SMOKE#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[0].manager_vp_ref",
         "design.json#verification_mapping[1].manager_vp_ref"
@@ -510,26 +513,31 @@
     },
     {
       "obligation_id": "QHO-FEEDBACK-JOURNEY",
-      "test_obligation": "full feedback-to-thanks journey",
-      "trigger_source": "POST /feedback followed by GET /thanks?id=<id>",
+      "obligation_type": "STATIC_CONTRACT",
+      "trigger_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
       "qa_stage": "QA_B",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "real HTTP test output with redirect and thanks-page assertions",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-FEEDBACK-JOURNEY#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[0].manager_vp_ref"
       ]
     },
     {
       "obligation_id": "QHO-FEEDBACK-NEGATIVE",
-      "test_obligation": "negative and recovery coverage",
-      "trigger_source": "blank submission and unknown feedback id paths",
+      "obligation_type": "NEGATIVE_RECOVERY",
+      "trigger_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#risk_response[1].risk_id"
+      ],
       "qa_stage": "QA_C",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "blank validation, malformed Content-Length, oversized body, missing-id, and invalid-submission access log tests",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-FEEDBACK-NEGATIVE#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[0].manager_vp_ref",
         "design.json#risk_response[1].risk_id"
@@ -537,13 +545,16 @@
     },
     {
       "obligation_id": "QHO-FEEDBACK-CLOSURE",
-      "test_obligation": "release readiness closure",
-      "trigger_source": "review, QA, consistency audit, signoff, and user decision artifacts",
+      "obligation_type": "RELEASE_READINESS",
+      "trigger_refs": [
+        "design.json#verification_mapping[2].manager_vp_ref",
+        "design.json#product_handoff.accepted_refs"
+      ],
       "qa_stage": "QA_D",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "standard-chain readiness and replay validators pass",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-FEEDBACK-CLOSURE#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[2].manager_vp_ref",
         "design.json#product_handoff.accepted_refs"
@@ -552,7 +563,6 @@
   ],
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "test cases cover every feedback-thanks AC and QA handoff stage",
     "review_round": "R2",
     "convergence_evidence": [
       {
@@ -560,14 +570,18 @@
         "result": "PASS",
         "fail_count": 0,
         "control_action": "CONFIRMATION",
-        "evidence": "initial full-pass test-design review triggered the required confirmation round"
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewer_verdicts"
+        ]
       },
       {
         "round": "R2",
         "result": "PASS",
         "fail_count": 0,
         "control_action": "COMPLETE",
-        "evidence": "confirmation review closed with no open feedback-thanks findings"
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewer_verdicts"
+        ]
       }
     ],
     "reviewer_verdicts": [
@@ -576,27 +590,34 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "feedback-thanks R2 review: executable positive, negative, and boundary cases are traced.",
-        "reviewed_test_cases_digest": "sha256:59a3251645f933b56e0dd6aa26619c04e7f036a6a4e4baef2b1fee6dcd61cee1"
+        "reviewed_test_cases_digest": "sha256:d89e9de42dafed7f8feafda754c3b0bd9d977714aef4409280f484fb937c47e3",
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewed_test_cases_digest"
+        ]
       },
       {
         "perspective": "product",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "feedback-thanks R2 review: product refs resolve to the brief, phase PRD, and UNIT ACs.",
-        "reviewed_test_cases_digest": "sha256:59a3251645f933b56e0dd6aa26619c04e7f036a6a4e4baef2b1fee6dcd61cee1"
+        "reviewed_test_cases_digest": "sha256:d89e9de42dafed7f8feafda754c3b0bd9d977714aef4409280f484fb937c47e3",
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewed_test_cases_digest"
+        ]
       },
       {
         "perspective": "architecture",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "feedback-thanks R2 review: design refs resolve to verification, risk, data, and cross-cutting decisions.",
-        "reviewed_test_cases_digest": "sha256:59a3251645f933b56e0dd6aa26619c04e7f036a6a4e4baef2b1fee6dcd61cee1"
+        "reviewed_test_cases_digest": "sha256:d89e9de42dafed7f8feafda754c3b0bd9d977714aef4409280f484fb937c47e3",
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewed_test_cases_digest"
+        ]
       }
     ],
-    "reviewed_test_cases_digest": "sha256:59a3251645f933b56e0dd6aa26619c04e7f036a6a4e4baef2b1fee6dcd61cee1"
+    "reviewed_test_cases_digest": "sha256:d89e9de42dafed7f8feafda754c3b0bd9d977714aef4409280f484fb937c47e3",
+    "closure_status": "CLOSED"
   },
   "issue_ledger": [],
   "unit_coverage_view": [
@@ -620,7 +641,8 @@
       "trigger_id": "ST-FEEDBACK-QA-1",
       "trigger_type": "quality_attribute",
       "source_ref": "design.json#quality_attributes[0]",
-      "condition": "feedback form and thanks page are verified through real localhost HTTP requests",
+      "trigger_rule": "QUALITY_ATTRIBUTE_REQUIRED",
+      "threshold_ref": "design.json#quality_attributes[0]",
       "qa_stage": "QA_A",
       "handling": "TEST_CASE",
       "test_case_refs": [
@@ -632,7 +654,8 @@
       "trigger_id": "ST-FEEDBACK-QA-2",
       "trigger_type": "quality_attribute",
       "source_ref": "design.json#quality_attributes[1]",
-      "condition": "thanks page renders submitted name and message without executing user content",
+      "trigger_rule": "QUALITY_ATTRIBUTE_REQUIRED",
+      "threshold_ref": "design.json#quality_attributes[1]",
       "qa_stage": "NFR",
       "handling": "TEST_CASE",
       "test_case_refs": [
@@ -644,7 +667,8 @@
       "trigger_id": "ST-FEEDBACK-QA-3",
       "trigger_type": "quality_attribute",
       "source_ref": "design.json#quality_attributes[2]",
-      "condition": "invalid feedback submissions remain visible in default HTTP access logs",
+      "trigger_rule": "QUALITY_ATTRIBUTE_REQUIRED",
+      "threshold_ref": "design.json#quality_attributes[2]",
       "qa_stage": "NFR",
       "handling": "TEST_CASE",
       "test_case_refs": [
@@ -656,7 +680,8 @@
       "trigger_id": "ST-FEEDBACK-DATA-1",
       "trigger_type": "data_architecture",
       "source_ref": "design.json#data_architecture",
-      "condition": "Valid feedback submissions are stored in an in-memory dictionary behind a threading lock; no durable storage or external datasource is introduced.",
+      "trigger_rule": "DATA_FLOW_REQUIRED",
+      "threshold_ref": "design.json#data_architecture",
       "qa_stage": "QA_A",
       "handling": "TEST_CASE",
       "test_case_refs": [
@@ -668,7 +693,8 @@
       "trigger_id": "ST-FEEDBACK-XC-1",
       "trigger_type": "cross_cutting_concern",
       "source_ref": "design.json#cross_cutting_concerns[0]",
-      "condition": "No authentication is required for the feedback pilot; anonymous form submission is intentional.",
+      "trigger_rule": "CROSS_CUTTING_REQUIRED",
+      "threshold_ref": "design.json#cross_cutting_concerns[0]",
       "qa_stage": "NFR",
       "handling": "QA_HANDOFF",
       "qa_handoff_obligation_refs": [
@@ -679,7 +705,8 @@
       "trigger_id": "ST-FEEDBACK-XC-2",
       "trigger_type": "cross_cutting_concern",
       "source_ref": "design.json#cross_cutting_concerns[1]",
-      "condition": "Blank fields, malformed Content-Length, oversized bodies, missing ids, and unknown ids return readable errors.",
+      "trigger_rule": "CROSS_CUTTING_REQUIRED",
+      "threshold_ref": "design.json#cross_cutting_concerns[1]",
       "qa_stage": "QA_C",
       "handling": "QA_HANDOFF",
       "qa_handoff_obligation_refs": [
@@ -690,7 +717,8 @@
       "trigger_id": "ST-FEEDBACK-XC-3",
       "trigger_type": "cross_cutting_concern",
       "source_ref": "design.json#cross_cutting_concerns[2]",
-      "condition": "Invalid submissions keep default HTTP access-log observability.",
+      "trigger_rule": "CROSS_CUTTING_REQUIRED",
+      "threshold_ref": "design.json#cross_cutting_concerns[2]",
       "qa_stage": "NFR",
       "handling": "QA_HANDOFF",
       "qa_handoff_obligation_refs": [
@@ -701,7 +729,8 @@
       "trigger_id": "ST-FEEDBACK-XC-4",
       "trigger_type": "cross_cutting_concern",
       "source_ref": "design.json#cross_cutting_concerns[3]",
-      "condition": "The app introduces no external configuration; runtime remains standard-library only.",
+      "trigger_rule": "CROSS_CUTTING_REQUIRED",
+      "threshold_ref": "design.json#cross_cutting_concerns[3]",
       "qa_stage": "NFR",
       "handling": "QA_HANDOFF",
       "qa_handoff_obligation_refs": [

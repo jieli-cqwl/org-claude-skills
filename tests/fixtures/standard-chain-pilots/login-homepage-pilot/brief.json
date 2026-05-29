@@ -44,9 +44,33 @@
     "Use server-side session state with an HttpOnly SameSite=Lax cookie for the pilot journey."
   ],
   "non_functional_requirements": [
-    "Exercise the feature through a real local HTTP server, not a mocked request object.",
-    "Keep implementation and test files below the repository 400-line file limit.",
-    "Keep the pilot isolated under examples/login_homepage_app and tests/test_login_homepage_app.py."
+    {
+      "requirement_id": "NFR-1",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    },
+    {
+      "requirement_id": "NFR-2",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    },
+    {
+      "requirement_id": "NFR-3",
+      "quality_attribute": "OBSERVABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    }
   ],
   "scope_boundaries": [
     "In scope: login form, credential validation, authenticated homepage, logout, and canonical chain evidence.",
@@ -152,7 +176,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:52803531ef0757641972d22c3d0a70a3ef76404a37540de57d95ed04f9869f97"
+          "reviewed_bundle_digest": "sha256:7acdcb0d51be29c5ee995954d5418270ee739a11c0f45b39e5d85cf1d4493f2b"
         },
         {
           "perspective": "architecture",
@@ -170,7 +194,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:52803531ef0757641972d22c3d0a70a3ef76404a37540de57d95ed04f9869f97"
+          "reviewed_bundle_digest": "sha256:7acdcb0d51be29c5ee995954d5418270ee739a11c0f45b39e5d85cf1d4493f2b"
         },
         {
           "perspective": "test",
@@ -188,7 +212,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:52803531ef0757641972d22c3d0a70a3ef76404a37540de57d95ed04f9869f97"
+          "reviewed_bundle_digest": "sha256:7acdcb0d51be29c5ee995954d5418270ee739a11c0f45b39e5d85cf1d4493f2b"
         }
       ],
       "convergence_evidence": [
@@ -201,7 +225,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:52803531ef0757641972d22c3d0a70a3ef76404a37540de57d95ed04f9869f97"
+      "reviewed_bundle_digest": "sha256:7acdcb0d51be29c5ee995954d5418270ee739a11c0f45b39e5d85cf1d4493f2b"
     }
   },
   "issue_ledger": [],

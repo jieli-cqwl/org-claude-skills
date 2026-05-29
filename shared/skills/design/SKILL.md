@@ -142,7 +142,7 @@ Option Tradeoff:
 Decision Shape:
 
 - 每个 `key_decisions` 项必须写清 `decision_id`、summary、verdict、`option_ref`、`fact_refs` 和 `user_confirmation`。
-- 每个冻结决策必须能回指同一 `decision_id` 的 `option_analysis.decision_ref`；备选方案、取舍和失效条件写入 `option_analysis.tradeoff`。
+- 每个冻结决策必须能回指同一 `decision_id` 的 `option_analysis.decision_ref`；备选方案使用 `option_analysis.decision_status` 和 `option_analysis.evaluation.fit/cost/risk` 表达取舍结果。
 - 决策驱动写入 `input_analysis` 或 key decision summary；下游影响写入 `impact_scope`；验证义务写入 `verification_mapping`。
 - 推荐不是偏好陈述；推荐必须由事实、质量属性优先级、可逆性、风险代价或实现约束支撑。
 - 被拒方案必须说明为什么此 Phase 不选；失效条件必须说明什么事实出现时需要重开决策。

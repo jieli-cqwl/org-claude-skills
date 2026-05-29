@@ -380,13 +380,13 @@
             "type": "object",
             "required": [
               "obligation_id",
-              "test_obligation",
-              "trigger_source",
+              "obligation_type",
+              "trigger_refs",
               "qa_stage",
               "requiredness",
               "execution_mode",
-              "skip_rule",
-              "evidence_expectation",
+              "skip_policy",
+              "evidence_contract_ref",
               "design_source_refs"
             ],
             "properties": {
@@ -394,13 +394,24 @@
                 "type": "string",
                 "minLength": 1
               },
-              "test_obligation": {
+              "obligation_type": {
                 "type": "string",
-                "minLength": 1
+                "enum": [
+                  "STATIC_CONTRACT",
+                  "RUNTIME_REPLAY",
+                  "NEGATIVE_RECOVERY",
+                  "RELEASE_READINESS",
+                  "BROWSER_FLOW",
+                  "NFR"
+                ]
               },
-              "trigger_source": {
-                "type": "string",
-                "minLength": 1
+              "trigger_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
               },
               "qa_stage": {
                 "type": "string",
@@ -426,11 +437,14 @@
                   "non_browser_ok"
                 ]
               },
-              "skip_rule": {
+              "skip_policy": {
                 "type": "string",
-                "minLength": 1
+                "enum": [
+                  "RECORD_NOT_EXECUTED_REASON",
+                  "NOT_SKIPPABLE"
+                ]
               },
-              "evidence_expectation": {
+              "evidence_contract_ref": {
                 "type": "string",
                 "minLength": 1
               },
@@ -494,7 +508,8 @@
                   "gap_type",
                   "blocking_refs",
                   "owner",
-                  "next_action",
+                  "required_artifact_ref",
+                  "decision_needed",
                   "blocking"
                 ],
                 "properties": {
@@ -520,11 +535,14 @@
                       "user"
                     ]
                   },
-                  "next_action": {
+                  "blocking": {
+                    "type": "boolean"
+                  },
+                  "required_artifact_ref": {
                     "type": "string",
                     "minLength": 1
                   },
-                  "blocking": {
+                  "decision_needed": {
                     "type": "boolean"
                   }
                 },
@@ -600,7 +618,8 @@
               "trigger_id",
               "trigger_type",
               "source_ref",
-              "condition",
+              "trigger_rule",
+              "threshold_ref",
               "qa_stage",
               "handling"
             ],
@@ -619,10 +638,6 @@
               },
               "source_ref": {
                 "$ref": "#/allOf/1/$defs/sourceRef"
-              },
-              "condition": {
-                "type": "string",
-                "minLength": 1
               },
               "qa_stage": {
                 "$ref": "#/allOf/1/$defs/qaStage"
@@ -643,16 +658,28 @@
               },
               "gap_refs": {
                 "$ref": "#/allOf/1/$defs/caseRefArray"
+              },
+              "trigger_rule": {
+                "type": "string",
+                "enum": [
+                  "QUALITY_ATTRIBUTE_REQUIRED",
+                  "DATA_FLOW_REQUIRED",
+                  "CROSS_CUTTING_REQUIRED"
+                ]
+              },
+              "threshold_ref": {
+                "type": "string",
+                "minLength": 1
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         },
         "review_conclusion": {
           "type": "object",
           "required": [
             "verdict",
-            "summary",
+            "closure_status",
             "review_round",
             "reviewed_test_cases_digest",
             "reviewer_verdicts",
@@ -665,10 +692,6 @@
                 "PASS",
                 "WARN"
               ]
-            },
-            "summary": {
-              "type": "string",
-              "minLength": 1
             },
             "review_round": {
               "type": "string",
@@ -689,7 +712,7 @@
                   "issue_count",
                   "review_round",
                   "reviewed_test_cases_digest",
-                  "evidence"
+                  "evidence_refs"
                 ],
                 "properties": {
                   "perspective": {
@@ -720,9 +743,13 @@
                     "type": "string",
                     "pattern": "^sha256:[0-9a-f]{64}$"
                   },
-                  "evidence": {
-                    "type": "string",
-                    "minLength": 1
+                  "evidence_refs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -738,7 +765,7 @@
                   "result",
                   "fail_count",
                   "control_action",
-                  "evidence"
+                  "evidence_refs"
                 ],
                 "properties": {
                   "round": {
@@ -767,21 +794,72 @@
                       "COMPLETE"
                     ]
                   },
-                  "evidence": {
-                    "type": "string",
-                    "minLength": 1
+                  "evidence_refs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
                   }
                 },
                 "additionalProperties": false
               }
+            },
+            "closure_status": {
+              "type": "string",
+              "enum": [
+                "CLOSED"
+              ]
             }
           },
-          "additionalProperties": true
+          "additionalProperties": false
         },
         "issue_ledger": {
           "type": "array",
           "items": {
-            "type": "object"
+            "type": "object",
+            "required": [
+              "issue_id",
+              "review_round",
+              "status",
+              "evidence_refs",
+              "handling_action"
+            ],
+            "properties": {
+              "issue_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "review_round": {
+                "type": "string",
+                "pattern": "^R[0-9]+$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "CLOSED",
+                  "DEFERRED"
+                ]
+              },
+              "evidence_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "handling_action": {
+                "type": "string",
+                "enum": [
+                  "FIXED",
+                  "DEFERRED_TO_OWNER",
+                  "ACCEPTED_RISK"
+                ]
+              }
+            },
+            "additionalProperties": false
           }
         }
       },

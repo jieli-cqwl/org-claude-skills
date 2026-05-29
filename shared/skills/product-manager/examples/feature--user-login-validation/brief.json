@@ -55,10 +55,42 @@
     "设计决定会话数据持久化策略（内存 vs Redis vs 数据库）；必须满足'无操作 30 分钟失效'的业务约束"
   ],
   "non_functional_requirements": [
-    "密码存储必须使用 bcrypt（cost>=10），禁止明文或可逆算法",
-    "登录错误消息对账号不存在和密码错误必须一致，防止账号枚举",
-    "会话失效后必须无法通过旧会话标识访问任何受保护资源",
-    "会话管理复用现有 Redis 集群，不引入新中间件"
+    {
+      "requirement_id": "NFR-1",
+      "quality_attribute": "SECURITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    },
+    {
+      "requirement_id": "NFR-2",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    },
+    {
+      "requirement_id": "NFR-3",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    },
+    {
+      "requirement_id": "NFR-4",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    }
   ],
   "scope_boundaries": [
     "实现账号密码登录的核心认证流程"

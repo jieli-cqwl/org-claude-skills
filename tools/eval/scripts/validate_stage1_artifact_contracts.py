@@ -135,11 +135,11 @@ def check_design_interface(repo_root: Path) -> dict[str, Any]:
     expected_interface_required = {
         "interface_id",
         "owner",
-        "contract_summary",
         "error_modes",
         "input_params",
         "output_params",
         "error_codes",
+        "boundary_behaviors",
     }
     expected_input_required = {"name", "type", "required", "validation", "description"}
     expected_output_required = {"name", "type", "description"}
@@ -212,9 +212,9 @@ def check_task_packet(repo_root: Path) -> dict[str, Any]:
         "batch",
         "acceptance_targets",
         "proving_command",
-        "real_dependency_note",
+        "real_dependency_refs",
         "evidence_target",
-        "mock_boundary_note",
+        "mock_boundary",
     }
     require(
         failures,
@@ -267,7 +267,6 @@ def check_signoff_gate(repo_root: Path) -> dict[str, Any]:
         "runtime_snapshot",
         "active_blocker",
         "blocker_owner",
-        "takeover_note",
         "decision_basis_refs",
         "baseline_tasks_version_ref",
         "active_tasks_version_ref",

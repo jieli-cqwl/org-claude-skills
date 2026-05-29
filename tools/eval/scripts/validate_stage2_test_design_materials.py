@@ -71,7 +71,12 @@ def special_triggers() -> list[dict[str, Any]]:
             "trigger_id": trigger_id,
             "trigger_type": trigger_type,
             "source_ref": source_ref,
-            "condition": "source ref requires pre-development test or QA obligation",
+            "trigger_rule": {
+                "quality_attribute": "QUALITY_ATTRIBUTE_REQUIRED",
+                "data_architecture": "DATA_FLOW_REQUIRED",
+                "cross_cutting_concern": "CROSS_CUTTING_REQUIRED",
+            }[trigger_type],
+            "threshold_ref": source_ref,
             "qa_stage": "QA_A" if handling == "TEST_CASE" else "QA_B",
             "handling": handling,
         }
@@ -149,13 +154,16 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
         "qa_handoff_contract": [
             {
                 "obligation_id": "QA-OB-001",
-                "test_obligation": "QA must inspect trace, context source and manual confirmation state before any release recommendation.",
-                "trigger_source": "design verification mapping and operability quality attribute",
+                "obligation_type": "RUNTIME_REPLAY",
+                "trigger_refs": [
+                    "design.json#verification_mapping[0].manager_vp_ref",
+                    "design.json#quality_attributes[0]",
+                ],
                 "qa_stage": "QA_B",
                 "requiredness": "REQUIRED",
                 "execution_mode": "non_browser_ok",
-                "skip_rule": "May skip only if Stage 2 remains design-only and no code execution is attempted.",
-                "evidence_expectation": "QA evidence includes trace_id, source refs and manual takeover observation.",
+                "skip_policy": "NOT_SKIPPABLE",
+                "evidence_contract_ref": "artifact://qa-result/qft-pai-stage2-phase1.qa@active#obligation-results",
                 "design_source_refs": ["design.json#verification_mapping[0].manager_vp_ref", "design.json#quality_attributes[0]"],
             }
         ],
@@ -167,15 +175,15 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
     reviewed_digest = reviewed_test_cases_digest(test_cases)
     test_cases["review_conclusion"] = {
         "verdict": "PASS",
-        "summary": "Test-design package is frozen for tech-lead consumption",
+        "closure_status": "CLOSED",
         "review_round": "R2",
         "reviewed_test_cases_digest": reviewed_digest,
         "reviewer_verdicts": [
-            {"perspective": "test_quality", "verdict": "PASS", "issue_count": 0, "review_round": "R2", "reviewed_test_cases_digest": reviewed_digest, "evidence": "traceability, AC coverage and specialty triggers checked"},
-            {"perspective": "product", "verdict": "PASS", "issue_count": 0, "review_round": "R2", "reviewed_test_cases_digest": reviewed_digest, "evidence": "product refs and UNIT AC remain aligned"},
-            {"perspective": "architecture", "verdict": "PASS", "issue_count": 0, "review_round": "R2", "reviewed_test_cases_digest": reviewed_digest, "evidence": "design refs, verification mapping and QA handoff checked"},
+            {"perspective": "test_quality", "verdict": "PASS", "issue_count": 0, "review_round": "R2", "reviewed_test_cases_digest": reviewed_digest, "evidence_refs": ["test-cases.json#traceability_matrix", "test-cases.json#ac_coverage_matrix", "test-cases.json#special_test_triggers"]},
+            {"perspective": "product", "verdict": "PASS", "issue_count": 0, "review_round": "R2", "reviewed_test_cases_digest": reviewed_digest, "evidence_refs": ["test-cases.json#traceability_matrix", "UNIT-1.json#acceptance_criteria[0].ac_id"]},
+            {"perspective": "architecture", "verdict": "PASS", "issue_count": 0, "review_round": "R2", "reviewed_test_cases_digest": reviewed_digest, "evidence_refs": ["test-cases.json#qa_handoff_contract", "design.json#verification_mapping[0].manager_vp_ref"]},
         ],
-        "convergence_evidence": [{"round": "R2", "result": "PASS", "fail_count": 0, "control_action": "CONFIRMATION", "evidence": "second review round confirmed no unresolved FAIL"}],
+        "convergence_evidence": [{"round": "R2", "result": "PASS", "fail_count": 0, "control_action": "CONFIRMATION", "evidence_refs": ["test-cases.json#review_conclusion.reviewer_verdicts"]}],
     }
     test_cases["issue_ledger"] = []
     return test_cases
@@ -228,7 +236,8 @@ def validate_materials(repo_root: Path) -> dict[str, Any]:
                 "gap_type": "DESIGN_GAP",
                 "blocking_refs": ["design.json#rollback_plan[0]"],
                 "owner": "design",
-                "next_action": "close rollback gap before tech-lead handoff",
+                "required_artifact_ref": "design.json#rollback_plan[0]",
+                "decision_needed": True,
                 "blocking": True,
             }
         ],

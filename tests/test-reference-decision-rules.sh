@@ -11,7 +11,6 @@ fail() {
 }
 
 required_references=(
-  "代码复用.md"
   "全栈开发.md"
   "完成前验证.md"
   "影响范围分析.md"
@@ -23,6 +22,7 @@ required_references=(
 )
 
 retired_references=(
+  "代码复用.md"
   "Skill生命周期管理.md"
   "Skill质量标准.md"
   "Skill能力有效性标准.md"

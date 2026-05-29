@@ -169,10 +169,26 @@ def apply_frontmatter(
 def set_codex_implicit_invocation(
     skill_dir: Path, value: bool, create_if_missing: bool
 ) -> None:
+    set_codex_policy_scalar(
+        skill_dir,
+        "allow_implicit_invocation",
+        value,
+        create_if_missing=create_if_missing,
+    )
+
+
+def render_codex_policy_value(value: bool | str) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def set_codex_policy_scalar(
+    skill_dir: Path, key: str, value: bool | str, create_if_missing: bool
+) -> None:
     agents_dir = skill_dir / "agents"
     policy_file = agents_dir / "openai.yaml"
-    rendered_value = "true" if value else "false"
-    rendered_line = f"  allow_implicit_invocation: {rendered_value}"
+    rendered_line = f"  {key}: {render_codex_policy_value(value)}"
 
     if not policy_file.exists():
         if not create_if_missing:
@@ -183,9 +199,9 @@ def set_codex_implicit_invocation(
 
     lines = policy_file.read_text(encoding="utf-8").splitlines()
     for idx, line in enumerate(lines):
-        if line.strip().startswith("allow_implicit_invocation:"):
+        if line.strip().startswith(f"{key}:"):
             indent = line[: len(line) - len(line.lstrip())]
-            lines[idx] = f"{indent}allow_implicit_invocation: {rendered_value}"
+            lines[idx] = f"{indent}{key}: {render_codex_policy_value(value)}"
             policy_file.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
             return
 
@@ -197,6 +213,16 @@ def set_codex_implicit_invocation(
 
     lines.extend(["", "policy:", rendered_line])
     policy_file.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+
+def remove_codex_policy_scalar(skill_dir: Path, key: str) -> None:
+    policy_file = skill_dir / "agents" / "openai.yaml"
+    if not policy_file.exists():
+        return
+    lines = policy_file.read_text(encoding="utf-8").splitlines()
+    next_lines = [line for line in lines if not line.strip().startswith(f"{key}:")]
+    if next_lines != lines:
+        policy_file.write_text("\n".join(next_lines).rstrip() + "\n", encoding="utf-8")
 
 
 def ensure_codex_manual_policy(skill_dir: Path) -> None:
@@ -212,6 +238,49 @@ def apply_codex_policy(skill_dir: Path, mode: str) -> None:
         ensure_codex_manual_policy(skill_dir)
     elif mode == "auto":
         ensure_codex_auto_policy(skill_dir)
+
+
+def apply_codex_execution_policy(skill_dir: Path, entry: dict) -> None:
+    execution_kind = str(entry.get("execution_kind", "skill")).strip()
+    if execution_kind == "skill":
+        remove_codex_policy_scalar(skill_dir, "execution_kind")
+    else:
+        set_codex_policy_scalar(
+            skill_dir,
+            "execution_kind",
+            execution_kind,
+            create_if_missing=True,
+        )
+
+    if "codex_execution" in entry:
+        set_codex_policy_scalar(
+            skill_dir,
+            "codex_execution",
+            str(entry["codex_execution"]),
+            create_if_missing=True,
+        )
+    else:
+        remove_codex_policy_scalar(skill_dir, "codex_execution")
+
+    if "agent_type" in entry:
+        set_codex_policy_scalar(
+            skill_dir,
+            "agent_type",
+            str(entry["agent_type"]),
+            create_if_missing=True,
+        )
+    else:
+        remove_codex_policy_scalar(skill_dir, "agent_type")
+
+    if "allow_nested_agents" in entry:
+        set_codex_policy_scalar(
+            skill_dir,
+            "allow_nested_agents",
+            bool(entry["allow_nested_agents"]),
+            create_if_missing=True,
+        )
+    else:
+        remove_codex_policy_scalar(skill_dir, "allow_nested_agents")
 
 
 def skill_name_from_file(skill_file: Path) -> str:
@@ -261,6 +330,7 @@ def apply_skill_entry(
         apply_frontmatter(skill_file, name, mode, entry, max_chars)
     if runtime == "codex" and entry.get("owner") != "superpowers":
         apply_codex_policy(skill_dir, mode)
+        apply_codex_execution_policy(skill_dir, entry)
     record_applied(audit, name, mode)
 
 

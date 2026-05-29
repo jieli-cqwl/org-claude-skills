@@ -91,6 +91,8 @@ manual_policy product-director || fail "product-director should disable Codex im
 manual_policy tech-lead || fail "tech-lead should disable Codex implicit invocation"
 manual_policy commit || fail "commit should disable Codex implicit invocation"
 manual_policy github-repo-radar || fail "github-repo-radar should disable Codex implicit invocation"
+grep -Fq 'codex_execution: subagent_clean' "$CODEX_SKILLS_DIR/github-repo-radar/agents/openai.yaml" \
+  || fail "github-repo-radar should expose subagent_clean Codex execution"
 manual_policy refactor || fail "refactor should disable Codex implicit invocation"
 manual_policy security || fail "security should disable Codex implicit invocation"
 manual_policy bb-browser || fail "bb-browser should install with implicit invocation disabled"
@@ -105,6 +107,27 @@ manual_policy planning-with-files || fail "planning-with-files should install wi
 manual_policy prd || fail "prd should install with implicit invocation disabled"
 manual_policy to-prd || fail "to-prd should install with implicit invocation disabled"
 manual_policy agent-reach || fail "agent-reach should install with implicit invocation disabled"
+manual_policy research || fail "research should install with implicit invocation disabled"
+grep -Fq 'codex_execution: subagent_clean' "$CODEX_SKILLS_DIR/research/agents/openai.yaml" \
+  || fail "research should expose subagent_clean Codex execution"
+manual_policy overview || fail "overview should install with implicit invocation disabled"
+grep -Fq 'codex_execution: subagent_clean' "$CODEX_SKILLS_DIR/overview/agents/openai.yaml" \
+  || fail "overview should expose subagent_clean Codex execution"
+manual_policy claude-api || fail "claude-api should install with implicit invocation disabled"
+grep -Fq 'codex_execution: inline' "$CODEX_SKILLS_DIR/claude-api/agents/openai.yaml" \
+  || fail "claude-api should expose inline Codex execution"
+manual_policy scan || fail "scan should install with implicit invocation disabled"
+grep -Fq 'execution_kind: orchestrator' "$CODEX_SKILLS_DIR/scan/agents/openai.yaml" \
+  || fail "scan should expose orchestrator execution kind"
+grep -Fq 'allow_nested_agents: true' "$CODEX_SKILLS_DIR/scan/agents/openai.yaml" \
+  || fail "scan should allow internal dispatch"
+manual_policy consistency-audit || fail "consistency-audit should install with implicit invocation disabled"
+grep -Fq 'execution_kind: agent_backed' "$CODEX_SKILLS_DIR/consistency-audit/agents/openai.yaml" \
+  || fail "consistency-audit should expose agent-backed execution kind"
+grep -Fq 'agent_type: consistency-auditor' "$CODEX_SKILLS_DIR/consistency-audit/agents/openai.yaml" \
+  || fail "consistency-audit should expose consistency-auditor agent type"
+grep -Fq 'allow_nested_agents: false' "$CODEX_SKILLS_DIR/consistency-audit/agents/openai.yaml" \
+  || fail "consistency-audit should forbid nested generic agents"
 [ -f "$CODEX_SKILLS_DIR/self-improving-agent/SKILL.md" ] || fail "self-improving-agent should install as manual-only"
 grep -Fq 'disable-model-invocation: true' "$CODEX_SKILLS_DIR/self-improving-agent/SKILL.md" || fail "self-improving-agent should remain manual-only"
 manual_policy self-improving-agent || fail "self-improving-agent should disable Codex implicit invocation"

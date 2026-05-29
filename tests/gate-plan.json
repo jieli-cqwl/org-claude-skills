@@ -930,6 +930,18 @@
       "timeout_sec": 180
     },
     {
+      "id": "design-minimal-field-contract",
+      "command": [
+        "bash",
+        "tests/test-design-minimal-field-contract.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
       "id": "design-architect-capability-contract",
       "command": [
         "bash",
@@ -960,6 +972,18 @@
       "command": [
         "bash",
         "tests/test-test-design-clean-resource.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
+      "id": "test-design-minimal-field-contract",
+      "command": [
+        "bash",
+        "tests/test-test-design-minimal-field-contract.sh"
       ],
       "area": "design",
       "tier": "full",

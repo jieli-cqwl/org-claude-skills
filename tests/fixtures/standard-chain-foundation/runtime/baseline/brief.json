@@ -37,7 +37,15 @@
     "canonical JSON is the only control source"
   ],
   "non_functional_requirements": [
-    "fail-closed state transitions"
+    {
+      "requirement_id": "NFR-1",
+      "quality_attribute": "RELIABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    }
   ],
   "scope_boundaries": [
     "runtime fixtures only cover standard-chain canonical control artifacts"

@@ -29,7 +29,13 @@ def build_pm_package(confirmed: dict[str, Any]) -> dict[str, Any]:
         "下游设计只选择可见状态和失败补偿表达，不改变 PM 锁定业务边界"
     ]
     brief["non_functional_requirements"] = [
-        "高风险操作必须有服务端拒绝、traceId、审计和数据前后值证据"
+        {
+            "requirement_id": "NFR-1",
+            "quality_attribute": "OBSERVABILITY",
+            "source_refs": ["brief.json#acceptance_criteria[0]"],
+            "verification_owner": "test-design",
+            "verification_stage": "NFR",
+        }
     ]
     phase.update(build_phase_manager_fields())
     phase["unit_index"] = [unit["unit_id"] for unit in units]

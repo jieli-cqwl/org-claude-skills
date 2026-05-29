@@ -694,7 +694,7 @@ from pathlib import Path
 path = Path(sys.argv[1])
 payload = json.loads(path.read_text(encoding="utf-8"))
 payload["risk_response"][0].pop("verification_refs", None)
-payload["risk_response"][0]["escalation_path"] = "Escalate to the user when this risk cannot be verified in design."
+payload["risk_response"][0]["escalation_owner"] = "user"
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 }
@@ -1176,7 +1176,7 @@ assert_phase_allows_escalation_only_risk_response() {
     cat "$stdout_file" >&2
     cat "$stderr_file" >&2
     rm -rf "$tmp_dir"
-    fail "phase validator should allow risk_response with escalation_path when verification_refs are absent"
+    fail "phase validator should allow risk_response with escalation_owner when verification_refs are absent"
   fi
   rm -rf "$tmp_dir"
 }
@@ -1756,7 +1756,7 @@ assert_design_gate_allows_escalation_only_risk_response() {
     cat "$tmp_dir/hook.stdout" >&2
     cat "$tmp_dir/hook.stderr" >&2
     rm -rf "$tmp_dir"
-    fail "design gate should allow risk_response with escalation_path when verification_refs are absent"
+    fail "design gate should allow risk_response with escalation_owner when verification_refs are absent"
   fi
   rm -rf "$tmp_dir"
 }
@@ -2055,7 +2055,7 @@ for required_capability in [
 for name, terms in {
     "intake_route_boundary": ["WHY/WHAT", "HOW", "/product-manager", "/test-design", "/tech-lead"],
     "evidence_strength_tiers": ["Strong", "Medium", "Weak", "弱证据不能冻结架构决策"],
-    "decision_shape": ["key_decisions", "decision_id", "option_ref", "fact_refs", "user_confirmation", "option_analysis.decision_ref", "option_analysis.tradeoff", "impact_scope", "verification_mapping"],
+    "decision_shape": ["key_decisions", "decision_id", "option_ref", "fact_refs", "user_confirmation", "option_analysis.decision_ref", "option_analysis.evaluation", "impact_scope", "verification_mapping"],
     "downstream_consumability": ["/test-design", "断言", "/tech-lead", "任务边界", "developer", "input/output/error", "delivery-owner", "risk_response", "rollback_plan", "planning_constraints"],
 }.items():
     missing_terms = [term for term in terms if term not in capability_contracts]
@@ -2192,7 +2192,7 @@ if "证明收益后，再推荐更复杂模式" in architecture_patterns:
 required_reviewer_terms = [
     "decision_id",
     "option_analysis.decision_ref",
-    "option_analysis.tradeoff",
+    "option_analysis.evaluation",
     "弱证据",
     "自引用 `design.json`",
 ]
@@ -2209,11 +2209,11 @@ assert_present '\{feature\}\.phase-\{N\}\.design' "$DESIGN_TEMPLATE"
 assert_absent '"stage_id": "S[0-9]+"' "$DESIGN_TEMPLATE"
 assert_absent '"S2"| "S3"| "S4"| "S5"| "S6"| "S7"| "S8"' "$DESIGN_SCHEMA"
 assert_present '"stage_id": "stakeholders-and-concerns"' "$DESIGN_TEMPLATE"
-assert_present '"question_or_focus": "确认设计消费者、架构显著关注点和责任边界"' "$DESIGN_TEMPLATE"
+assert_present '"confirmation_status": "CONFIRMED"' "$DESIGN_TEMPLATE"
 assert_present '"stage_id": "architecture-significant-requirements"' "$DESIGN_TEMPLATE"
-assert_present '"question_or_focus": "确认架构显著需求、质量属性和约束继承"' "$DESIGN_TEMPLATE"
+assert_present '"evidence_refs"' "$DESIGN_TEMPLATE"
 assert_present '"stage_id": "design-synthesis"' "$DESIGN_TEMPLATE"
-assert_present '"question_or_focus": "确认设计合成结果和下游交接义务"' "$DESIGN_TEMPLATE"
+assert_absent '"question_or_focus"|"user_response_summary"' "$DESIGN_TEMPLATE"
 assert_present '"review_closure"' "$DESIGN_TEMPLATE"
 assert_present '"reviewed_design_digest": "sha256:[0-9a-f]{64}"' "$DESIGN_TEMPLATE"
 assert_present '"reviewed_design_digest": "sha256:[0-9a-f]{64}"' "$DESIGN_TEMPLATE"

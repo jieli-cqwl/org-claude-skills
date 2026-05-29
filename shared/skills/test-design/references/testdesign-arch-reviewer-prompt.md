@@ -28,7 +28,7 @@
 | TA-1 设计承接 | design refs、verification mapping、risk response 是否被测试或 handoff 承接 | 关键设计承接点无测试义务 |
 | TA-2 接口与数据 | interfaces、data_architecture、错误码、字段约束是否可验证 | 关键接口/数据约束无断言 |
 | TA-3 Cross-cutting | auth、error、log、config、quality attributes 是否触发专项或 QA obligation | 命中风险但无承接或 gap |
-| TA-4 架构 gap | DESIGN_GAP、TRACE_CONFLICT、TESTABILITY_GAP、EQ_GAP 是否有 evidence、owner、next_action | 设计缺口被静默绕过 |
+| TA-4 架构 gap | DESIGN_GAP、TRACE_CONFLICT、TESTABILITY_GAP、EQ_GAP 是否有 evidence refs、owner、required_artifact_ref、decision_needed | 设计缺口被静默绕过 |
 
 ## 输出格式
 

@@ -76,9 +76,9 @@ def _assert_co_creation_summary(payload: dict, top_level_ref_assert) -> None:
         _require_non_empty_string(stage_id, f"co_creation_summary[{index}].stage_id")
         if isinstance(stage_id, str):
             seen_stages.add(stage_id)
-        for field in ("stage_name", "question_or_focus", "user_response_summary"):
-            _require_non_empty_string(
-                row.get(field), f"co_creation_summary[{index}].{field}"
+        if row.get("confirmation_status") != "CONFIRMED":
+            raise ValueError(
+                f"co_creation_summary[{index}].confirmation_status must be CONFIRMED"
             )
         refs = _require_string_list(
             row.get("decision_refs"),
@@ -89,6 +89,16 @@ def _assert_co_creation_summary(payload: dict, top_level_ref_assert) -> None:
                 ref,
                 payload,
                 f"co_creation_summary[{index}].decision_refs[{ref_index}]",
+            )
+        evidence_refs = _require_string_list(
+            row.get("evidence_refs"),
+            f"co_creation_summary[{index}].evidence_refs",
+        )
+        for ref_index, ref in enumerate(evidence_refs):
+            top_level_ref_assert(
+                ref,
+                payload,
+                f"co_creation_summary[{index}].evidence_refs[{ref_index}]",
             )
     missing_stages = sorted(DESIGN_REQUIRED_CONFIRMATION_STAGES - seen_stages)
     if missing_stages:

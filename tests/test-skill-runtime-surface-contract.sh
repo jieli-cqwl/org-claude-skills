@@ -36,6 +36,13 @@ if not isinstance(skills, dict) or not skills:
     raise SystemExit("contracts/skill-runtime-surface.json: skills must be a non-empty object")
 
 valid_modes = {"auto", "manual", "off"}
+valid_execution_kinds = {"skill", "orchestrator", "agent_backed"}
+valid_codex_execution = {
+    "inline",
+    "subagent_clean",
+    "subagent_fork",
+    "subagent_parallel",
+}
 auto_skills = []
 manual_skills = []
 source_dirs = {}
@@ -47,6 +54,32 @@ for name, entry in sorted(skills.items()):
     owner = str(entry.get("owner", "")).strip()
     if not reason or not owner:
         raise SystemExit(f"{name}: reason and owner are required")
+    execution_kind = str(entry.get("execution_kind", "skill")).strip()
+    if execution_kind not in valid_execution_kinds:
+        raise SystemExit(f"{name}: execution_kind must be one of {sorted(valid_execution_kinds)}")
+    codex_execution = entry.get("codex_execution")
+    if codex_execution is not None and codex_execution not in valid_codex_execution:
+        raise SystemExit(f"{name}: codex_execution must be one of {sorted(valid_codex_execution)}")
+    allow_nested_agents = entry.get("allow_nested_agents")
+    if allow_nested_agents is not None and not isinstance(allow_nested_agents, bool):
+        raise SystemExit(f"{name}: allow_nested_agents must be boolean when present")
+    if execution_kind == "agent_backed":
+        if mode != "manual":
+            raise SystemExit(f"{name}: agent_backed skills must be manual-only")
+        if codex_execution is not None:
+            raise SystemExit(f"{name}: agent_backed skills must not define generic codex_execution")
+        if not str(entry.get("agent_type", "")).strip():
+            raise SystemExit(f"{name}: agent_backed skills require agent_type")
+        dispatchers = entry.get("dispatchers")
+        if not isinstance(dispatchers, list) or not all(isinstance(item, str) and item for item in dispatchers):
+            raise SystemExit(f"{name}: agent_backed skills require non-empty dispatchers")
+        if allow_nested_agents is not False:
+            raise SystemExit(f"{name}: agent_backed skills must set allow_nested_agents=false")
+    if execution_kind == "orchestrator":
+        if codex_execution not in {None, "inline"}:
+            raise SystemExit(f"{name}: orchestrator skills must execute inline and own their internal dispatch")
+        if allow_nested_agents is not True:
+            raise SystemExit(f"{name}: orchestrator skills must set allow_nested_agents=true")
     source_dir = str(entry.get("source_dir", "")).strip()
     if source_dir:
         source_dirs[source_dir] = name
@@ -106,6 +139,50 @@ if actual_auto != expected_auto:
 for name, auto_class in expected_auto_class.items():
     if skills[name].get("auto_class") != auto_class:
         raise SystemExit(f"{name}: auto_class must be {auto_class}")
+
+expected_codex_execution = {
+    "claude-api": "inline",
+    "github-repo-radar": "subagent_clean",
+    "overview": "subagent_clean",
+    "research": "subagent_clean",
+}
+for name, codex_execution in expected_codex_execution.items():
+    entry = skills[name]
+    if entry.get("execution_kind", "skill") != "skill":
+        raise SystemExit(f"{name}: expected normal skill execution_kind")
+    if entry.get("codex_execution") != codex_execution:
+        raise SystemExit(f"{name}: codex_execution must be {codex_execution}")
+
+expected_orchestrators = {
+    "delivery-owner",
+    "scan",
+    "skill-quality-audit",
+}
+for name in expected_orchestrators:
+    entry = skills[name]
+    if entry.get("execution_kind") != "orchestrator":
+        raise SystemExit(f"{name}: execution_kind must be orchestrator")
+    if entry.get("codex_execution") != "inline":
+        raise SystemExit(f"{name}: orchestrator codex_execution must be inline")
+
+expected_agent_backed = {
+    "consistency-audit": ("consistency-auditor", {"delivery-owner", "tech-lead"}),
+    "developer": ("developer", {"delivery-owner"}),
+    "fix": ("fixer", {"delivery-owner"}),
+    "qa": ("qa", {"delivery-owner"}),
+    "review": ("code-reviewer", {"delivery-owner", "requesting-code-review"}),
+    "verify": ("verifier", {"delivery-owner"}),
+}
+for name, (agent_type, required_dispatchers) in expected_agent_backed.items():
+    entry = skills[name]
+    if entry.get("execution_kind") != "agent_backed":
+        raise SystemExit(f"{name}: execution_kind must be agent_backed")
+    if entry.get("agent_type") != agent_type:
+        raise SystemExit(f"{name}: agent_type must be {agent_type}")
+    dispatchers = set(entry.get("dispatchers", []))
+    missing_dispatchers = sorted(required_dispatchers - dispatchers)
+    if missing_dispatchers:
+        raise SystemExit(f"{name}: dispatchers missing {missing_dispatchers}")
 
 def require_routing_tokens(name: str, tokens: list[str]) -> None:
     routing_text = " ".join(
@@ -181,7 +258,14 @@ if "contracts/skill-runtime-surface.json" not in readme:
     raise SystemExit("README.md should document the skill runtime surface contract")
 PY
 
-mkdir -p "$TMP_DIR/skills/docx/agents" "$TMP_DIR/skills/cli-updater/agents" "$TMP_DIR/skills/claude-api/agents" "$TMP_DIR/skills/webapp-testing/agents"
+mkdir -p \
+  "$TMP_DIR/skills/docx/agents" \
+  "$TMP_DIR/skills/cli-updater/agents" \
+  "$TMP_DIR/skills/claude-api/agents" \
+  "$TMP_DIR/skills/consistency-audit/agents" \
+  "$TMP_DIR/skills/research/agents" \
+  "$TMP_DIR/skills/scan/agents" \
+  "$TMP_DIR/skills/webapp-testing/agents"
 cat > "$TMP_DIR/skills/docx/SKILL.md" <<'EOF_SKILL'
 ---
 name: docx
@@ -218,6 +302,48 @@ description: This official mirror description is intentionally much longer than 
 
 # Claude API
 EOF_SKILL
+cat > "$TMP_DIR/skills/consistency-audit/SKILL.md" <<'EOF_SKILL'
+---
+name: consistency-audit
+description: Audit canonical delivery artifacts.
+---
+
+# Consistency Audit
+EOF_SKILL
+cat > "$TMP_DIR/skills/consistency-audit/agents/openai.yaml" <<'EOF_YAML'
+interface:
+  display_name: "Consistency Audit"
+policy:
+  allow_implicit_invocation: false
+EOF_YAML
+cat > "$TMP_DIR/skills/research/SKILL.md" <<'EOF_SKILL'
+---
+name: research
+description: Investigate external evidence and options.
+---
+
+# Research
+EOF_SKILL
+cat > "$TMP_DIR/skills/research/agents/openai.yaml" <<'EOF_YAML'
+interface:
+  display_name: "Research"
+policy:
+  allow_implicit_invocation: false
+EOF_YAML
+cat > "$TMP_DIR/skills/scan/SKILL.md" <<'EOF_SKILL'
+---
+name: scan
+description: Scan repository health.
+---
+
+# Scan
+EOF_SKILL
+cat > "$TMP_DIR/skills/scan/agents/openai.yaml" <<'EOF_YAML'
+interface:
+  display_name: "Scan"
+policy:
+  allow_implicit_invocation: false
+EOF_YAML
 cat > "$TMP_DIR/skills/webapp-testing/SKILL.md" <<'EOF_SKILL'
 ---
 name: webapp-testing
@@ -275,6 +401,20 @@ PY
   || fail "Codex auto skill should not disable implicit invocation"
 grep -Fq 'allow_implicit_invocation: true' "$TMP_DIR/skills/webapp-testing/agents/openai.yaml" \
   || fail "Codex auto skill should self-heal stale implicit invocation policy"
+grep -Fq 'codex_execution: subagent_clean' "$TMP_DIR/skills/research/agents/openai.yaml" \
+  || fail "Codex research policy should expose subagent_clean execution"
+grep -Fq 'execution_kind: agent_backed' "$TMP_DIR/skills/consistency-audit/agents/openai.yaml" \
+  || fail "Codex consistency-audit policy should expose agent-backed execution"
+grep -Fq 'agent_type: consistency-auditor' "$TMP_DIR/skills/consistency-audit/agents/openai.yaml" \
+  || fail "Codex consistency-audit policy should expose agent type"
+grep -Fq 'allow_nested_agents: false' "$TMP_DIR/skills/consistency-audit/agents/openai.yaml" \
+  || fail "Codex consistency-audit policy should forbid nested generic agents"
+! grep -Fq 'codex_execution:' "$TMP_DIR/skills/consistency-audit/agents/openai.yaml" \
+  || fail "Codex agent-backed skills must not expose generic codex_execution"
+grep -Fq 'execution_kind: orchestrator' "$TMP_DIR/skills/scan/agents/openai.yaml" \
+  || fail "Codex scan policy should expose orchestrator execution kind"
+grep -Fq 'allow_nested_agents: true' "$TMP_DIR/skills/scan/agents/openai.yaml" \
+  || fail "Codex scan policy should allow its own internal dispatch"
 
 python3 - "$TMP_DIR/audit.json" <<'PY'
 import json
@@ -284,7 +424,7 @@ from pathlib import Path
 audit = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 if audit.get("runtime") != "codex":
     raise SystemExit("audit runtime mismatch")
-if audit.get("auto_count") != 1 or audit.get("manual_count") != 3:
+if audit.get("auto_count") != 1 or audit.get("manual_count") != 6:
     raise SystemExit(f"unexpected audit counts: {audit}")
 PY
 

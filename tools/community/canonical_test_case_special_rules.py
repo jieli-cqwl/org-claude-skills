@@ -90,7 +90,8 @@ def _assert_special_trigger_row(
     if not source_ref.startswith("design.json#"):
         raise ValueError(f"test-cases {path}.source_ref must point to design.json")
     actual_refs.add(source_ref)
-    _require_non_empty_string(row.get("condition"), f"{path}.condition")
+    _require_non_empty_string(row.get("trigger_rule"), f"{path}.trigger_rule")
+    _require_non_empty_string(row.get("threshold_ref"), f"{path}.threshold_ref")
     _assert_enum(row.get("qa_stage"), QA_STAGES, f"{path}.qa_stage")
     handling = _assert_enum(
         row.get("handling"), SPECIAL_TRIGGER_HANDLINGS, f"{path}.handling"

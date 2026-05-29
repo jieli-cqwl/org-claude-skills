@@ -53,9 +53,85 @@ required = set(task_schema["required"])
 properties = task_schema["properties"]
 require("file_range" not in required, "tasks.schema.json must not require file_range")
 require("file_range" not in properties, "tasks.schema.json must not define file_range property")
+for prose_field in ("real_dependency_note", "mock_boundary_note"):
+    require(
+        prose_field not in required,
+        f"tasks.schema.json must not require prose field {prose_field}",
+    )
+    require(
+        prose_field not in properties,
+        f"tasks.schema.json must not define prose field {prose_field}",
+    )
+for structured_field in ("real_dependency_refs", "mock_boundary"):
+    require(
+        structured_field in required,
+        f"tasks.schema.json must require structured field {structured_field}",
+    )
+    require(
+        structured_field in properties,
+        f"tasks.schema.json must define structured field {structured_field}",
+    )
+mock_boundary = properties.get("mock_boundary", {})
+mock_required = set(mock_boundary.get("required", []))
+require(
+    {"mock_allowed", "allowed_for", "final_acceptance_requires_real_evidence"} <= mock_required,
+    "mock_boundary must require mock_allowed, allowed_for, and final_acceptance_requires_real_evidence",
+)
+require(
+    mock_boundary.get("properties", {}).get("final_acceptance_requires_real_evidence", {}).get("const") is True,
+    "mock_boundary.final_acceptance_requires_real_evidence must be const true",
+)
 require(
     "not the writable implementation boundary" in properties["scope_item_refs"]["description"],
     "scope_item_refs description must deny writable-boundary semantics",
+)
+
+plan_schema = json.loads(
+    (root / "shared/skills/tech-lead/contracts/plan.schema.json").read_text(encoding="utf-8")
+)
+implementation_path = plan_schema["allOf"][1]["properties"]["implementation_path"]
+implementation_required = set(implementation_path["required"])
+implementation_properties = implementation_path["properties"]
+for prose_field in ("summary", "dependency_strategy"):
+    require(
+        prose_field not in implementation_required,
+        f"plan.implementation_path must not require prose field {prose_field}",
+    )
+    require(
+        prose_field not in implementation_properties,
+        f"plan.implementation_path must not define prose field {prose_field}",
+    )
+parallel_batch_schema = implementation_properties["parallel_batches"]["items"]
+require(
+    "reason" not in set(parallel_batch_schema.get("required", [])),
+    "plan.implementation_path.parallel_batches must not require prose reason",
+)
+require(
+    "reason" not in parallel_batch_schema.get("properties", {}),
+    "plan.implementation_path.parallel_batches must not define prose reason",
+)
+require(
+    parallel_batch_schema.get("additionalProperties") is False,
+    "plan.implementation_path.parallel_batches must reject undeclared prose fields",
+)
+risk_signal_schema = implementation_properties["investment_risk_signals"]["items"]
+risk_signal_required = set(risk_signal_schema.get("required", []))
+require(
+    {"risk_id", "signal_type", "impact_level", "owner", "source_refs"} <= risk_signal_required,
+    "plan.implementation_path.investment_risk_signals must require typed signal fields and source_refs",
+)
+for prose_field in ("signal", "impact"):
+    require(
+        prose_field not in risk_signal_required,
+        f"plan.implementation_path.investment_risk_signals must not require prose field {prose_field}",
+    )
+    require(
+        prose_field not in risk_signal_schema.get("properties", {}),
+        f"plan.implementation_path.investment_risk_signals must not define prose field {prose_field}",
+    )
+require(
+    risk_signal_schema.get("additionalProperties") is False,
+    "plan.implementation_path.investment_risk_signals must reject undeclared prose fields",
 )
 
 

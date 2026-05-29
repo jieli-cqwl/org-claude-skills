@@ -4,4 +4,7 @@ interface:
   default_prompt: "Use $fix to analyze and fix the reported FAIL items."
 
 policy:
+  allow_nested_agents: false
+  agent_type: fixer
+  execution_kind: agent_backed
   allow_implicit_invocation: false

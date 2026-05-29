@@ -311,7 +311,7 @@
             "phase-1/phase-prd.json#unit_index"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:27c3ed6af3638f99c5bdaa68292d2940403c0e3e425f91cce9c41a3f5e924f30"
+          "reviewed_bundle_digest": "sha256:cf3d77bb40b3bc781a1a5eec9d814825ea40b83dd277b257d21ff6bdb57c5e4b"
         },
         {
           "perspective": "architecture",
@@ -329,7 +329,7 @@
             "phase-1/units/UNIT-1.json#integration_context"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:27c3ed6af3638f99c5bdaa68292d2940403c0e3e425f91cce9c41a3f5e924f30"
+          "reviewed_bundle_digest": "sha256:cf3d77bb40b3bc781a1a5eec9d814825ea40b83dd277b257d21ff6bdb57c5e4b"
         },
         {
           "perspective": "test",
@@ -347,7 +347,7 @@
             "phase-1/units/UNIT-1.json#verification_plan"
           ],
           "read_only": true,
-          "reviewed_bundle_digest": "sha256:27c3ed6af3638f99c5bdaa68292d2940403c0e3e425f91cce9c41a3f5e924f30"
+          "reviewed_bundle_digest": "sha256:cf3d77bb40b3bc781a1a5eec9d814825ea40b83dd277b257d21ff6bdb57c5e4b"
         }
       ],
       "convergence_evidence": [
@@ -360,7 +360,7 @@
           ]
         }
       ],
-      "reviewed_bundle_digest": "sha256:27c3ed6af3638f99c5bdaa68292d2940403c0e3e425f91cce9c41a3f5e924f30"
+      "reviewed_bundle_digest": "sha256:cf3d77bb40b3bc781a1a5eec9d814825ea40b83dd277b257d21ff6bdb57c5e4b"
     }
   },
   "issue_ledger": [],

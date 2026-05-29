@@ -102,9 +102,15 @@ def build_tasks_artifact(test_design_package: dict[str, Any]) -> dict[str, Any]:
         "batch": 1,
         "acceptance_targets": ["AC-U1-01", "TC-001", "TC-002"],
         "proving_command": "python3 tools/eval/scripts/validate_stage2_tech_lead_materials.py",
-        "real_dependency_note": "Developer must inspect real qft-pai message callback flow before code edits; this task contract only freezes scope, evidence, and stop conditions.",
+        "real_dependency_refs": [
+            "artifact://evidence/qft-pai-stage2-phase1.task-T1.dependencies@v1#real-message-callback-flow"
+        ],
         "evidence_target": "unit-1/tasks/T1/developer-report.json#fresh_proof",
-        "mock_boundary_note": "Fixture data is not final acceptance evidence; final acceptance requires fresh qft-pai implementation proof and verifier evidence.",
+        "mock_boundary": {
+            "mock_allowed": True,
+            "allowed_for": ["fixture_data", "unit_isolation"],
+            "final_acceptance_requires_real_evidence": True,
+        },
         "wbs_ref": "WP-1",
         "critical_path_role": "critical",
         "investment_risk_signals": ["heavy", "risky"],
@@ -123,9 +129,15 @@ def build_tasks_artifact(test_design_package: dict[str, Any]) -> dict[str, Any]:
         "batch": 2,
         "acceptance_targets": ["TC-003", "QA-OB-001"],
         "proving_command": "python3 tools/eval/scripts/validate_stage2_tech_lead_materials.py",
-        "real_dependency_note": "Developer must prove trace_id, idempotency, context-source summary, and manual-confirmation state on fresh qft-pai evidence.",
+        "real_dependency_refs": [
+            "artifact://evidence/qft-pai-stage2-phase1.task-T2.dependencies@v1#fresh-trace-id-idempotency-manual-confirmation"
+        ],
         "evidence_target": "unit-1/tasks/T2/developer-report.json#fresh_proof",
-        "mock_boundary_note": "Mock-only evidence can support local isolation but cannot satisfy delivery-owner final acceptance.",
+        "mock_boundary": {
+            "mock_allowed": True,
+            "allowed_for": ["unit_isolation"],
+            "final_acceptance_requires_real_evidence": True,
+        },
         "wbs_ref": "WP-2",
         "critical_path_role": "critical",
         "investment_risk_signals": ["risky", "rework-prone"],
@@ -217,7 +229,6 @@ def build_plan_artifact(
             },
         },
         "implementation_path": {
-            "summary": "Freeze a two-step path: establish the message callback suggestion flow, then prove traceability, idempotency, and manual confirmation.",
             "wbs": [
                 {
                     "work_package_id": "WP-1",
@@ -231,31 +242,34 @@ def build_plan_artifact(
                 },
             ],
             "critical_path": ["T1", "T2"],
-            "dependency_strategy": "T2 depends on T1 because traceability and manual-confirmation evidence must observe the orchestration result.",
             "parallel_batches": [
                 {
                     "batch": 1,
                     "task_refs": [task_ref_1],
                     "parallelizable": False,
-                    "reason": "T1 establishes the implementation boundary for the callback suggestion flow.",
                 },
                 {
                     "batch": 2,
                     "task_refs": [task_ref_2],
                     "parallelizable": False,
-                    "reason": "T2 consumes T1 outputs and closes evidence obligations.",
                 },
             ],
             "investment_risk_signals": [
                 {
-                    "signal": "legacy-flow-unknowns",
-                    "impact": "Real qft-pai code may hide callback, context, or dispatch side effects that require developer discovery before edits.",
+                    "risk_id": "IR-1",
+                    "signal_type": "INTEGRATION_RISK",
+                    "impact_level": "HIGH",
                     "owner": "tech-lead",
+                    "source_refs": [task_ref_1],
+                    "mitigation_refs": [task_ref_2],
                 },
                 {
-                    "signal": "final-acceptance-not-mockable",
-                    "impact": "Delivery-owner must reject mock-only proof and require fresh qft-pai evidence before release.",
+                    "risk_id": "IR-2",
+                    "signal_type": "USER_DECISION_NEEDED",
+                    "impact_level": "BLOCKING",
                     "owner": "delivery-owner",
+                    "source_refs": [task_ref_2],
+                    "mitigation_refs": [task_ref_2],
                 },
             ],
         },

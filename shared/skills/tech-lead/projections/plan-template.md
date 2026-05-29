@@ -11,7 +11,6 @@
 
 ## Implementation Path
 
-- summary: {本 Phase 的可交付实施路径}
 - WBS:
 
 | Work Package | 目标 | Task refs | 完成信号 |
@@ -19,8 +18,7 @@
 | WP-1 | {交付包目标} | T1, T2 | {可观察完成信号} |
 
 - critical_path: {T1 -> T2 -> T4}
-- dependency_strategy: {依赖根、串行原因、集成点}
-- investment_risk_signals: {投入重、风险高、易返工或需要用户裁决的信号}
+- investment_risk_signals: {risk_id, signal_type, impact_level, owner, source_refs, mitigation_refs}
 
 ## Source Trace
 
@@ -51,18 +49,18 @@
 - batch: 1
 - acceptance_targets: [...]
 - proving_command: {fresh proving command}
-- real_dependency_note: {真实依赖说明}
+- real_dependency_refs: [{真实依赖证据 ref}]
 - evidence_target: {developer-report / verify-result / qa-result / signoff-package ref}
-- mock_boundary_note: {Mock 边界与最终验收限制}
+- mock_boundary: {mock_allowed, allowed_for, final_acceptance_requires_real_evidence=true}
 - AC:
   1. {可 assert 的验收标准}
 
 ## Dependency And Batch Plan
 
-| Batch | Task refs | Parallelizable | Reason | Integration note |
-| --- | --- | --- | --- | --- |
-| 1 | T1 | false | dependency root | {说明} |
-| 2 | T2, T3 | true | no file/data conflict | {说明} |
+| Batch | Task refs | Parallelizable |
+| --- | --- | --- |
+| 1 | T1 | false |
+| 2 | T2, T3 | true |
 
 ## User Confirmation
 

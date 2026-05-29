@@ -4,4 +4,5 @@ interface:
   default_prompt: "Use $research to investigate [topic], compare options, and identify relevant skills, MCPs, plugins, packages, or repos."
 
 policy:
-  allow_implicit_invocation: true
+  codex_execution: subagent_clean
+  allow_implicit_invocation: false

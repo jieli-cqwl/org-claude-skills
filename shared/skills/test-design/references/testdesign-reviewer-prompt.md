@@ -29,7 +29,7 @@
 | TQ-2 追踪 | product refs、design refs、AC refs、case refs、gap refs 是否闭合 | source ref 缺失或断链 |
 | TQ-3 可执行性 | 用例是否有步骤、预期结果、assertion_target、evidence_expectation | 无可断言目标或只有口号式期望 |
 | TQ-4 QA handoff | QA obligation、阶段、执行方式、证据和 handoff refs 是否可消费 | obligation_id 缺失或引用断链 |
-| TQ-5 Gap 表达 | typed gap 是否有 owner、next_action、blocking refs 和 blocking 裁决 | blocking=true 的 gap 仍继续 handoff |
+| TQ-5 Gap 表达 | typed gap 是否有 owner、required_artifact_ref、decision_needed、blocking refs 和 blocking 裁决 | blocking=true 的 gap 仍继续 handoff |
 
 ## 输出格式
 

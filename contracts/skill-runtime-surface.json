@@ -56,6 +56,7 @@
     "claude-api": {
       "mode": "manual",
       "owner": "first-party",
+      "codex_execution": "inline",
       "reason": "Claude API and Anthropic SDK work is specialized and should be explicitly invoked.",
       "description": "Use for Claude API / Anthropic SDK code, prompt caching, tools, models, or migrations."
     },
@@ -82,7 +83,14 @@
     "consistency-audit": {
       "mode": "manual",
       "owner": "first-party",
-      "reason": "Cross-artifact consistency audits are high-cost and explicit."
+      "execution_kind": "agent_backed",
+      "agent_type": "consistency-auditor",
+      "allow_nested_agents": false,
+      "dispatchers": [
+        "delivery-owner",
+        "tech-lead"
+      ],
+      "reason": "Cross-artifact consistency audits run through the consistency-auditor agent as advisory-only evidence; avoid wrapping it in a generic nested subagent."
     },
     "create-yourself": {
       "mode": "manual",
@@ -108,6 +116,9 @@
     "delivery-owner": {
       "mode": "manual",
       "owner": "first-party",
+      "execution_kind": "orchestrator",
+      "codex_execution": "inline",
+      "allow_nested_agents": true,
       "reason": "Delivery owner orchestration starts after explicit handoff."
     },
     "design": {
@@ -118,7 +129,13 @@
     "developer": {
       "mode": "manual",
       "owner": "first-party",
-      "reason": "Developer task execution requires an explicit task contract."
+      "execution_kind": "agent_backed",
+      "agent_type": "developer",
+      "allow_nested_agents": false,
+      "dispatchers": [
+        "delivery-owner"
+      ],
+      "reason": "Developer task execution runs through the managed developer agent after an explicit task contract."
     },
     "dispatching-parallel-agents": {
       "mode": "auto",
@@ -173,7 +190,13 @@
     "fix": {
       "mode": "manual",
       "owner": "first-party",
-      "reason": "Root-cause fix mode should be entered from explicit failure evidence."
+      "execution_kind": "agent_backed",
+      "agent_type": "fixer",
+      "allow_nested_agents": false,
+      "dispatchers": [
+        "delivery-owner"
+      ],
+      "reason": "Root-cause fix mode runs through the managed fixer agent from explicit failure evidence."
     },
     "frontend-design": {
       "mode": "auto",
@@ -185,6 +208,7 @@
     "github-repo-radar": {
       "mode": "manual",
       "owner": "first-party",
+      "codex_execution": "subagent_clean",
       "reason": "GitHub repository radar is a specialized research workflow and must be explicitly invoked."
     },
     "graphify": {
@@ -231,6 +255,7 @@
     "overview": {
       "mode": "manual",
       "owner": "first-party",
+      "codex_execution": "subagent_clean",
       "reason": "Project overview writes artifacts and requires confirmation, so it should be explicitly invoked."
     },
     "pdf": {
@@ -286,7 +311,13 @@
     "qa": {
       "mode": "manual",
       "owner": "first-party",
-      "reason": "QA ownership requires an explicit submitted build or task."
+      "execution_kind": "agent_backed",
+      "agent_type": "qa",
+      "allow_nested_agents": false,
+      "dispatchers": [
+        "delivery-owner"
+      ],
+      "reason": "QA ownership runs through the managed qa agent with an explicit submitted build or task."
     },
     "receiving-code-review": {
       "mode": "auto",
@@ -308,13 +339,21 @@
     "research": {
       "mode": "manual",
       "owner": "first-party",
+      "codex_execution": "subagent_clean",
       "reason": "Research workflows are broad and potentially high-cost, so they should be explicitly invoked.",
       "routing_boundary": "Use for evidence-backed research, option discovery, technical/product investigation, and solution comparison outside installable agent skill discovery."
     },
     "review": {
       "mode": "manual",
       "owner": "first-party",
-      "reason": "Deep code review should be explicit."
+      "execution_kind": "agent_backed",
+      "agent_type": "code-reviewer",
+      "allow_nested_agents": false,
+      "dispatchers": [
+        "delivery-owner",
+        "requesting-code-review"
+      ],
+      "reason": "Deep code review runs through the managed code-reviewer agent when dispatched by delivery or review workflows."
     },
     "rules-manager": {
       "mode": "manual",
@@ -324,7 +363,10 @@
     "scan": {
       "mode": "manual",
       "owner": "first-party",
-      "reason": "Whole-repository health scans are high-cost and should be explicit."
+      "execution_kind": "orchestrator",
+      "codex_execution": "inline",
+      "allow_nested_agents": true,
+      "reason": "Whole-repository health scans are high-cost orchestrator workflows and own their internal parallel agent dispatch."
     },
     "security": {
       "mode": "manual",
@@ -351,7 +393,10 @@
     "skill-quality-audit": {
       "mode": "manual",
       "owner": "first-party",
-      "reason": "Skill quality audits are high-cost and should be explicitly invoked."
+      "execution_kind": "orchestrator",
+      "codex_execution": "inline",
+      "allow_nested_agents": true,
+      "reason": "Skill quality audits are high-cost orchestrator workflows and own their internal subagent/eval dispatch."
     },
     "slack-gif-creator": {
       "mode": "manual",
@@ -427,7 +472,13 @@
     "verify": {
       "mode": "manual",
       "owner": "first-party",
-      "reason": "Task-level AC verification requires explicit task context."
+      "execution_kind": "agent_backed",
+      "agent_type": "verifier",
+      "allow_nested_agents": false,
+      "dispatchers": [
+        "delivery-owner"
+      ],
+      "reason": "Task-level AC verification runs through the managed verifier agent from explicit task context."
     },
     "web-artifacts-builder": {
       "mode": "manual",

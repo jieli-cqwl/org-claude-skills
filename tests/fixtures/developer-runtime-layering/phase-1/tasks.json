@@ -13,9 +13,18 @@
         "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
       ],
       "proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
-      "real_dependency_note": "Uses local repository files and validators; no external service is required for this fixture baseline.",
+      "real_dependency_refs": [
+        "artifact://evidence/sample-feature.phase-1.task-T1.dependencies@v1#real-dependency-refs"
+      ],
       "evidence_target": "developer-report.json#task-T1.fresh_proof",
-      "mock_boundary_note": "Mock data may support isolated tests, but final acceptance requires fresh validator output.",
+      "mock_boundary": {
+        "mock_allowed": true,
+        "allowed_for": [
+          "unit_isolation",
+          "fixture_data"
+        ],
+        "final_acceptance_requires_real_evidence": true
+      },
       "wbs_ref": "WP-1",
       "critical_path_role": "critical",
       "scope_item_refs": [

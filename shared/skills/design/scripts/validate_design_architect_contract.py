@@ -150,11 +150,10 @@ def check_interfaces(design: dict[str, Any]) -> list[dict[str, str]]:
 
 def interface_allows_phase_dir(interface: dict[str, Any]) -> bool:
     owner = interface.get("owner", "")
-    summary = interface.get("contract_summary", "")
     interface_id = interface.get("interface_id", "")
     haystack = " ".join(
         item.lower()
-        for item in (owner, summary, interface_id)
+        for item in (owner, interface_id)
         if isinstance(item, str)
     )
     return any(

@@ -186,52 +186,60 @@
   "qa_handoff_contract": [
     {
       "obligation_id": "QHO-STATIC-CONTRACT",
-      "test_obligation": "static contract validation",
-      "trigger_source": "canonical schemas and registry catalog",
+      "obligation_type": "STATIC_CONTRACT",
+      "trigger_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
       "qa_stage": "QA_A",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "schema and contract gate output",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-STATIC-CONTRACT#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[0].manager_vp_ref"
       ]
     },
     {
       "obligation_id": "QHO-RUNTIME-REPLAY",
-      "test_obligation": "runtime replay",
-      "trigger_source": "phase projection replay oracle",
+      "obligation_type": "RUNTIME_REPLAY",
+      "trigger_refs": [
+        "design.json#verification_mapping[0].manager_vp_ref"
+      ],
       "qa_stage": "QA_B",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "replay oracle plus readiness gate evidence",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-RUNTIME-REPLAY#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[0].manager_vp_ref"
       ]
     },
     {
       "obligation_id": "QHO-RECOVERY-COVERAGE",
-      "test_obligation": "negative and recovery coverage",
-      "trigger_source": "delivery-state blocked and replan scenarios",
+      "obligation_type": "NEGATIVE_RECOVERY",
+      "trigger_refs": [
+        "design.json#risk_response[0].risk_id"
+      ],
       "qa_stage": "QA_C",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "blocked/recovery fixture evidence",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-RECOVERY-COVERAGE#evidence",
       "design_source_refs": [
         "design.json#risk_response[0].risk_id"
       ]
     },
     {
       "obligation_id": "QHO-RELEASE-CLOSURE",
-      "test_obligation": "release readiness closure",
-      "trigger_source": "signoff package and user decision",
+      "obligation_type": "RELEASE_READINESS",
+      "trigger_refs": [
+        "design.json#product_handoff.accepted_refs"
+      ],
       "qa_stage": "QA_D",
       "requiredness": "REQUIRED",
       "execution_mode": "non_browser_ok",
-      "skip_rule": "must record reason when not executed",
-      "evidence_expectation": "final signoff closure evidence",
+      "skip_policy": "RECORD_NOT_EXECUTED_REASON",
+      "evidence_contract_ref": "QHO-RELEASE-CLOSURE#evidence",
       "design_source_refs": [
         "design.json#product_handoff.accepted_refs"
       ]
@@ -256,7 +264,8 @@
           "design.json#quality_attributes[0]"
         ],
         "owner": "test-design",
-        "next_action": "convert the quality attribute into an executable case or QA handoff obligation",
+        "required_artifact_ref": "design.json#quality_attributes[0]",
+        "decision_needed": false,
         "blocking": false
       }
     ]
@@ -284,7 +293,8 @@
       "trigger_id": "ST-CASE-1",
       "trigger_type": "quality_attribute",
       "source_ref": "design.json#quality_attributes[0]",
-      "condition": "quality attribute has an executable specialty case",
+      "trigger_rule": "QUALITY_ATTRIBUTE_REQUIRED",
+      "threshold_ref": "design.json#quality_attributes[0]",
       "qa_stage": "NFR",
       "handling": "TEST_CASE",
       "test_case_refs": [
@@ -295,7 +305,8 @@
       "trigger_id": "ST-QUALITY-1",
       "trigger_type": "quality_attribute",
       "source_ref": "design.json#quality_attributes[0]",
-      "condition": "quality attribute requires explicit validation evidence",
+      "trigger_rule": "QUALITY_ATTRIBUTE_REQUIRED",
+      "threshold_ref": "design.json#quality_attributes[0]",
       "qa_stage": "NFR",
       "handling": "QA_HANDOFF",
       "qa_handoff_obligation_refs": [
@@ -306,7 +317,8 @@
       "trigger_id": "ST-GAP-1",
       "trigger_type": "quality_attribute",
       "source_ref": "design.json#quality_attributes[0]",
-      "condition": "quality attribute cannot yet be executed without extra testability detail",
+      "trigger_rule": "QUALITY_ATTRIBUTE_REQUIRED",
+      "threshold_ref": "design.json#quality_attributes[0]",
       "qa_stage": "NFR",
       "handling": "TYPED_GAP",
       "gap_refs": [
@@ -316,7 +328,6 @@
   ],
   "review_conclusion": {
     "verdict": "PASS",
-    "summary": "coverage and QA handoff contract are frozen",
     "review_round": "R2",
     "reviewer_verdicts": [
       {
@@ -324,24 +335,30 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "test-quality confirmation review passed",
-        "reviewed_test_cases_digest": "sha256:8c517805e91df6a234df963d631063bb821e3590dd49e2fa7729c7dc2fffa5ad"
+        "reviewed_test_cases_digest": "sha256:5c73d7208d9c27814d2fd00b27b75799c5c35734e3776ce7ca1f02f6ddbd754d",
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewed_test_cases_digest"
+        ]
       },
       {
         "perspective": "product",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "product confirmation review passed",
-        "reviewed_test_cases_digest": "sha256:8c517805e91df6a234df963d631063bb821e3590dd49e2fa7729c7dc2fffa5ad"
+        "reviewed_test_cases_digest": "sha256:5c73d7208d9c27814d2fd00b27b75799c5c35734e3776ce7ca1f02f6ddbd754d",
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewed_test_cases_digest"
+        ]
       },
       {
         "perspective": "architecture",
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "evidence": "architecture confirmation review passed",
-        "reviewed_test_cases_digest": "sha256:8c517805e91df6a234df963d631063bb821e3590dd49e2fa7729c7dc2fffa5ad"
+        "reviewed_test_cases_digest": "sha256:5c73d7208d9c27814d2fd00b27b75799c5c35734e3776ce7ca1f02f6ddbd754d",
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewed_test_cases_digest"
+        ]
       }
     ],
     "convergence_evidence": [
@@ -350,17 +367,22 @@
         "result": "PASS",
         "fail_count": 0,
         "control_action": "CONFIRMATION",
-        "evidence": "initial full-pass review triggered the required confirmation round"
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewer_verdicts"
+        ]
       },
       {
         "round": "R2",
         "result": "PASS",
         "fail_count": 0,
         "control_action": "COMPLETE",
-        "evidence": "confirmation review closed without open findings"
+        "evidence_refs": [
+          "test-cases.json#review_conclusion.reviewer_verdicts"
+        ]
       }
     ],
-    "reviewed_test_cases_digest": "sha256:8c517805e91df6a234df963d631063bb821e3590dd49e2fa7729c7dc2fffa5ad"
+    "reviewed_test_cases_digest": "sha256:5c73d7208d9c27814d2fd00b27b75799c5c35734e3776ce7ca1f02f6ddbd754d",
+    "closure_status": "CLOSED"
   },
   "issue_ledger": []
 }

@@ -1339,6 +1339,698 @@ artifacts:
         required_when: QA records issue ledger entries
         failure_effect: unresolved QA issues can lose owner and disposition
 
+  - path: docs/{feature}/phase-{N}/unit-{N}/test-cases.json
+    producer: test-design
+    fields:
+      test_analysis:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume test_analysis from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume test_analysis from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume test_analysis from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume test_analysis from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      traceability_matrix:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume traceability_matrix from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume traceability_matrix from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume traceability_matrix from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume traceability_matrix from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      ac_coverage_matrix:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume ac_coverage_matrix from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume ac_coverage_matrix from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume ac_coverage_matrix from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume ac_coverage_matrix from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      equivalence_matrix:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume equivalence_matrix from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume equivalence_matrix from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume equivalence_matrix from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume equivalence_matrix from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      test_cases:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume test_cases from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume test_cases from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume test_cases from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume test_cases from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      qa_handoff_contract:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume qa_handoff_contract from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume qa_handoff_contract from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume qa_handoff_contract from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume qa_handoff_contract from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      cross_unit_obligations:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume cross_unit_obligations from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume cross_unit_obligations from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume cross_unit_obligations from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume cross_unit_obligations from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      unit_coverage_view:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume unit_coverage_view from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume unit_coverage_view from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume unit_coverage_view from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume unit_coverage_view from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      design_gap_report:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume design_gap_report from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume design_gap_report from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume design_gap_report from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume design_gap_report from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      special_test_triggers:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume special_test_triggers from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume special_test_triggers from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume special_test_triggers from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume special_test_triggers from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      review_conclusion:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume review_conclusion from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume review_conclusion from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume review_conclusion from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume review_conclusion from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+      issue_ledger:
+        producer: test-design
+        authority: test-design
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume issue_ledger from test-design artifact
+            consume_mode: transform
+          - consumer: delivery-owner
+            consumed_for: consume issue_ledger from test-design artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume issue_ledger from test-design artifact
+            consume_mode: handoff
+          - consumer: qa
+            consumed_for: consume issue_ledger from test-design artifact
+            consume_mode: gate
+        required_when: test-design hands executable test contract to downstream roles
+        failure_effect: downstream execution can proceed without complete test obligations
+
+  - path: docs/{feature}/phase-{N}/plan.json
+    producer: tech-lead
+    fields:
+      planning_mode:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume planning_mode from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume planning_mode from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume planning_mode from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume planning_mode from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      plan_version:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume plan_version from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume plan_version from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume plan_version from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume plan_version from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      baseline_tasks_version_ref:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume baseline_tasks_version_ref from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume baseline_tasks_version_ref from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume baseline_tasks_version_ref from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume baseline_tasks_version_ref from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      scope_freeze:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume scope_freeze from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume scope_freeze from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume scope_freeze from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume scope_freeze from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      task_list:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume task_list from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume task_list from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume task_list from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume task_list from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      goal_source_refs:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume goal_source_refs from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume goal_source_refs from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume goal_source_refs from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume goal_source_refs from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      constraint_source_refs:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume constraint_source_refs from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume constraint_source_refs from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume constraint_source_refs from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume constraint_source_refs from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      obligation_source_refs:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume obligation_source_refs from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume obligation_source_refs from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume obligation_source_refs from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume obligation_source_refs from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      execution_basis_refs:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume execution_basis_refs from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume execution_basis_refs from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume execution_basis_refs from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume execution_basis_refs from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      planning_readiness:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume planning_readiness from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume planning_readiness from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume planning_readiness from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume planning_readiness from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      implementation_path:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume implementation_path from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume implementation_path from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume implementation_path from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume implementation_path from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      goal_fidelity_review:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume goal_fidelity_review from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume goal_fidelity_review from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume goal_fidelity_review from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume goal_fidelity_review from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+      user_confirmation:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume user_confirmation from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume user_confirmation from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume user_confirmation from tech-lead artifact
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: consume user_confirmation from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes execution plan for runtime execution
+        failure_effect: downstream roles can execute against an incomplete or stale plan
+
+  - path: docs/{feature}/phase-{N}/tasks.json
+    producer: tech-lead
+    fields:
+      plan_version:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume plan_version from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume plan_version from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume plan_version from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes task registry for runtime execution
+        failure_effect: task execution and verification can drift from the active registry
+      tasks:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume tasks from tech-lead artifact
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: consume tasks from tech-lead artifact
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: consume tasks from tech-lead artifact
+            consume_mode: gate
+        required_when: tech-lead freezes task registry for runtime execution
+        failure_effect: task execution and verification can drift from the active registry
+
+  - path: docs/{feature}/phase-{N}/consistency-audit-result.json
+    producer: consistency-auditor
+    fields:
+      decision_authority:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume decision_authority from consistency-auditor artifact
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: consume decision_authority from consistency-auditor artifact
+            consume_mode: gate
+        required_when: consistency-auditor reports advisory findings for owner routing
+        failure_effect: owner action can be skipped or treated as authoritative implementation work
+      consumer:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume consumer from consistency-auditor artifact
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: consume consumer from consistency-auditor artifact
+            consume_mode: gate
+        required_when: consistency-auditor reports advisory findings for owner routing
+        failure_effect: owner action can be skipped or treated as authoritative implementation work
+      blocked_layers:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume blocked_layers from consistency-auditor artifact
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: consume blocked_layers from consistency-auditor artifact
+            consume_mode: gate
+        required_when: consistency-auditor reports advisory findings for owner routing
+        failure_effect: owner action can be skipped or treated as authoritative implementation work
+      skipped_layers:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume skipped_layers from consistency-auditor artifact
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: consume skipped_layers from consistency-auditor artifact
+            consume_mode: gate
+        required_when: consistency-auditor reports advisory findings for owner routing
+        failure_effect: owner action can be skipped or treated as authoritative implementation work
+      tool_warning:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume tool_warning from consistency-auditor artifact
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: consume tool_warning from consistency-auditor artifact
+            consume_mode: gate
+        required_when: consistency-auditor reports advisory findings for owner routing
+        failure_effect: owner action can be skipped or treated as authoritative implementation work
+      findings:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume findings from consistency-auditor artifact
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: consume findings from consistency-auditor artifact
+            consume_mode: gate
+        required_when: consistency-auditor reports advisory findings for owner routing
+        failure_effect: owner action can be skipped or treated as authoritative implementation work
+      required_owner_action:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: tech-lead
+            consumed_for: consume required_owner_action from consistency-auditor artifact
+            consume_mode: reference
+          - consumer: delivery-owner
+            consumed_for: consume required_owner_action from consistency-auditor artifact
+            consume_mode: gate
+        required_when: consistency-auditor reports advisory findings for owner routing
+        failure_effect: owner action can be skipped or treated as authoritative implementation work
+
+  - path: docs/{feature}/phase-{N}/user-decision.json
+    producer: user-decision-writer
+    fields:
+      baseline_tasks_version_ref:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume baseline_tasks_version_ref from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      active_tasks_version_ref:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume active_tasks_version_ref from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      current_stage:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume current_stage from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      decision:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume decision from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      decision_source:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume decision_source from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      actor_id:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume actor_id from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      sign_off_status:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume sign_off_status from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      business_risk_acceptance_status:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume business_risk_acceptance_status from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      authority_proof_refs:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume authority_proof_refs from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      decision_basis_refs:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume decision_basis_refs from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      director_lock_digests:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume director_lock_digests from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+      decision_payload_digest:
+        producer: user-decision-writer
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume decision_payload_digest from user-decision-writer artifact
+            consume_mode: gate
+        required_when: user decision is imported before closeout or rebaseline routing continues
+        failure_effect: delivery-owner can apply an unauthorised or stale user decision
+
   - path: docs/{feature}/phase-{N}/target-change.json
     producer: delivery-owner
     fields:
@@ -1414,6 +2106,42 @@ artifacts:
             consume_mode: gate
         required_when: stale evidence is superseded by target change
         failure_effect: closeout can proceed without fresh proof
+      baseline_tasks_version_ref:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume baseline_tasks_version_ref from delivery-owner artifact
+            consume_mode: gate
+        required_when: target change is recorded after baseline or runtime evidence exists
+        failure_effect: target change can be applied without current task baseline or user authority proof
+      active_tasks_version_ref:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume active_tasks_version_ref from delivery-owner artifact
+            consume_mode: gate
+        required_when: target change is recorded after baseline or runtime evidence exists
+        failure_effect: target change can be applied without current task baseline or user authority proof
+      authority_proof_refs:
+        producer: delivery-owner
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume authority_proof_refs from delivery-owner artifact
+            consume_mode: gate
+        required_when: target change is recorded after baseline or runtime evidence exists
+        failure_effect: target change can be applied without current task baseline or user authority proof
+      decision_basis_refs:
+        producer: delivery-owner
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: consume decision_basis_refs from delivery-owner artifact
+            consume_mode: gate
+        required_when: target change is recorded after baseline or runtime evidence exists
+        failure_effect: target change can be applied without current task baseline or user authority proof
 
   - path: docs/{feature}/phase-{N}/fix-result.json
     producer: fix
@@ -1814,15 +2542,6 @@ artifacts:
             consume_mode: reference
         required_when: active_blocker is populated
         failure_effect: blocker resolution has no accountable owner
-      takeover_note:
-        producer: delivery-owner
-        authority: delivery-owner
-        consumers:
-          - consumer: user
-            consumed_for: preserve handoff note for final decision
-            consume_mode: reference
-        required_when: delivery ownership or context handoff changed
-        failure_effect: user may miss handoff caveats
       decision_basis_refs:
         producer: delivery-owner
         authority: delivery-owner

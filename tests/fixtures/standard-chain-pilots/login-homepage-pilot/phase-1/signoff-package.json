@@ -20,7 +20,6 @@
     "$.runtime_snapshot",
     "$.active_blocker",
     "$.blocker_owner",
-    "$.takeover_note",
     "$.decision_basis_refs"
   ],
   "baseline_tasks_version_ref": "artifact://tasks/login-homepage-pilot.phase-1.tasks@tasks-v2#task-registry",
@@ -33,7 +32,6 @@
   "runtime_snapshot": "All task, review, QA, consistency, readiness, and replay gates include the 6-test login-homepage pilot evidence.",
   "active_blocker": "none",
   "blocker_owner": "none",
-  "takeover_note": "Codex acted as delegated gatekeeper for this automated pilot.",
   "decision_basis_refs": [
     "artifact://qa-result/login-homepage-pilot.phase-1.qa@v1#release",
     "artifact://code-review-result/login-homepage-pilot.phase-1.review@v1#round-1",

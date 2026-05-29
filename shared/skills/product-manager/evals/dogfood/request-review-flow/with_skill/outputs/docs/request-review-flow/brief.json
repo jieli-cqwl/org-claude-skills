@@ -37,7 +37,15 @@
     "Design must decide how request state transitions are represented without changing confirmed business outcomes"
   ],
   "non_functional_requirements": [
-    "review and confirmation responses remain understandable to business users"
+    {
+      "requirement_id": "NFR-1",
+      "quality_attribute": "USABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "NFR"
+    }
   ],
   "scope_boundaries": [
     "include one request submission path, reviewer decision path, and requester status visibility"

@@ -275,9 +275,6 @@ grep -Fq 'bash $HOME/.claude/skills/scan/scripts/project-stats.sh' "$TMP_HOME/.c
 grep -Fq 'bash $HOME/.agents/skills/scan/scripts/project-stats.sh' "$CODEX_SKILLS_DIR/scan/SKILL.md" \
   || fail "Codex scan skill should render script paths under ~/.agents/skills"
 # shellcheck disable=SC2016 # Assert literal runtime paths rendered into skill docs.
-grep -Fq '全局 `$HOME/.agents/skills/` 不作为项目级扫描目标' "$CODEX_SKILLS_DIR/scan/references/skills-scan-rules.md" \
-  || fail "Codex scan reference should describe the official global skill root"
-# shellcheck disable=SC2016 # Assert literal runtime paths rendered into skill docs.
 grep -Fq '`$HOME/.agents/skills/skill-quality-audit/references/audit-dimensions.md`' "$CODEX_SKILLS_DIR/scan/references/skills-scan-rules.md" \
   || fail "Codex scan reference should route quality dimensions through the official skill root"
 

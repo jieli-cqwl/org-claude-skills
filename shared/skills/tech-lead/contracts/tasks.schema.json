@@ -57,9 +57,9 @@
               "batch",
               "acceptance_targets",
               "proving_command",
-              "real_dependency_note",
+              "real_dependency_refs",
               "evidence_target",
-              "mock_boundary_note"
+              "mock_boundary"
             ],
             "properties": {
               "task_id": {
@@ -134,17 +134,48 @@
                 "type": "string",
                 "minLength": 1
               },
-              "real_dependency_note": {
-                "type": "string",
-                "minLength": 1
+              "real_dependency_refs": {
+                "description": "Canonical refs for real dependency evidence required by final acceptance.",
+                "allOf": [
+                  {
+                    "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+                  }
+                ],
+                "minItems": 1
               },
               "evidence_target": {
                 "type": "string",
                 "minLength": 1
               },
-              "mock_boundary_note": {
-                "type": "string",
-                "minLength": 1
+              "mock_boundary": {
+                "description": "Structured mock boundary. Mock can support isolation only; final acceptance must use real evidence.",
+                "type": "object",
+                "properties": {
+                  "mock_allowed": {
+                    "type": "boolean"
+                  },
+                  "allowed_for": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "unit_isolation",
+                        "fixture_data",
+                        "recorded_replay",
+                        "none"
+                      ]
+                    }
+                  },
+                  "final_acceptance_requires_real_evidence": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "mock_allowed",
+                  "allowed_for",
+                  "final_acceptance_requires_real_evidence"
+                ],
+                "additionalProperties": false
               },
               "wbs_ref": {
                 "type": "string"

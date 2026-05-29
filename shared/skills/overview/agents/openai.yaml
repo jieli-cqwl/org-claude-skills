@@ -4,4 +4,5 @@ interface:
   default_prompt: "Use $overview to analyze project structure and architecture."
 
 policy:
-  allow_implicit_invocation: true
+  codex_execution: subagent_clean
+  allow_implicit_invocation: false

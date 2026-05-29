@@ -60,7 +60,7 @@
 - `TESTABILITY_GAP`：缺少可观测结果、阈值、环境、数据规模或证据口径。
 - `EQ_GAP`：等价性、兼容性或迁移前后对照无法证明。
 
-非阻断优化建议归入 review note。gap 必须能指向 owner 和 next_action。
+非阻断优化建议归入 review note。gap 必须能指向 owner、required_artifact_ref 和 decision_needed。
 
 ## 收敛标准
 

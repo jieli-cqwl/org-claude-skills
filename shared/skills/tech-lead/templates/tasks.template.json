@@ -53,9 +53,18 @@
         "contracts/canonical"
       ],
       "proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
-      "real_dependency_note": "Uses local schema, catalog, and fixture validation without external services.",
+      "real_dependency_refs": [
+        "artifact://evidence/sample-feature.phase-1.task-T1.dependencies@v1#local-schema-catalog-fixtures"
+      ],
       "evidence_target": "developer-report.json#fresh_proof",
-      "mock_boundary_note": "Mock data may support unit isolation, but final acceptance requires fresh validator output.",
+      "mock_boundary": {
+        "mock_allowed": true,
+        "allowed_for": [
+          "unit_isolation",
+          "fixture_data"
+        ],
+        "final_acceptance_requires_real_evidence": true
+      },
       "wbs_ref": "WP-1",
       "critical_path_role": "critical",
       "investment_risk_signals": [

@@ -131,7 +131,7 @@ def co_creation_summary_missing_stages(
         f"(required set: {required}). "
         f"Seen: {seen}. "
         f"Add a co_creation_summary row for each missing stage with "
-        f"stage_name, question_or_focus, user_response_summary and decision_refs."
+        f"confirmation_status, decision_refs and evidence_refs."
     )
 
 
@@ -315,9 +315,9 @@ def risk_response_missing(missing: list[str]) -> str:
     return (
         f"risk_response missing entries for risk ids: {missing}. "
         f"Every risks[*].risk_id must have a matching risk_response[*].risk_id. "
-        f"Each risk_response entry must include architecture_response plus "
+        f"Each risk_response entry must include response_type plus "
         f"either verification_refs (citing verification_mapping evidence_ref) "
-        f"or an escalation_path."
+        f"or an escalation_owner."
     )
 
 
@@ -325,7 +325,7 @@ def risk_response_missing_containment(index: int, risk_id: object) -> str:
     return (
         f"risk_response[{index}] (risk_id={risk_id!r}) must "
         f"include either a non-empty verification_refs array (citing "
-        f"verification_mapping evidence_ref) or a non-empty escalation_path. "
+        f"verification_mapping evidence_ref) or a non-empty escalation_owner. "
         f"At least one containment mechanism is required per risk."
     )
 

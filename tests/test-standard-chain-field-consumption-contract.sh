@@ -62,6 +62,36 @@ fields_by_path = {
     artifact.get("path"): artifact.get("fields", {})
     for artifact in field_consumption.get("artifacts", [])
 }
+
+
+def canonical_artifact_path(artifact):
+    if artifact.startswith("docs/"):
+        return artifact
+    if artifact == "brief.json":
+        return "docs/{feature}/brief.json"
+    return f"docs/{{feature}}/{artifact}"
+
+
+missing_consumption_fields = []
+for stage in standard_chain.get("chain", []):
+    for output in stage.get("outputs", []) or []:
+        key_fields = output.get("key_fields")
+        if not isinstance(key_fields, list):
+            continue
+        path = canonical_artifact_path(output.get("artifact"))
+        declared_fields = fields_by_path.get(path)
+        if not isinstance(declared_fields, dict):
+            missing_consumption_fields.append(f"{stage.get('name')}:{path}:<artifact>")
+            continue
+        for field in key_fields:
+            if field not in declared_fields:
+                missing_consumption_fields.append(f"{stage.get('name')}:{path}.{field}")
+if missing_consumption_fields:
+    raise SystemExit(
+        "field consumption must cover every retained key_field: "
+        + ", ".join(missing_consumption_fields)
+    )
+
 for artifact_path in director_lock_artifacts.values():
     fields = fields_by_path.get(artifact_path)
     if not isinstance(fields, dict):

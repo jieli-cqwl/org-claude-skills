@@ -22,7 +22,7 @@
 |------|---------|
 | 覆盖 | 每个 UNIT/AC 有设计承接；普通产品细节没有被误升为架构决策。 |
 | 复杂度组织 | 设计写清复杂度来源，并用边界、数据、接口、质量属性或迁移策略组织复杂度。 |
-| 取舍质量 | 每个 `key_decisions[*].decision_id` 有同组 `option_analysis.decision_ref` 的 2+ 本质不同方案；`option_analysis.tradeoff` 写清代价、风险、失效条件，选中方案通过 `option_ref` 回指。 |
+| 取舍质量 | 每个 `key_decisions[*].decision_id` 有同组 `option_analysis.decision_ref` 的 2+ 本质不同方案；`option_analysis.decision_status` 与 `option_analysis.evaluation.fit/cost/risk` 写清取舍结果，选中方案通过 `option_ref` 回指。 |
 | 事实锚点 | 冻结决策的 `fact_refs` 引用可复查事实；事实来自输入基线、代码、配置、运行事实或用户确认，不接受弱证据或自引用 `design.json`。 |
 | 过度设计 | 复杂模式只在真实复杂度、质量目标或风险代价证明能降低总体风险时出现。 |
 | 接口与边界 | 模块、数据、接口和横切关注点能被 `/test-design` 与 `/tech-lead` 消费。 |

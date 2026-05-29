@@ -1,2 +1,5 @@
 policy:
+  allow_nested_agents: true
+  codex_execution: inline
+  execution_kind: orchestrator
   allow_implicit_invocation: false

@@ -1,6 +1,7 @@
 ---
 name: overview
 user-invocable: true
+disable-model-invocation: true
 description: "项目全貌分析与架构概览。Use when 接手新项目、需要项目概览/架构概览、新人入门导览、了解项目结构、技术栈、核心模块协作或先看哪些关键文件。"
 model: sonnet
 argument-hint: "[项目路径]"

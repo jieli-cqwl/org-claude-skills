@@ -359,11 +359,7 @@ def assert_manager_brief_fields(payload: dict, label: str) -> None:
 
     if payload.get("artifact_type") != "brief":
         return
-    for field in (
-        "acceptance_criteria",
-        "design_decisions",
-        "non_functional_requirements",
-    ):
+    for field in ("acceptance_criteria", "design_decisions"):
         values = payload.get(field)
         if not isinstance(values, list) or not values:
             raise ValueError(
@@ -371,6 +367,31 @@ def assert_manager_brief_fields(payload: dict, label: str) -> None:
             )
         if any(not is_substantive_text(item) for item in values):
             raise ValueError(f"{label} {field} contains placeholder values")
+    nfr_values = payload.get("non_functional_requirements")
+    if not isinstance(nfr_values, list) or not nfr_values:
+        raise ValueError(
+            f"{label} non_functional_requirements must be non-empty after Manager refinement"
+        )
+    for index, item in enumerate(nfr_values):
+        if not isinstance(item, dict):
+            raise ValueError(
+                f"{label} non_functional_requirements[{index}] must be an object"
+            )
+        for key in (
+            "requirement_id",
+            "quality_attribute",
+            "source_refs",
+            "verification_owner",
+            "verification_stage",
+        ):
+            if key not in item:
+                raise ValueError(
+                    f"{label} non_functional_requirements[{index}] missing {key}"
+                )
+        if not isinstance(item.get("source_refs"), list) or not item["source_refs"]:
+            raise ValueError(
+                f"{label} non_functional_requirements[{index}].source_refs must be non-empty"
+            )
 
 
 def assert_final_phase_units(payload: dict, label: str, artifact_path: Path) -> None:

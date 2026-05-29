@@ -115,7 +115,15 @@ jq -e '
   and (.authoritative_fields | index("$.delivery_confirmation"))
   and .acceptance_criteria
   and .design_decisions
-  and .non_functional_requirements
+  and (.non_functional_requirements | type == "array" and length > 0)
+  and all(.non_functional_requirements[]; type == "object"
+    and .requirement_id
+    and .quality_attribute
+    and .source_refs
+    and .verification_owner
+    and .verification_stage
+    and (has("description") | not)
+    and (has("summary") | not))
 ' "$MANAGER_BRIEF_TEMPLATE" >/dev/null || fail "manager brief template must expose PM-owned fields without fake review/delivery closure"
 
 jq -e '
@@ -158,6 +166,8 @@ expected_phase_fields = [
     "phase_goal",
     "entry_conditions",
     "exit_conditions",
+    "director_confirmation",
+    "director_confirmation.locked_field_digest",
     "evidence_sources",
     "as_is_flows",
     "to_be_flows",

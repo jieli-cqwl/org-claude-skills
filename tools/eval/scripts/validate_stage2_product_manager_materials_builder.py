@@ -19,7 +19,15 @@ def build_pm_package(confirmed_package: dict[str, Any]) -> dict[str, Any]:
     unit = build_unit(brief)
     brief["acceptance_criteria"] = ["单渠道文本消息能形成建议回复，且必须人工确认后才允许外发"]
     brief["design_decisions"] = ["消息入口、人工确认状态和失败接管方式交由 design 收口"]
-    brief["non_functional_requirements"] = ["链路必须可观测，失败不能吞消息，响应处理必须可追溯"]
+    brief["non_functional_requirements"] = [
+        {
+            "requirement_id": "NFR-1",
+            "quality_attribute": "OBSERVABILITY",
+            "source_refs": ["brief.json#acceptance_criteria[0]"],
+            "verification_owner": "test-design",
+            "verification_stage": "NFR",
+        }
+    ]
     phase_prd["unit_index"] = ["UNIT-1"]
     phase_prd["unit_priority_order"] = [{"unit_id": "UNIT-1", "priority": "P0", "priority_basis": "先证明消息闭环可被人工确认"}]
     phase_prd["evidence_sources"] = [

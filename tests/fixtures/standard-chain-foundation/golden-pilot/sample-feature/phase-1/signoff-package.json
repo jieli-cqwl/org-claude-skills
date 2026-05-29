@@ -20,7 +20,6 @@
     "$.runtime_snapshot",
     "$.active_blocker",
     "$.blocker_owner",
-    "$.takeover_note",
     "$.decision_basis_refs",
     "$.runtime_evidence_matrix"
   ],
@@ -34,7 +33,6 @@
   "runtime_snapshot": "phase gates are green with signed-off residual automation risk",
   "active_blocker": "无",
   "blocker_owner": "无",
-  "takeover_note": "delivery-owner 已记录最终签收和风险接受",
   "decision_basis_refs": [
     "artifact://qa-result/sample-feature.phase-1.qa@v1#release",
     "artifact://code-review-result/sample-feature.phase-1.review@v1#round-1",

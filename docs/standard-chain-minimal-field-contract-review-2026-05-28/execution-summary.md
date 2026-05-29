@@ -1,6 +1,6 @@
 # Execution Summary
 
-结论：已从“字段矩阵待确认”进入合同实现；当前实现只推进已收敛的 P0/P1 字段合同，不处理仍需人工产品判断的 Design/Test/Tech prose 清理。
+结论：已从“字段矩阵待确认”进入合同实现；当前实现正在按“输入/输出/消费者/门禁”收敛目标内字段合同，尚未达到最终交付标准。
 
 ## 当前范围
 
@@ -17,6 +17,14 @@
 - Fix-result：补 field-consumption 行，并把 post-fix freshness 绑定到 fresh verifier/code-review/QA/consistency/signoff/user-decision。
 - QA route：只有 `gate_result=PASS` 且 `release_recommendation=ALLOW` 可进入提交准备；其它组合必须有 owner route/basis/resume_condition，readiness 仍拒绝关闭。
 - Delivery state / target-change：补必要 authoritative_fields，避免字段最后写入但缺少权威声明。
+- Signoff：删除 `takeover_note`，signoff 不再要求无法进入确定性 gate 的交接 prose。
+- Design handoff：删除 `product_handoff.warn_followups`，WARN 跟踪统一归属 `review_closure.warn_followups`。
+- Tech task：删除 `real_dependency_note` / `mock_boundary_note`，改为 `real_dependency_refs` 与 `mock_boundary` 结构字段。
+- Tech plan：删除 `implementation_path.summary` / `dependency_strategy` / `parallel_batches.reason`，把 `investment_risk_signals` 改为枚举 + source refs。
+- Brief NFR：保留 `non_functional_requirements`，但从字符串数组改为 typed NFR source。
+- Design：把 co-creation、option analysis、interface boundary behavior、quality attributes、impact scope、planning constraints、risks/risk_response 的裸 prose 字段改为 typed fields / refs，并新增 `tests/test-design-minimal-field-contract.sh`。
+- Test-design：把 `qa_handoff_contract`、`design_gap_report.gaps`、`special_test_triggers`、review conclusion / reviewer / convergence / issue ledger 的裸 prose 改为 refs、enum、closure status、required artifact 和 evidence refs，并新增 `tests/test-test-design-minimal-field-contract.sh`。
+- Field-consumption：validator 已覆盖所有带 `key_fields` 的 active 输出，禁止无 consumer 输出静默通过。
 - 测试契约：旧的整行 key_fields / flat digest 断言已改为结构化 YAML/字段路径校验。
 
 ## Agent 原始产物
@@ -60,11 +68,22 @@
 
 ## 当前验证记录
 
+- 已通过：`bash tests/test-delivery-acceptance-bottom-line.sh`
+- 已通过：`bash tests/test-design-minimal-field-contract.sh`
+- 已通过：`bash tests/test-test-design-minimal-field-contract.sh`
+- 已通过：`bash tests/test-design-skill-governance-redesign.sh`
 - 已通过：`bash tests/test-standard-chain-field-consumption-contract.sh`
 - 已通过：`bash tests/test-standard-chain-readiness-gate.sh`
 - 已通过：`bash tests/test-standard-chain-foundation-registry.sh`
 - 已通过：`bash tests/test-standard-chain-closure-contract.sh`
 - 已通过：`bash tests/test-delivery-owner-source-anchor-contract.sh`
 - 已通过：`bash tests/test-task-contract-consumer-alignment.sh`
-- 已通过：`bash tests/run-all.sh --quick`（24/24，恢复受保护 rules 改动后重跑）
-- 全量门禁：`bash tests/run-all.sh` 两次在 install-core 段因 `shared/rules/*` 源漂移失败；失败 group 单独复跑通过。该失败不作为本次 standard-chain 合同实现完成证据，且不得为通过全量而改动受保护文件。
+- 待重新执行：`bash tests/run-all.sh --quick`（当前最终 diff 尚未重跑）
+- 待重新执行：`git diff --check`
+- 全量门禁：仍需在当前变更最终收敛后重新跑 `bash tests/run-all.sh`；历史 full 失败来自安装阶段 `shared/rules/*` 源漂移，不能作为本轮完成证据。
+
+## 未完成项
+
+- 字段收敛：目标内 Design/Test/Tech/Delivery 字段已完成第一轮实现，仍需复检确认无遗漏。
+- 复检：复杂任务要求连续 2 轮无新增目标内问题；目前尚未完成。
+- 全量门禁：尚未取得当前最终 diff 下的可信 full 通过证据。
