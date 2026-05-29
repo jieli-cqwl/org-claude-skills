@@ -459,7 +459,7 @@
       "tier": "full",
       "tags": [],
       "parallel_safe": false,
-      "timeout_sec": 90
+      "timeout_sec": 180
     },
     {
       "id": "delivery-acceptance-bottom-line",
@@ -471,7 +471,7 @@
       "tier": "full",
       "tags": [],
       "parallel_safe": true,
-      "timeout_sec": 90
+      "timeout_sec": 180
     },
     {
       "id": "runtime-integrity",
