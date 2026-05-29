@@ -14,6 +14,7 @@ TARGET_STAGES = {
     "product-manager",
     "design",
     "developer",
+    "fix",
     "review",
     "verify",
     "qa",
@@ -218,6 +219,28 @@ def output_consumers(
     return set(inferred.get(path, set())) | set(EXTERNAL_CONSUMERS.get(path, set()))
 
 
+def validate_key_fields(stage_name: str, artifact: str, key_fields: Any) -> list[str]:
+    if not isinstance(key_fields, list) or not key_fields:
+        raise ValueError(
+            f"chain.{stage_name}.{artifact}.key_fields must be a non-empty array"
+        )
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    normalized: list[str] = []
+    for field in key_fields:
+        field_name = str(field)
+        normalized.append(field_name)
+        if field_name in seen and field_name not in duplicates:
+            duplicates.append(field_name)
+        seen.add(field_name)
+    if duplicates:
+        field_list = ", ".join(duplicates)
+        raise ValueError(
+            f"chain.{stage_name}.{artifact}.key_fields contains duplicate key_fields: {field_list}"
+        )
+    return normalized
+
+
 def standard_chain_requirements(
     standard_chain: dict[str, Any],
 ) -> list[tuple[str, str, str, set[str]]]:
@@ -244,16 +267,15 @@ def standard_chain_requirements(
             key_fields = output_data.get("key_fields")
             if key_fields is None:
                 continue
-            if not isinstance(key_fields, list) or not key_fields:
-                raise ValueError(
-                    f"chain.{stage_name}.{artifact}.key_fields must be a non-empty array"
-                )
+            normalized_key_fields = validate_key_fields(
+                str(stage_name), str(artifact), key_fields
+            )
             path = canonical_artifact_path(str(artifact))
             required_consumers = output_consumers(output_data, path, inferred)
             if not required_consumers:
                 continue
-            for field in key_fields:
-                required.append((str(stage_name), path, str(field), required_consumers))
+            for field in normalized_key_fields:
+                required.append((str(stage_name), path, field, required_consumers))
     return required
 
 

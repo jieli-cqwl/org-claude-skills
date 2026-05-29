@@ -16,7 +16,9 @@
     "$.superseded_evidence_refs",
     "$.rebaseline_required",
     "$.rebaseline_owner",
-    "$.required_fresh_proof_after_rebaseline"
+    "$.required_fresh_proof_after_rebaseline",
+    "$.authority_proof_refs",
+    "$.decision_basis_refs"
   ],
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",

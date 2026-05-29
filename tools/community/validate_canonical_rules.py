@@ -64,6 +64,18 @@ TASK_ALLOWED_FIELDS = {
     "carry_forward_strategy",
 }
 
+QA_RELEASE_PAIR = ("PASS", "ALLOW")
+QA_ROUTE_CONTROL_ACTIONS = {"BLOCK", "REQUEST_DECISION", "REPLAN"}
+QA_ROUTE_STAGES = {"BLOCKED", "REPLAN_PENDING"}
+QA_ROUTE_REQUIRED_FIELDS = {
+    "blocker_id",
+    "blocker_owner",
+    "blocker_basis_refs",
+    "resume_stage",
+    "next_action",
+    "resume_condition",
+}
+
 
 def assert_design_contract(payload: dict, artifacts: list[dict]) -> None:
     if payload.get("artifact_type") != "design":
@@ -135,10 +147,73 @@ def assert_tasks_contract(payload: dict) -> None:
     _assert_batch_shared_files_conflict(tasks)
 
 
+def assert_qa_route_matrix(payload: dict, runtime_state: dict | None) -> None:
+    if payload.get("artifact_type") != "qa-result":
+        return
+
+    route_pair = (
+        str(payload.get("gate_result", "")).strip(),
+        str(payload.get("release_recommendation", "")).strip(),
+    )
+    if route_pair == QA_RELEASE_PAIR:
+        return
+    if runtime_state is None:
+        raise ValueError(
+            "QA route matrix requires delivery-state route fields for "
+            f"{route_pair[0]} + {route_pair[1]}"
+        )
+
+    missing = [
+        field
+        for field in sorted(QA_ROUTE_REQUIRED_FIELDS)
+        if not _has_route_value(runtime_state.get(field))
+    ]
+    if missing:
+        raise ValueError(
+            "QA route matrix requires delivery-state route fields for "
+            f"{route_pair[0]} + {route_pair[1]}: missing {', '.join(missing)}"
+        )
+
+    current_stage = str(runtime_state.get("current_stage", "")).strip()
+    status = str(runtime_state.get("status", "")).strip()
+    control_action = str(runtime_state.get("control_action", "")).strip()
+    if (
+        current_stage not in QA_ROUTE_STAGES
+        and status != "BLOCKED"
+        and control_action not in QA_ROUTE_CONTROL_ACTIONS
+    ):
+        raise ValueError(
+            "QA route matrix requires delivery-state to block, replan, or request a decision for "
+            f"{route_pair[0]} + {route_pair[1]}"
+        )
+
+    artifact_id = str(payload.get("artifact_id", "")).strip()
+    basis_refs = runtime_state.get("blocker_basis_refs")
+    if not isinstance(basis_refs, list) or not any(
+        isinstance(ref, str)
+        and (
+            f"artifact://qa-result/{artifact_id}@" in ref
+            or ref.startswith("artifact://qa-result/")
+        )
+        for ref in basis_refs
+    ):
+        raise ValueError(
+            "QA route matrix requires delivery-state.blocker_basis_refs to cite qa-result"
+        )
+
+
 def _string_list(value: object) -> list[str]:
     if not isinstance(value, list):
         return []
     return [item for item in value if isinstance(item, str) and item.strip()]
+
+
+def _has_route_value(value: object) -> bool:
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, list):
+        return any(_has_route_value(item) for item in value)
+    return value is not None
 
 
 def _assert_batch_dependency_consistency(tasks: list[dict]) -> None:
@@ -282,6 +357,7 @@ def _assert_artifact_rules(
     assert_active_versions(artifact, runtime_state)
     assert_design_contract(artifact, artifacts)
     assert_tasks_contract(artifact)
+    assert_qa_route_matrix(artifact, runtime_state)
     assert_test_cases_contract(artifact, artifacts)
     if artifact.get("artifact_type") == "signoff-package":
         assert_signoff_baselines(artifact, runtime_state)

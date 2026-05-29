@@ -82,6 +82,7 @@ FAIL_TRIAGE_REQUIRED_FIELDS = {
     "reproduction",
 }
 REQUIRED_QA_STAGES = {"QA_A", "QA_B", "QA_C", "QA_D"}
+QA_RELEASE_PAIR = ("PASS", "ALLOW")
 
 
 def parse_args() -> argparse.Namespace:
@@ -240,6 +241,20 @@ def assert_fail_triage_completeness(phase_dir: Path) -> None:
             )
 
 
+def assert_qa_release_route_allows_readiness(phase_dir: Path) -> None:
+    qa_result = load_json(phase_dir / "qa-result.json")
+    route_pair = (
+        str(qa_result.get("gate_result", "")).strip(),
+        str(qa_result.get("release_recommendation", "")).strip(),
+    )
+    if route_pair != QA_RELEASE_PAIR:
+        raise ValueError(
+            "QA route matrix blocks readiness: "
+            f"qa-result gate_result={route_pair[0]} release_recommendation={route_pair[1]}; "
+            "only PASS + ALLOW may enter closeout"
+        )
+
+
 def assert_qa_stage_results(phase_dir: Path) -> None:
     qa_result = load_json(phase_dir / "qa-result.json")
     stage_results = qa_result.get("stage_results")
@@ -360,6 +375,7 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_code_review_pass(phase_dir)
     assert_browser_required_evidence(phase_dir)
     assert_fail_triage_completeness(phase_dir)
+    assert_qa_release_route_allows_readiness(phase_dir)
     assert_qa_stage_results(phase_dir)
     assert_runtime_chain_closed(phase_dir)
     assert_consistency_audit_allows_signoff(phase_dir)

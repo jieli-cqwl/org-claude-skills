@@ -19,7 +19,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 violations = []
 global_docs = {
-    "rules/铁律.md",
+    "rules/交付验收底线.md",
     "rules/代码规范.md",
     "rules/执行纪律.md",
     "rules/文档管理.md",
@@ -102,8 +102,8 @@ def assert_self_checks() -> None:
         "- [ ] MUST 条款符合 `{{RUNTIME_HOME}}/rules/代码规范.md`",
     ]
     invalid_samples = [
-        "自动加载（不展开）：`{{RUNTIME_HOME}}/rules/铁律.md` + `{{RUNTIME_HOME}}/rules/代码规范.md` + `{{RUNTIME_HOME}}/reference/测试规范.md`",
-        "顶层规范：默认遵循 `{{RUNTIME_HOME}}/rules/铁律.md`\n同时参考 `{{RUNTIME_HOME}}/rules/代码规范.md`\n必要时查看 `{{RUNTIME_HOME}}/reference/测试规范.md`",
+        "自动加载（不展开）：`{{RUNTIME_HOME}}/rules/交付验收底线.md` + `{{RUNTIME_HOME}}/rules/代码规范.md` + `{{RUNTIME_HOME}}/reference/测试规范.md`",
+        "顶层规范：默认遵循 `{{RUNTIME_HOME}}/rules/交付验收底线.md`\n同时参考 `{{RUNTIME_HOME}}/rules/代码规范.md`\n必要时查看 `{{RUNTIME_HOME}}/reference/测试规范.md`",
     ]
 
     for sample in valid_samples:

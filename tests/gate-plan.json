@@ -462,10 +462,10 @@
       "timeout_sec": 180
     },
     {
-      "id": "iron-law-degradation-boundary",
+      "id": "delivery-acceptance-bottom-line",
       "command": [
         "bash",
-        "tests/test-iron-law-degradation-boundary.sh"
+        "tests/test-delivery-acceptance-bottom-line.sh"
       ],
       "area": "other",
       "tier": "full",

@@ -116,7 +116,7 @@ artifacts:
             consume_mode: gate
         required_when: Director-owned brief fields are consumed downstream
         failure_effect: PM refinement or delivery can proceed without a confirmed Director lock
-      locked_field_digest:
+      director_confirmation.locked_field_digest:
         producer: product-director
         authority: product-director
         consumers:
@@ -264,7 +264,7 @@ artifacts:
             consume_mode: gate
         required_when: Director-owned phase fields are consumed downstream
         failure_effect: PM refinement or delivery can proceed without a confirmed Director phase lock
-      locked_field_digest:
+      director_confirmation.locked_field_digest:
         producer: product-director
         authority: product-director
         consumers:
@@ -1259,10 +1259,10 @@ artifacts:
         authority: qa
         consumers:
           - consumer: delivery-owner
-            consumed_for: decide release recommendation in the signoff package
+            consumed_for: apply the QA route matrix; only PASS + ALLOW may proceed to closeout, all other combinations require delivery-state routing
             consume_mode: gate
         required_when: delivery-owner prepares signoff package
-        failure_effect: signoff package can ignore QA release judgment
+        failure_effect: conditional, blocked, deferred, or unrun QA outcomes can be committed as release-ready
       residual_risk:
         producer: qa
         authority: qa
@@ -1286,7 +1286,7 @@ artifacts:
         authority: qa
         consumers:
           - consumer: delivery-owner
-            consumed_for: preserve conditions behind conditional release
+            consumed_for: route conditional QA outcomes to the accountable owner before closeout
             consume_mode: handoff
         required_when: QA recommendation is conditional
         failure_effect: conditional release can lose its conditions
@@ -1414,6 +1414,94 @@ artifacts:
             consume_mode: gate
         required_when: stale evidence is superseded by target change
         failure_effect: closeout can proceed without fresh proof
+
+  - path: docs/{feature}/phase-{N}/fix-result.json
+    producer: fix
+    fields:
+      active_tasks_version_ref:
+        producer: fix
+        authority: fix
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: verify the fix result applies to the active task registry before rerunning verifier, review, or QA
+            consume_mode: gate
+          - consumer: verify
+            consumed_for: reject fixes produced against stale task baselines
+            consume_mode: gate
+        required_when: fixer hands back a result after review, verify, QA, or audit failure
+        failure_effect: stale fixes can be used to close a changed task baseline
+      trigger_refs:
+        producer: fix
+        authority: fix
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: route the fix back to the failing review, verify, QA, or audit evidence
+            consume_mode: gate
+          - consumer: review
+            consumed_for: focus fresh code review on the failure that caused the fix
+            consume_mode: reference
+          - consumer: qa
+            consumed_for: rerun the affected user path or obligation after the fix
+            consume_mode: reference
+        required_when: fixer reports a diagnosis or code change
+        failure_effect: downstream gates cannot prove which failure the fix addressed
+      attempt:
+        producer: fix
+        authority: fix
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: correlate fix attempts with delivery loop state and stop conditions
+            consume_mode: reference
+        required_when: multiple fix attempts can occur for the same trigger
+        failure_effect: repeated fixes can bypass loop accounting
+      completion_status:
+        producer: fix
+        authority: fix
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: decide whether to rerun verifier/review/QA or pause for blocker/escalation
+            consume_mode: gate
+          - consumer: verify
+            consumed_for: accept only fixed outputs into verification rerun
+            consume_mode: gate
+        required_when: fixer hands back control
+        failure_effect: blocked or escalated fixes can be treated as resolved
+      issues:
+        producer: fix
+        authority: fix
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: inspect root cause, failure class, impact files, and owner routing
+            consume_mode: gate
+          - consumer: review
+            consumed_for: review changed files and root cause coverage after the fix
+            consume_mode: handoff
+        required_when: fixer reports any outcome
+        failure_effect: fresh review cannot prove it covered the actual fix surface
+      red_green_evidence:
+        producer: fix
+        authority: fix
+        consumers:
+          - consumer: verify
+            consumed_for: prove the fix reproduced the failure and made the targeted check pass
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: reject fixes without focused failure evidence
+            consume_mode: gate
+        required_when: fix completion_status is FIXED
+        failure_effect: a claimed fix can lack proof that the original failure was addressed
+      regression_evidence:
+        producer: fix
+        authority: fix
+        consumers:
+          - consumer: verify
+            consumed_for: prove the fix did not break adjacent task or phase behavior
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: decide affected QA rerun scope
+            consume_mode: reference
+        required_when: fix completion_status is FIXED
+        failure_effect: a local fix can regress adjacent obligations without detection
 
   - path: docs/{feature}/phase-{N}/delivery-state.json
     producer: delivery-owner
@@ -1593,6 +1681,18 @@ artifacts:
             consume_mode: gate
         required_when: canonical refs are resolved
         failure_effect: stale history artifacts can be consumed as current truth
+      runtime_artifact_policy.required_runtime_artifacts:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: require the runtime evidence types that must have active FINALIZED registry entries before closeout
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: audit runtime evidence coverage against the registry policy
+            consume_mode: gate
+        required_when: artifact-registry is consumed for runtime evidence or signoff readiness
+        failure_effect: signoff can omit developer, verify, review, QA, or consistency evidence from active registry coverage
       revisions:
         producer: delivery-owner
         authority: delivery-owner

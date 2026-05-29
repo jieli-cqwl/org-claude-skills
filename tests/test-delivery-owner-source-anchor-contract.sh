@@ -26,9 +26,62 @@ assert_absent() {
   fi
 }
 
-assert_present 'key_fields: \[active_tasks_version_ref, active_tasks_version_ref, current_stage, status, control_action, summary_text, tasks, kickoff, progress_signal, consecutive_no_progress_count, owner_action_consumption, blocker_id, blocker_owner, blocker_basis_refs, resume_stage, next_action, resume_condition\]' "$ROOT/contracts/standard-chain.yaml"
-assert_present 'key_fields: \[baseline_tasks_version_ref, baseline_tasks_version_ref, active_tasks_version_ref, active_tasks_version_ref, current_stage, release_recommendation, goal_closure, waiver_entries, sign_off_status, business_risk_acceptance_status, last_observed_at, runtime_snapshot, active_blocker, blocker_owner, takeover_note, decision_basis_refs, runtime_evidence_matrix\]' "$ROOT/contracts/standard-chain.yaml"
-assert_present 'key_fields: \[baseline_tasks_version_ref, baseline_tasks_version_ref, active_tasks_version_ref, active_tasks_version_ref, current_stage, decision, decision_source, actor_id, sign_off_status, business_risk_acceptance_status, authority_proof_refs, decision_basis_refs, director_lock_digests, decision_payload_digest\]' "$ROOT/contracts/standard-chain.yaml"
+python3 - "$ROOT/contracts/standard-chain.yaml" <<'PY'
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(sys.argv[1]).parents[1] / "tools" / "community"))
+from runtime_yaml import load_yaml
+
+standard_chain = load_yaml(Path(sys.argv[1]))
+outputs = {
+    output.get("artifact"): output.get("key_fields", [])
+    for stage in standard_chain.get("chain", [])
+    if stage.get("name") == "delivery-owner"
+    for output in stage.get("outputs", []) or []
+}
+expected_fields = {
+    "phase-{N}/delivery-state.json": {
+        "active_tasks_version_ref",
+        "current_stage",
+        "status",
+        "control_action",
+        "progress_signal",
+        "consecutive_no_progress_count",
+        "owner_action_consumption",
+        "blocker_id",
+        "blocker_owner",
+        "blocker_basis_refs",
+        "resume_stage",
+        "next_action",
+        "resume_condition",
+    },
+    "phase-{N}/signoff-package.json": {
+        "baseline_tasks_version_ref",
+        "active_tasks_version_ref",
+        "runtime_evidence_matrix",
+        "decision_basis_refs",
+    },
+    "phase-{N}/user-decision.json": {
+        "baseline_tasks_version_ref",
+        "active_tasks_version_ref",
+        "authority_proof_refs",
+        "decision_basis_refs",
+        "director_lock_digests",
+        "decision_payload_digest",
+    },
+}
+for artifact, required in expected_fields.items():
+    key_fields = outputs.get(artifact)
+    if not isinstance(key_fields, list) or not key_fields:
+        raise SystemExit(f"delivery-owner output missing key_fields: {artifact}")
+    duplicates = sorted({field for field in key_fields if key_fields.count(field) > 1})
+    if duplicates:
+        raise SystemExit(f"{artifact} has duplicate key_fields: {duplicates}")
+    missing = sorted(required - set(key_fields))
+    if missing:
+        raise SystemExit(f"{artifact} missing source anchor key_fields: {missing}")
+PY
 assert_present 'plan_version: \{plan-vN\}' "$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 assert_present 'validate_standard_chain_phase.py' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"
 assert_present 'enforce-canonical-only' "$ROOT/shared/skills/tech-lead/scripts/completion_check.sh"

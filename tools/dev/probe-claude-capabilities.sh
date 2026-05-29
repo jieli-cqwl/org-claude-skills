@@ -449,7 +449,7 @@ EOF
 probe_rule_reference_activation() {
   local probe_home="$TMP_ROOT/probe-home-rule"
   local reference_file="$probe_home/.claude/reference/runtime-rule-reference-probe.md"
-  local rule_file="$probe_home/.claude/rules/铁律.md"
+  local rule_file="$probe_home/.claude/rules/交付验收底线.md"
   local entry_file="$probe_home/.claude/CLAUDE.md"
   local trigger="运行时规则绝对路径引用探针"
   local prompt="$trigger"

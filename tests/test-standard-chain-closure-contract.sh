@@ -177,7 +177,6 @@ produced_at = sys.argv[3]
 
 fix_result = json.loads((root / "shared/skills/fix/templates/fix-result.template.json").read_text(encoding="utf-8"))
 fix_result["produced_at"] = produced_at
-fix_result["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#plan-version"
 fix_result["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
 (phase_dir / "fix-result.json").write_text(json.dumps(fix_result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -204,7 +203,7 @@ PY
 fresh_fix_dir="$tmp_dir/fresh-fix/sample-feature"
 mkdir -p "$(dirname "$fresh_fix_dir")"
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$fresh_fix_dir"
-add_fix_result "$fresh_fix_dir/phase-1" "2026-04-14T03:30:00Z"
+add_fix_result "$fresh_fix_dir/phase-1" "2026-04-13T23:59:00Z"
 python3 - "$ROOT" "$fresh_fix_dir/phase-1" <<'PY' \
   || fail "readiness internals must accept active fix-result older than signoff observation"
 import sys
@@ -250,6 +249,38 @@ PY
 fi
 grep -Eq 'fix-result freshness' /tmp/standard-chain-closure-stale-fix.out \
   || fail "stale fix-result failure should name fix-result freshness"
+
+stale_review_after_fix_dir="$tmp_dir/stale-review-after-fix/sample-feature"
+mkdir -p "$(dirname "$stale_review_after_fix_dir")"
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$stale_review_after_fix_dir"
+add_fix_result "$stale_review_after_fix_dir/phase-1" "2026-04-14T03:15:00Z"
+python3 - "$stale_review_after_fix_dir/phase-1" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+phase_dir = Path(sys.argv[1])
+for index, verify_path in enumerate(sorted(phase_dir.glob("unit-*/tasks/*/verify-result.json")), start=1):
+    payload = json.loads(verify_path.read_text(encoding="utf-8"))
+    payload["produced_at"] = f"2026-04-14T03:16:0{index}Z"
+    verify_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 - "$ROOT" "$stale_review_after_fix_dir/phase-1" >/tmp/standard-chain-closure-stale-review-after-fix.out 2>&1 <<'PY'; then
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+phase_dir = Path(sys.argv[2])
+sys.path.insert(0, str(root / "tools/community"))
+
+from delivery_owner_optional_artifacts import assert_optional_fix_result_freshness
+
+assert_optional_fix_result_freshness(phase_dir)
+PY
+  fail "readiness must reject code-review-result that predates active fix-result"
+fi
+grep -Eq 'code-review-result.produced_at|fix-result freshness' /tmp/standard-chain-closure-stale-review-after-fix.out \
+  || fail "stale post-fix review failure should name code-review-result freshness"
 
 stale_signoff_dir="$tmp_dir/stale-signoff/sample-feature"
 mkdir -p "$(dirname "$stale_signoff_dir")"

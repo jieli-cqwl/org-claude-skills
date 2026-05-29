@@ -160,8 +160,8 @@ for role in (product_director, product_manager):
     for artifact in ("brief.json", "phase-{N}/phase-prd.json"):
         fields = output_key_fields(role, artifact)
         require(
-            {"director_confirmation", "locked_field_digest"}.issubset(fields),
-            f"{role.get('name')} {artifact} key_fields must expose director lock fields",
+            {"director_confirmation", "director_confirmation.locked_field_digest"}.issubset(fields),
+            f"{role.get('name')} {artifact} key_fields must expose nested director lock fields",
         )
 
 require_consumer(brief_path, "acceptance_criteria", "test-design", "transform")
@@ -177,9 +177,9 @@ for field in ("planning_constraints", "migration_plan", "rollback_plan"):
     require_consumer(design_path, field, "delivery-owner", "gate")
 for path in (brief_path, phase_prd_path):
     require_consumer(path, "director_confirmation", "product-manager", "gate")
-    require_consumer(path, "locked_field_digest", "product-manager", "gate")
+    require_consumer(path, "director_confirmation.locked_field_digest", "product-manager", "gate")
     require_consumer(path, "director_confirmation", "delivery-owner", "gate")
-    require_consumer(path, "locked_field_digest", "delivery-owner", "gate")
+    require_consumer(path, "director_confirmation.locked_field_digest", "delivery-owner", "gate")
 for field in ("gate_result", "dimension_verdicts", "findings", "excluded", "review_conclusion"):
     require(
         "qa" not in consumers_for(code_review_path, field),

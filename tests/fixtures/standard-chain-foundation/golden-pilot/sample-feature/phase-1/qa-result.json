@@ -26,7 +26,7 @@
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
   "current_stage": "PHASE_QA",
   "gate_result": "PASS",
-  "release_recommendation": "CONDITIONAL_ALLOW",
+  "release_recommendation": "ALLOW",
   "residual_risk": [
     "manual import requires operator attention"
   ],

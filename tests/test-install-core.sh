@@ -277,7 +277,7 @@ text = text.replace(
     old_instruction,
     (
         '先读并严格遵循以下文档后再执行：\n'
-        '- 硬约束：{{HOME}}/.codex/rules/铁律.md\n'
+        '- 硬约束：{{HOME}}/.codex/rules/交付验收底线.md\n'
         '- 完整方法论：{{HOME}}/.agents/skills/verify/SKILL.md\n'
         '可用工具：Read, Bash, Glob, Grep, Write。Write 仅用于输出 verify-result.json；禁止使用 Edit。\n'
     ),

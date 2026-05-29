@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FIXTURE_ROOT="$ROOT/tests/fixtures/standard-chain-foundation/cutover"
 PHASE_DIR="$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1"
 SCRIPT="$ROOT/tools/community/validate_standard_chain_readiness.py"
+PHASE_VALIDATOR="$ROOT/tools/community/validate_standard_chain_phase.py"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -12,6 +13,7 @@ fail() {
 }
 
 [ -f "$SCRIPT" ] || fail "missing readiness gate script"
+[ -f "$PHASE_VALIDATOR" ] || fail "missing standard-chain phase validator"
 
 python3 "$SCRIPT" \
   --phase-dir "$PHASE_DIR" \
@@ -1070,6 +1072,81 @@ if python3 "$SCRIPT" \
   cat /tmp/t6_fail_triage_bad_issue_id.out >&2
   fail "readiness gate should reject FAIL qa-result.json when issue_id is not QAR-XXX"
 fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/qa-route-without-owner"
+python3 - "$TMP_DIR/qa-route-without-owner/phase-1/qa-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+qa_path = Path(sys.argv[1])
+qa_payload = json.loads(qa_path.read_text(encoding="utf-8"))
+qa_payload["gate_result"] = "PASS"
+qa_payload["release_recommendation"] = "DEFER"
+qa_path.write_text(json.dumps(qa_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$PHASE_VALIDATOR" \
+  --phase-dir "$TMP_DIR/qa-route-without-owner/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" >/tmp/t6_qa_route_without_owner.out 2>&1; then
+  cat /tmp/t6_qa_route_without_owner.out >&2
+  fail "phase validator should reject non-release QA route without delivery-owner route fields"
+fi
+grep -Eq 'QA route matrix' /tmp/t6_qa_route_without_owner.out \
+  || fail "QA route failure should name the QA route matrix"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/qa-route-with-owner"
+python3 - \
+  "$TMP_DIR/qa-route-with-owner/phase-1/qa-result.json" \
+  "$TMP_DIR/qa-route-with-owner/phase-1/delivery-state.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+qa_path = Path(sys.argv[1])
+delivery_path = Path(sys.argv[2])
+
+qa_payload = json.loads(qa_path.read_text(encoding="utf-8"))
+qa_payload["gate_result"] = "PASS"
+qa_payload["release_recommendation"] = "DEFER"
+qa_path.write_text(json.dumps(qa_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+delivery_payload = json.loads(delivery_path.read_text(encoding="utf-8"))
+delivery_payload["current_stage"] = "BLOCKED"
+delivery_payload["status"] = "BLOCKED"
+delivery_payload["control_action"] = "REQUEST_DECISION"
+delivery_payload["blocker_id"] = "QA-ROUTE-001"
+delivery_payload["blocker_owner"] = "delivery-owner"
+delivery_payload["blocker_basis_refs"] = [
+    "artifact://qa-result/sample-feature.phase-1.qa@v1#release"
+]
+delivery_payload["resume_stage"] = "SIGNOFF_PENDING"
+delivery_payload["next_action"] = "resolve QA release route before signoff"
+delivery_payload["resume_condition"] = "qa-result release_recommendation is ALLOW or user decision records accepted route"
+for field in [
+    "$.blocker_id",
+    "$.blocker_owner",
+    "$.blocker_basis_refs",
+    "$.resume_stage",
+    "$.next_action",
+    "$.resume_condition",
+]:
+    if field not in delivery_payload["authoritative_fields"]:
+        delivery_payload["authoritative_fields"].append(field)
+delivery_path.write_text(json.dumps(delivery_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+python3 "$PHASE_VALIDATOR" \
+  --phase-dir "$TMP_DIR/qa-route-with-owner/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" >/dev/null \
+  || fail "phase validator should accept non-release QA route when delivery-owner route fields are present"
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/qa-route-with-owner/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_qa_route_readiness.out 2>&1; then
+  cat /tmp/t6_qa_route_readiness.out >&2
+  fail "readiness gate should reject non-release QA route even when delivery-owner recorded the route"
+fi
+grep -Eq 'QA route matrix' /tmp/t6_qa_route_readiness.out \
+  || fail "readiness QA route failure should name the QA route matrix"
 
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/authority-proof-mismatch"
 python3 - \

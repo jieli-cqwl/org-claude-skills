@@ -17,6 +17,137 @@ python3 "$VALIDATOR" \
   --standard-chain "$ROOT/contracts/standard-chain.yaml" \
   --field-consumption "$CONTRACT"
 
+python3 - "$ROOT/contracts/standard-chain.yaml" "$CONTRACT" <<'PY'
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(sys.argv[1]).parents[1] / "tools" / "community"))
+from runtime_yaml import load_yaml
+
+standard_chain = load_yaml(Path(sys.argv[1]))
+field_consumption = load_yaml(Path(sys.argv[2]))
+
+duplicates = []
+for stage in standard_chain.get("chain", []):
+    for output in stage.get("outputs", []) or []:
+        key_fields = output.get("key_fields")
+        if not isinstance(key_fields, list):
+            continue
+        seen = set()
+        for field in key_fields:
+            if field in seen:
+                duplicates.append(f"{stage.get('name')}:{output.get('artifact')}:{field}")
+            seen.add(field)
+if duplicates:
+    raise SystemExit("standard-chain key_fields must not contain duplicates: " + ", ".join(duplicates))
+
+director_lock_artifacts = {
+    "brief.json": "docs/{feature}/brief.json",
+    "phase-{N}/phase-prd.json": "docs/{feature}/phase-{N}/phase-prd.json",
+}
+for stage in standard_chain.get("chain", []):
+    if stage.get("name") not in {"product-director", "product-manager"}:
+        continue
+    for output in stage.get("outputs", []) or []:
+        artifact = output.get("artifact")
+        if artifact not in director_lock_artifacts:
+            continue
+        key_fields = output.get("key_fields") or []
+        if "locked_field_digest" in key_fields:
+            raise SystemExit(f"{stage.get('name')}:{artifact} must not expose flat locked_field_digest")
+        if "director_confirmation.locked_field_digest" not in key_fields:
+            raise SystemExit(f"{stage.get('name')}:{artifact} must expose director_confirmation.locked_field_digest")
+
+fields_by_path = {
+    artifact.get("path"): artifact.get("fields", {})
+    for artifact in field_consumption.get("artifacts", [])
+}
+for artifact_path in director_lock_artifacts.values():
+    fields = fields_by_path.get(artifact_path)
+    if not isinstance(fields, dict):
+        raise SystemExit(f"field consumption missing artifact: {artifact_path}")
+    if "locked_field_digest" in fields:
+        raise SystemExit(f"{artifact_path} must not declare flat locked_field_digest")
+    if "director_confirmation.locked_field_digest" not in fields:
+        raise SystemExit(f"{artifact_path} must declare director_confirmation.locked_field_digest")
+
+artifact_registry_fields = fields_by_path.get("docs/{feature}/phase-{N}/artifact-registry.json", {})
+if "runtime_artifact_policy.required_runtime_artifacts" not in artifact_registry_fields:
+    raise SystemExit("artifact-registry field consumption must declare runtime_artifact_policy.required_runtime_artifacts")
+
+fix_result_fields = fields_by_path.get("docs/{feature}/phase-{N}/fix-result.json")
+if not isinstance(fix_result_fields, dict):
+    raise SystemExit("field consumption must declare fix-result artifact")
+required_fix_fields = {
+    "active_tasks_version_ref",
+    "trigger_refs",
+    "attempt",
+    "completion_status",
+    "issues",
+    "red_green_evidence",
+    "regression_evidence",
+}
+missing_fix_fields = sorted(required_fix_fields - set(fix_result_fields))
+if missing_fix_fields:
+    raise SystemExit("fix-result field consumption missing fields: " + ", ".join(missing_fix_fields))
+PY
+
+python3 - "$ROOT/shared/skills/delivery-owner/contracts/artifact-registry.schema.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+schema = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+schema_object = next(item for item in reversed(schema["allOf"]) if "properties" in item)
+required = set(schema_object.get("required", []))
+if "runtime_artifact_policy" not in required:
+    raise SystemExit("artifact-registry schema must require runtime_artifact_policy")
+policy = schema_object["properties"]["runtime_artifact_policy"]
+if "owner_responsibility" in policy.get("required", []):
+    raise SystemExit("artifact-registry runtime_artifact_policy must not require owner_responsibility prose")
+if "owner_responsibility" in policy.get("properties", {}):
+    raise SystemExit("artifact-registry runtime_artifact_policy must not define owner_responsibility prose")
+PY
+
+python3 - "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+paths = [
+    root / "shared/skills/delivery-owner/templates/artifact-registry.template.json",
+    *sorted((root / "tests/fixtures").rglob("*.json")),
+]
+violations = []
+
+
+def visit(node, path):
+    if isinstance(node, dict):
+        if node.get("artifact_type") == "artifact-registry":
+            policy = node.get("runtime_artifact_policy", {})
+            if isinstance(policy, dict) and "owner_responsibility" in policy:
+                violations.append(str(path))
+        for value in node.values():
+            visit(value, path)
+    elif isinstance(node, list):
+        for item in node:
+            visit(item, path)
+
+
+for path in paths:
+    text = path.read_text(encoding="utf-8")
+    if "artifact-registry" not in text:
+        continue
+    visit(json.loads(text), path)
+
+if violations:
+    raise SystemExit(
+        "artifact-registry runtime_artifact_policy owner_responsibility prose remains in: "
+        + ", ".join(violations)
+    )
+PY
+
 python3 - "$ROOT/contracts/standard-chain.yaml" <<'PY'
 import sys
 from pathlib import Path
@@ -198,8 +329,29 @@ def expect_validator_failure(standard_chain_path, field_consumption_path, expect
         raise SystemExit(f"validator failure for {expected} did not mention the rejected contract")
 
 
+def duplicate_standard_chain_key_field(standard_chain_path, output_path):
+    data = yaml.safe_load(standard_chain_path.read_text(encoding="utf-8"))
+    for stage in data["chain"]:
+        if stage.get("name") != "product-director":
+            continue
+        for output in stage.get("outputs", []):
+            if output.get("artifact") == "brief.json":
+                output["key_fields"].append(output["key_fields"][0])
+                write_yaml(output_path, data)
+                return
+    raise SystemExit("missing product-director brief output")
+
+
 with tempfile.TemporaryDirectory() as tmp:
     tmp_dir = Path(tmp)
+
+    duplicate_key_fields = tmp_dir / "duplicate-key-fields.standard-chain.yaml"
+    duplicate_standard_chain_key_field(standard_chain, duplicate_key_fields)
+    expect_validator_failure(
+        duplicate_key_fields,
+        contract,
+        "duplicate key_fields",
+    )
 
     missing_runtime_contract = tmp_dir / "missing-runtime-field-consumption.yaml"
     remove_contract_field(

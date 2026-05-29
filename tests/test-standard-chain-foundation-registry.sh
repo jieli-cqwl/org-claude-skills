@@ -106,6 +106,7 @@ REQUIRED_ARTIFACTS = {
     "fix-result",
     "signoff-package",
     "user-decision",
+    "target-change",
     "artifact-registry",
     "projection-manifest",
 }
@@ -176,6 +177,7 @@ REQUIRED_SCHEMA_FIELDS = {
     "delivery-state": {"kickoff"},
     "signoff-package": {"current_stage"},
     "user-decision": {"current_stage", "director_lock_digests"},
+    "target-change": {"changed_target_type", "invalidates_refs", "superseded_evidence_refs", "rebaseline_required", "rebaseline_owner", "required_fresh_proof_after_rebaseline"},
 }
 SCHEMA_PROPERTY_FIELDS = {
     "phase-prd": {"coverage_matrix", "technical_evidence_requirements", "release_readiness", "business_flows", "user_paths", "rule_mappings", "design_decision_candidates"},
@@ -475,6 +477,7 @@ schema_by_output = {
     "phase-{N}/artifact-registry.json": "artifact-registry",
     "phase-{N}/signoff-package.json": "signoff-package",
     "phase-{N}/user-decision.json": "user-decision",
+    "phase-{N}/target-change.json": "target-change",
 }
 for step in standard_chain["chain"]:
     for output in step.get("outputs", []):
@@ -488,7 +491,7 @@ for step in standard_chain["chain"]:
             schema_properties.update(part.get("properties", {}).keys())
         missing_key_fields = [
             field for field in output.get("key_fields", [])
-            if field not in schema_properties
+            if field.split(".", 1)[0] not in schema_properties
         ]
         ensure(
             not missing_key_fields,
@@ -502,7 +505,7 @@ for step in standard_chain["chain"]:
         }
         missing_authoritative_fields = [
             field for field in output.get("key_fields", [])
-            if field not in authoritative_fields
+            if field.split(".", 1)[0] not in authoritative_fields
         ]
         ensure(
             not missing_authoritative_fields,

@@ -11,11 +11,22 @@
     "$.scope_ref",
     "$.registry_revision",
     "$.active_revision_id",
+    "$.runtime_artifact_policy",
     "$.revisions"
   ],
   "scope_ref": "artifact://phase-prd/login-homepage-pilot.phase-1.prd@v1#phase-goal",
   "registry_revision": "rev-4",
   "active_revision_id": "rev-4",
+  "runtime_artifact_policy": {
+    "active_uniqueness": "one_active_entry_per_scope_artifact_type",
+    "required_runtime_artifacts": [
+      "developer-report",
+      "verify-result",
+      "code-review-result",
+      "qa-result",
+      "consistency-audit-result"
+    ]
+  },
   "revisions": [
     {
       "revision_id": "rev-1",

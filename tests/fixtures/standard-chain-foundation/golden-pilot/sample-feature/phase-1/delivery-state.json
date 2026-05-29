@@ -14,7 +14,10 @@
     "$.control_action",
     "$.summary_text",
     "$.kickoff",
-    "$.tasks"
+    "$.tasks",
+    "$.blocker_id",
+    "$.blocker_basis_refs",
+    "$.resume_stage"
   ],
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
   "current_stage": "TASK_EXECUTION",
