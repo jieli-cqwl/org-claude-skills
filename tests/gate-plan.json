@@ -647,6 +647,18 @@
       "timeout_sec": 180
     },
     {
+      "id": "review-runtime-contract",
+      "command": [
+        "bash",
+        "tests/test-review-runtime-contract.sh"
+      ],
+      "area": "review",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
       "id": "eval-fixtures-contract",
       "command": [
         "bash",

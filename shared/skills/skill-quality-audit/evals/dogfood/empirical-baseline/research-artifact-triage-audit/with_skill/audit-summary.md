@@ -26,7 +26,7 @@ Verdict cap: P1 findings remain, so the Skill cannot be `fit`.
 
 ### RESEARCH-P1-001 P1: Formal report completion gate is not registered in the runtime hook registry
 
-Evidence: `shared/skills/research/SKILL.md:23`, `shared/skills/research/scripts/completion_check.sh:3`, `shared/hooks/registry.json:3`, and `shared/hooks/registry.json:289`. The independent probe also printed `registry_has_research_gate= False`.
+Evidence: `shared/skills/research/SKILL.md:24`, `shared/skills/research/scripts/completion_check.sh:3`, `shared/hooks/registry.json:3`, and `shared/hooks/registry.json:289`. The independent probe also printed `registry_has_research_gate= False`.
 
 Impact: A team can believe formal research completion is runtime-gated while installed runtimes do not dispatch the target completion check, allowing incomplete research reports to pass handoff without deterministic enforcement.
 
@@ -36,7 +36,7 @@ Verification hint: Register the research completion gate or explicitly retire th
 
 ### RESEARCH-P1-002 P1: Formal report validator accepts reports missing Self-Review and User Confirmation
 
-Evidence: `shared/skills/research/SKILL.md:23`, `shared/skills/research/projections/research-report-template.md:198`, `shared/skills/research/projections/research-report-template.md:208`, `tests/test-research-skill-contract.sh:196`, and `tests/test-research-skill-contract.sh:228`. The independent probe also printed `valid_fixture_has_report_self_review= False` and `valid_fixture_has_user_confirmation_gate= False`.
+Evidence: `shared/skills/research/SKILL.md:24`, `shared/skills/research/projections/research-report-template.md:198`, `shared/skills/research/projections/research-report-template.md:208`, `tests/test-research-skill-contract.sh:196`, and `tests/test-research-skill-contract.sh:228`. The independent probe also printed `valid_fixture_has_report_self_review= False` and `valid_fixture_has_user_confirmation_gate= False`.
 
 Impact: Formal research artifacts can pass the deterministic contract without the self-review and confirmation state that downstream teams rely on before accepting or handing off a judgment.
 

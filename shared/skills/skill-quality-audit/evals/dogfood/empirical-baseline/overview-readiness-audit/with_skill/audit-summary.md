@@ -25,7 +25,7 @@ Verdict cap: `conditional` because one P1 remains and weighted score is below 8.
 ## Findings
 
 - `OVERVIEW-P1-001` P1: dir-tree fallback builds a shell command with eval from overview inputs.
-  Evidence: `shared/skills/overview/SKILL.md:51`, `shared/skills/overview/scripts/dir-tree.sh:9`, `shared/skills/overview/scripts/dir-tree.sh:10`, `shared/skills/overview/scripts/dir-tree.sh:26`.
+  Evidence: `shared/skills/overview/SKILL.md:52`, `shared/skills/overview/scripts/dir-tree.sh:9`, `shared/skills/overview/scripts/dir-tree.sh:10`, `shared/skills/overview/scripts/dir-tree.sh:26`.
   Impact: A required scan helper can execute unintended shell fragments in fallback environments, affecting safe team use and making the user-supplied project path an unsafe runtime input.
   Repair target: `shared/skills/overview/scripts/dir-tree.sh`.
   Verification hint: Replace eval with an argument-array or loop-based find implementation, validate DEPTH as a positive integer, preserve ignore semantics, then test paths containing spaces and shell metacharacters.
@@ -43,7 +43,7 @@ Verdict cap: `conditional` because one P1 remains and weighted score is below 8.
   Verification hint: make source and installed adapter policy converge, then run install/runtime surface checks.
 
 - `OVERVIEW-P3-001` P3: maintainer sync clauses are mixed into runtime user workflow.
-  Evidence: `shared/skills/overview/SKILL.md:53`, `shared/skills/overview/SKILL.md:55`.
+  Evidence: `shared/skills/overview/SKILL.md:54`, `shared/skills/overview/SKILL.md:56`.
   Impact: minor attention-economy drag for the executing agent.
   Repair target: `shared/skills/overview/SKILL.md` and maintenance docs/tests.
   Verification hint: keep runtime steps limited to user-request execution contracts.

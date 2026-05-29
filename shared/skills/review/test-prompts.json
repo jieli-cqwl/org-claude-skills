@@ -1,8 +1,8 @@
 [
   {
     "id": "full-review-canonical-phase",
-    "prompt": "请按 review skill 审查当前 feature 的 phase-2 改动：docs/payments/phase-2/brief.json 与 artifact-registry.json 已存在，git diff 显示改了 src/payments/refund.ts、tests/payments/refund.test.ts。scope=full。请说明你会如何收集范围、分配 A/B/C 评审、验证 High findings，并产出 code-review-result.json。",
-    "expected": "输出应先确认 git diff、brief.json、artifact-registry.json 与当前 Phase 工作区；scope=full 时并行覆盖 A/B/C 十维审查；Critical/High finding 必须按 verification-protocol 标记状态；最终写入 docs/payments/phase-2/code-review-result.json，结论只用 APPROVE/REQUEST_CHANGES/COMMENT。"
+    "prompt": "请按 review skill 审查当前 feature 的 phase-2 改动：docs/payments/phase-2/brief.json 与 artifact-registry.json 已存在，git diff 显示改了 src/payments/refund.ts、tests/payments/refund.test.ts。scope=full。请说明你会如何收集范围、形成 A/B/C 分组评审中间包、验证 High findings，并产出 code-review-result.json。",
+    "expected": "输出应先确认 git diff、brief.json、artifact-registry.json 与当前 Phase 工作区；scope=full 时覆盖 A/B/C 十维审查；Critical/High finding 必须按 verification-protocol 标记状态；最终写入 docs/payments/phase-2/code-review-result.json，结论只用 APPROVE/REQUEST_CHANGES/COMMENT。"
   },
   {
     "id": "missing-scope-or-workspace",

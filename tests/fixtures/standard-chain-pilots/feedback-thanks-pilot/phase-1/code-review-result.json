@@ -13,6 +13,7 @@
     "$.dimension_verdicts",
     "$.findings",
     "$.excluded",
+    "$.evidence_integrity",
     "$.review_conclusion"
   ],
   "gate_result": "PASS",
@@ -56,6 +57,64 @@
       "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#round-2"
     }
   ],
+  "evidence_integrity": {
+    "applicability": "applicable",
+    "trigger_refs": [
+      "docs/feedback-thanks-pilot/phase-1/history/tasks-v1.json"
+    ],
+    "checks": [
+      {
+        "id": "EI-1",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#ei-1"
+      },
+      {
+        "id": "EI-2",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#ei-2"
+      },
+      {
+        "id": "EI-3",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#ei-3"
+      },
+      {
+        "id": "EI-4",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#ei-4"
+      },
+      {
+        "id": "EI-5",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#ei-5"
+      },
+      {
+        "id": "EI-6",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#ei-6"
+      },
+      {
+        "id": "EI-7",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#ei-7"
+      },
+      {
+        "id": "EI-8",
+        "status": "EXCLUDED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#resolved-finding-cr-doc-001"
+      },
+      {
+        "id": "EI-9",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#ei-9"
+      },
+      {
+        "id": "EI-10",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://code-review-result/feedback-thanks-pilot.phase-1.review@v1#ei-10"
+      }
+    ]
+  },
   "review_conclusion": "APPROVE",
   "resolved_findings": [
     {

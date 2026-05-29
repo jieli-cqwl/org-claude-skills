@@ -131,6 +131,13 @@ assert_schema_rejects_phase() {
   fi
 }
 
+remove_evidence_integrity() {
+  local target="$1"
+
+  jq 'del(.evidence_integrity)' "$target" > "$target.tmp"
+  mv "$target.tmp" "$target"
+}
+
 valid_workspace="$TMP_ROOT/valid"
 prepare_workspace "$valid_workspace"
 run_review_hook "$valid_workspace" "review-valid"
@@ -167,6 +174,16 @@ missing_schema_workspace="$TMP_ROOT/schema-path-traversal"
 prepare_workspace "$missing_schema_workspace"
 set_single_finding "$(review_result_path "$missing_schema_workspace")" "../outside.ts" 1
 assert_schema_rejects_phase "$missing_schema_workspace" "finding path traversal schema"
+
+missing_ei_workspace="$TMP_ROOT/missing-evidence-integrity"
+prepare_workspace "$missing_ei_workspace"
+remove_evidence_integrity "$(review_result_path "$missing_ei_workspace")"
+run_review_hook "$missing_ei_workspace" "review-missing-evidence-integrity"
+assert_hook_blocked_with \
+  "$missing_ei_workspace" \
+  "missing evidence integrity record" \
+  "evidence_integrity"
+assert_schema_rejects_phase "$missing_ei_workspace" "missing evidence integrity schema"
 
 line_workspace="$TMP_ROOT/line-out-of-range"
 prepare_workspace "$line_workspace"

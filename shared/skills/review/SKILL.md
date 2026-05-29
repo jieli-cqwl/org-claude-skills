@@ -5,7 +5,7 @@ disable-model-invocation: true
 description: "深度代码审查与改进建议。Use when 需要审查代码变更、PR review、代码质量评估或想要第二双眼睛检查实现。"
 eval-type: mixed
 argument-hint: "[scope: 审查-A|审查-B|审查-C|full]"
-allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
+allowed-tools: Read, Write, Bash, Glob, Grep, LSP
 ---
 
 # /review -- 深度代码审查
@@ -57,9 +57,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
   - `evidence_integrity`：`applicable` / `not_applicable` + 触发依据
 - 任一输入缺失时输出阻断原因并停止；不得猜测 feature、Phase 或审查范围。
 
-### Step 2: 并行评审
+### Step 2: 分组评审
 
-- 按 scope 创建对应 reviewer agents 并行执行（`full` 时 A+B+C 三个并行）：
+- 本 skill 由上层调度到 `code-reviewer` 命名 agent 执行；运行内禁止再调用 Agent 或 subagent。按 scope 在同一 `code-reviewer` 上下文内形成 A/B/C 三组独立中间包（`full` 时三组都必须完成）：
   - A 组 prompt：Trigger: scope 含审查-A 或 full；Read: `references/code-safety-reviewer-prompt.md`；Expect: 正确性、安全性、错误处理、并发/状态审查口径；Consume: A 组中间包；Evidence: A 组 findings/excluded 引用 file_path:line_number；Sync: 十维定义或中间包字段变化时同步 prompt、模板和测试。
   - B 组 prompt：Trigger: scope 含审查-B 或 full；Read: `references/code-maintainability-reviewer-prompt.md`；Expect: 设计、测试覆盖、注释准确性、向后兼容审查口径；Consume: B 组中间包；Evidence: B 组 findings/excluded 引用 file_path:line_number；Sync: 十维定义或中间包字段变化时同步 prompt、模板和测试。
   - C 组 prompt：Trigger: scope 含审查-C 或 full；Read: `references/code-performance-reviewer-prompt.md`；Expect: 性能、可观测性审查口径；Consume: C 组中间包；Evidence: C 组 findings/excluded 引用 file_path:line_number；Sync: 十维定义或中间包字段变化时同步 prompt、模板和测试。
@@ -69,7 +69,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
   - `findings`：仅含 `confidence >= 80` 的正式 finding，字段含 `file_path`、`line_number`、`severity`、`dimension`、`summary`、`recommendation`
   - `excluded`：至少 1 个已排除潜在问题，含证据引用
   - `notes`：只放合并时需要的人类阅读补充，不进入 canonical 必填字段
-- reviewer agent 失败、超时或中间包缺字段时，本轮结论为 `COMMENT`，并在 `excluded` 或 findings 中记录阻断证据；不得补造该组结论。
+- 任一审查组无法完成或中间包缺字段时，本轮结论为 `COMMENT`，并在 `excluded` 或 findings 中记录阻断证据；不得补造该组结论。
 - 首轮全 PASS 时强制做一次确认轮（防浅层通过）。
 
 ### Step 3: Verification
@@ -83,13 +83,14 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 ### Step 4: 合并输出
 
 - 汇总十维结论：`REVIEW_A_*`、`REVIEW_B_*`、`REVIEW_C_*`。
-- 若证据链完整性专项适用，必须在报告中输出专项适用性、触发依据、EI-1 到 EI-10 的逐项状态表（`FINDING` / `EXCLUDED` / `NOT_OBSERVED` / `BLOCKED`）和已排除项；`ei_findings: []` 只能表示没有正式缺陷，不能替代逐项检查记录。
+- 若证据链完整性专项适用，必须在 `evidence_integrity` 输出专项适用性、触发依据、EI-1 到 EI-10 的逐项状态表（`FINDING` / `EXCLUDED` / `NOT_OBSERVED` / `BLOCKED`）和证据引用；`ei_findings: []` 或空 findings 只能表示没有正式缺陷，不能替代逐项检查记录。
 - 最终结论仅允许：`APPROVE` / `REQUEST_CHANGES` / `COMMENT`。
 - 写入 `code-review-result.json` 前按模板组装：
   - `dimension_verdicts.review_a/b/c` 来自 A/B/C 中间包结论。
   - 十维字段全部写入 `OK` / `ISSUE`，缺失维度视为阻断并输出 `COMMENT`。
   - `findings` 只接收正式 finding；每条必须含 `file_path`、`line_number`、`confidence`、`verification_status`。
   - `excluded` 合并各组已排除项，总数不得少于 2。
+  - `evidence_integrity` 必须始终存在；适用时 `applicability=applicable`、`trigger_refs` 非空、`checks` 覆盖 EI-1 到 EI-10；不适用时 `applicability=not_applicable` 且 EI-1 到 EI-10 均标为 `NOT_APPLICABLE` 并写明证据或不适用原因。
   - `review_conclusion`：存在 Verified Critical/High 或证据链硬缺陷时为 `REQUEST_CHANGES`；存在阻断、缺证据或 Inconclusive 高危项时为 `COMMENT`；全部维度 OK 且排除项达标时为 `APPROVE`。
   - `gate_result` 与 `review_conclusion` 对齐：`APPROVE` 为 `PASS`，其余为 `FAIL`。
 
@@ -106,7 +107,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 
 - 输出文件：`docs/{feature}/phase-{N}/code-review-result.json`
 - 运行时模板：`shared/skills/review/templates/code-review-result.template.json`
-- 必填内容：`dimension_verdicts`（十维 + `REVIEW_A/B/C`）、`findings[].file_path/line_number/confidence/verification_status`、`excluded`、`review_conclusion`
+- 必填内容：`dimension_verdicts`（十维 + `REVIEW_A/B/C`）、`findings[].file_path/line_number/confidence/verification_status`、`excluded`、`evidence_integrity`、`review_conclusion`
 - 人类投影视图可使用：`projections/code-review-report-template.md`
 
 ## FORBIDDEN
@@ -122,4 +123,4 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP, Agent
 - [ ] 已排除潜在问题 >= 2，且有证据
 - [ ] Critical/High findings 具备 Verification 状态
 - [ ] 结论为 APPROVE / REQUEST_CHANGES / COMMENT 三选一
-- [ ] skill/eval/validator/artifact/installer/runtime gate 改动已完成证据链完整性专项或写明不适用原因
+- [ ] `evidence_integrity` 已写入 canonical JSON；skill/eval/validator/artifact/installer/runtime gate 改动已完成证据链完整性专项，否则 EI-1 到 EI-10 均写明不适用原因

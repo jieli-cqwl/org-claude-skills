@@ -13,7 +13,7 @@
     {
       "surface": "SKILL.md",
       "status": "checked",
-      "evidence": "shared/skills/overview/SKILL.md:13 defines the goal and completion boundary; shared/skills/overview/SKILL.md:47 starts the workflow."
+      "evidence": "shared/skills/overview/SKILL.md:14 defines the goal and completion boundary; shared/skills/overview/SKILL.md:48 starts the workflow."
     },
     {
       "surface": "agents/openai.yaml",
@@ -33,7 +33,7 @@
     {
       "surface": "templates",
       "status": "checked",
-      "evidence": "shared/skills/overview/projections/project-overview-template.md:1 is the active report template referenced by shared/skills/overview/SKILL.md:89."
+      "evidence": "shared/skills/overview/projections/project-overview-template.md:1 is the active report template referenced by shared/skills/overview/SKILL.md:90."
     },
     {
       "surface": "contracts",
@@ -96,7 +96,7 @@
       "dimension": "Real Use Capability",
       "score": 8.5,
       "evidence_level": "E3",
-      "reason": "shared/skills/overview/SKILL.md:4 names onboarding and architecture overview triggers, shared/skills/overview/SKILL.md:13 defines the output boundary, and shared/skills/github-repo-radar/SKILL.md:32 is an active downstream route."
+      "reason": "shared/skills/overview/SKILL.md:5 names onboarding and architecture overview triggers, shared/skills/overview/SKILL.md:14 defines the output boundary, and shared/skills/github-repo-radar/SKILL.md:32 is an active downstream route."
     },
     {
       "dimension": "Trigger And Routing",
@@ -108,7 +108,7 @@
       "dimension": "Instruction Contract",
       "score": 7.5,
       "evidence_level": "E3",
-      "reason": "Hard gates at shared/skills/overview/SKILL.md:17-21 and step output contracts at shared/skills/overview/SKILL.md:64-69 define objects, outputs, failure states, and proof, though runtime workflow still includes some maintainer sync text."
+      "reason": "Hard gates at shared/skills/overview/SKILL.md:18-22 and step output contracts at shared/skills/overview/SKILL.md:65-70 define objects, outputs, failure states, and proof, though runtime workflow still includes some maintainer sync text."
     },
     {
       "dimension": "Workflow Causality",
@@ -120,7 +120,7 @@
       "dimension": "Output And Handoff",
       "score": 8.0,
       "evidence_level": "E3",
-      "reason": "shared/skills/overview/SKILL.md:56-62 and shared/skills/overview/SKILL.md:87-96 define docs/项目概览.md fields, and shared/skills/overview/projections/project-overview-template.md:1 provides a consumable template."
+      "reason": "shared/skills/overview/SKILL.md:57-62 and shared/skills/overview/SKILL.md:90-97 define docs/项目概览.md fields, and shared/skills/overview/projections/project-overview-template.md:1 provides a consumable template."
     },
     {
       "dimension": "Determinism And Validation",
@@ -144,7 +144,7 @@
       "dimension": "Noise And Maintainability",
       "score": 6.0,
       "evidence_level": "E2",
-      "reason": "The skill is compact and mostly actionable, but duplicated output lists and Sync maintenance clauses at shared/skills/overview/SKILL.md:53 and shared/skills/overview/SKILL.md:55 add runtime noise."
+      "reason": "The skill is compact and mostly actionable, but duplicated output lists and Sync maintenance clauses at shared/skills/overview/SKILL.md:54 and shared/skills/overview/SKILL.md:56 add runtime noise."
     }
   ],
   "findings": [
@@ -153,11 +153,11 @@
       "severity": "P1",
       "title": "dir-tree fallback builds a shell command with eval from overview inputs",
       "evidence_level": "E3",
-      "evidence": "shared/skills/overview/SKILL.md:51 requires running dir-tree.sh with the selected project path; shared/skills/overview/scripts/dir-tree.sh:9 reads PROJECT_DIR from argv, shared/skills/overview/scripts/dir-tree.sh:10 reads DEPTH from argv, and shared/skills/overview/scripts/dir-tree.sh:26 executes eval find with those values and dynamic EXCLUDES in the fallback path.",
+      "evidence": "shared/skills/overview/SKILL.md:52 requires running dir-tree.sh with the selected project path; shared/skills/overview/scripts/dir-tree.sh:9 reads PROJECT_DIR from argv, shared/skills/overview/scripts/dir-tree.sh:10 reads DEPTH from argv, and shared/skills/overview/scripts/dir-tree.sh:26 executes eval find with those values and dynamic EXCLUDES in the fallback path.",
       "evidence_checks": [
         {
           "path": "shared/skills/overview/SKILL.md",
-          "line": 51,
+          "line": 52,
           "expected_snippet": "bash {{SKILLS_HOME}}/overview/scripts/dir-tree.sh <项目路径> 3",
           "claim": "The overview workflow requires invoking dir-tree.sh with the selected project path."
         },
@@ -223,7 +223,7 @@
       "severity": "P3",
       "title": "maintainer sync clauses are mixed into runtime user workflow",
       "evidence_level": "E2",
-      "evidence": "shared/skills/overview/SKILL.md:53 includes Sync maintenance text inside the mode-selection step; shared/skills/overview/SKILL.md:55 includes Sync maintenance text inside the agent-team step.",
+      "evidence": "shared/skills/overview/SKILL.md:54 includes Sync maintenance text inside the mode-selection step; shared/skills/overview/SKILL.md:56 includes Sync maintenance text inside the agent-team step.",
       "impact": "The executing agent may spend attention on maintainer synchronization work that is not part of the user's overview request.",
       "repair_target": "shared/skills/overview/SKILL.md and overview maintenance docs/tests",
       "verification_hint": "Move Sync maintenance clauses out of the runtime workflow or convert them into tests/docs consumed by maintainers, keeping user execution steps focused on trigger, read, expect, consume, evidence, and failure."

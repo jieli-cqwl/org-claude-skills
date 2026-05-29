@@ -3,12 +3,12 @@
   "evals": [
     {
       "id": "full-review-canonical-phase",
-      "prompt": "请按 review skill 审查输入文件里的 sample-feature phase-1 改动：brief.json 与 artifact-registry.json 已存在，scope=full。请说明你会如何收集范围、分配 A/B/C 评审、验证 High findings，并说明 code-review-result.json 必须怎样产出；本 eval 不要求实际写文件。",
+      "prompt": "请按 review skill 审查输入文件里的 sample-feature phase-1 改动：brief.json 与 artifact-registry.json 已存在，scope=full。请说明你会如何收集范围、形成 A/B/C 分组评审中间包、验证 High findings，并说明 code-review-result.json 必须怎样产出；本 eval 不要求实际写文件。",
       "files": [
         "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
       ],
       "expectations": [
-        "明确先确认 git diff、brief.json、artifact-registry.json 与当前 Phase 工作区；scope=full 时覆盖 A/B/C 审查；Critical/High finding 必须按 verification protocol 标记状态；最终写入 code-review-result.json。",
+        "明确先确认 git diff、brief.json、artifact-registry.json 与当前 Phase 工作区；scope=full 时由 code-reviewer 覆盖 A/B/C 分组审查；Critical/High finding 必须按 verification protocol 标记状态；最终写入 code-review-result.json。",
         "明确读取 git diff、brief.json 和 artifact-registry.json",
         "按 scope=full 覆盖 REVIEW_A / REVIEW_B / REVIEW_C",
         "Critical 或 High finding 有验证状态和证据",

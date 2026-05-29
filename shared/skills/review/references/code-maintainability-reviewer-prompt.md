@@ -1,7 +1,7 @@
 # 代码可维护性审查 Prompt（审查-B）
 
-> 引用者：review SKILL.md（多 Agent 并行审查步骤）
-> 使用方式：以 Agent(subagent_type: "Explore") 调用，传入以下 prompt
+> 引用者：review SKILL.md（code-reviewer 分组审查步骤）
+> 使用方式：由当前 code-reviewer 读取本 prompt，产出审查-B中间包；禁止嵌套调用子代理
 
 ## Prompt
 

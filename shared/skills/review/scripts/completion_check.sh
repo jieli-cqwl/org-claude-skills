@@ -61,9 +61,10 @@ validate_review_result() {
             and ((.summary // "") | type == "string" and length > 0)
             and ((.evidence_ref // "") | type == "string" and length > 0)
         )
+        and (.evidence_integrity | type == "object")
         and ((.review_conclusion // "") | test("^(APPROVE|REQUEST_CHANGES|COMMENT)$"))
     ' "$target" >/dev/null 2>&1; then
-        add_failure "code-review-result.json missing active refs, dimensions, findings, excluded issues, or review_conclusion: $target"
+        add_failure "code-review-result.json missing active refs, dimensions, findings, excluded issues, evidence_integrity, or review_conclusion: $target"
     fi
     if ! jq -e '
         all(.findings[]?;
@@ -76,8 +77,43 @@ validate_review_result() {
     ' "$target" >/dev/null 2>&1; then
         add_failure "code-review-result.json S0/S1 findings require a real verification status: $target"
     fi
+    validate_evidence_integrity "$target"
     validate_conclusion_gate_alignment "$target"
     validate_finding_locations "$target"
+}
+
+# Evidence-integrity review is a canonical part of every review result, not prose-only.
+validate_evidence_integrity() {
+    local target="$1"
+
+    if ! jq -e '
+        . as $root
+        | def required_ids: ["EI-1", "EI-2", "EI-3", "EI-4", "EI-5", "EI-6", "EI-7", "EI-8", "EI-9", "EI-10"];
+        ($root.evidence_integrity | type == "object")
+        and (($root.evidence_integrity.applicability // "") | test("^(applicable|not_applicable)$"))
+        and ($root.evidence_integrity.trigger_refs | type == "array")
+        and ($root.evidence_integrity.checks | type == "array" and length == 10)
+        and all(required_ids[]; . as $id | any($root.evidence_integrity.checks[]?; .id == $id))
+        and all($root.evidence_integrity.checks[]?;
+            ((.status // "") | test("^(FINDING|EXCLUDED|NOT_OBSERVED|BLOCKED|NOT_APPLICABLE)$"))
+            and ((.evidence_ref // "") | type == "string" and length > 0)
+        )
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "code-review-result evidence_integrity must include applicability, trigger_refs, and exactly one EI-1..EI-10 check with evidence_ref: $target"
+        return
+    fi
+
+    if ! jq -e '
+        . as $root
+        | if $root.evidence_integrity.applicability == "applicable" then
+            ($root.evidence_integrity.trigger_refs | length > 0)
+            and all($root.evidence_integrity.checks[]; (.status != "NOT_APPLICABLE"))
+          else
+            all($root.evidence_integrity.checks[]; (.status == "NOT_APPLICABLE"))
+          end
+    ' "$target" >/dev/null 2>&1; then
+        add_failure "code-review-result evidence_integrity applicability must align with trigger_refs and EI check statuses: $target"
+    fi
 }
 
 # Review approval semantics are stricter than the shared gate_result enum.

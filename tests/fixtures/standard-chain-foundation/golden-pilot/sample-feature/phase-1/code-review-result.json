@@ -13,6 +13,7 @@
     "$.dimension_verdicts",
     "$.findings",
     "$.excluded",
+    "$.evidence_integrity",
     "$.review_conclusion"
   ],
   "gate_result": "PASS",
@@ -46,5 +47,61 @@
       "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#excluded-2"
     }
   ],
+  "evidence_integrity": {
+    "applicability": "not_applicable",
+    "trigger_refs": [],
+    "checks": [
+      {
+        "id": "EI-1",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-1"
+      },
+      {
+        "id": "EI-2",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-2"
+      },
+      {
+        "id": "EI-3",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-3"
+      },
+      {
+        "id": "EI-4",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-4"
+      },
+      {
+        "id": "EI-5",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-5"
+      },
+      {
+        "id": "EI-6",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-6"
+      },
+      {
+        "id": "EI-7",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-7"
+      },
+      {
+        "id": "EI-8",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-8"
+      },
+      {
+        "id": "EI-9",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-9"
+      },
+      {
+        "id": "EI-10",
+        "status": "NOT_APPLICABLE",
+        "evidence_ref": "artifact://evidence/sample-feature.phase-1.review@ev-review#ei-10"
+      }
+    ]
+  },
   "review_conclusion": "APPROVE"
 }

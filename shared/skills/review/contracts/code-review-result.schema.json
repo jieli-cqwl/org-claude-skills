@@ -214,6 +214,100 @@
             "additionalProperties": false
           }
         },
+        "evidence_integrity": {
+          "type": "object",
+          "required": [
+            "applicability",
+            "trigger_refs",
+            "checks"
+          ],
+          "properties": {
+            "applicability": {
+              "type": "string",
+              "enum": [
+                "applicable",
+                "not_applicable"
+              ]
+            },
+            "trigger_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "checks": {
+              "type": "array",
+              "minItems": 10,
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "status",
+                  "evidence_ref"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "enum": [
+                      "EI-1",
+                      "EI-2",
+                      "EI-3",
+                      "EI-4",
+                      "EI-5",
+                      "EI-6",
+                      "EI-7",
+                      "EI-8",
+                      "EI-9",
+                      "EI-10"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "FINDING",
+                      "EXCLUDED",
+                      "NOT_OBSERVED",
+                      "BLOCKED",
+                      "NOT_APPLICABLE"
+                    ]
+                  },
+                  "evidence_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "finding_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "applicability": {
+                    "const": "applicable"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "trigger_refs": {
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          ],
+          "additionalProperties": false
+        },
         "review_conclusion": {
           "type": "string",
           "enum": [
@@ -231,6 +325,7 @@
         "dimension_verdicts",
         "findings",
         "excluded",
+        "evidence_integrity",
         "review_conclusion"
       ],
       "additionalProperties": true

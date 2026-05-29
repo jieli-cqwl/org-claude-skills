@@ -62,9 +62,23 @@ REVIEW_C_OK / REVIEW_C_ISSUE
 
 ### 证据链完整性专项
 
-适用性：适用 / 不适用
+适用性：适用 / 不适用（同步写入 `code-review-result.json.evidence_integrity.applicability`）
 
-触发依据：skill / eval / validator / artifact / installer / runtime gate / 不适用原因
+触发依据：skill / eval / validator / artifact / installer / runtime gate / 不适用原因（同步写入 `evidence_integrity.trigger_refs`）
+
+#### EI 逐项状态
+| ID | 状态 | 证据引用 |
+|---|---|---|
+| EI-1 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-1 |
+| EI-2 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-2 |
+| EI-3 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-3 |
+| EI-4 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-4 |
+| EI-5 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-5 |
+| EI-6 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-6 |
+| EI-7 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-7 |
+| EI-8 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-8 |
+| EI-9 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-9 |
+| EI-10 | FINDING / EXCLUDED / NOT_OBSERVED / BLOCKED / NOT_APPLICABLE | artifact://...#ei-10 |
 
 #### 发现（Findings）
 | # | 置信度 | 严重度 | 位置 | 维度 | 问题 | 修复方向 | 验证状态 |

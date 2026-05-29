@@ -13,7 +13,7 @@
     {
       "surface": "SKILL.md",
       "status": "checked",
-      "evidence": "shared/skills/research/SKILL.md:14 defines the source-targeting and calibrated team judgment mission."
+      "evidence": "shared/skills/research/SKILL.md:15 defines the source-targeting and calibrated team judgment mission."
     },
     {
       "surface": "agents/openai.yaml",
@@ -96,13 +96,13 @@
       "dimension": "Real Use Capability",
       "score": 9,
       "evidence_level": "E3",
-      "reason": "The Skill names the team-use scenario before external information becomes action, defines the target object and source-targeting problem, and specifies a Decision Package consumer in shared/skills/research/SKILL.md:14, shared/skills/research/SKILL.md:33, and shared/skills/research/SKILL.md:127."
+      "reason": "The Skill names the team-use scenario before external information becomes action, defines the target object and source-targeting problem, and specifies a Decision Package consumer in shared/skills/research/SKILL.md:15, shared/skills/research/SKILL.md:34, and shared/skills/research/SKILL.md:128."
     },
     {
       "dimension": "Trigger And Routing",
       "score": 6.5,
       "evidence_level": "E3",
-      "reason": "The body has good adjacent routing for lightweight answers, deep-research, and github-repo-radar in shared/skills/research/SKILL.md:46-53 and shared/skills/research/SKILL.md:79-83, but the source OpenAI adapter allows implicit invocation while the runtime surface says research is manual."
+      "reason": "The body has good adjacent routing for lightweight answers, deep-research, and github-repo-radar in shared/skills/research/SKILL.md:47-54 and shared/skills/research/SKILL.md:80-84, but the source OpenAI adapter allows implicit invocation while the runtime surface says research is manual."
     },
     {
       "dimension": "Instruction Contract",
@@ -114,7 +114,7 @@
       "dimension": "Workflow Causality",
       "score": 8.5,
       "evidence_level": "E3",
-      "reason": "The workflow order is causal: routing and target definition feed source targeting, evidence qualification feeds judgment calibration, and judgment feeds the decision package in shared/skills/research/SKILL.md:59-67."
+      "reason": "The workflow order is causal: routing and target definition feed source targeting, evidence qualification feeds judgment calibration, and judgment feeds the decision package in shared/skills/research/SKILL.md:60-68."
     },
     {
       "dimension": "Output And Handoff",
@@ -153,11 +153,11 @@
       "severity": "P1",
       "title": "Formal report completion gate is not registered in the runtime hook registry",
       "evidence_level": "E3",
-      "evidence": "shared/skills/research/SKILL.md:23 requires formal research completion to wait for report, self-review, and user confirmation; shared/skills/research/scripts/completion_check.sh:3 says the trigger is research skill-local Stop; shared/hooks/registry.json:3 defines the active skill_completion_gates list and shared/hooks/registry.json:289 closes the listed gates without a research entry. The independent probe printed registry_has_research_gate= False.",
+      "evidence": "shared/skills/research/SKILL.md:24 requires formal research completion to wait for report, self-review, and user confirmation; shared/skills/research/scripts/completion_check.sh:3 says the trigger is research skill-local Stop; shared/hooks/registry.json:3 defines the active skill_completion_gates list and shared/hooks/registry.json:289 closes the listed gates without a research entry. The independent probe printed registry_has_research_gate= False.",
       "evidence_checks": [
         {
           "path": "shared/skills/research/SKILL.md",
-          "line": 23,
+          "line": 24,
           "expected_snippet": "Do NOT call formal research complete until `docs/{feature}/research-report.md` exists, Report Self-Review passes, and the user confirms the report.",
           "claim": "The target Skill requires a formal completion gate before completion can be claimed."
         },
@@ -204,11 +204,11 @@
       "severity": "P1",
       "title": "Formal report validator accepts reports missing Self-Review and User Confirmation",
       "evidence_level": "E3",
-      "evidence": "shared/skills/research/SKILL.md:23 requires Report Self-Review and user confirmation; shared/skills/research/projections/research-report-template.md:198 defines Report Self-Review and shared/skills/research/projections/research-report-template.md:208 defines User Confirmation Gate; tests/test-research-skill-contract.sh:196 creates the valid decision report fixture and tests/test-research-skill-contract.sh:228 asserts that fixture passes. The independent probe printed valid_fixture_has_report_self_review= False and valid_fixture_has_user_confirmation_gate= False.",
+      "evidence": "shared/skills/research/SKILL.md:24 requires Report Self-Review and user confirmation; shared/skills/research/projections/research-report-template.md:198 defines Report Self-Review and shared/skills/research/projections/research-report-template.md:208 defines User Confirmation Gate; tests/test-research-skill-contract.sh:196 creates the valid decision report fixture and tests/test-research-skill-contract.sh:228 asserts that fixture passes. The independent probe printed valid_fixture_has_report_self_review= False and valid_fixture_has_user_confirmation_gate= False.",
       "evidence_checks": [
         {
           "path": "shared/skills/research/SKILL.md",
-          "line": 23,
+          "line": 24,
           "expected_snippet": "Do NOT call formal research complete until `docs/{feature}/research-report.md` exists, Report Self-Review passes, and the user confirms the report.",
           "claim": "The target Skill requires Report Self-Review and user confirmation before formal completion."
         },
