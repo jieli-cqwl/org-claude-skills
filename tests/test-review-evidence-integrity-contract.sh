@@ -24,23 +24,6 @@ assert_present() {
 [ -f "$REFERENCE" ] || fail "missing evidence integrity reference"
 
 assert_present 'references/evidence-integrity-review\.md' "$REVIEW_SKILL"
-assert_present 'skill|eval|validator|artifact|installer|runtime gate' "$REVIEW_SKILL"
-
-for marker in \
-  '自证检测' \
-  '声称/证据一致' \
-  '负例驱动' \
-  '过时材料清理' \
-  '行为边界' \
-  '消费者链路' \
-  '权限真实边界' \
-  '计划/实现漂移' \
-  '失败产物污染' \
-  '回归证明'
-do
-  assert_present "$marker" "$REFERENCE"
-done
-
 assert_present 'observed.*expected' "$REFERENCE"
 assert_present 'seed eval.*live benchmark' "$REFERENCE"
 

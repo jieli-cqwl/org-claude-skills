@@ -1980,25 +1980,6 @@ import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
-forbidden = [
-    "架构设计共创",
-    "你不拥有",
-    "上下文压力",
-]
-missing = [
-    name
-    for name, terms in {
-        "phase_design_owner": ["/design", "当前 Phase", "技术方案 owner"],
-        "downstream_consumers": ["/test-design", "/tech-lead", "developer", "design.json"],
-        "positive_method_lead": ["先给推荐", "依据", "会改变设计结论的问题"],
-    }.items()
-    if not all(term in text for term in terms)
-]
-present_forbidden = [term for term in forbidden if term in text]
-if present_forbidden or missing:
-    raise SystemExit(
-        f"design owner wording contract failed: forbidden={present_forbidden}, missing={missing}"
-    )
 hard_gate = text.split("<HARD-GATE>", 1)[1].split("</HARD-GATE>", 1)[0]
 hard_gate_required = [
     "preflight 未 PASS 或 PM 基线未确认时，只运行 Baseline Gate",
@@ -2071,15 +2052,6 @@ if plain_bullets:
     )
 PY
 assert_present 'preflight_check\.sh --arguments "\$ARGUMENTS"' "$DESIGN_SKILL"
-assert_present 'Stakeholders & Concerns' "$DESIGN_SKILL"
-assert_present 'Architecture-Significant Requirements' "$DESIGN_SKILL"
-assert_present 'Current-State Evidence' "$DESIGN_SKILL"
-assert_present 'Complexity Model' "$DESIGN_SKILL"
-assert_present 'Decision Discovery' "$DESIGN_SKILL"
-assert_present 'Option Tradeoff' "$DESIGN_SKILL"
-assert_present 'Design Synthesis' "$DESIGN_SKILL"
-assert_present 'Owner Self-Check' "$DESIGN_SKILL"
-assert_present 'Advisory Review' "$DESIGN_SKILL"
 assert_design_preflight_context_boundary "$DESIGN_SKILL"
 assert_design_owner_execution_boundary "$DESIGN_SKILL"
 assert_absent 'baseline_packet|runtime_fact_packet|decision_packet|review_packet' "$DESIGN_SKILL"
@@ -2098,8 +2070,6 @@ assert_present 'render_projection\.py --design "\$PHASE_DIR/design\.json" --desi
 assert_present 'render_projection\.py --design "\$PHASE_DIR/design\.json" --adr-dir "\$PHASE_DIR/adr"' "$DESIGN_SKILL"
 assert_present 'render_projection\.py' "$DESIGN_SKILL"
 assert_absent 'build_candidate_package\.py' "$DESIGN_SKILL"
-assert_absent '^- (Bash|WebSearch|Agent|TeamCreate)：' "$DESIGN_SKILL"
-assert_absent 'Trigger:|Read:|Expect:|Consume:|Evidence:|Sync:' "$DESIGN_SKILL"
 
 for design_reference in "$ROOT/shared/skills/design/references"/*.md; do
   assert_absent '^## .*Resource Contract|^\| (Trigger|Read|Expect|Consume|Evidence|Sync) \||^>?[[:space:]]*(Trigger|Read|Expect|Consume|Evidence|Sync):' "$design_reference"
@@ -2176,21 +2146,14 @@ if review_dimensions != eval_dimensions:
         f"{review_path}: capability_uplift.grader_dimensions must mirror evals.json grader_dimensions"
     )
 
-if "降低总体风险" not in architecture_patterns:
-    raise SystemExit("architecture-patterns must state complex patterns require total-risk reduction")
-if "证明收益后，再推荐更复杂模式" in architecture_patterns:
-    raise SystemExit("architecture-patterns must not allow benefit-only justification for complex patterns")
-
-required_reviewer_terms = [
+review_required_fields = [
     "decision_id",
     "option_analysis.decision_ref",
     "option_analysis.evaluation",
-    "弱证据",
-    "自引用 `design.json`",
 ]
-missing = [term for term in required_reviewer_terms if term not in architecture_reviewer]
+missing = [term for term in review_required_fields if term not in architecture_reviewer]
 if missing:
-    raise SystemExit(f"design architecture reviewer must align to schema/evidence contract: {missing}")
+    raise SystemExit(f"design architecture reviewer must align to schema contract: {missing}")
 PY
 assert_absent 'S10 最终确认|S10 confirmation summary|S5 or S10 user confirmation summary' "$DESIGN_TEMPLATE"
 assert_absent 'S10 最终确认' "$DESIGN_SCHEMA"
@@ -2422,7 +2385,6 @@ for removed_reference in \
   "$ROOT/shared/skills/test-design/references/performance-test-methodology.md"; do
   [ ! -e "$removed_reference" ] || fail "old specialty reference should be removed: ${removed_reference#"$ROOT"/}"
 done
-assert_present 'Example Mapping' "$TEST_DESIGN_METHODOLOGY"
 assert_present 'assert_special_test_triggers' "$TEST_CASE_SPECIAL_RULES"
 assert_present 'assert_qa_handoff_obligation_ids' "$TEST_CASE_SPECIAL_RULES"
 assert_present 'quality_attributes' "$TEST_CASE_SPECIAL_RULES"
@@ -2432,24 +2394,14 @@ assert_present 'test_analysis' "$TEST_DESIGN_REVIEWER"
 assert_present 'traceability_matrix' "$TEST_DESIGN_REVIEWER"
 assert_present 'assertion_target' "$TEST_DESIGN_REVIEWER"
 assert_present 'obligation_id.*handoff_obligation_refs|handoff_obligation_refs.*obligation_id' "$TEST_DESIGN_REVIEWER"
-assert_present 'Perspective: test_quality' "$TEST_DESIGN_REVIEWER"
-assert_present 'Review Round: R<N>' "$TEST_DESIGN_REVIEWER"
-assert_present 'Evidence:' "$TEST_DESIGN_REVIEWER"
 assert_present 'blocking=true' "$TEST_DESIGN_REVIEWER"
 assert_present 'product_refs' "$TEST_DESIGN_PRODUCT_REVIEWER"
-assert_present 'Perspective: product' "$TEST_DESIGN_PRODUCT_REVIEWER"
-assert_present 'Review Round: R<N>' "$TEST_DESIGN_PRODUCT_REVIEWER"
-assert_present 'Evidence:' "$TEST_DESIGN_PRODUCT_REVIEWER"
 assert_present 'SCOPE_DRIFT' "$TEST_DESIGN_PRODUCT_REVIEWER"
 assert_present 'design_refs' "$TEST_DESIGN_ARCH_REVIEWER"
-assert_present 'Perspective: architecture' "$TEST_DESIGN_ARCH_REVIEWER"
-assert_present 'Review Round: R<N>' "$TEST_DESIGN_ARCH_REVIEWER"
-assert_present 'Evidence:' "$TEST_DESIGN_ARCH_REVIEWER"
 assert_present 'TESTABILITY_GAP' "$TEST_DESIGN_ARCH_REVIEWER"
 assert_present 'TRACE_CONFLICT' "$TEST_DESIGN_ARCH_REVIEWER"
 assert_present 'planning_readiness.*implementation_path|implementation_path.*planning_readiness' "$TECH_LEAD_SKILL"
 assert_present 'goal_fidelity_review' "$TECH_LEAD_SKILL"
-assert_present 'scope_item_refs.*范围来源' "$TECH_LEAD_SKILL"
 assert_present 'validate_standard_chain_phase\.py --phase-dir' "$TECH_LEAD_SKILL"
 assert_present 'Mock-only' "$TECH_LEAD_SKILL"
 assert_present 'assertion_target' "$DEVELOPER_SKILL"
@@ -2463,6 +2415,5 @@ assert_present 'qa_handoff_contract' "$DELIVERY_OWNER_SKILL"
 assert_present 'cross_unit_obligations' "$DELIVERY_OWNER_SKILL"
 assert_present 'blocking=true' "$DELIVERY_OWNER_SKILL"
 assert_present 'traceability_matrix' "$CONSISTENCY_AUDIT_SKILL"
-assert_present 'typed gap' "$CONSISTENCY_AUDIT_SKILL"
 
 printf '[PASS] design skill governance redesign\n'

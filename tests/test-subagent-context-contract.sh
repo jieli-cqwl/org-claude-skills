@@ -83,22 +83,15 @@ assert_stage_absent 'delivery-owner' 'subagent_policy:|max_subagents:|recovery_c
 assert_absent 'metrics_log_template_ref' "$ROOT/contracts/standard-chain.yaml"
 
 assert_present "\`goal_fidelity_review\`" "$ROOT/shared/skills/tech-lead/SKILL.md"
-assert_absent '^[[:space:]]*##[[:space:]]+5\.1[[:space:]]+Traceability Draft Agent[[:space:]]*$' "$ROOT/shared/skills/tech-lead/SKILL.md"
 for prompt in \
   "$ROOT/shared/skills/tech-lead/references/plan-reviewer-prompt.md" \
   "$ROOT/shared/skills/tech-lead/references/plan-product-reviewer-prompt.md" \
   "$ROOT/shared/skills/tech-lead/references/plan-test-reviewer-prompt.md"; do
   [ ! -e "$prompt" ] || fail "unexpected retained tech-lead reviewer prompt: ${prompt#"$ROOT"/}"
 done
-assert_present 'developer agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'verifier agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'qa agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'fixer agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_absent '主 Agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
 assert_absent 'fact-scan-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/design/references/runtime-fact-capture.md"
 assert_absent 'hypothesis-draft-template\.md|structure-draft-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/design/references/decision-templates.md"
-assert_present 'decision_state.*已冻结' "$ROOT/shared/skills/design/references/decision-templates.md"
 assert_absent 'decision_state.*draft / frozen' "$ROOT/shared/skills/design/references/decision-templates.md"
 assert_absent 'structure-draft-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROOT/shared/skills/design/projections/adr-spec.md"
 python3 - "$ROOT/shared/skills/design/SKILL.md" <<'PY'
@@ -107,35 +100,22 @@ from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
 required = [
-    "最终 `design.json`",
-    "用户确认",
-    "review 闭环",
     "`final_confirmation`",
-    "写入",
-    "用户确认后写入 `{phase_dir}/design.json` 的 `review_closure` 和 `final_confirmation`",
+    "review_closure",
 ]
 missing = [term for term in required if term not in text]
 if missing:
-    raise SystemExit(f"missing design finalization boundary terms: {missing}")
-forbidden = ["台账验证", "finalization_basis", "用户确认后先写入台账"]
-present = [term for term in forbidden if term in text]
-if present:
-    raise SystemExit(f"unexpected design ledger finalization terms: {present}")
+    raise SystemExit(f"missing design finalization boundary fields: {missing}")
 PY
 
 ROUTING_REF="$ROOT/shared/skills/delivery-owner/references/dispatch-packet.md"
 assert_absent 'synthesis-template\.md|subagent-recovery-contract|context-noise-metrics' "$ROUTING_REF"
-assert_present "Packet \`role\`" "$ROUTING_REF"
+assert_present '^role:$' "$ROUTING_REF"
 assert_present '^task_ref:$' "$ROUTING_REF"
 assert_present '^expected_evidence:$' "$ROUTING_REF"
-assert_absent 'Status Synthesis Agent|Evidence Synthesis Agent' "$ROUTING_REF"
 assert_absent 'status-synthesis|evidence-synthesis' "$ROUTING_REF"
 assert_absent '^\| Synthesis \|' "$ROUTING_REF"
 DIRECTOR_PROBLEM_GUIDE="$ROOT/shared/skills/product-director/references/problem-clarification.md"
-assert_absent 'Context Scan Agent' "$DIRECTOR_PROBLEM_GUIDE"
-assert_absent 'Problem Hypothesis Agent' "$DIRECTOR_PROBLEM_GUIDE"
-assert_absent 'sub agent' "$DIRECTOR_PROBLEM_GUIDE"
-assert_absent 'subagent' "$DIRECTOR_PROBLEM_GUIDE"
 
 bash "$ROOT/tools/dev/validate-contracts.sh" >/tmp/org-validate-contracts.out 2>&1 || {
   cat /tmp/org-validate-contracts.out >&2

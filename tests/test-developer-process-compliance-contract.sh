@@ -108,7 +108,7 @@ for raw_path in sys.argv[1:]:
         raise SystemExit(f"{path}: reference still carries routing metadata: {', '.join(present)}")
 
 exploration_text = Path(sys.argv[1]).read_text(encoding="utf-8")
-legacy_exploration_noise = ["### 主动探索", "`ls`", "Grep 搜索"]
+legacy_exploration_noise = ["`ls`"]
 present_noise = [term for term in legacy_exploration_noise if term in exploration_text]
 if present_noise:
     raise SystemExit(f"{sys.argv[1]}: decomposition guide still carries tool-specific exploration noise: {', '.join(present_noise)}")

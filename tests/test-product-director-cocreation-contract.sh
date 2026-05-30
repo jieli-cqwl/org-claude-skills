@@ -31,39 +31,12 @@ assert_json_ok() {
   jq empty "$file" >/dev/null 2>&1 || fail "invalid JSON: ${file#"$ROOT"/}"
 }
 
-assert_absent 'Co-creation Mode|Finalization Mode' "$DIRECTOR"
-
 python3 - "$DIRECTOR" <<'PY'
 import re
 import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
-for forbidden_heading in [
-    "默认工作模式",
-    "暂停输出协议",
-    "Key Principles",
-]:
-    if re.search(rf"^## {re.escape(forbidden_heading)}$", text, re.M):
-        raise SystemExit(f"unexpected section: {forbidden_heading}")
-match = re.search(r"^## HARD-GATE\n\n(?P<body>.*?)(?=^## )", text, re.M | re.S)
-if not match:
-    raise SystemExit("missing HARD-GATE section")
-body = match.group("body").strip()
-for forbidden in [
-    "技术债",
-    "schema",
-    "hook",
-    "runtime",
-    "contract",
-    "product-director-ledger",
-    "brief.json",
-    "phase-prd.json",
-    "\n- ",
-]:
-    if forbidden in body:
-        raise SystemExit(f"HARD-GATE too heavy, contains: {forbidden}")
-
 flow = re.search(r"```dot\n(?P<body>digraph product_director_flow .*?)\n```", text, re.S)
 if not flow:
     raise SystemExit("missing product_director_flow")

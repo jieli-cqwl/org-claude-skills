@@ -612,56 +612,11 @@ assert_allowed_tools_exact \
   "Read,Write,Edit,Bash,Glob,Grep,LSP"
 
 assert_present \
-  "developer SKILL 保留 HARD-GATE" \
-  '^## HARD-GATE$' \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL 聚焦 Task 实现 owner" \
-  'Task 实现 owner' \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL 使用输入识别而不是前置条件表" \
-  '^## 输入识别$' \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL 默认输出 developer-report" \
-  '默认输出是当前 Task 的 `developer-report\.json`' \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL 要求对话回复不能替代报告" \
-  '对话回复只摘要报告路径、变更、验证结果和风险，不能替代报告' \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL 缺报告路径时阻断补派发信息" \
-  '缺少报告路径时，先停止并要求补齐派发信息' \
-  "$DEV_SKILL"
-
-assert_absent \
-  "developer SKILL 不承载 hook/gate 调用说明" \
-  'hooks 运行面|shared/hooks/registry\.json|developer entry|completion gate|shared/skills/developer/scripts/completion_check\.sh|hook payload|gate validator|gate 结果' \
-  "$DEV_SKILL"
-
-assert_present \
   "developer SKILL 标明 preflight 输入校验入口" \
   'shared/skills/developer/scripts/preflight_check\.sh --phase-dir "\$PHASE_DIR" --task-id "\$TASK_ID"' \
   "$DEV_SKILL"
 
-assert_present \
-  "developer SKILL 限定 preflight 为输入校验" \
-  '只校验 Task、Scope、design/test refs，以及 test-cases 中的 `assertion_target` 或 `expected_result`；失败则停止' \
-  "$DEV_SKILL"
-
 test -x "$DEV_PREFLIGHT" || fail "developer preflight script must be executable"
-
-assert_present \
-  "developer SKILL 使用流程支撑可执行步骤" \
-  '^## 流程$' \
-  "$DEV_SKILL"
 
 assert_present \
   "developer SKILL 流程图命名为 developer_flow" \
@@ -672,92 +627,6 @@ assert_present \
   "developer SKILL 将 test-cases 作为 TDD 输入而非运行面 gate" \
   'test-cases\.json.*test_refs.*assertion_target.*expected_result|test-cases\.json.*test_refs.*expected_result.*assertion_target' \
   "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL 发现 design.json 范围外需求时停止" \
-  '需要改 `design\.json`.*先停止|design\.json.*范围外' \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer agent 保持极薄角色启动语" \
-  '加载 developer skill' \
-  "$DEV_AGENT"
-
-assert_present \
-  "developer agent 只承接单个 Task" \
-  '单个 Task' \
-  "$DEV_AGENT"
-
-assert_absent \
-  "developer SKILL 不再要求读取 MOD markdown 投影" \
-  'design/MOD-\*\.md|MOD 文档' \
-  "$DEV_SKILL"
-
-assert_absent \
-  "developer SKILL 不再承载 runtime-layering 标准正文" \
-  '^## Runtime Layering Contract$|Runtime Inputs And Authority|^## 流程合规输出合同$|^## 失败路由合同$' \
-  "$DEV_SKILL"
-
-assert_absent \
-  "developer SKILL 不再新增独立工具边界章节" \
-  '^## 工具边界$' \
-  "$DEV_SKILL"
-
-assert_absent \
-  "developer SKILL 不再新增前置条件章节" \
-  '^## 前置条件$' \
-  "$DEV_SKILL"
-
-
-assert_absent \
-  "developer SKILL 不再保留流程状态表" \
-  '^### 流程状态表$' \
-  "$DEV_SKILL"
-
-assert_absent \
-  "developer agent 不再要求读取 MOD markdown 投影" \
-  'design/MOD-\*\.md|MOD 文档' \
-  "$DEV_AGENT"
-
-assert_present \
-  "developer SKILL 对既有失败给出 BLOCKED 口径" \
-  '既有失败.*BLOCKED' \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL 对既有失败给出部分完成口径" \
-  '既有失败.*部分完成' \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL 仍要求全量测试 PASS 才能完成" \
-  '全量测试 PASS' \
-  "$DEV_SKILL"
-
-assert_present \
-  "self-testing 方法论对既有失败给出 BLOCKED 口径" \
-  '既有失败.*BLOCKED' \
-  "$DEV_SELF_TEST"
-
-assert_present \
-  "self-testing 方法论对既有失败给出部分完成口径" \
-  '既有失败.*部分完成' \
-  "$DEV_SELF_TEST"
-
-assert_absent \
-  "developer SKILL 不再残留 PM" \
-  '(^|[^A-Za-z])PM([^A-Za-z]|$)|项目经理' \
-  "$DEV_SKILL"
-
-assert_absent \
-  "developer agent 不再残留 PM" \
-  '(^|[^A-Za-z])PM([^A-Za-z]|$)|项目经理' \
-  "$DEV_AGENT"
-
-assert_present \
-  "self-review 标题修正为 7 维度" \
-  '^## 7 维度结构化自审$' \
-  "$DEV_SELF_REVIEW"
 
 assert_present \
   "developer gate 显式支持 canonical developer-report.json" \

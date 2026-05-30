@@ -32,41 +32,6 @@ assert_absent() {
   fi
 }
 
-extract_section() {
-  local file="$1"
-  local heading="$2"
-  awk -v heading="$heading" '
-    $0 == heading { in_section=1; print; next }
-    in_section && /^```/ { in_code = !in_code; print; next }
-    in_section && !in_code && /^## / && $0 != heading { exit }
-    in_section { print }
-  ' "$file"
-}
-
-assert_section_present() {
-  local file="$1"
-  local heading="$2"
-  local pattern="$3"
-  local scope="$4"
-  local tmp
-  tmp="$(mktemp "${TMPDIR:-/tmp}/product-context-signal.XXXXXX")"
-  extract_section "$file" "$heading" > "$tmp"
-  assert_present "$pattern" "$tmp" "$scope"
-  rm -f "$tmp"
-}
-
-assert_section_absent() {
-  local file="$1"
-  local heading="$2"
-  local pattern="$3"
-  local scope="$4"
-  local tmp
-  tmp="$(mktemp "${TMPDIR:-/tmp}/product-context-signal.XXXXXX")"
-  extract_section "$file" "$heading" > "$tmp"
-  assert_absent "$pattern" "$tmp" "$scope"
-  rm -f "$tmp"
-}
-
 assert_any_present() {
   local file="$1"
   local scope="$2"
@@ -231,20 +196,7 @@ assert_present 'issue_ledger' "$MANAGER_REVIEW" "manager review artifact definit
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$DIRECTOR_SKILL" "director flow narrative noise"
 assert_absent 'digraph product_flow|references/flow-contract\.md' "$MANAGER_SKILL" "manager flow narrative noise"
 assert_absent 'references/conversation-guide\.md' "$DIRECTOR_SKILL" "director removed conversation guide"
-python3 - "$DIRECTOR_SKILL" <<'PY'
-import re
-import sys
-from pathlib import Path
-
-text = Path(sys.argv[1]).read_text(encoding="utf-8")
-for forbidden in [
-    r"^## 触发边界$",
-    r"^## Handoff Contract",
-]:
-    if re.search(forbidden, text, re.M):
-        raise SystemExit(f"unexpected Director section: {forbidden}")
-PY
-assert_section_absent "$DIRECTOR_SKILL" "## HARD-GATE" 'director_confirmation|locked_field_digest' "director runtime-lock noise"
+assert_absent 'director_confirmation|locked_field_digest' "$DIRECTOR_SKILL" "director runtime-lock noise"
 assert_present 'product-director-ledger\.json' "$DIRECTOR_FINAL_GUIDE" "director ledger artifact boundary"
 assert_director_evaluator_rejects_missing_phase_goal "$DIRECTOR_CONTENT_EVALUATOR"
 

@@ -182,8 +182,6 @@ required_terms = [
 missing = [term for term in required_terms if term not in text]
 if missing:
     raise SystemExit(f"{skill_path}: missing ledger contract terms: {missing}")
-if "## 共创台账" in text:
-    raise SystemExit(f"{skill_path}: must not reintroduce legacy co-creation ledger section")
 print("[PASS] skill ledger contract declarations")
 PY
 

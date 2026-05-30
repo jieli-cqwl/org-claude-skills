@@ -111,11 +111,6 @@ assert_present '"evidence_ref"' "$ROOT/shared/skills/design/templates/design.tem
 assert_present '"verification_mapping"' "$ROOT/shared/skills/design/contracts/design.schema.json"
 assert_present '"evidence_ref"' "$ROOT/shared/skills/design/contracts/design.schema.json"
 
-assert_present 'Task Packet' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'developer agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'verifier agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'qa agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'fixer agent' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'NEEDS_RESOURCE' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'references/plan-review\.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'references/dispatch-packet\.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"

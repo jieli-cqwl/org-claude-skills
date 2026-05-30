@@ -93,8 +93,6 @@ done
 assert_hard_gate_absent 'references/conversation-guide.md' "$DIRECTOR_SKILL"
 
 assert_hard_gate_absent 'preflight_check.sh --arguments' "$DESIGN_SKILL"
-assert_hard_gate_absent 'PASS 后只读取脚本返回' "$DESIGN_SKILL"
-assert_hard_gate_absent 'preflight 必须确认产品输入' "$DESIGN_SKILL"
 assert_hard_gate_absent 'delivery_confirmation.status' "$DESIGN_SKILL"
 assert_hard_gate_absent 'issue_ledger' "$DESIGN_SKILL"
 assert_hard_gate_absent 'input params' "$DESIGN_SKILL"
@@ -102,8 +100,6 @@ assert_hard_gate_absent 'output params' "$DESIGN_SKILL"
 assert_hard_gate_absent 'error codes' "$DESIGN_SKILL"
 assert_hard_gate_absent 'migration / verification / rollback' "$DESIGN_SKILL"
 
-assert_hard_gate_absent '前置约束' "$MANAGER_SKILL"
-assert_hard_gate_absent '交付计划' "$MANAGER_SKILL"
 
 assert_hard_gate_absent 'full traceability' "$TECH_LEAD_SKILL"
 assert_hard_gate_absent 'DESIGN_OK verdict AND complete coverage matrix' "$TECH_LEAD_SKILL"
@@ -111,7 +107,6 @@ assert_hard_gate_absent 'real_dependency_note' "$TECH_LEAD_SKILL"
 assert_hard_gate_absent 'evidence_target' "$TECH_LEAD_SKILL"
 assert_hard_gate_absent 'mock_boundary_note' "$TECH_LEAD_SKILL"
 
-assert_hard_gate_absent 'QAR-XXX' "$QA_SKILL"
 assert_hard_gate_absent 'environment_or_build' "$QA_SKILL"
 assert_hard_gate_absent 'release_recommendation' "$QA_SKILL"
 
@@ -121,11 +116,7 @@ assert_hard_gate_absent 'task_packet_check.sh' "$DELIVERY_OWNER_SKILL"
 assert_hard_gate_absent 'current_gap / progress_signal' "$DELIVERY_OWNER_SKILL"
 assert_hard_gate_absent 'next_owner' "$DELIVERY_OWNER_SKILL"
 
-assert_hard_gate_terms "$DIRECTOR_SKILL" "confirmed-baseline gate" '产品总监确认' '已确认基线|冻结基线' '不要|不得'
-assert_hard_gate_terms "$MANAGER_SKILL" "PM handoff confirmation gate" 'director_confirmation\.status=passed|Director' '缺交付确认|delivery_confirmation' '任一不成立|阻断事实|回流节点'
-assert_hard_gate_terms "$DESIGN_SKILL" "design final confirmation gate" '冻结有闭环' 'final_confirmation\.status=confirmed' '交给 `/test-design`'
 assert_present 'NO task handoff when the task lacks traceable goal' "$TECH_LEAD_SKILL"
-assert_present 'NO FAIL item without stable issue identity' "$QA_SKILL"
 assert_present 'valid `failure_class` and owner-level disposition' "$FIX_SKILL"
 
 assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized' "$DIRECTOR_SKILL"

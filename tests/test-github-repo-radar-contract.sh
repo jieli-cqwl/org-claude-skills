@@ -47,9 +47,6 @@ test -f "$GATE_PLAN" || fail "missing gate plan"
 
 assert_present '^allowed-tools: .*WebSearch.*WebFetch.*AskUserQuestion' "$SKILL" "Skill current-evidence tools"
 assert_present '^allowed-tools: .*Read.*Write' "$SKILL" "Skill report IO tools"
-assert_present 'evidence-backed action|证据.*动作状态|action states with evidence' "$ADAPTER" "Adapter responsibility wording"
-assert_not_present '好项目|consumer|acceptance|failure_state|proof|合同清晰|质量标准|审稿|S[1-8]|G[0-2]|E[1-5]' "$SKILL" "Skill user-facing noise"
-assert_not_present 'consumer|acceptance|failure_state|proof|合同清晰|质量标准|审稿|S[1-8]|G[0-2]|E[1-5]' "$RUBRIC" "Rubric user-facing noise"
 
 assert_absent_path "$ROOT/shared/skills/github-repo-radar/schemas" "unconsumed schemas"
 assert_absent_path "$ROOT/shared/skills/github-repo-radar/templates" "unconsumed templates"

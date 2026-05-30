@@ -173,7 +173,6 @@ assert_absent 'scope registry|worklog\.md|canonical: active refs' "$ROOT/shared/
 for agent_contract in "$ROOT/shared/agents/claude"/*.md
 do
   assert_absent '^model:|^maxTurns:|^memory:' "$agent_contract"
-  assert_absent '^# Step Contract$|^运行时边界：|^输入：|^输出：|^scope（可选）|^要求：|^阻断条件：' "$agent_contract"
   assert_absent '\{work_dir\}|\{phase_dir\}|docs/\{feature\}|developer-report\.json|verify-result\.json|qa-result\.json|code-review-result\.json|test-cases\.json|plan\.json|design\.json|brief\.json|phase-prd\.json|UNIT-\*\.json|MOD-\*\.md|ADR-\*\.md' "$agent_contract"
   assert_absent '下文若仍出现 legacy 名称' "$agent_contract"
   assert_absent '不再直接依赖旧 `md` 工件' "$agent_contract"

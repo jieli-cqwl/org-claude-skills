@@ -425,7 +425,7 @@ EOF
 probe_rule_reference_activation() {
   local probe_home="$TMP_ROOT/probe-home"
   local reference_file="$probe_home/.codex/reference/runtime-rule-reference-probe.md"
-  local rule_file="$probe_home/.codex/rules/交付验收底线.md"
+  local rule_file="$probe_home/.codex/rules/完成前验证.md"
   local entry_file="$probe_home/.codex/AGENTS.md"
   local trigger="运行时规则绝对路径引用探针"
   local prompt="$trigger"

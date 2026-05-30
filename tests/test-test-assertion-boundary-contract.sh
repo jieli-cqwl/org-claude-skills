@@ -44,14 +44,14 @@ if grep -Eq 'low-signal-prose-assertions\.baseline' "$AGENTS_ENTRY"; then
   fail "AGENTS.md must not document a low-signal assertion baseline"
 fi
 
-mkdir -p "$TMP_DIR/bad" "$TMP_DIR/good"
+mkdir -p "$TMP_DIR/bad" "$TMP_DIR/good" "$TMP_DIR/repo/tools" "$TMP_DIR/repo/tests"
 
 cat >"$TMP_DIR/bad/test-bad-prose.sh" <<'BAD'
 #!/usr/bin/env bash
 RULE="$ROOT/shared/rules/example.md"
 REFERENCE="$ROOT/shared/reference/example.md"
 assert_present '^## Beautiful prose heading$' "$ROOT/shared/skills/example/SKILL.md"
-assert_present '^# 交付验收底线$' "$RULE"
+assert_present '^# 完成前验证$' "$RULE"
 assert_absent 'This assertion only freezes the wording of a Markdown skill guide and does not protect a machine contract.' "$ROOT/shared/skills/example/references/guide.md"
 assert_present 'The reviewer should provide concise actionable guidance and return an advisory gate conclusion before implementation proceeds.' "$ROOT/shared/agents/example.md"
 assert_present 'The reference guide should preserve this complete prose sentence even though it is not a machine contract.' "$REFERENCE"
@@ -79,7 +79,7 @@ required_sections = ["失败处理", "验收证据"]
 for section in required_sections:
     if f"## {section}" not in text:
         raise SystemExit(section)
-if text.startswith("# 交付验收底线\n"):
+if text.startswith("# 完成前验证\n"):
     pass
 if "目标内失败必须修根因；目标外失败只报告" in text:
     pass
@@ -87,6 +87,11 @@ if "红灯" not in text:
     pass
 PY
 BAD
+
+cat >"$TMP_DIR/repo/tools/check-prose.sh" <<'TOOLBAD'
+#!/usr/bin/env bash
+assert_present '工具目录也不能锁正文措辞' "$ROOT/shared/skills/example/SKILL.md"
+TOOLBAD
 
 cat >"$TMP_DIR/good/test-good-contract.sh" <<'GOOD'
 #!/usr/bin/env bash
@@ -107,7 +112,7 @@ if python3 "$CHECKER" --tests-dir "$TMP_DIR/bad" >"$TMP_DIR/bad.out" 2>&1; then
 fi
 assert_present 'LOW_SIGNAL_PROSE_ASSERTION' "$TMP_DIR/bad.out"
 assert_present 'Beautiful prose heading' "$TMP_DIR/bad.out"
-assert_present '交付验收底线' "$TMP_DIR/bad.out"
+assert_present '完成前验证' "$TMP_DIR/bad.out"
 assert_present 'wording of a Markdown skill guide' "$TMP_DIR/bad.out"
 assert_present 'advisory gate conclusion' "$TMP_DIR/bad.out"
 assert_present 'reference guide should preserve' "$TMP_DIR/bad.out"
@@ -125,6 +130,10 @@ assert_present '交付视角 review' "$TMP_DIR/bad.out"
 assert_present '目标内失败必须修根因' "$TMP_DIR/bad.out"
 
 python3 "$CHECKER" --tests-dir "$TMP_DIR/good" >/dev/null
+if python3 "$CHECKER" --repo-root "$TMP_DIR/repo" >"$TMP_DIR/tools.out" 2>&1; then
+  fail "default repo scan should include tools/ low-signal assertions"
+fi
+assert_present '工具目录也不能锁正文措辞' "$TMP_DIR/tools.out"
 python3 "$CHECKER" --repo-root "$ROOT" >/dev/null
 (
   cd "$ROOT"

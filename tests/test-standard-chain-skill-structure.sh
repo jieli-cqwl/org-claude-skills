@@ -171,38 +171,23 @@ assert_absent '^\*\*.*references/.*\*\*$' "$DIRECTOR"
 assert_absent 'references/conversation-guide\.md' "$DIRECTOR"
 assert_present '`references/final-artifacts\.md`' "$DIRECTOR"
 assert_absent 'references/output\.md#' "$DIRECTOR"
-assert_present 'Director result gate' "$DIRECTOR"
 python3 - "$DIRECTOR" <<'PY'
-import re
 import sys
 from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
-required_routes = {
-    "问题澄清": ["剥离方案名", "references/problem-clarification.md"],
-    "目标、成功标准与投入边界": ["可观察成功信号", "references/success-investment-boundary.md"],
-    "业务语义收口": ["影响范围", "references/business-semantics.md"],
-    "范围、本期不做、可行性约束与决策理由": ["核心、增强和未来", "references/scope-constraints.md"],
-    "风险与未知项": ["基线推翻风险", "references/risks-unknowns.md"],
-    "Phase 规划": ["iteration_timebox_days <= 14", "references/phase-planning.md"],
-    "Director Finalization（总监确认与写入）": [
-        "references/final-artifacts.md",
-        "产品总监确认",
-        "Director result gate",
-    ],
-}
-for label, tokens in required_routes.items():
-    for token in tokens:
-        if token not in text:
-            raise SystemExit(f"missing Director route token for {label}: {token}")
-for forbidden in [
-    "每个业务判断阶段只读取当前步骤 reference；每轮只推进一个最会改变 Director 基线的事实",
-    "只提取判断对象、检查点和停止条件",
-]:
-    if forbidden in text:
-        raise SystemExit(f"unexpected old Director wording: {forbidden}")
-if re.search(r"^## 触发边界$", text, re.M):
-    raise SystemExit("unexpected Director trigger-boundary section")
+required_refs = [
+    "references/problem-clarification.md",
+    "references/success-investment-boundary.md",
+    "references/business-semantics.md",
+    "references/scope-constraints.md",
+    "references/risks-unknowns.md",
+    "references/phase-planning.md",
+    "references/final-artifacts.md",
+]
+missing = [ref for ref in required_refs if ref not in text]
+if missing:
+    raise SystemExit(f"missing Director reference routes: {missing}")
 PY
 assert_present 'completion_check\.sh' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
 assert_absent 'validate_canonical_schema.py' "$DIRECTOR_FINAL_ARTIFACTS_REFERENCE"
@@ -220,14 +205,10 @@ assert_absent 'references/pm-quality-guide\.md' "$MANAGER"
     echo "[FAIL] retired product-manager pm-quality-guide reference still exists" >&2
     exit 1
 }
-assert_present '\*\*Verification Plan\*\*' "$MANAGER"
-assert_present '\*\*Design handoff\*\*|design handoff' "$MANAGER"
-assert_present 'Agent review.*references/review-orchestration\.md|references/review-orchestration\.md.*Agent review' "$MANAGER"
 assert_absent 'references/output\.md' "$MANAGER"
 assert_absent 'references/(review-orchestration|output)\.md#|references/[^`[:space:]]+-contract\.md' "$MANAGER"
 assert_present 'validate_standard_chain_phase.py' "$MANAGER"
 assert_present 'validate_product_closure.py' "$MANAGER"
-assert_present 'PM handoff gate' "$MANAGER"
 assert_absent 'product-manager/scripts/completion_check\.sh|hook payload' "$MANAGER"
 
 assert_present 'digraph developer_flow' "$DEVELOPER"

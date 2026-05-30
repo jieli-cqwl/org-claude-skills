@@ -13,7 +13,7 @@ codex_skills_dir="$home_dir/.agents/skills"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-quick-canary-install)" --target codex --check quick
 
 install_test_assert_file_exists "$home_dir/.codex/AGENTS.md" "codex runtime should include AGENTS.md"
-install_test_assert_file_exists "$home_dir/.codex/rules/交付验收底线.md" "codex runtime should include rules"
+install_test_assert_file_exists "$home_dir/.codex/rules/完成前验证.md" "codex runtime should include rules"
 install_test_assert_file_exists "$home_dir/.codex/reference/测试规范.md" "codex runtime should include reference docs"
 install_test_assert_file_exists "$codex_skills_dir/product-manager/SKILL.md" "codex runtime should install managed user skills"
 install_test_assert_file_exists "$home_dir/.codex/hooks.json" "codex runtime should include hooks.json"

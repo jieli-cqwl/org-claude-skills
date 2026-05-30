@@ -54,7 +54,6 @@ assert_skill_flow_is_real_verifier_sop() {
   assert_present 'shared/skills/verify/scripts/preflight_check\.sh --phase-dir "\$PHASE_DIR" --task-id "\$TASK_ID"' "$SKILL"
   assert_present 'shared/skills/verify/templates/verify-result\.template\.json' "$SKILL"
   assert_present 'shared/skills/verify/contracts/verify-result\.schema\.json' "$SKILL"
-  assert_absent 'Trigger:|Read:|Expect:|Consume:|Evidence:|Sync:' "$SKILL"
 }
 
 assert_references_are_consumable_rubrics() {

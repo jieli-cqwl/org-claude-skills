@@ -31,7 +31,7 @@ def find_rule_backlinks(text: str) -> list[str]:
 def assert_self_checks() -> None:
     invalid_samples = [
         "{{RUNTIME_HOME}}/rules/代码规范.md",
-        ".claude/rules/交付验收底线.md",
+        ".claude/rules/完成前验证.md",
         ".codex/rules/执行纪律.md",
         "./rules/文档管理.md",
         "../rules/代码规范.md",

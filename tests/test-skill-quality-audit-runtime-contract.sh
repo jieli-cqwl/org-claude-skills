@@ -26,8 +26,6 @@ grep -q '^allowed-tools: Read, Write, Glob, Grep, Agent, Bash(python3 shared/ski
   || fail "skill-quality-audit must not have edit tools"
 grep -Fq 'Write only audit output artifacts' "$SKILL" \
   || fail "skill-quality-audit must restrict Write to audit output artifacts"
-! grep -Eq 'Formal Gate|Quick Review' "$SKILL" \
-  || fail "skill-quality-audit must not expose Quick/Formal mode selection to users"
 grep -Fq 'Default behavior:' "$SKILL" \
   || fail "skill-quality-audit must define default audit behavior"
 grep -Fq 'produce a formal QA report in the same run' "$SKILL" \

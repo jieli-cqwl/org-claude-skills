@@ -117,20 +117,7 @@ fi
 for agent in "${expected_agents[@]}"; do
   assert_absent '^model[[:space:]]*=' "$ROOT/shared/agents/codex/$agent.toml"
   assert_absent '^model_reasoning_effort[[:space:]]*=' "$ROOT/shared/agents/codex/$agent.toml"
-  assert_absent '行为合约：.*\.codex/agents/.*\.md' "$ROOT/shared/agents/codex/$agent.toml"
 done
-
-expected_instruction_for() {
-  case "$1" in
-    code-reviewer) printf '%s\n' '加载 `review` skill，结合目标和成功标准交付结果。' ;;
-    consistency-auditor) printf '%s\n' '加载 `consistency-audit` skill，结合目标和成功标准交付结果。' ;;
-    developer) printf '%s\n' '加载 `developer` skill，结合目标和成功标准交付结果。' ;;
-    fixer) printf '%s\n' '加载 `fix` skill，结合目标和成功标准交付结果。' ;;
-    qa) printf '%s\n' '加载 `qa` skill，结合目标和成功标准交付结果。' ;;
-    verifier) printf '%s\n' '加载 `verify` skill，结合目标和成功标准交付结果。' ;;
-    *) return 1 ;;
-  esac
-}
 
 expected_skill_for() {
   case "$1" in
@@ -150,7 +137,6 @@ for agent in "${expected_agents[@]}"; do
   file="$ROOT/shared/agents/codex/$agent.toml"
   assert_present '^sandbox_mode = "workspace-write"$' "$file"
   assert_present '^developer_instructions = """$' "$file"
-  assert_present "$(expected_instruction_for "$agent")" "$file"
   [ -f "$ROOT/shared/skills/$(expected_skill_for "$agent")/SKILL.md" ] || fail "declared Codex agent skill source missing: $agent -> $(expected_skill_for "$agent")"
   assert_absent "$duplicated_skill_detail_pattern" "$file"
 done
@@ -162,8 +148,6 @@ done
 
 [ ! -d "$ROOT/codex/agents" ] || fail "codex/agents should not remain as a maintained source tree"
 [ ! -e "$ROOT/shared/agents/claude/code-reviewer.md" ] || fail "local Claude code-reviewer agent contract should be retired in favor of Superpowers reviewer semantics"
-
-assert_absent 'generic-code-reviewer|行为合约：.*code-reviewer\.md|完整方法论：.*shared/skills/review|完整方法论：.*skills/review|code-reviewer skill' "$ROOT/shared/agents/codex/code-reviewer.toml"
 
 assert_present '^name = "consistency-auditor"$' "$ROOT/shared/agents/codex/consistency-auditor.toml"
 assert_present 'advisory_only|advisory' "$ROOT/shared/agents/codex/consistency-auditor.toml"

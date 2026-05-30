@@ -27,22 +27,9 @@ assert_absent() {
   fi
 }
 
-python3 - "$SKILL" <<'PY'
-import sys
-from pathlib import Path
-
-text = Path(sys.argv[1]).read_text(encoding="utf-8")
-required = ["用户确认", "业务语义", "外部现实约束"]
-missing = [term for term in required if term not in text]
-if "LLM 主导" not in text and "你负责主导" not in text:
-    missing.append("LLM 主导|你负责主导")
-if missing:
-    raise SystemExit(f"missing role boundary terms: {missing}")
-PY
 assert_present 'boundary_behaviors' "$SCHEMA"
 assert_present 'boundary_behaviors' "$TEMPLATE"
 
-assert_present 'senior delivery architect|executable architecture decisions|downstream delivery' "$OPENAI"
 
 python3 - "$TEMPLATE" <<'PY'
 import json

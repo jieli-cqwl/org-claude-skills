@@ -47,32 +47,7 @@ DEV_DECOMP_GUIDE="$ROOT/shared/skills/developer/references/execution-decompositi
 TL_SKILL="$ROOT/shared/skills/tech-lead/SKILL.md"
 TL_TEMPLATE="$ROOT/shared/skills/tech-lead/projections/plan-template.md"
 
-# ── Developer: 执行拆解阶段存在性 ──
-
-assert_present \
-  "developer SKILL.md 包含执行拆解步骤" \
-  "执行拆解" \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL.md 包含代码探索子步骤" \
-  "代码探索" \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL.md 包含模式识别子步骤" \
-  "模式识别" \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL.md 包含步骤规划子步骤" \
-  "步骤规划" \
-  "$DEV_SKILL"
-
-assert_present \
-  "developer SKILL.md 包含风险标注子步骤" \
-  "风险标注" \
-  "$DEV_SKILL"
+# ── Developer: execution decomposition guide wiring ──
 
 assert_present \
   "developer SKILL.md 引用 execution-decomposition-guide" \
@@ -83,36 +58,6 @@ assert_present \
 
 if [ -f "$DEV_DECOMP_GUIDE" ]; then
   pass "execution-decomposition-guide.md 文件存在"
-
-  assert_present \
-    "方法论包含代码探索方法" \
-    "代码探索" \
-    "$DEV_DECOMP_GUIDE"
-
-  assert_present \
-    "方法论包含模式识别清单" \
-    "模式识别" \
-    "$DEV_DECOMP_GUIDE"
-
-  assert_present \
-    "方法论包含步骤规划格式" \
-    "步骤规划" \
-    "$DEV_DECOMP_GUIDE"
-
-  assert_present \
-    "方法论包含风险标注触发条件" \
-    "风险标注" \
-    "$DEV_DECOMP_GUIDE"
-
-  assert_absent \
-    "方法论不再包含比例缩放" \
-    "比例缩放|缩放判断|轻量条件（全部满足才可降级）" \
-    "$DEV_DECOMP_GUIDE"
-
-  assert_present \
-    "方法论要求完成全部执行拆解步骤" \
-    "所有 Task 均需完成 1a-1e" \
-    "$DEV_DECOMP_GUIDE"
 else
   fail "execution-decomposition-guide.md 文件不存在"
 fi
@@ -129,13 +74,6 @@ assert_absent \
   "developer SKILL.md 不再引用 deleted projection template" \
   "projections/developer-report-template" \
   "$DEV_SKILL"
-
-# ── Developer: 自审包含执行拆解遵循度维度 ──
-
-assert_present \
-  "self-review 包含执行拆解遵循度维度" \
-  "执行拆解遵循" \
-  "$DEV_SELF_REVIEW"
 
 # ── Tech-lead: impact_files 已移除 ──
 
