@@ -80,6 +80,8 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tools/community/validate_standard_chain_field_consumption.py"
   python3 -m py_compile "$ROOT/tools/community/check_test_signal_assertions.py"
   python3 -m py_compile "$ROOT/tools/community/check_test_signal_python.py"
+  python3 -m py_compile "$ROOT/tools/community/check_test_signal_rules.py"
+  python3 -m py_compile "$ROOT/tools/community/check_test_signal_shell.py"
   python3 -m py_compile "$ROOT/tools/community/gate_plan.py"
   python3 -m py_compile "$ROOT/tools/community/validate_episode_package.py"
   python3 -m py_compile "$ROOT/tools/eval/scripts/validate_stage2_design_package.py"
