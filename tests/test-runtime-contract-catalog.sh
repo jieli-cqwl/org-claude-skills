@@ -38,17 +38,28 @@ if missing_headings:
     raise SystemExit(f"missing headings: {', '.join(missing_headings)}")
 
 bullet_text = "\n".join(line for line in text.splitlines() if line.startswith("- "))
+completion_report = text.split("## 完成汇报", 1)[1]
 topics = {
     "structured_status": ("PASS", "VERIFIED", "ALLOW", "SIGNED_OFF", "CLOSED"),
     "acceptance_scope": ("用户目标", "成功标准", "AC", "任务合同"),
     "current_evidence": ("当前工作区", "本次执行结果"),
     "blocked_states": ("未执行", "失败", "证据不足", "待裁决"),
+    "acceptance_item": ("目标内验收项", "证据标准"),
     "real_implementation": ("真实实现", "部分实现", "单端完成"),
     "evidence_bypass": ("Mock/Stub/Fake", "日志摘要", "report 自引用"),
     "failure_bypass": ("skip", "xfail", "放宽断言", "改写验收口径"),
     "failure_boundary": ("目标内", "目标外", "用户裁决"),
 }
+report_topics = {
+    "report_items": ("逐项", "成功标准", "AC", "触发验证维度", "触发风险面", "影响范围回归项"),
+    "report_required_fields": ("状态", "证据"),
+    "report_conditional_fields": ("失败", "阻塞", "待裁决项", "阻塞原因", "下一步", "不涉及项", "不触发依据"),
+    "report_exclusions": ("未验证项", "完成结论"),
+}
 missing_topics = [name for name, terms in topics.items() if not all(term in bullet_text for term in terms)]
+missing_topics.extend(
+    name for name, terms in report_topics.items() if not all(term in completion_report for term in terms)
+)
 if missing_topics:
     raise SystemExit(f"missing topics: {', '.join(missing_topics)}")
 PY
