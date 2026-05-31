@@ -99,6 +99,35 @@ Each `keep` field must have:
 
 Each non-`keep` field must have a decision reason and an active cleanup surface. Cleanup surfaces include schema, template, skill instruction, script, test, fixture, runtime contract, gate plan, and active docs. Historical archives are not edited only for search cleanliness.
 
+The classification must be captured before implementation in:
+
+- `docs/superpowers/specs/2026-05-31--standard-chain-product-to-delivery-production-readiness--field-decision-matrix.md`
+
+The matrix is the implementation input, not a retrospective report. Minimum columns:
+
+- Artifact.
+- JSONPath.
+- Decision.
+- Owner.
+- Consumer.
+- Write stage.
+- Read stage.
+- Purpose.
+- Source of truth.
+- Verification method.
+- Failure behavior.
+- Recovery owner.
+- Cleanup surface.
+- Decision evidence.
+
+Matrix acceptance rules:
+
+- A `keep` row is invalid unless every minimum column except cleanup surface is complete and the verification method names a deterministic schema, script, contract test, fixture test, or gate check.
+- A non-`keep` row is invalid unless cleanup surface and decision evidence are complete.
+- A `derive` row must name the source value and the deterministic derivation point.
+- A `move` or `rename` row must name the old path, new path, migration surface, and consumer update surface.
+- In-scope `needs-human-decision` rows block implementation until resolved to another decision. If the item is out of scope, the row must state the scope reason and no active schema, template, script, fixture, or gate may depend on it.
+
 ## Chain Invariants
 
 ### Director Baseline Lock
@@ -188,9 +217,96 @@ Validation should be built from deterministic checks first:
 - Pilot happy-path tests for at least two existing fixtures.
 - Negative tests for failure modes listed above.
 - Runtime contract tests for stage/state vocabulary and evidence matrix semantics.
-- Targeted quick/full gate selection based on changed surfaces.
+- Gate execution as defined in the Gate Strategy section.
 
 Manual review is allowed only to classify ambiguous field decisions or user-facing semantics. It must not replace deterministic contract validation.
+
+### Canonical Pilot Fixtures
+
+The reusable happy-path proof uses these canonical fixtures unless a later design update replaces them and also updates the matching gate plan or test coverage:
+
+- `tests/fixtures/standard-chain-pilots/login-homepage-pilot`
+- `tests/fixtures/standard-chain-pilots/feedback-thanks-pilot`
+
+Each pilot must prove the same observable chain:
+
+- Baseline artifacts are present, version-aligned, and accepted by delivery-owner intake.
+- Director locked fields are present and digest-valid.
+- Product-manager refinements stay inside WHAT-level ownership.
+- `plan.json` and `tasks.json` are aligned, confirmed, and frozen for delivery dispatch.
+- Runtime evidence entries exist for every in-scope task and are active in `artifact-registry.json`.
+- `delivery-state.json` transitions do not skip required evidence gates.
+- `signoff-package.runtime_evidence_matrix` covers every required evidence type and task-level evidence entry.
+- `READY_FOR_COMMIT` is not accepted as `DELIVERED` unless a commit or equivalent delivery result is recorded and linked.
+
+### Acceptance Test Matrix
+
+Implementation is not ready for review until every row has a named validator, fixture or sample input, and expected result.
+
+| ID | Success criterion | Required proof | Minimum positive coverage | Minimum negative coverage | Gate tier |
+| --- | --- | --- | --- | --- | --- |
+| SC-1 | Chain contracts are clean | Field decision matrix plus schema, template, script, fixture, and active-doc diff review | Every active field has an accepted matrix row and matching active surface update | A field without owner, consumer, verification method, or cleanup decision fails matrix validation | Targeted contract gate |
+| SC-2 | Stage boundaries are enforceable | Director lock validator, PM preflight, task freeze validator, delivery-owner intake validator | Canonical pilots pass without DO-S1 reading runtime evidence | Digest drift, missing Director confirmation, PM HOW leakage, unfrozen tasks, or DO-S1 future-evidence dependency blocks | Targeted contract gate |
+| SC-3 | Delivery-owner can execute deterministically | Delivery intake, dispatch readiness, delivery-state, pause, recovery, and signoff validators | Canonical pilots produce deterministic owner, reason, state, recovery, and next-action outputs | Missing baseline, mixed versions, bad state transition, or missing recovery owner blocks | Targeted script gate |
+| SC-4 | Runtime evidence is consumable | Runtime evidence schema plus artifact-registry validator | Developer, verify, review, QA, consistency, and triggered fix evidence expose status, freshness basis, canonical ref, producer, and active registry proof | Evidence on disk but absent, stale, superseded, non-finalized, or inactive in registry blocks | Runtime contract gate |
+| SC-5 | Failure paths are hard-blocking | Negative fixture suite covering the failure mode matrix | Not applicable; positive behavior is covered by SC-2 through SC-4 and SC-6 through SC-8 | Every listed failure mode returns block status, owner, reason, and recovery condition | Negative gate |
+| SC-6 | Signoff is auditable | Signoff package schema and signoff validator | Canonical pilots include complete, fresh, active, non-superseded evidence matrix entries | Missing evidence type, missing task entry, stale evidence, or narrative-only proof blocks | Signoff gate |
+| SC-7 | Human decisions are separated | `user-decision.json` and `target-change.json` schema and validator | Waiver, risk acceptance, authorization, and signoff use user-decision; scope, AC, goal, task, and design changes use target-change | Target change inside user-decision, waiver inside target-change, or absent required decision blocks | Decision contract gate |
+| SC-8 | Pilot proof is repeatable | Two canonical pilot happy-path tests and targeted negative fixtures | Both canonical pilots pass from baseline artifacts through signoff readiness | Mutated pilot fixtures for each targeted failure mode block at the expected stage | Pilot gate |
+| SC-9 | Verification reaches production-readiness confidence | Fresh command output, diff-range review, and criterion-by-criterion evidence report | Targeted gates, quick gate, and full repository gate pass for implementation delivery | Markdown-only evidence, stale command output, skipped in-scope tests, or report self-reference blocks completion claim | Final gate |
+
+### Failure Mode Coverage Matrix
+
+Each failure mode must have one deterministic negative fixture or validator case. The expected result is always: block, owner, reason, recovery condition, and no signoff permission.
+
+| ID | Failure mode | Stage | Required negative proof |
+| --- | --- | --- | --- |
+| FM-01 | Missing required baseline input | DO-S1 | Remove one required baseline artifact from a canonical pilot and prove intake blocks. |
+| FM-02 | Director confirmation missing or failed | DO-S1 | Remove or fail `director_confirmation` and prove Director-owned baseline is not accepted. |
+| FM-03 | Director lock digest drift | DO-S1 | Mutate a locked field without updating the approved path and prove digest validation blocks. |
+| FM-04 | Mixed baseline or tasks version | DO-S1 | Combine baseline artifacts from different versions and prove version alignment blocks. |
+| FM-05 | `plan.json` and `tasks.json` version mismatch | DO-S1 | Mutate one version field and prove task intake blocks. |
+| FM-06 | Tasks not frozen or not confirmed | DO-S1 | Mark tasks as draft, unconfirmed, or mutable and prove dispatch readiness blocks. |
+| FM-07 | Task acceptance refs missing or not traceable | DO-S1 | Remove AC refs from one task and prove dispatch readiness blocks. |
+| FM-08 | QA handoff obligations missing or not covered | DO-S1 or DO-S7 | Remove QA obligations before dispatch or coverage before QA closure and prove the owning stage blocks. |
+| FM-09 | Developer or verify evidence missing for an in-scope task | DO-S5 | Remove one required task evidence entry and prove execution closure blocks. |
+| FM-10 | Code review missing, stale, or blocking | DO-S6 | Remove review evidence, mark it stale, or mark it blocking and prove review closure blocks. |
+| FM-11 | QA result missing, not PASS, or obligation coverage incomplete | DO-S7 | Remove QA result, set non-PASS, or drop obligation coverage and prove QA closure blocks. |
+| FM-12 | Consistency audit required owner action not consumed | DO-S8 | Add required owner action without consumed resolution and prove signoff prep blocks. |
+| FM-13 | Runtime evidence exists on disk but is not active in the registry | DO-S5 through DO-S8 | Keep evidence file but remove or deactivate its registry entry and prove consumption blocks. |
+| FM-14 | Registry entry lifecycle is not finalized or not active for consumption | DO-S5 through DO-S8 | Set lifecycle to draft, stale, superseded, or inactive and prove consumption blocks. |
+| FM-15 | Signoff evidence matrix omits a required evidence type or task-level entry | DO-S8 | Drop one evidence type or task-level row and prove signoff blocks. |
+| FM-16 | Target change invalidates evidence but old evidence is still consumed | DO-S5 through DO-S8 | Add target-change affecting an evidence scope and prove old evidence is rejected until refreshed. |
+| FM-17 | User decision or risk acceptance is required but absent | DO-S8 or signoff | Require waiver, authorization, or risk acceptance and prove absent `user-decision.json` blocks. |
+| FM-18 | `READY_FOR_COMMIT` is treated as `DELIVERED` | closeout | Set state to `DELIVERED` without commit or equivalent delivery result and prove closeout blocks. |
+
+### Test Data And Evidence Rules
+
+- Positive and negative fixtures must be independently specified from the contract. They must not be generated by the validator under test and then reused as its oracle.
+- Each negative fixture changes one primary condition unless the failure mode itself requires a compound condition.
+- Fixture mutations must be local to the test fixture and must not rewrite canonical happy-path fixtures in place.
+- Persistent negative fixtures must use `tests/fixtures/standard-chain-pilots/negative/FM-XX--<failure-name>/`. Generated negative cases must use unique temporary directories and leave canonical happy-path fixtures unchanged.
+- Before implementation changes begin, the implementation plan must bind every acceptance matrix row and failure-mode row to a concrete validator command or test path. If the validator does not exist yet, the plan must add the failing test before changing production contracts or scripts.
+- Tests must assert business-observable outcomes: block/pass status, owner, reason, recovery condition, active evidence ref, state transition, and signoff permission.
+- Tests must be runnable in any order. Generated temporary files must use unique paths and be cleaned up.
+- Flaky, skipped, xfailed, markdown-only, or report-self-referential checks cannot prove any success criterion.
+- Security is not the primary risk for this artifact-only chain unless user input is executed, rendered, or used in shell/query contexts. Data integrity is triggered by registry, state, and signoff artifacts and must be tested. Performance is marked by gate runtime and fixture volume; validators must have bounded traversal and no unbounded retry. Environment compatibility is marked by shell and Python runtime assumptions in the repository gates.
+
+### Gate Strategy
+
+For design-only edits, completion evidence is a diff review against this design goal plus two clean review loops with no new in-scope findings.
+
+For implementation delivery, completion requires fresh output from:
+
+- Field decision matrix validator.
+- Scoped schema and script validators for changed artifacts.
+- Runtime contract tests.
+- Two canonical pilot happy-path tests.
+- Failure-mode negative tests for every in-scope failure mode.
+- `bash tests/run-all.sh --quick`.
+- `bash tests/run-all.sh` before a production-readiness claim, merge, or handoff.
+
+If the user explicitly accepts a narrower validation scope, the final claim must be downgraded to the proven scope and must not call the chain production-ready.
 
 ## Implementation Approach
 
@@ -198,11 +314,11 @@ Manual review is allowed only to classify ambiguous field decisions or user-faci
 2. Resolve `needs-human-decision` items before implementation.
 3. Update contracts, schemas, templates, skills, scripts, fixtures, and tests according to the matrix.
 4. Add or update deterministic validation for happy paths and blocking paths.
-5. Run targeted validation and then the agreed repository gate.
+5. Run targeted validation and the required gates defined in Gate Strategy.
 6. Report completion against each success criterion with direct evidence.
 
-## Open Decisions
+## Resolved Design Decisions
 
-1. Whether `fix-result.json` is always part of runtime evidence closure, or only required when a fix loop is triggered.
-2. Which existing reports remain active facts for this task and which become historical evidence only.
-3. Whether final validation requires full `bash tests/run-all.sh` every time, or targeted full-profile validation plus agreed gates is acceptable for design/spec-only changes.
+1. `fix-result.json` is required only when a fix loop is triggered. Once triggered, the fix result becomes required runtime evidence and must be active in the registry before signoff.
+2. Previous reports, prompts, diffs, and pilot outputs are evidence inputs only. Active facts for implementation must live in scoped contracts, schemas, templates, scripts, fixtures, runtime artifacts, gate plans, or the field decision matrix.
+3. Design-only completion uses diff review plus repeated review loops. Implementation completion uses targeted validators, runtime contract tests, canonical pilots, negative tests, quick gate, and full repository gate before claiming production readiness.
