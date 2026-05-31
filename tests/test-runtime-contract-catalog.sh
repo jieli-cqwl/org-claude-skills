@@ -18,50 +18,48 @@ test -f "$ROOT/shared/rules/完成前验证.md" || fail "missing completion veri
 test ! -f "$ROOT/shared/rules/交付验收底线.md" || fail "legacy delivery acceptance rule should be retired"
 test ! -f "$ROOT/shared/reference/完成前验证.md" || fail "completion verification should be a rule, not a reference"
 
-python3 - "$ROOT/shared/rules/完成前验证.md" <<'PY' || fail "completion verification rule contract violated"
-import re
+python3 - "$ROOT/shared/rules/完成前验证.md" <<'PY' || fail "completion verification rule shape contract violated"
 import sys
 from pathlib import Path
 
 rule = Path(sys.argv[1])
 text = rule.read_text(encoding="utf-8")
-headings = set(re.findall(r"^## (.+)$", text, flags=re.MULTILINE))
-required_headings = {
-    "完成声明",
-    "验收范围",
-    "证据标准",
-    "失败处理",
-    "完成汇报",
-}
-missing_headings = sorted(required_headings - headings)
-if missing_headings:
-    raise SystemExit(f"missing headings: {', '.join(missing_headings)}")
+lines = text.splitlines()
+if not lines or lines[0] != "# Completion Claims":
+    raise SystemExit("rule must use the Completion Claims title")
+if any(line.startswith("## ") for line in lines):
+    raise SystemExit("rule must stay flat; prose sections make it too easy to skim past constraints")
+if "TODO" in text or "TBD" in text:
+    raise SystemExit("rule must not contain placeholders")
 
-bullet_text = "\n".join(line for line in text.splitlines() if line.startswith("- "))
-completion_report = text.split("## 完成汇报", 1)[1]
-topics = {
-    "structured_status": ("PASS", "VERIFIED", "ALLOW", "SIGNED_OFF", "CLOSED"),
-    "acceptance_scope": ("用户目标", "成功标准", "AC", "任务合同"),
-    "current_evidence": ("当前工作区", "本次执行结果"),
-    "blocked_states": ("未执行", "失败", "证据不足", "待裁决"),
-    "acceptance_item": ("目标内验收项", "证据标准"),
-    "real_implementation": ("真实实现", "部分实现", "单端完成"),
-    "evidence_bypass": ("Mock/Stub/Fake", "日志摘要", "report 自引用"),
-    "failure_bypass": ("skip", "xfail", "放宽断言", "改写验收口径"),
-    "failure_boundary": ("目标内", "目标外", "用户裁决"),
-}
-report_topics = {
-    "report_items": ("逐项", "成功标准", "AC", "触发验证维度", "触发风险面", "影响范围回归项"),
-    "report_required_fields": ("状态", "证据"),
-    "report_conditional_fields": ("失败", "阻塞", "待裁决项", "阻塞原因", "下一步", "不涉及项", "不触发依据"),
-    "report_exclusions": ("未验证项", "完成结论"),
-}
-missing_topics = [name for name, terms in topics.items() if not all(term in bullet_text for term in terms)]
-missing_topics.extend(
-    name for name, terms in report_topics.items() if not all(term in completion_report for term in terms)
-)
-if missing_topics:
-    raise SystemExit(f"missing topics: {', '.join(missing_topics)}")
+nonempty = [line for line in lines if line.strip()]
+first_bullet = next((index for index, line in enumerate(lines) if line.startswith("- ")), None)
+if first_bullet is None:
+    raise SystemExit("rule must contain bullet constraints")
+lead = [line for line in lines[1:first_bullet] if line.strip()]
+if len(lead) != 1:
+    raise SystemExit("rule must have exactly one lead sentence before constraints")
+
+bullets = [line for line in lines if line.startswith("- ")]
+if not 14 <= len(bullets) <= 22:
+    raise SystemExit(f"rule should stay concise: got {len(bullets)} bullets")
+if sum(1 for line in bullets if line.startswith("- Test: ")) != 1:
+    raise SystemExit("rule must include exactly one explicit self-test bullet")
+long_lines = [str(index) for index, line in enumerate(lines, start=1) if len(line) > 220]
+if long_lines:
+    raise SystemExit(f"rule lines are too long: {', '.join(long_lines)}")
+
+allowed_lines = {"", "# Completion Claims", *lead, *bullets}
+unexpected = [
+    f"{index}: {line}"
+    for index, line in enumerate(lines, start=1)
+    if line not in allowed_lines
+]
+if unexpected:
+    raise SystemExit("rule must remain one lead sentence plus bullets:\n" + "\n".join(unexpected))
+
+if len(nonempty) != 1 + len(lead) + len(bullets):
+    raise SystemExit("rule contains unexpected non-empty content")
 PY
 
 if rg -n 'RUNTIME_(?:ASSISTANT|RULE_[A-Z0-9_]+)_CONTRACT' "$ROOT/shared/assistant.md" "$ROOT/shared/rules" "$ROOT/install.sh" >/dev/null 2>&1; then
@@ -124,5 +122,40 @@ for path in \
   rg -F "$collaboration_boundary_sentence" "$path" >/dev/null 2>&1 \
     || fail "missing collaboration boundary sentence: $path"
 done
+
+python3 - "$ROOT/shared/reference/影响范围分析.md" <<'PY' || fail "impact analysis reference contract violated"
+import re
+import sys
+from pathlib import Path
+
+reference = Path(sys.argv[1])
+text = reference.read_text(encoding="utf-8")
+headings = set(re.findall(r"^## (.+)$", text, flags=re.MULTILINE))
+required_headings = {
+    "三步识别法",
+    "必查维度",
+    "功能影响项",
+    "并行安全",
+    "影响记录",
+    "分析结果",
+}
+missing_headings = sorted(required_headings - headings)
+if missing_headings:
+    raise SystemExit(f"missing headings: {', '.join(missing_headings)}")
+
+required_topics = {
+    "impact_scope": ("功能影响", "技术影响", "回归验证项", "覆盖盲区", "待裁决风险"),
+    "functional_item": ("功能点", "影响原因", "技术触点", "验证与风险"),
+    "technical_evidence": ("impact_files", "技术影响证据", "不替代功能影响结论"),
+    "negative_evidence": ("无额外影响", "功能影响", "技术触点", "业务规则", "验证范围", "覆盖盲区"),
+    "closure": ("功能影响项", "完成前验证", "未关闭项"),
+}
+missing_topics = [
+    name for name, terms in required_topics.items()
+    if not all(term in text for term in terms)
+]
+if missing_topics:
+    raise SystemExit(f"missing topics: {', '.join(missing_topics)}")
+PY
 
 echo "[PASS] runtime contract inline"

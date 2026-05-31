@@ -667,6 +667,20 @@
       "timeout_sec": 180
     },
     {
+      "id": "impact-analysis-eval-contract",
+      "command": [
+        "bash",
+        "tests/test-impact-analysis-eval-contract.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "full",
+      "tags": [
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
+    },
+    {
       "id": "eval-summary-compat",
       "command": [
         "bash",

@@ -27,6 +27,7 @@ PHASE_DIR="$FEATURE_DIR/phase-1"
 mkdir -p "$PHASE_DIR"
 
 python3 - "$WORKSPACE" "$FEATURE" <<'PY'
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -36,6 +37,36 @@ feature = sys.argv[2]
 feature_dir = workspace / "docs" / feature
 phase_dir = feature_dir / "phase-1"
 produced_at = "2026-05-20T12:00:00Z"
+chain_registry_digest = "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0"
+
+
+def digest_snapshot(snapshot):
+    raw = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return "sha256:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def add_envelope(payload, artifact_type, artifact_id, authority_scope, director_keys):
+    locked_fields = {key: payload[key] for key in director_keys}
+    payload.update(
+        {
+            "artifact_type": artifact_type,
+            "artifact_id": artifact_id,
+            "schema_version": "1.0.0",
+            "producer": "product-director",
+            "produced_at": produced_at,
+            "chain_version": "standard-chain/v1",
+            "chain_registry_digest": chain_registry_digest,
+            "authority_scope": authority_scope,
+            "authoritative_fields": [f"$.{key}" for key in director_keys]
+            + ["$.director_confirmation"],
+            "director_confirmation": {
+                "status": "passed",
+                "confirmed_at": produced_at,
+                "locked_field_digest": digest_snapshot(locked_fields),
+                "locked_fields": locked_fields,
+            },
+        }
+    )
 
 brief = {
     "root_problem": (
@@ -169,6 +200,32 @@ ledger = {
     },
 }
 
+add_envelope(
+    brief,
+    "brief",
+    f"{feature}.brief",
+    "feature",
+    [
+        "root_problem",
+        "user_profile",
+        "business_goals",
+        "appetite",
+        "scope_boundaries",
+        "non_goals",
+        "feasibility_constraints",
+        "risks_and_unknowns",
+        "decision_rationale",
+        "delivery_plan",
+    ],
+)
+add_envelope(
+    phase,
+    "phase-prd",
+    f"{feature}.phase-1.prd",
+    "phase",
+    ["phase_goal", "entry_conditions", "exit_conditions"],
+)
+
 feature_dir.mkdir(parents=True, exist_ok=True)
 phase_dir.mkdir(parents=True, exist_ok=True)
 (feature_dir / "brief.json").write_text(json.dumps(brief, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -184,13 +241,23 @@ python3 "$ROOT/tools/community/validate_co_creation_ledger.py" \
 jq -e '
   (keys_unsorted | sort) == ([
     "appetite",
+    "artifact_id",
+    "artifact_type",
+    "authoritative_fields",
+    "authority_scope",
     "business_goals",
+    "chain_registry_digest",
+    "chain_version",
     "decision_rationale",
     "delivery_plan",
+    "director_confirmation",
     "feasibility_constraints",
     "non_goals",
+    "producer",
+    "produced_at",
     "risks_and_unknowns",
     "root_problem",
+    "schema_version",
     "scope_boundaries",
     "user_profile"
   ] | sort)
@@ -198,9 +265,19 @@ jq -e '
 
 jq -e '
   (keys_unsorted | sort) == ([
+    "artifact_id",
+    "artifact_type",
+    "authoritative_fields",
+    "authority_scope",
+    "chain_registry_digest",
+    "chain_version",
+    "director_confirmation",
     "entry_conditions",
     "exit_conditions",
-    "phase_goal"
+    "phase_goal",
+    "producer",
+    "produced_at",
+    "schema_version"
   ] | sort)
 ' "$PHASE_DIR/phase-prd.json" >/dev/null
 
@@ -432,7 +509,7 @@ if printf '{"cwd":"%s","session_id":"runtime-noise-real-demand-smoke","transcrip
   fail "completion hook should reject runtime envelope fields"
 fi
 assert_present '"decision":"block"' "$RUNTIME_NOISE_HOOK_OUT"
-assert_present 'contains runtime or downstream fields' "$RUNTIME_NOISE_HOOK_ERR"
+assert_present 'contains PM-owned downstream fields' "$RUNTIME_NOISE_HOOK_ERR"
 
 STUFFED_WORKSPACE="$SMOKE_TMP_ROOT/stuffed-workspace"
 cp -R "$WORKSPACE" "$STUFFED_WORKSPACE"

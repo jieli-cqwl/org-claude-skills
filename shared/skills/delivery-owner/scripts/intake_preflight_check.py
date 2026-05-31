@@ -17,7 +17,7 @@ from intake_handoff import validate_test_cases
 def resolve_runtime_root(script_path: Path) -> Path:
     resolved = script_path.resolve()
     candidates = [
-        *resolved.parents[:6],
+        *list(resolved.parents)[:6],
         Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")),
         Path(os.environ.get("CLAUDE_HOME", Path.home() / ".claude")),
     ]

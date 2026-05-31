@@ -13,7 +13,7 @@ from pathlib import Path
 def resolve_runtime_root(script_path: Path) -> Path:
     resolved = script_path.resolve()
     candidates = [
-        *resolved.parents[:5],
+        *list(resolved.parents)[:5],
         Path.home() / ".codex",
         Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")),
         Path.home() / ".claude",

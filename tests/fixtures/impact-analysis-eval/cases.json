@@ -1,0 +1,198 @@
+{
+  "protocol_version": 1,
+  "reference": "shared/reference/影响范围分析.md",
+  "goal": "验证影响范围分析 reference 是否能让执行者产出业务、测试、开发可对齐的功能影响项，而不是只给文件清单或搜索结果。",
+  "run_model": {
+    "freeze_first": [
+      "reference_version",
+      "case_inputs",
+      "output_schema",
+      "rubric",
+      "pass_threshold"
+    ],
+    "parallel_safe": [
+      "case_execution",
+      "independent_grading"
+    ],
+    "serial_required": [
+      "protocol_freeze",
+      "final_synthesis",
+      "reference_change_decision"
+    ]
+  },
+  "output_schema": [
+    "case_id",
+    "direct_change_points",
+    "functional_impact_items",
+    "technical_touchpoints",
+    "regression_verification",
+    "coverage_gaps",
+    "decision_risks",
+    "completion_gate"
+  ],
+  "rubric": [
+    {
+      "id": "R1",
+      "label": "functional_item",
+      "requires": [
+        "功能点",
+        "影响原因",
+        "技术触点",
+        "验证与风险"
+      ]
+    },
+    {
+      "id": "R2",
+      "label": "business_terms",
+      "requires": [
+        "业务能力或用户可感知行为",
+        "业务/测试/开发可对齐"
+      ]
+    },
+    {
+      "id": "R3",
+      "label": "causal_traceability",
+      "requires": [
+        "变更点",
+        "依赖链",
+        "影响原因"
+      ]
+    },
+    {
+      "id": "R4",
+      "label": "technical_evidence_not_substitute",
+      "requires": [
+        "技术触点",
+        "不得用文件清单替代功能影响结论"
+      ]
+    },
+    {
+      "id": "R5",
+      "label": "regression_scope",
+      "requires": [
+        "受影响功能点",
+        "用户路径",
+        "业务不变量"
+      ]
+    },
+    {
+      "id": "R6",
+      "label": "coverage_gap_or_risk",
+      "requires": [
+        "覆盖盲区或明确无盲区依据",
+        "待裁决风险或无待裁决依据"
+      ]
+    },
+    {
+      "id": "R7",
+      "label": "negative_evidence",
+      "requires": [
+        "无额外影响时说明检查过功能影响、技术触点、业务规则、验证范围和覆盖盲区"
+      ]
+    },
+    {
+      "id": "R8",
+      "label": "completion_gate",
+      "requires": [
+        "需回归验证项",
+        "覆盖盲区",
+        "待裁决风险",
+        "完成前验证"
+      ]
+    }
+  ],
+  "pass_threshold": {
+    "case_required": "每个 case 必须满足 R1、R3、R4、R8；适用场景必须满足对应专项 rubric。",
+    "suite_required": "8 个 case 全部不得出现 P0；P1 不超过 1 个且必须能归因到 reference 可修复问题。"
+  },
+  "cases": [
+    {
+      "id": "IA-001",
+      "name": "业务功能变更",
+      "change_prompt": "登录成功后首页默认展示用户最近访问的项目，并保留原有项目列表分页能力。",
+      "expected_focus": [
+        "用户可见行为",
+        "默认排序/分页业务规则",
+        "登录到首页用户路径",
+        "回归验证"
+      ]
+    },
+    {
+      "id": "IA-002",
+      "name": "shared helper 重构",
+      "change_prompt": "把日期格式化 helper 从本地模块迁到 shared/utils，并保持输出格式不变。",
+      "expected_focus": [
+        "内部实现影响",
+        "调用方验证对象",
+        "技术触点映射",
+        "行为不变证据"
+      ]
+    },
+    {
+      "id": "IA-003",
+      "name": "规则/reference/runtime 文档变更",
+      "change_prompt": "修改完成前验证规则，要求真实依赖验收无法执行时必须标为阻塞或待裁决。",
+      "expected_focus": [
+        "runtime 行为约束",
+        "相关 reference 同步",
+        "完成声明风险",
+        "测试/安装消费路径"
+      ]
+    },
+    {
+      "id": "IA-004",
+      "name": "无额外影响判定",
+      "change_prompt": "修正文档中的错别字，不改变标题、字段名、命令、状态或规则语义。",
+      "expected_focus": [
+        "无额外影响依据",
+        "技术触点检查",
+        "业务规则不变",
+        "覆盖盲区检查"
+      ]
+    },
+    {
+      "id": "IA-005",
+      "name": "覆盖盲区暴露",
+      "change_prompt": "修改通过字符串拼接调用的动态 handler 名称，LSP 只能找到定义，找不到全部运行时调用。",
+      "expected_focus": [
+        "LSP 不可见路径",
+        "动态调用",
+        "运行验证需求",
+        "待裁决风险"
+      ]
+    },
+    {
+      "id": "IA-006",
+      "name": "contract/schema 字段变更",
+      "change_prompt": "把任务合同中的 impact_files 语义调整为技术影响证据，并新增 functional_impact_items 字段。",
+      "expected_focus": [
+        "上下游 contract 消费",
+        "schema/script/test 同步",
+        "功能影响项承载",
+        "兼容风险"
+      ]
+    },
+    {
+      "id": "IA-007",
+      "name": "测试脚本/CI 变更",
+      "change_prompt": "把 quick gate 中的 runtime contract 测试移动到 full gate，只保留 smoke canary。",
+      "expected_focus": [
+        "门禁覆盖变化",
+        "发布风险",
+        "回归验证项",
+        "测试可信度"
+      ]
+    },
+    {
+      "id": "IA-008",
+      "name": "并行任务边界",
+      "change_prompt": "两个任务修改不同文件，但都影响同一个用户下单路径和同一份订单状态契约。",
+      "expected_focus": [
+        "shared_files 不充分",
+        "同一用户路径",
+        "共享契约",
+        "统一合并验证"
+      ]
+    }
+  ]
+}
