@@ -20,12 +20,15 @@
 - 硬约束来源：`{{RUNTIME_HOME}}/rules/` 下所有规则优先于 reference；执行前必须确保这些规则已加载或已读取，reference 只按下列场景读取，且不得覆盖 rules 结论。
 - 确定性优先：路由、重试、状态码处理、格式转换等可枚举、可复验判断必须交给代码、schema、script、hook 或测试；模型可参与语义判断、意图澄清、方案取舍、代码生成和非结构化信息处理，但不得替代确定性控制流。
 - 测试与变更验证：读取 `{{RUNTIME_HOME}}/reference/测试规范.md`，从成功标准推导验证点，按维度和风险面审视。
-- 新增实现前判断复用：按 `{{RUNTIME_HOME}}/rules/代码规范.md` 的复用治理规范执行，确认是否已有语义一致实现。
-- 声称任务完成前：读取 `{{RUNTIME_HOME}}/rules/完成前验证.md`，按目标、验收项、证据、失败出口逐项校验。
+- 代码变更：读取 `{{RUNTIME_HOME}}/rules/code-changes.md`，按 Code Changes 判断最小变更、复用、复杂度、错误处理、配置、性能和共享契约。
+- 代码结构、复杂度、复用、兼容层或共享契约：读取 `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`。
+- 注释、SQL、schema、并发、协议、解析、正则或业务不变量：读取 `{{RUNTIME_HOME}}/reference/code-comments.md`。
+- 错误、外部调用、fallback、retry、cleanup 或 partial success：读取 `{{RUNTIME_HOME}}/reference/error-handling.md`。
+- 声称任务完成前：读取 `{{RUNTIME_HOME}}/rules/completion-claims.md`，按目标、验收项、证据、失败出口逐项校验。
 - 设计决策：读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用简单/合适/演化三原则判断设计取舍。
 - 评估变更影响范围：读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md`，先列变更点，系统覆盖影响维度，最后定义验证面。
 - 报错、测试失败、定位原因：读取 `{{RUNTIME_HOME}}/reference/系统调试.md`，按 Observe → Hypothesize → Test → Fix 四阶段定位根因，完成观察前禁止改代码。
 - 前后端联调、全栈交付：读取 `{{RUNTIME_HOME}}/reference/全栈开发.md`，明确前后端协作顺序、依赖与验收标准。
-- 批量处理、缓存、性能优化：读取 `{{RUNTIME_HOME}}/reference/性能效率.md`，基于真实瓶颈选择策略并验证效果。
-- 常量、配置分层命名：读取 `{{RUNTIME_HOME}}/reference/硬编码治理规范.md`，先判断是否属于稳定公共契约，再决定存放位置。
+- 批量处理、缓存、性能优化：读取 `{{RUNTIME_HOME}}/reference/performance-and-efficiency.md`，基于真实瓶颈选择策略并验证效果。
+- 常量、配置、密钥、环境差异或共享值：读取 `{{RUNTIME_HOME}}/reference/constants-and-configuration.md`，先判断拥有方和公共契约边界。
 - 命中场景的详细指南不可读时：停止执行并向用户报告，禁止猜测或绕过。

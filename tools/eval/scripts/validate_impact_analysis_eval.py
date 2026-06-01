@@ -17,6 +17,7 @@ REQUIRED_TOP_LEVEL = {
     "output_schema",
     "rubric",
     "pass_threshold",
+    "pilot_rollout",
     "cases",
 }
 EXPECTED_OUTPUT_SCHEMA = [
@@ -46,6 +47,17 @@ REQUIRED_RUN_MODEL = {
         "reference_change_decision",
     ],
 }
+REQUIRED_PILOT_RECORD_FIELDS = [
+    "task_ref",
+    "change_summary",
+    "functional_impact_items",
+    "technical_touchpoints",
+    "regression_verification",
+    "coverage_gaps",
+    "decision_risks",
+    "completion_gate_result",
+    "review_findings",
+]
 REQUIRED_CASE_FOCUS = {
     "IA-001": {"用户可见行为", "回归验证"},
     "IA-002": {"内部实现影响", "行为不变证据"},
@@ -129,6 +141,56 @@ def validate_rubric(payload: dict[str, Any], errors: list[str]) -> None:
         )
 
 
+def validate_pilot_rollout(payload: dict[str, Any], errors: list[str]) -> None:
+    pilot = payload.get("pilot_rollout")
+    if not isinstance(pilot, dict):
+        errors.append("pilot_rollout must be an object")
+        return
+    require(
+        pilot.get("status") == "team_pilot_ready",
+        "pilot_rollout.status must be team_pilot_ready",
+        errors,
+    )
+    require(
+        pilot.get("sample_size") == "3-5 real tasks before hard-gate adoption",
+        "pilot_rollout.sample_size must require 3-5 real tasks",
+        errors,
+    )
+    require(
+        pilot.get("required_record_fields") == REQUIRED_PILOT_RECORD_FIELDS,
+        "pilot_rollout.required_record_fields drifted",
+        errors,
+    )
+    gate = pilot.get("upgrade_gate")
+    if not isinstance(gate, dict):
+        errors.append("pilot_rollout.upgrade_gate must be an object")
+        return
+    require(
+        gate.get("allowed_after") == "real_task_sample_review",
+        "upgrade gate must require real sample review",
+        errors,
+    )
+    require(gate.get("max_p0") == 0, "upgrade gate max_p0 must be 0", errors)
+    require(
+        gate.get("max_unresolved_p1") == 0,
+        "upgrade gate max_unresolved_p1 must be 0",
+        errors,
+    )
+    require(
+        gate.get("required_decision") == "human_owner_accepts_hard_gate",
+        "upgrade gate must require human owner hard-gate decision",
+        errors,
+    )
+    handling = pilot.get("failure_handling")
+    require(
+        isinstance(handling, list)
+        and len(handling) >= 3
+        and all(isinstance(value, str) and value for value in handling),
+        "pilot_rollout.failure_handling must contain at least three strings",
+        errors,
+    )
+
+
 def validate_cases(payload: dict[str, Any], errors: list[str]) -> None:
     cases = payload.get("cases")
     if not isinstance(cases, list):
@@ -175,6 +237,7 @@ def main() -> int:
     validate_top_level(payload, errors)
     validate_run_model(payload, errors)
     validate_rubric(payload, errors)
+    validate_pilot_rollout(payload, errors)
     validate_cases(payload, errors)
     if errors:
         print(
@@ -189,6 +252,8 @@ def main() -> int:
                 "status": "pass",
                 "case_count": len(payload["cases"]),
                 "rubric_count": len(payload["rubric"]),
+                "pilot_status": payload["pilot_rollout"]["status"],
+                "pilot_sample_size": payload["pilot_rollout"]["sample_size"],
                 "parallel_safe": payload["run_model"]["parallel_safe"],
             },
             ensure_ascii=False,

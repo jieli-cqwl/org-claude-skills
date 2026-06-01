@@ -190,6 +190,7 @@ expected_phase_fields = [
     "design_decision_candidates",
     "review_conclusion",
     "issue_ledger",
+    "pre_review_issue_ledger",
 ]
 if phase.get("key_fields") != expected_phase_fields:
     raise SystemExit("product-manager phase key_fields drift")

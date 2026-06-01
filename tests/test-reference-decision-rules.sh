@@ -12,17 +12,23 @@ fail() {
 
 required_references=(
   "协作判断.md"
+  "code-comments.md"
+  "code-structure-reuse.md"
+  "error-handling.md"
   "全栈开发.md"
   "影响范围分析.md"
-  "性能效率.md"
+  "performance-and-efficiency.md"
   "测试规范.md"
-  "硬编码治理规范.md"
+  "constants-and-configuration.md"
   "系统调试.md"
   "设计原则.md"
 )
 
 retired_references=(
   "完成前验证.md"
+  "completion-claims.md"
+  "性能效率.md"
+  "硬编码治理规范.md"
   "代码复用.md"
   "Skill生命周期管理.md"
   "Skill质量标准.md"

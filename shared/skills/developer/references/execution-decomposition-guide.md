@@ -36,7 +36,7 @@
 
 ### 复用判断
 
-识别到可复用候选后，按 `{{RUNTIME_HOME}}/rules/代码规范.md` 的复用治理规范评估是否复用；不复用时，在 mini-plan 中简要记录判断依据。
+识别到可复用候选后，按 `{{RUNTIME_HOME}}/rules/code-changes.md` 的 Code Changes 规则评估是否复用；不复用时，在 mini-plan 中简要记录判断依据。
 
 ## 1c. 步骤规划
 

@@ -11,7 +11,7 @@ PROJECT_DIR="${1:-.}"
 
 LANG="${2:-$(detect_language "$PROJECT_DIR")}"
 
-# 复杂度阈值默认与 rules/代码规范.md 一致，可通过环境变量覆盖
+# 复杂度阈值默认与 Code Changes reference 一致，可通过环境变量覆盖
 FUNC_THRESHOLD="${CODE_NORM_FUNC_MAX_LINES:-40}"
 NEST_THRESHOLD="${CODE_NORM_MAX_NESTING:-3}"
 

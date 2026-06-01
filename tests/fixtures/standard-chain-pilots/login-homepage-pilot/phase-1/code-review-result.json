@@ -14,7 +14,8 @@
     "$.findings",
     "$.excluded",
     "$.evidence_integrity",
-    "$.review_conclusion"
+    "$.review_conclusion",
+    "$.review_round"
   ],
   "gate_result": "PASS",
   "review_round": 2,

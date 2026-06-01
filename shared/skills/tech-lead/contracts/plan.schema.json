@@ -259,7 +259,6 @@
         "artifact_type",
         "planning_mode",
         "plan_version",
-        "baseline_plan_version_ref",
         "baseline_tasks_version_ref",
         "goal_source_refs",
         "constraint_source_refs",

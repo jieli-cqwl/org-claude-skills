@@ -110,7 +110,7 @@ REQUIRED: 修复轮次 > 1 时必须执行：
 ### 7. 修复后自检
 
 仅检查修改的函数/文件：
-- MUST 条款符合 `{{RUNTIME_HOME}}/rules/代码规范.md`（复杂度/错误处理/硬编码/死代码/外部调用）
+- Code Changes rule satisfied: `{{RUNTIME_HOME}}/rules/code-changes.md`（scope, reuse, complexity, errors, configuration, dead code, external calls）
 - 无占位符（NotImplemented/TODO 占位实现）
 - `FIXABLE` 场景全量测试 PASS
 - 回归影响范围确认：修改文件的所有调用方是否仍然正常

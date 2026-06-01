@@ -549,6 +549,18 @@ artifacts:
             consume_mode: gate
         required_when: phase PRD review or handoff records issues
         failure_effect: issue ownership and resolution can drift across stages
+      pre_review_issue_ledger:
+        producer: product-manager
+        authority: product-manager
+        consumers:
+          - consumer: product-manager
+            consumed_for: block PM handoff when pre-review blockers, open questions, or WARN items remain unresolved
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: reject delivery intake when PM pre-review blockers were carried forward without owner routing
+            consume_mode: gate
+        required_when: PM review digest or downstream handoff is prepared
+        failure_effect: unresolved PM blockers can enter design, planning, or delivery without owner routing
 
   - path: docs/{feature}/phase-{N}/units/UNIT-{N}.json
     producer: product-manager
@@ -1071,6 +1083,18 @@ artifacts:
   - path: docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json
     producer: developer
     fields:
+      task_id:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: verify
+            consumed_for: bind verification to the exact task being claimed by developer evidence
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: match task-level runtime evidence to the active task registry before DO-S5 through DO-S8
+            consume_mode: gate
+        required_when: developer evidence is consumed by verify, QA, review, or delivery-owner
+        failure_effect: runtime evidence cannot be tied to the active task or reviewed changed surface
       runtime_status:
         producer: developer
         authority: developer
@@ -1080,6 +1104,18 @@ artifacts:
             consume_mode: gate
         required_when: developer hands off a task report
         failure_effect: blocked or partial implementation can be treated as verification-ready
+      active_tasks_version_ref:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: verify
+            consumed_for: reject developer evidence produced against a stale task registry
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: prove developer evidence belongs to the active task registry before runtime closure
+            consume_mode: gate
+        required_when: developer evidence is consumed by DO-S5 through DO-S8
+        failure_effect: runtime evidence cannot be tied to the active task or reviewed changed surface
       evidence_refs:
         producer: developer
         authority: developer
@@ -1098,6 +1134,30 @@ artifacts:
             consume_mode: handoff
         required_when: review receives developer output
         failure_effect: review may inspect the wrong surface or miss the implemented change
+      task_scope:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: review
+            consumed_for: compare implementation scope against the task contract before accepting code review evidence
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: detect out-of-scope task work before signoff evidence aggregation
+            consume_mode: gate
+        required_when: developer evidence is consumed by DO-S5 through DO-S8
+        failure_effect: runtime evidence cannot be tied to the active task or reviewed changed surface
+      file_changes:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: review
+            consumed_for: locate and review the changed surface reported for the task
+            consume_mode: handoff
+          - consumer: delivery-owner
+            consumed_for: audit changed files against signoff and review integrity evidence
+            consume_mode: gate
+        required_when: developer evidence is consumed by DO-S5 through DO-S8
+        failure_effect: runtime evidence cannot be tied to the active task or reviewed changed surface
       tdd_evidence_index:
         producer: developer
         authority: developer
@@ -1107,6 +1167,30 @@ artifacts:
             consume_mode: gate
         required_when: developer report is consumed by verify
         failure_effect: verification can pass without TDD proof chain
+      self_testing:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: verify
+            consumed_for: verify developer self-test evidence before accepting the task
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: ensure signoff evidence includes task-level self-test proof
+            consume_mode: gate
+        required_when: developer evidence is consumed by DO-S5 through DO-S8
+        failure_effect: runtime evidence cannot be tied to the active task or reviewed changed surface
+      fresh_proof:
+        producer: developer
+        authority: developer
+        consumers:
+          - consumer: verify
+            consumed_for: reject stale developer proof before verification or QA admission
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: prove developer evidence is fresh against the active task registry before signoff
+            consume_mode: gate
+        required_when: developer evidence is consumed by DO-S5 through DO-S8
+        failure_effect: runtime evidence cannot be tied to the active task or reviewed changed surface
 
   - path: docs/{feature}/phase-{N}/code-review-result.json
     producer: review
@@ -1120,6 +1204,27 @@ artifacts:
             consume_mode: gate
         required_when: delivery-owner dispatches QA after code review
         failure_effect: delivery-owner may dispatch QA after a failed or missing review gate
+      review_round:
+        producer: review
+        authority: review
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: distinguish current review closure from stale or superseded review rounds before QA and signoff
+            consume_mode: gate
+        required_when: DO-S6 or QA admission consumes review evidence
+        failure_effect: stale or integrity-failed review can pass into QA or signoff
+      active_tasks_version_ref:
+        producer: review
+        authority: review
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: reject code review evidence produced against a stale task registry
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: admit QA only after review evidence matches the active task registry
+            consume_mode: gate
+        required_when: DO-S6 or QA admission consumes review evidence
+        failure_effect: stale or integrity-failed review can pass into QA or signoff
       dimension_verdicts:
         producer: review
         authority: review
@@ -1147,6 +1252,18 @@ artifacts:
             consume_mode: reference
         required_when: review excludes scope from inspection
         failure_effect: delivery-owner may assume excluded areas were reviewed
+      evidence_integrity:
+        producer: review
+        authority: review
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: block QA and signoff when review evidence integrity is failed or unverifiable
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: prevent QA from relying on review output with broken evidence integrity
+            consume_mode: gate
+        required_when: DO-S6 or QA admission consumes review evidence
+        failure_effect: stale or integrity-failed review can pass into QA or signoff
       review_conclusion:
         producer: review
         authority: review
@@ -1160,6 +1277,18 @@ artifacts:
   - path: docs/{feature}/phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json
     producer: verify
     fields:
+      task_id:
+        producer: verify
+        authority: verify
+        consumers:
+          - consumer: qa
+            consumed_for: match verification evidence to the task QA is admitting
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: bind verify evidence to the active task registry before DO-S5 and signoff
+            consume_mode: gate
+        required_when: QA admission or DO-S5 through DO-S8 consumes verify evidence
+        failure_effect: stale or cross-task verify evidence can satisfy closure
       gate_result:
         producer: verify
         authority: verify
@@ -1178,6 +1307,18 @@ artifacts:
             consume_mode: gate
         required_when: delivery-owner consumes verify output
         failure_effect: delivery cannot detect stale verification against an old task list
+      active_tasks_version_ref:
+        producer: verify
+        authority: verify
+        consumers:
+          - consumer: qa
+            consumed_for: reject verify results produced against a stale task registry before QA admission
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: prove verify evidence belongs to the active task registry before runtime closure
+            consume_mode: gate
+        required_when: QA admission or DO-S5 through DO-S8 consumes verify evidence
+        failure_effect: stale or cross-task verify evidence can satisfy closure
       developer_report_ref:
         producer: verify
         authority: verify
@@ -1236,6 +1377,18 @@ artifacts:
             consume_mode: gate
         required_when: delivery-owner consumes QA result
         failure_effect: delivery cannot detect stale QA against an old baseline
+      active_tasks_version_ref:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove QA result belongs to the active task registry before DO-S7 and signoff
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: reconcile QA evidence against the active task registry during closeout audit
+            consume_mode: gate
+        required_when: DO-S7 or DO-S8 consumes QA evidence
+        failure_effect: QA PASS can be accepted without active baseline or required browser proof
       current_stage:
         producer: qa
         authority: qa
@@ -1338,6 +1491,33 @@ artifacts:
             consume_mode: gate
         required_when: QA records issue ledger entries
         failure_effect: unresolved QA issues can lose owner and disposition
+      browser_tool:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove browser-required QA obligations used the expected browser tool class
+            consume_mode: gate
+        required_when: qa_handoff_contract contains browser-required obligations
+        failure_effect: QA PASS can be accepted without active baseline or required browser proof
+      entry_url:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: bind browser-required QA evidence to the actual entry URL exercised
+            consume_mode: gate
+        required_when: qa_handoff_contract contains browser-required obligations
+        failure_effect: QA PASS can be accepted without active baseline or required browser proof
+      browser_evidence:
+        producer: qa
+        authority: qa
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove browser-required user paths produced concrete browser evidence before signoff
+            consume_mode: gate
+        required_when: qa_handoff_contract contains browser-required obligations
+        failure_effect: QA PASS can be accepted without active baseline or required browser proof
 
   - path: docs/{feature}/phase-{N}/unit-{N}/test-cases.json
     producer: test-design
@@ -1758,10 +1938,46 @@ artifacts:
             consume_mode: gate
         required_when: tech-lead freezes task registry for runtime execution
         failure_effect: task execution and verification can drift from the active registry
+      user_confirmation:
+        producer: tech-lead
+        authority: tech-lead
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove task registry was explicitly confirmed before DO-S1 dispatch readiness and runtime evidence admission
+            consume_mode: gate
+          - consumer: developer
+            consumed_for: avoid implementation before the user-confirmed task registry exists
+            consume_mode: handoff
+          - consumer: verify
+            consumed_for: reject verification against an unconfirmed task registry
+            consume_mode: gate
+          - consumer: qa
+            consumed_for: avoid QA execution from an unconfirmed task registry
+            consume_mode: gate
+        required_when: DO-S1 dispatch readiness or runtime evidence admission runs
+        failure_effect: delivery may start from an unconfirmed task registry
 
   - path: docs/{feature}/phase-{N}/consistency-audit-result.json
     producer: consistency-auditor
     fields:
+      active_tasks_version_ref:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove consistency audit evidence belongs to the active task registry before DO-S8 closeout
+            consume_mode: gate
+        required_when: DO-S8 consumes consistency audit evidence
+        failure_effect: required owner action or stale runtime chain can be skipped
+      evidence_refs:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: verify the audit's evidence basis before clearing required owner actions
+            consume_mode: gate
+        required_when: DO-S8 consumes consistency audit evidence
+        failure_effect: required owner action or stale runtime chain can be skipped
       decision_authority:
         producer: consistency-auditor
         authority: consistency-auditor
@@ -1786,6 +2002,24 @@ artifacts:
             consume_mode: gate
         required_when: consistency-auditor reports advisory findings for owner routing
         failure_effect: owner action can be skipped or treated as authoritative implementation work
+      audit_scope:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove the audit covered the closeout scope delivery-owner is consuming
+            consume_mode: gate
+        required_when: DO-S8 consumes consistency audit evidence
+        failure_effect: required owner action or stale runtime chain can be skipped
+      mode:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: distinguish baseline audit from closeout runtime-chain audit before clearing DO-S8
+            consume_mode: gate
+        required_when: DO-S8 consumes consistency audit evidence
+        failure_effect: required owner action or stale runtime chain can be skipped
       blocked_layers:
         producer: consistency-auditor
         authority: consistency-auditor
@@ -1846,6 +2080,15 @@ artifacts:
             consume_mode: gate
         required_when: consistency-auditor reports advisory findings for owner routing
         failure_effect: owner action can be skipped or treated as authoritative implementation work
+      runtime_chain:
+        producer: consistency-auditor
+        authority: consistency-auditor
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove runtime-chain currency before closeout and signoff packaging
+            consume_mode: gate
+        required_when: DO-S8 consumes consistency audit evidence
+        failure_effect: required owner action or stale runtime chain can be skipped
 
   - path: docs/{feature}/phase-{N}/user-decision.json
     producer: user-decision-writer
@@ -2070,6 +2313,24 @@ artifacts:
             consume_mode: gate
         required_when: target change is recorded after baseline or runtime evidence exists
         failure_effect: target change can be applied without current task baseline or user authority proof
+      actor_id:
+        producer: delivery-owner
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: identify the accountable actor who authorized the target change
+            consume_mode: gate
+        required_when: target change invalidates baseline or runtime evidence
+        failure_effect: evidence can be invalidated without accountable authority
+      change_source:
+        producer: delivery-owner
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: identify the authority source for the target change before evidence invalidation
+            consume_mode: gate
+        required_when: target change invalidates baseline or runtime evidence
+        failure_effect: evidence can be invalidated without accountable authority
 
   - path: docs/{feature}/phase-{N}/fix-result.json
     producer: fix
@@ -2297,6 +2558,54 @@ artifacts:
             consume_mode: gate
         required_when: delivery-state is BLOCKED or requests a user decision
         failure_effect: delivery can resume before blocker evidence is actually resolved
+      blocked_from_stage:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: record which delivery stage produced the blocker before recovery or resume
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: audit blocker origin against delivery-state transitions
+            consume_mode: gate
+        required_when: recovery or resume is attempted
+        failure_effect: delivery can resume without auditable resolution proof
+      blocker_reason_code:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: route blocked recovery by machine-readable reason before unblocking
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: audit blocker reason and recovery path consistency
+            consume_mode: gate
+        required_when: recovery or resume is attempted
+        failure_effect: delivery can resume without auditable resolution proof
+      blocker_resolution_evidence_refs:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: prove the blocker was resolved before delivery resumes
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: audit unblock proof against blocker basis refs
+            consume_mode: gate
+        required_when: recovery or resume is attempted
+        failure_effect: delivery can resume without auditable resolution proof
+      unblocked_by_ref:
+        producer: delivery-owner
+        authority: delivery-owner
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: link the unblock action to the authority or evidence that cleared the blocker
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: audit who or what cleared the blocker before continuation
+            consume_mode: gate
+        required_when: recovery or resume is attempted
+        failure_effect: delivery can resume without auditable resolution proof
 
   - path: docs/{feature}/phase-{N}/artifact-registry.json
     producer: delivery-owner

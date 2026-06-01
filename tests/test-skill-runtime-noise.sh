@@ -19,18 +19,21 @@ from pathlib import Path
 root = Path(sys.argv[1])
 violations = []
 global_docs = {
-    "rules/完成前验证.md",
-    "rules/代码规范.md",
+    "rules/completion-claims.md",
+    "rules/code-changes.md",
     "rules/执行纪律.md",
     "rules/文档管理.md",
     "reference/协作判断.md",
+    "reference/code-comments.md",
+    "reference/code-structure-reuse.md",
+    "reference/error-handling.md",
     "reference/测试规范.md",
     "reference/设计原则.md",
     "reference/影响范围分析.md",
     "reference/系统调试.md",
     "reference/全栈开发.md",
-    "reference/性能效率.md",
-    "reference/硬编码治理规范.md",
+    "reference/performance-and-efficiency.md",
+    "reference/constants-and-configuration.md",
 }
 path_pattern = re.compile(
     r'(?:\{\{RUNTIME_HOME\}\}/|\.claude/|\.codex/)'
@@ -96,11 +99,11 @@ def referenced_global_docs(paragraph: str) -> set[str]:
 def assert_self_checks() -> None:
     valid_samples = [
         "当进入诊断阶段时：\n→ 读取 `{{RUNTIME_HOME}}/reference/系统调试.md` 获取四阶段根因分析流程",
-        "- [ ] MUST 条款符合 `{{RUNTIME_HOME}}/rules/代码规范.md`",
+        "- [ ] Code Changes rule satisfied: `{{RUNTIME_HOME}}/rules/code-changes.md`",
     ]
     invalid_samples = [
-        "自动加载（不展开）：`{{RUNTIME_HOME}}/rules/完成前验证.md` + `{{RUNTIME_HOME}}/rules/代码规范.md` + `{{RUNTIME_HOME}}/reference/测试规范.md`",
-        "顶层规范：默认遵循 `{{RUNTIME_HOME}}/rules/完成前验证.md`\n同时参考 `{{RUNTIME_HOME}}/rules/代码规范.md`\n必要时查看 `{{RUNTIME_HOME}}/reference/测试规范.md`",
+        "自动加载（不展开）：`{{RUNTIME_HOME}}/rules/completion-claims.md` + `{{RUNTIME_HOME}}/rules/code-changes.md` + `{{RUNTIME_HOME}}/reference/测试规范.md`",
+        "顶层规范：默认遵循 `{{RUNTIME_HOME}}/rules/completion-claims.md`\n同时参考 `{{RUNTIME_HOME}}/rules/code-changes.md`\n必要时查看 `{{RUNTIME_HOME}}/reference/测试规范.md`",
     ]
 
     for sample in valid_samples:

@@ -64,7 +64,7 @@ digraph delivery_owner_flow {
 - phase-dir、tasks 文件或证据入口缺失时输出 `NEEDS_INPUT`；冻结基线存在但来源、确认状态、scope、AC、依赖、QA handoff 或 blocking gap 不满足时输出 `NEEDS_BASELINE`；说明缺口、影响和推荐处理后暂停给用户。
 - 缺 executor、权限、环境或工具时输出 `NEEDS_RESOURCE`，说明缺什么、影响什么、推荐谁补。
 - preflight 失败或接手口径不清时，读取 `references/plan-review.md`，应用可执行性审视框架定位缺口。
-- preflight 通过后，先调度 consistency-auditor agent 做 baseline consistency-audit；DO-S1 输入只包含 brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、`qa_handoff_contract` 和 `cross_unit_obligations`，不得要求 developer-report、verify-result、code-review-result 或 qa-result。
+- preflight 通过后，先调度 consistency-auditor agent 做 baseline consistency-audit；DO-S1 输入只包含 brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、`qa_handoff_contract` 和 `cross_unit_obligations`，不得要求 developer-report、verify-result、code-review-result、qa-result、consistency-audit-result 或 fix-result。
 - baseline consistency-audit 只给 advisory-only owner action；若存在 blocked_layers、CRITICAL finding 或 required_owner_action，先按 owner action 回流上游 owner 或暂停给用户；只有 baseline audit 无阻断后，后续状态才可进入 `safe_to_dispatch=true`。
 - 消费 advisory owner action 必须写入 `owner_action_consumption[]`：`action_id`、`required_owner`、`routed_to`、`result`、`evidence_ref`、`state_update`、`reopen_condition` 都必须存在。delivery-owner 只能路由和记录结果，不能把 advisory action 自行清零、签收或风险接受。
 

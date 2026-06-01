@@ -71,7 +71,16 @@ def load_task_packet_validator(repo_root: Path) -> Any:
     if spec is None or spec.loader is None:
         raise SystemExit(f"failed to load task packet validator: {path}")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    script_dir = str(path.parent)
+    inserted_path = False
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
+        inserted_path = True
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        if inserted_path:
+            sys.path.remove(script_dir)
     return module
 
 
@@ -81,7 +90,10 @@ def packet_from_output(output_text: str) -> dict[str, Any]:
         "task_ref": scalar(block, "task_ref"),
         "role": scalar(block, "role"),
         "goal": section(block, "goal"),
-        "scope": section(block, "scope"),
+        "allowed_scope_refs": scalar(block, "allowed_scope_refs"),
+        "test_refs": scalar(block, "test_refs"),
+        "depends_on": scalar(block, "depends_on"),
+        "advisory_constraints": section(block, "advisory_constraints"),
         "forbidden_scope": section(block, "forbidden_scope"),
         "input_refs": section(block, "input_refs"),
         "expected_evidence": section(block, "expected_evidence"),

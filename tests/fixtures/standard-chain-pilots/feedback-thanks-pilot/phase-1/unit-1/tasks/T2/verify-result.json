@@ -15,7 +15,8 @@
     "$.phase_verdicts",
     "$.ac_verification",
     "$.goal_closure",
-    "$.evidence_refs"
+    "$.evidence_refs",
+    "$.task_id"
   ],
   "evidence_refs": [
     "artifact://verify-result/feedback-thanks-pilot.phase-1.unit-1.task-T2.verify-result@v1#verify-root"

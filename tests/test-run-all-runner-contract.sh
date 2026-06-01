@@ -266,6 +266,10 @@ steps = {step.get("id"): step for step in plan["steps"]}
 timeout = steps["install-runtime"].get("timeout_sec")
 if not isinstance(timeout, int) or timeout < 900:
     raise SystemExit(f"install-runtime timeout_sec must be at least 900, got {timeout}")
+
+timeout = steps["design-skill-governance-redesign"].get("timeout_sec")
+if not isinstance(timeout, int) or timeout < 300:
+    raise SystemExit(f"design-skill-governance-redesign timeout_sec must be at least 300, got {timeout}")
 PY
 
 if bash "$RUNNER" --does-not-exist >/tmp/org_run_all_bad_option.out 2>&1; then

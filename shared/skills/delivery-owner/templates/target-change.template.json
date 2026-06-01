@@ -11,6 +11,8 @@
     "$.baseline_tasks_version_ref",
     "$.active_tasks_version_ref",
     "$.changed_target_type",
+    "$.change_source",
+    "$.actor_id",
     "$.affected_refs",
     "$.invalidates_refs",
     "$.superseded_evidence_refs",

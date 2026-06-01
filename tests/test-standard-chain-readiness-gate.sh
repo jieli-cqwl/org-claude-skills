@@ -23,6 +23,60 @@ python3 "$SCRIPT" \
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
+
+expect_block_contract() {
+  local label="$1"
+  local output_file="$2"
+  shift 2
+  if "$@" >"$output_file" 2>&1; then
+    cat "$output_file" >&2
+    fail "$label should block readiness"
+  fi
+  python3 - "$output_file" "$label" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+output_path = Path(sys.argv[1])
+label = sys.argv[2]
+text = output_path.read_text(encoding="utf-8").strip()
+try:
+    payload = json.loads(text)
+except json.JSONDecodeError as exc:
+    raise SystemExit(f"{label} must emit a JSON block contract, got: {text[:240]}") from exc
+
+required = {"status", "owner", "reason", "recovery_condition", "signoff_allowed"}
+missing = sorted(required - set(payload))
+if missing:
+    raise SystemExit(f"{label} block contract missing keys: {', '.join(missing)}")
+if payload["status"] != "BLOCKED":
+    raise SystemExit(f"{label} status must be BLOCKED")
+if payload["signoff_allowed"] is not False:
+    raise SystemExit(f"{label} signoff_allowed must be false")
+for key in ("owner", "reason", "recovery_condition"):
+    if not isinstance(payload.get(key), str) or not payload[key].strip():
+        raise SystemExit(f"{label} block contract {key} must be a non-empty string")
+PY
+}
+
+expect_block_contract_reason() {
+  local label="$1"
+  local reason_fragment="$2"
+  local output_file="$3"
+  shift 3
+  expect_block_contract "$label" "$output_file" "$@"
+  python3 - "$output_file" "$label" "$reason_fragment" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+label = sys.argv[2]
+reason_fragment = sys.argv[3]
+if reason_fragment not in payload.get("reason", ""):
+    raise SystemExit(f"{label} reason must contain {reason_fragment!r}, got: {payload.get('reason', '')}")
+PY
+}
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/sample-feature"
 rm -f "$TMP_DIR/sample-feature/brief.json"
 if python3 "$SCRIPT" \
@@ -1570,6 +1624,206 @@ if python3 "$SCRIPT" \
   cat /tmp/t6_verify_developer_report_ref_drift.out >&2
   fail "readiness gate should reject verify-result developer_report_ref that points to another task"
 fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/developer-report-without-active-entry"
+python3 - "$TMP_DIR/developer-report-without-active-entry/phase-1/artifact-registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+registry_path = Path(sys.argv[1])
+payload = json.loads(registry_path.read_text(encoding="utf-8"))
+payload["revisions"][-1]["entries"] = [
+    entry
+    for entry in payload["revisions"][-1]["entries"]
+    if not (
+        entry.get("artifact_type") == "developer-report"
+        and entry.get("artifact_id") == "sample-feature.phase-1.unit-1.task-T1.developer-report"
+    )
+]
+registry_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract \
+  "developer-report exists without active registry entry" \
+  /tmp/t6_developer_report_without_active_entry.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/developer-report-without-active-entry/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/verify-result-wrong-active-task"
+python3 - "$TMP_DIR/verify-result-wrong-active-task/phase-1/artifact-registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+registry_path = Path(sys.argv[1])
+payload = json.loads(registry_path.read_text(encoding="utf-8"))
+entry = next(
+    item
+    for item in payload["revisions"][-1]["entries"]
+    if item.get("artifact_type") == "verify-result"
+    and item.get("artifact_id") == "sample-feature.phase-1.unit-1.task-T1.verify-result"
+)
+entry["scope_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T2"
+registry_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract \
+  "verify-result active entry points to wrong task" \
+  /tmp/t6_verify_result_wrong_active_task.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/verify-result-wrong-active-task/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/code-review-active-tasks-drift"
+python3 - "$TMP_DIR/code-review-active-tasks-drift/phase-1/code-review-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+review_path = Path(sys.argv[1])
+payload = json.loads(review_path.read_text(encoding="utf-8"))
+payload["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+review_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract \
+  "code-review-result active_tasks_version_ref drift" \
+  /tmp/t6_code_review_active_tasks_drift.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/code-review-active-tasks-drift/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/browser-required-without-evidence"
+python3 - \
+  "$TMP_DIR/browser-required-without-evidence/phase-1/unit-1/test-cases.json" \
+  "$TMP_DIR/browser-required-without-evidence/phase-1/qa-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+test_cases_path = Path(sys.argv[1])
+qa_result_path = Path(sys.argv[2])
+test_cases = json.loads(test_cases_path.read_text(encoding="utf-8"))
+for row in test_cases["qa_handoff_contract"]:
+    if row.get("qa_stage") == "QA_B":
+        row["execution_mode"] = "browser_required"
+        break
+test_cases_path.write_text(json.dumps(test_cases, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+qa_result = json.loads(qa_result_path.read_text(encoding="utf-8"))
+qa_result.pop("browser_tool", None)
+qa_result.pop("entry_url", None)
+qa_result.pop("browser_evidence", None)
+qa_result_path.write_text(json.dumps(qa_result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract \
+  "browser-required QA lacks browser evidence" \
+  /tmp/t6_browser_required_without_evidence.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/browser-required-without-evidence/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/consistency-owner-action-unconsumed"
+python3 - \
+  "$TMP_DIR/consistency-owner-action-unconsumed/phase-1/consistency-audit-result.json" \
+  "$TMP_DIR/consistency-owner-action-unconsumed/phase-1/delivery-state.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+audit_path = Path(sys.argv[1])
+state_path = Path(sys.argv[2])
+audit = json.loads(audit_path.read_text(encoding="utf-8"))
+audit["required_owner_action"] = ["ACTION-REBASELINE-001"]
+audit_path.write_text(json.dumps(audit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+state = json.loads(state_path.read_text(encoding="utf-8"))
+state["owner_action_consumption"] = []
+state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract \
+  "consistency owner action is not consumed" \
+  /tmp/t6_consistency_owner_action_unconsumed.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/consistency-owner-action-unconsumed/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/delivered-without-commit-result"
+python3 - "$TMP_DIR/delivered-without-commit-result/phase-1/delivery-state.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+state_path = Path(sys.argv[1])
+payload = json.loads(state_path.read_text(encoding="utf-8"))
+payload["status"] = "DELIVERED"
+payload["commit_state"] = "NOT_READY"
+payload.pop("commit_result_ref", None)
+payload.pop("equivalent_delivery_result_ref", None)
+state_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "DELIVERED without commit or equivalent result" \
+  "DELIVERED requires commit_result_ref or equivalent_delivery_result_ref" \
+  /tmp/t6_delivered_without_commit_result.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/delivered-without-commit-result/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/ready-for-commit-without-handoff"
+python3 - "$TMP_DIR/ready-for-commit-without-handoff/phase-1/delivery-state.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+state_path = Path(sys.argv[1])
+payload = json.loads(state_path.read_text(encoding="utf-8"))
+payload["status"] = "READY_FOR_COMMIT"
+payload["commit_state"] = "NOT_READY"
+payload.pop("commit_handoff_ref", None)
+state_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "READY_FOR_COMMIT without commit handoff" \
+  "READY_FOR_COMMIT requires commit_state=HANDOFF_PREPARED and commit_handoff_ref" \
+  /tmp/t6_ready_for_commit_without_handoff.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/ready-for-commit-without-handoff/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-stale-signoff-evidence"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-stale-signoff-evidence/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-stale-signoff-evidence/phase-1/signoff-package.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+signoff_path = Path(sys.argv[3])
+target = json.loads(template_path.read_text(encoding="utf-8"))
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+target["baseline_tasks_version_ref"] = signoff["baseline_tasks_version_ref"]
+target["active_tasks_version_ref"] = signoff["active_tasks_version_ref"]
+target["superseded_evidence_refs"] = [signoff["runtime_evidence_matrix"][0]["artifact_ref"]]
+target["invalidates_refs"] = [signoff["runtime_evidence_matrix"][0]["artifact_ref"]]
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change superseded evidence remains in signoff matrix" \
+  "target-change superseded evidence remains in signoff-package.runtime_evidence_matrix" \
+  /tmp/t6_target_change_stale_signoff_evidence.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-stale-signoff-evidence/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
 
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/approve-without-signoff"
 python3 - \

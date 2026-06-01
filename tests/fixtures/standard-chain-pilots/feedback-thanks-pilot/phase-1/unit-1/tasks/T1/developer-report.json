@@ -14,7 +14,10 @@
     "$.reviewable_anchor",
     "$.runtime_status",
     "$.self_testing",
-    "$.tdd_evidence_index"
+    "$.tdd_evidence_index",
+    "$.task_id",
+    "$.task_scope",
+    "$.file_changes"
   ],
   "evidence_refs": [
     "artifact://developer-report/feedback-thanks-pilot.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"

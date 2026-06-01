@@ -9,6 +9,7 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.gate_result",
+    "$.review_round",
     "$.active_tasks_version_ref",
     "$.dimension_verdicts",
     "$.findings",

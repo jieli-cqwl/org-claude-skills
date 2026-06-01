@@ -48,12 +48,11 @@ goal: >
   建立可由 verifier 独立验收的 chain_id 串联、阶段状态、原因、
   证据摘要、停止字段和一次重试记录，并覆盖 TDO-11、TDO-12、TDO-13。
 
-scope:
-  allowed_scope_refs: [UNIT-06, IF-06]
-  test_refs: [TDO-11, TDO-12, TDO-13]
-  depends_on: [TL002-RDY-01 closed_for_eval_only]
-  advisory_constraints:
-    - BCA-DO002-01: TL002-T1 is the serial gate; TL002-T2~T5 remain unreleased until TL002-T1 verifier PASS.
+allowed_scope_refs: [UNIT-06, IF-06]
+test_refs: [TDO-11, TDO-12, TDO-13]
+depends_on: [TL002-RDY-01 closed_for_eval_only]
+advisory_constraints:
+  - BCA-DO002-01: TL002-T1 is the serial gate; TL002-T2~T5 remain unreleased until TL002-T1 verifier PASS.
 
 forbidden_scope:
   - frozen synthetic baseline artifacts

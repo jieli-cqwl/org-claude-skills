@@ -21,6 +21,10 @@ from delivery_owner_optional_artifacts import (
     collect_optional_validation_artifact_paths,
 )
 from delivery_owner_freshness import assert_signoff_evidence_freshness
+from readiness_closure_checks import (
+    assert_delivery_state_closeout,
+    assert_target_change_signoff_freshness,
+)
 from standard_chain_readiness_rollback import assert_fixture_rollback_contract
 from validate_consistency_audit_runtime_chain import assert_runtime_chain_closed
 from validate_readiness_contract import (
@@ -83,6 +87,7 @@ FAIL_TRIAGE_REQUIRED_FIELDS = {
 }
 REQUIRED_QA_STAGES = {"QA_A", "QA_B", "QA_C", "QA_D"}
 QA_RELEASE_PAIR = ("PASS", "ALLOW")
+CONFIRMED_STATUSES = {"CONFIRMED", "APPROVED"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -220,6 +225,102 @@ def assert_browser_required_evidence(phase_dir: Path) -> None:
         raise ValueError("browser_required QA obligations must include browser-native browser_evidence")
 
 
+def assert_plan_tasks_alignment(phase_dir: Path) -> None:
+    plan = load_json(phase_dir / "plan.json")
+    tasks_registry = load_json(phase_dir / "tasks.json")
+    delivery_state = load_json(phase_dir / "delivery-state.json")
+    if plan.get("plan_version") != tasks_registry.get("plan_version"):
+        raise ValueError(
+            "plan/tasks version mismatch: plan.plan_version must match tasks.plan_version"
+        )
+    active_tasks_ref = delivery_state.get("active_tasks_version_ref")
+    if plan.get("baseline_tasks_version_ref") != active_tasks_ref:
+        raise ValueError(
+            "plan baseline_tasks_version_ref must match delivery-state active_tasks_version_ref"
+        )
+    for label, payload in (("plan", plan), ("tasks", tasks_registry)):
+        confirmation = payload.get("user_confirmation")
+        if not isinstance(confirmation, dict):
+            raise ValueError(f"{label}.user_confirmation is required before readiness")
+        if confirmation.get("status") not in CONFIRMED_STATUSES:
+            raise ValueError(
+                f"{label}.user_confirmation.status must be CONFIRMED or APPROVED before readiness"
+            )
+
+
+def assert_task_acceptance_refs(phase_dir: Path) -> None:
+    tasks_registry = load_json(phase_dir / "tasks.json")
+    tasks = tasks_registry.get("tasks")
+    if not isinstance(tasks, list) or not tasks:
+        raise ValueError("tasks.json tasks must be a non-empty array")
+    for index, task in enumerate(tasks, start=1):
+        if not isinstance(task, dict):
+            raise ValueError(f"tasks.json tasks[{index}] must be an object")
+        task_id = str(task.get("task_id", "")).strip() or f"#{index}"
+        for field in ("scope_item_refs", "test_refs", "acceptance_targets"):
+            value = task.get(field)
+            if not isinstance(value, list) or not value:
+                raise ValueError(
+                    f"tasks.json task {task_id} must include non-empty {field} before readiness"
+                )
+
+
+def collect_required_qa_obligations(phase_dir: Path) -> set[str]:
+    required: set[str] = set()
+    for test_cases_path in sorted(phase_dir.glob("unit-*/test-cases.json")):
+        payload = load_json(test_cases_path)
+        rows = payload.get("qa_handoff_contract")
+        if not isinstance(rows, list):
+            raise ValueError(f"{test_cases_path.relative_to(phase_dir)} qa_handoff_contract must be an array")
+        for index, row in enumerate(rows, start=1):
+            if not isinstance(row, dict):
+                raise ValueError(
+                    f"{test_cases_path.relative_to(phase_dir)} qa_handoff_contract[{index}] must be an object"
+                )
+            if row.get("requiredness") != "REQUIRED":
+                continue
+            obligation_id = str(row.get("obligation_id", "")).strip()
+            if not obligation_id:
+                raise ValueError(
+                    f"{test_cases_path.relative_to(phase_dir)} qa_handoff_contract[{index}] missing obligation_id"
+                )
+            required.add(obligation_id)
+    if not required:
+        raise ValueError("qa_handoff_contract must declare at least one REQUIRED obligation")
+    return required
+
+
+def assert_qa_obligation_coverage(phase_dir: Path) -> None:
+    required = collect_required_qa_obligations(phase_dir)
+    qa_result = load_json(phase_dir / "qa-result.json")
+    results = qa_result.get("obligation_results")
+    if not isinstance(results, list) or not results:
+        raise ValueError("qa-result obligation_results must cover REQUIRED qa_handoff_contract obligations")
+    covered: set[str] = set()
+    for index, row in enumerate(results, start=1):
+        if not isinstance(row, dict):
+            raise ValueError(f"qa-result obligation_results[{index}] must be an object")
+        obligation_id = str(row.get("obligation_id", "")).strip()
+        if obligation_id not in required:
+            continue
+        evidence_refs = row.get("evidence_refs")
+        if row.get("gate_result") != "PASS":
+            raise ValueError(
+                f"qa-result obligation_results[{index}] must PASS for required obligation {obligation_id}"
+            )
+        if not isinstance(evidence_refs, list) or not evidence_refs:
+            raise ValueError(
+                f"qa-result obligation_results[{index}] must include evidence_refs for {obligation_id}"
+            )
+        covered.add(obligation_id)
+    missing = sorted(required - covered)
+    if missing:
+        raise ValueError(
+            "qa-result obligation_results missing required QA obligations: "
+            + ", ".join(missing)
+        )
+
+
 def assert_fail_triage_completeness(phase_dir: Path) -> None:
     qa_result = load_json(phase_dir / "qa-result.json")
     if str(qa_result.get("gate_result", "")).strip() != "FAIL":
@@ -278,6 +379,7 @@ def assert_qa_stage_results(phase_dir: Path) -> None:
 
 def assert_consistency_audit_allows_signoff(phase_dir: Path) -> None:
     audit = load_json(phase_dir / "consistency-audit-result.json")
+    delivery_state = load_json(phase_dir / "delivery-state.json")
     if audit.get("decision_authority") != "advisory_only":
         raise ValueError("consistency-audit-result decision_authority must be advisory_only")
     if audit.get("consumer") != "delivery-owner":
@@ -293,6 +395,22 @@ def assert_consistency_audit_allows_signoff(phase_dir: Path) -> None:
         raise ValueError("consistency-audit-result runtime_chain.status must be CLOSED at readiness")
     if runtime_chain.get("uncovered_obligation_ids"):
         raise ValueError("consistency-audit-result runtime_chain must not leave uncovered obligations at readiness")
+    required_owner_actions = [
+        str(action).strip()
+        for action in audit.get("required_owner_action", [])
+        if str(action).strip()
+    ]
+    consumed_actions = {
+        str(action.get("action_id", "")).strip()
+        for action in delivery_state.get("owner_action_consumption", [])
+        if isinstance(action, dict)
+    }
+    missing_actions = sorted(set(required_owner_actions) - consumed_actions)
+    if missing_actions:
+        raise ValueError(
+            "consistency-audit-result required_owner_action must be consumed by delivery-state: "
+            + ", ".join(missing_actions)
+        )
     for index, finding in enumerate(audit.get("findings", []), start=1):
         if isinstance(finding, dict) and finding.get("severity") == "CRITICAL":
             raise ValueError(f"consistency-audit-result finding[{index}] blocks readiness")
@@ -371,16 +489,21 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_required_phase_files(phase_dir)
     assert_product_closure(feature_dir, phase_dir)
     collect_required_glob_files(phase_dir)
+    assert_plan_tasks_alignment(phase_dir)
+    assert_task_acceptance_refs(phase_dir)
     assert_task_runtime_identity(iter_required_task_runtime_files(phase_dir), phase_dir)
     assert_code_review_pass(phase_dir)
     assert_browser_required_evidence(phase_dir)
     assert_fail_triage_completeness(phase_dir)
     assert_qa_release_route_allows_readiness(phase_dir)
+    assert_qa_obligation_coverage(phase_dir)
     assert_qa_stage_results(phase_dir)
     assert_runtime_chain_closed(phase_dir)
     assert_consistency_audit_allows_signoff(phase_dir)
     assert_optional_fix_result_freshness(phase_dir)
     assert_signoff_evidence_freshness(phase_dir)
+    assert_delivery_state_closeout(phase_dir, load_json)
+    assert_target_change_signoff_freshness(phase_dir, load_json)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
     assert_active_registry_matches_artifacts(phase_dir, collect_validation_artifact_paths(phase_dir), registry)
     assert_signoff_runtime_evidence_matrix(phase_dir, registry)
@@ -410,4 +533,20 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        print(
+            json.dumps(
+                {
+                    "status": "BLOCKED",
+                    "owner": "delivery-owner",
+                    "reason": str(exc),
+                    "recovery_condition": "resolve the reported readiness contract violation and rerun validate_standard_chain_readiness.py",
+                    "signoff_allowed": False,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        raise SystemExit(1) from None

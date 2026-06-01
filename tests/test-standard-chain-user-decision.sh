@@ -173,6 +173,50 @@ PY
 python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$target_change_rule_fixture" >/dev/null \
   || fail "target-change template should pass canonical schema validation"
 
+user_decision_with_target_field="$TMP_DIR/user-decision-with-target-field.rule.json"
+python3 - "$FIXTURE_ROOT/approve.json" "$user_decision_with_target_field" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+source = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+decision = source["decision_payload"]
+decision["changed_target_type"] = "AC"
+payload = {
+    "artifacts": [decision],
+    "runtime_state": source["runtime_state"],
+}
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$user_decision_with_target_field" >/tmp/t4_user_decision_with_target_field.out 2>&1; then
+  cat /tmp/t4_user_decision_with_target_field.out >&2
+  fail "user-decision schema should reject target-change fields"
+fi
+
+target_change_with_signoff_field="$TMP_DIR/target-change-with-signoff-field.rule.json"
+python3 - "$ROOT" "$target_change_with_signoff_field" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+target_change = json.loads(
+    (root / "shared/skills/delivery-owner/templates/target-change.template.json").read_text(encoding="utf-8")
+)
+target_change["sign_off_status"] = "SIGNED_OFF"
+payload = {
+    "artifacts": [target_change],
+    "runtime_state": {
+        "active_tasks_version_ref": target_change["active_tasks_version_ref"],
+    },
+}
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$target_change_with_signoff_field" >/tmp/t4_target_change_with_signoff_field.out 2>&1; then
+  cat /tmp/t4_target_change_with_signoff_field.out >&2
+  fail "target-change schema should reject user-decision signoff fields"
+fi
+
 signoff_rule_fixture="$TMP_DIR/signoff.rule.json"
 python3 - "$ROOT" "$signoff_rule_fixture" <<'PY'
 import json

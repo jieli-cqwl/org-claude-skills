@@ -6,6 +6,13 @@
   "produced_at": "2026-04-21T00:35:00Z",
   "chain_version": "standard-chain/v1",
   "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.task_id",
+    "$.active_tasks_version_ref",
+    "$.developer_report_ref",
+    "$.gate_result",
+    "$.phase_verdicts"
+  ],
   "task_id": "T1",
   "gate_result": "PASS",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v3#task-registry",

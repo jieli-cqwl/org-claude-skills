@@ -28,6 +28,80 @@ from runtime_yaml import load_yaml
 standard_chain = load_yaml(Path(sys.argv[1]))
 field_consumption = load_yaml(Path(sys.argv[2]))
 
+
+def key_fields_for(stage_name, artifact_name):
+    for stage in standard_chain.get("chain", []):
+        if stage.get("name") != stage_name:
+            continue
+        for output in stage.get("outputs", []) or []:
+            if output.get("artifact") == artifact_name:
+                return output.get("key_fields") or []
+    raise SystemExit(f"missing output contract: {stage_name}:{artifact_name}")
+
+
+required_key_fields = {
+    "product-manager:phase-{N}/phase-prd.json": {"pre_review_issue_ledger"},
+    "tech-lead:phase-{N}/tasks.json": {"user_confirmation"},
+    "developer:phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json": {
+        "task_id",
+        "active_tasks_version_ref",
+        "task_scope",
+        "file_changes",
+        "self_testing",
+        "fresh_proof",
+    },
+    "verify:phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json": {
+        "task_id",
+        "active_tasks_version_ref",
+    },
+    "review:phase-{N}/code-review-result.json": {
+        "review_round",
+        "active_tasks_version_ref",
+        "evidence_integrity",
+    },
+    "qa:phase-{N}/qa-result.json": {
+        "active_tasks_version_ref",
+        "browser_tool",
+        "entry_url",
+        "browser_evidence",
+    },
+    "consistency-auditor:phase-{N}/consistency-audit-result.json": {
+        "active_tasks_version_ref",
+        "evidence_refs",
+        "audit_scope",
+        "mode",
+        "runtime_chain",
+    },
+    "delivery-owner:phase-{N}/delivery-state.json": {
+        "blocked_from_stage",
+        "blocker_reason_code",
+        "blocker_resolution_evidence_refs",
+        "unblocked_by_ref",
+    },
+    "delivery-owner:phase-{N}/target-change.json": {"actor_id", "change_source"},
+}
+for stage_artifact, fields in required_key_fields.items():
+    stage, artifact = stage_artifact.split(":", 1)
+    actual = key_fields_for(stage, artifact)
+    missing = fields - set(actual)
+    if missing:
+        raise SystemExit(f"{stage_artifact} missing key_fields: {', '.join(sorted(missing))}")
+
+forbidden_key_fields = {
+    "tech-lead:phase-{N}/plan.json": {"baseline_plan_version_ref"},
+    "developer:phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json": {"active_plan_version_ref"},
+    "verify:phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json": {"active_plan_version_ref"},
+    "review:phase-{N}/code-review-result.json": {"active_plan_version_ref"},
+    "qa:phase-{N}/qa-result.json": {"active_plan_version_ref"},
+    "consistency-auditor:phase-{N}/consistency-audit-result.json": {"active_plan_version_ref"},
+}
+for stage_artifact, fields in forbidden_key_fields.items():
+    stage, artifact = stage_artifact.split(":", 1)
+    actual = set(key_fields_for(stage, artifact))
+    overlap = fields & actual
+    if overlap:
+        raise SystemExit(f"{stage_artifact} must not keep fields: {', '.join(sorted(overlap))}")
+
 generic_consumption = []
 for artifact in field_consumption.get("artifacts", []):
     artifact_path = artifact.get("path")

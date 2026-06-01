@@ -19,10 +19,14 @@
     "$.owner_action_consumption",
     "$.blocker_id",
     "$.blocker_owner",
+    "$.blocked_from_stage",
+    "$.blocker_reason_code",
     "$.blocker_basis_refs",
     "$.resume_stage",
     "$.next_action",
-    "$.resume_condition"
+    "$.resume_condition",
+    "$.blocker_resolution_evidence_refs",
+    "$.unblocked_by_ref"
   ],
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "current_stage": "TASK_EXECUTION",
@@ -51,5 +55,11 @@
         "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-T1"
       ]
     }
-  ]
+  ],
+  "blocked_from_stage": "TASK_EXECUTION",
+  "blocker_reason_code": "NO_ACTIVE_BLOCKER",
+  "blocker_resolution_evidence_refs": [
+    "artifact://verify-result/sample-feature.phase-1.unit-1.task-T1.verify-result@v1#verify-root"
+  ],
+  "unblocked_by_ref": "artifact://user-decision/sample-feature.phase-1.decision@v1#approve"
 }

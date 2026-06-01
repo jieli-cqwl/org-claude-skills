@@ -30,16 +30,16 @@ def find_rule_backlinks(text: str) -> list[str]:
 
 def assert_self_checks() -> None:
     invalid_samples = [
-        "{{RUNTIME_HOME}}/rules/代码规范.md",
-        ".claude/rules/完成前验证.md",
+        "{{RUNTIME_HOME}}/rules/code-changes.md",
+        ".claude/rules/completion-claims.md",
         ".codex/rules/执行纪律.md",
         "./rules/文档管理.md",
-        "../rules/代码规范.md",
-        "shared/rules/代码规范.md",
-        "rules/代码规范.md",
+        "../rules/code-changes.md",
+        "shared/rules/code-changes.md",
+        "rules/code-changes.md",
     ]
     valid_samples = [
-        "规则源以代码规范中的 MUST 条款为准。",
+        "规则源以 Code Changes 判断为准。",
         "shared/rules 与 shared/reference 的目录职责不同。",
         "这里只描述边界，不再给出规则文件路径。",
     ]

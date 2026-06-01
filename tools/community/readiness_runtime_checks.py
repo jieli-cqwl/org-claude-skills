@@ -43,6 +43,7 @@ def assert_task_runtime_identity(
         for item in state_tasks
         if isinstance(item, dict) and item.get("task_id")
     }
+    active_tasks_version_ref = runtime_state.get("active_tasks_version_ref")
     if set(state_task_ids) != set(expected_task_ids):
         raise ValueError(
             "delivery-state tasks must exactly cover tasks.json task ids: "
@@ -65,6 +66,10 @@ def assert_task_runtime_identity(
             raise ValueError(f"task runtime artifact_type drift: {runtime_path}")
         if payload.get("task_id") != task_id:
             raise ValueError(f"task runtime task_id drift: {runtime_path}")
+        if payload.get("active_tasks_version_ref") != active_tasks_version_ref:
+            raise ValueError(
+                f"{artifact_type} active_tasks_version_ref drift from active delivery-state: {runtime_path}"
+            )
         expected = f".task-{task_id}."
         if expected not in str(payload.get("artifact_id", "")):
             raise ValueError(f"task runtime artifact_id drift: {runtime_path}")
@@ -88,9 +93,7 @@ def assert_task_runtime_identity(
                 raise ValueError(
                     f"verify-result developer_report_ref drift from matching task developer-report: {runtime_path}"
                 )
-            if payload.get("baseline_tasks_version_ref") != runtime_state.get(
-                "active_tasks_version_ref"
-            ):
+            if payload.get("baseline_tasks_version_ref") != active_tasks_version_ref:
                 raise ValueError(
                     f"verify-result baseline_tasks_version_ref drift from active delivery-state: {runtime_path}"
                 )

@@ -34,8 +34,8 @@
 
 | 规则 | 阈值 |
 |------|------|
-| 复杂度约束偏离（自动） | 不符合 `{{RUNTIME_HOME}}/rules/代码规范.md`（函数长度/嵌套） |
-| 复杂度约束偏离（人工复核） | `{{RUNTIME_HOME}}/rules/代码规范.md` 的函数参数/文件长度条款 |
+| Complexity drift (automatic) | Violates `{{RUNTIME_HOME}}/reference/code-structure-reuse.md` function length or nesting thresholds |
+| Complexity drift (manual review) | Violates `{{RUNTIME_HOME}}/reference/code-structure-reuse.md` parameter count or file length thresholds |
 | 空 catch 块 / 裸 except | 存在 |
 | System.out 使用 | 存在 |
 

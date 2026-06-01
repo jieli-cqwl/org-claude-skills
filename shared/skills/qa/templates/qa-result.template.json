@@ -20,7 +20,10 @@
     "$.ruled_out_issues",
     "$.stage_results",
     "$.obligation_results",
-    "$.issue_ledger"
+    "$.issue_ledger",
+    "$.browser_tool",
+    "$.entry_url",
+    "$.browser_evidence"
   ],
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
@@ -117,5 +120,11 @@
       ]
     }
   ],
-  "issue_ledger": []
+  "issue_ledger": [],
+  "browser_tool": "playwright",
+  "entry_url": "http://127.0.0.1:3000/",
+  "browser_evidence": [
+    "playwright trace artifact://qa-result/sample-feature.phase-1.qa@v1#browser-trace",
+    "screenshot artifact://qa-result/sample-feature.phase-1.qa@v1#browser-screenshot"
+  ]
 }

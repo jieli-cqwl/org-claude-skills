@@ -105,6 +105,32 @@
     "case_required": "每个 case 必须满足 R1、R3、R4、R8；适用场景必须满足对应专项 rubric。",
     "suite_required": "8 个 case 全部不得出现 P0；P1 不超过 1 个且必须能归因到 reference 可修复问题。"
   },
+  "pilot_rollout": {
+    "status": "team_pilot_ready",
+    "sample_size": "3-5 real tasks before hard-gate adoption",
+    "required_record_fields": [
+      "task_ref",
+      "change_summary",
+      "functional_impact_items",
+      "technical_touchpoints",
+      "regression_verification",
+      "coverage_gaps",
+      "decision_risks",
+      "completion_gate_result",
+      "review_findings"
+    ],
+    "upgrade_gate": {
+      "allowed_after": "real_task_sample_review",
+      "max_p0": 0,
+      "max_unresolved_p1": 0,
+      "required_decision": "human_owner_accepts_hard_gate"
+    },
+    "failure_handling": [
+      "P0 blocks hard-gate adoption and must be traced to reference, process, or executor gap.",
+      "P1 requires owner action before expanding rollout.",
+      "Coverage gaps and decision risks must stay visible in completion verification."
+    ]
+  },
   "cases": [
     {
       "id": "IA-001",

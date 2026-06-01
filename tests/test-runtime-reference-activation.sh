@@ -51,7 +51,7 @@ assert_reference_probe_contract() {
   if [ "$runtime_name" = "claude" ]; then
     assert_present '\.claude/reference/runtime-entry-reference-probe\.md' "$file"
     assert_present '\.claude/reference/runtime-rule-reference-probe\.md' "$file"
-    assert_present '\.claude/rules/完成前验证\.md' "$file"
+    assert_present '\.claude/rules/completion-claims\.md' "$file"
     assert_present '\.claude/CLAUDE\.md' "$file"
     assert_present "HOME=\"\\\$probe_home\"" "$file"
     assert_present 'Use the Bash tool to run' "$file"
@@ -61,7 +61,7 @@ assert_reference_probe_contract() {
   else
     assert_present '\.codex/reference/runtime-entry-reference-probe\.md' "$file"
     assert_present '\.codex/reference/runtime-rule-reference-probe\.md' "$file"
-    assert_present '\.codex/rules/完成前验证\.md' "$file"
+    assert_present '\.codex/rules/completion-claims\.md' "$file"
     assert_present '\.codex/AGENTS\.md' "$file"
     assert_present "HOME=\"\\\$probe_home\"" "$file"
     assert_present '1\. Read ' "$file"

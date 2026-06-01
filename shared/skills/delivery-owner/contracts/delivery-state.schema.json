@@ -16,7 +16,18 @@
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/current_stage"
         },
         "status": {
-          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/runtime_status"
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "READY",
+            "IN_PROGRESS",
+            "BLOCKED",
+            "VERIFIED",
+            "FAILED",
+            "CLOSED",
+            "READY_FOR_COMMIT",
+            "DELIVERED"
+          ]
         },
         "control_action": {
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/properties/control_action"
@@ -229,6 +240,23 @@
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
         },
         "unblocked_by_ref": {
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+        },
+        "commit_state": {
+          "type": "string",
+          "enum": [
+            "NOT_READY",
+            "HANDOFF_PREPARED",
+            "COMMIT_RESULT_RECORDED"
+          ]
+        },
+        "commit_handoff_ref": {
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+        },
+        "commit_result_ref": {
+          "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
+        },
+        "equivalent_delivery_result_ref": {
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRef"
         }
       },

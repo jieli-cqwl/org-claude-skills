@@ -13,7 +13,14 @@
     "$.status",
     "$.control_action",
     "$.kickoff",
-    "$.tasks"
+    "$.tasks",
+    "$.blocker_id",
+    "$.blocked_from_stage",
+    "$.blocker_reason_code",
+    "$.blocker_basis_refs",
+    "$.resume_stage",
+    "$.blocker_resolution_evidence_refs",
+    "$.unblocked_by_ref"
   ],
   "active_tasks_version_ref": "artifact://tasks/feedback-thanks-pilot.phase-1.tasks@tasks-v2#task-registry",
   "current_stage": "CLOSED",

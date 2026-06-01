@@ -56,7 +56,7 @@
       "expectations": [
         "说明 qa_handoff_contract 应写清 obligation_id、obligation_type、trigger_refs、qa_stage、requiredness、execution_mode、skip_policy、evidence_contract_ref 和 design_source_refs；浏览器状态相关义务应标记 browser_required。",
         "明确输出 QA handoff obligation",
-        "每条义务包含 obligation_id 和 evidence_contract_ref",
+        "每条义务包含 obligation_id、evidence_contract_ref 和 evidence_expectation",
         "H5 页面状态标记 browser_required",
         "不做 release recommendation"
       ],

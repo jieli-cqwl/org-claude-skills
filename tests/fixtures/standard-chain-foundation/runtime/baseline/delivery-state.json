@@ -10,7 +10,10 @@
   "authoritative_fields": [
     "$.current_stage",
     "$.kickoff",
-    "$.tasks"
+    "$.tasks",
+    "$.active_tasks_version_ref",
+    "$.status",
+    "$.control_action"
   ],
   "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
   "current_stage": "TASK_EXECUTION",

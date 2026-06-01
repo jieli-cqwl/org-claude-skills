@@ -12,7 +12,10 @@
     "$.unit_priority_order",
     "$.coverage_matrix",
     "$.technical_evidence_requirements",
-    "$.release_readiness"
+    "$.release_readiness",
+    "$.entry_conditions",
+    "$.exit_conditions",
+    "$.unit_index"
   ],
   "phase_goal": "exercise runtime state transitions",
   "entry_conditions": [

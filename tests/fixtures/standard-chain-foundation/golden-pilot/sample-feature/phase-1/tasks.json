@@ -9,6 +9,7 @@
   "authority_scope": "phase",
   "authoritative_fields": [
     "$.plan_version",
+    "$.user_confirmation",
     "$.tasks"
   ],
   "goal_source_refs": [],

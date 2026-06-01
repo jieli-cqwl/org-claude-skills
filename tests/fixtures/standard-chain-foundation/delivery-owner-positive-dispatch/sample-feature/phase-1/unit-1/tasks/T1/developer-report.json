@@ -13,7 +13,11 @@
     "$.fresh_proof",
     "$.reviewable_anchor",
     "$.runtime_status",
-    "$.tdd_evidence_index"
+    "$.tdd_evidence_index",
+    "$.task_id",
+    "$.task_scope",
+    "$.file_changes",
+    "$.self_testing"
   ],
   "evidence_refs": [
     "artifact://evidence/sample-feature.phase-1.task-T1.log@ev-1#log-root"

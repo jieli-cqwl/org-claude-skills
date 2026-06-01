@@ -8,6 +8,7 @@
   "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "artifact",
   "authoritative_fields": [
+    "$.task_id",
     "$.baseline_tasks_version_ref",
     "$.active_tasks_version_ref",
     "$.developer_report_ref",

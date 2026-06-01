@@ -216,6 +216,58 @@ def assert_partial_waivers(
             )
 
 
+def assert_delivery_state_closeout(phase_dir: Path, load_json: LoadJson) -> None:
+    delivery_state = load_json(phase_dir / "delivery-state.json")
+    status = delivery_state.get("status")
+    if status == "DELIVERED":
+        if delivery_state.get("commit_state") != "COMMIT_RESULT_RECORDED":
+            raise ValueError(
+                "DELIVERED requires commit_result_ref or equivalent_delivery_result_ref"
+            )
+        if not (
+            delivery_state.get("commit_result_ref")
+            or delivery_state.get("equivalent_delivery_result_ref")
+        ):
+            raise ValueError(
+                "DELIVERED requires commit_result_ref or equivalent_delivery_result_ref"
+            )
+    if status == "READY_FOR_COMMIT":
+        if (
+            delivery_state.get("commit_state") != "HANDOFF_PREPARED"
+            or not delivery_state.get("commit_handoff_ref")
+        ):
+            raise ValueError(
+                "READY_FOR_COMMIT requires commit_state=HANDOFF_PREPARED and commit_handoff_ref"
+            )
+
+
+def assert_target_change_signoff_freshness(phase_dir: Path, load_json: LoadJson) -> None:
+    target_change_path = phase_dir / "target-change.json"
+    if not target_change_path.is_file():
+        return
+    target_change = load_json(target_change_path)
+    signoff = load_json(phase_dir / "signoff-package.json")
+    invalidated_refs = {
+        str(ref)
+        for field in ("invalidates_refs", "superseded_evidence_refs")
+        for ref in target_change.get(field, [])
+        if str(ref).strip()
+    }
+    if not invalidated_refs:
+        return
+    matrix_refs = {
+        str(row.get("artifact_ref", ""))
+        for row in signoff.get("runtime_evidence_matrix", [])
+        if isinstance(row, dict)
+    }
+    stale_refs = sorted(invalidated_refs & matrix_refs)
+    if stale_refs:
+        raise ValueError(
+            "target-change superseded evidence remains in signoff-package.runtime_evidence_matrix: "
+            + ", ".join(stale_refs)
+        )
+
+
 def assert_signoff_closure(
     feature_dir: Path,
     phase_dir: Path,

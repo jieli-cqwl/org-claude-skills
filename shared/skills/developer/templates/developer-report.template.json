@@ -8,12 +8,16 @@
   "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "artifact",
   "authoritative_fields": [
+    "$.task_id",
     "$.runtime_status",
     "$.active_tasks_version_ref",
     "$.evidence_refs",
     "$.reviewable_anchor",
+    "$.task_scope",
+    "$.file_changes",
     "$.tdd_evidence_index",
-    "$.self_testing"
+    "$.self_testing",
+    "$.fresh_proof"
   ],
   "task_id": "T1",
   "runtime_status": "IN_PROGRESS",
@@ -56,5 +60,17 @@
       "status": "PARTIAL",
       "evidence_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#e2e"
     }
+  },
+  "fresh_proof": {
+    "current_evidence_refs": [
+      "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#self-testing"
+    ],
+    "proving_commands": [
+      {
+        "command": "bash tests/run-all.sh --quick",
+        "current_output_ref": "artifact://developer-report/sample-feature.phase-1.unit-1.task-T1.developer-report@v1#quick-output",
+        "result": "PARTIAL"
+      }
+    ]
   }
 }

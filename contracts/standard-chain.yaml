@@ -29,7 +29,7 @@ chain:
       - artifact: "phase-{N}/phase-prd.json"
         operation: refine
         upstream_producer: product-director
-        key_fields: [phase_goal, entry_conditions, exit_conditions, director_confirmation, director_confirmation.locked_field_digest, evidence_sources, as_is_flows, to_be_flows, business_process_graphs, feature_inventory, module_capability_matrix, entry_scene_inventory, business_objects, state_transitions, role_permission_matrix, risk_ledger, coverage_matrix, technical_evidence_requirements, release_readiness, business_flows, user_paths, rule_mappings, unit_index, unit_priority_order, design_decision_candidates, review_conclusion, issue_ledger]
+        key_fields: [phase_goal, entry_conditions, exit_conditions, director_confirmation, director_confirmation.locked_field_digest, evidence_sources, as_is_flows, to_be_flows, business_process_graphs, feature_inventory, module_capability_matrix, entry_scene_inventory, business_objects, state_transitions, role_permission_matrix, risk_ledger, coverage_matrix, technical_evidence_requirements, release_readiness, business_flows, user_paths, rule_mappings, unit_index, unit_priority_order, design_decision_candidates, review_conclusion, issue_ledger, pre_review_issue_ledger]
         consumers: [design, test-design, tech-lead, qa, delivery-owner]
       - artifact: "phase-{N}/units/UNIT-{N}.json"
         key_fields: [unit_id, closure_definition, trigger, core_behavior, observable_result, feature_refs, flow_refs, risk_refs, rule_refs, integration_context, acceptance_criteria, verification_plan, design_decision_candidates, exclusions, priority, priority_basis, dependencies]
@@ -63,7 +63,7 @@ chain:
         key_fields: [planning_mode, plan_version, baseline_tasks_version_ref, goal_source_refs, constraint_source_refs, obligation_source_refs, execution_basis_refs, planning_readiness, implementation_path, goal_fidelity_review, user_confirmation]
         consumers: [delivery-owner, developer, verify, qa]
       - artifact: "phase-{N}/tasks.json"
-        key_fields: [plan_version, tasks]
+        key_fields: [plan_version, tasks, user_confirmation]
         consumers: [delivery-owner, developer, verify]
 
   - name: developer
@@ -73,7 +73,7 @@ chain:
       optional: ["phase-{N}/unit-{N}/test-cases.json"]
     outputs:
       - artifact: "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json"
-        key_fields: [runtime_status, evidence_refs, reviewable_anchor, tdd_evidence_index]
+        key_fields: [task_id, runtime_status, active_tasks_version_ref, evidence_refs, reviewable_anchor, task_scope, file_changes, tdd_evidence_index, self_testing, fresh_proof]
       - artifact: code
         terminal: true
 
@@ -83,7 +83,7 @@ chain:
       required: ["phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json"]
     outputs:
       - artifact: "phase-{N}/code-review-result.json"
-        key_fields: [gate_result, dimension_verdicts, findings, excluded, review_conclusion]
+        key_fields: [gate_result, review_round, active_tasks_version_ref, dimension_verdicts, findings, excluded, evidence_integrity, review_conclusion]
 
   - name: verify
     position: main
@@ -92,7 +92,7 @@ chain:
       optional: ["phase-{N}/design.json", "phase-{N}/unit-{N}/test-cases.json"]
     outputs:
       - artifact: "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"
-        key_fields: [gate_result, baseline_tasks_version_ref, developer_report_ref, phase_verdicts, ac_verification, goal_closure, evidence_refs]
+        key_fields: [task_id, gate_result, baseline_tasks_version_ref, active_tasks_version_ref, developer_report_ref, phase_verdicts, ac_verification, goal_closure, evidence_refs]
 
   - name: qa
     position: main
@@ -101,7 +101,7 @@ chain:
       optional: ["phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json"]
     outputs:
       - artifact: "phase-{N}/qa-result.json"
-        key_fields: [baseline_tasks_version_ref, current_stage, gate_result, release_recommendation, residual_risk, uncovered_boundary, conditional_release_basis, not_executed_reason, ruled_out_issues, stage_results, obligation_results, issue_ledger]
+        key_fields: [baseline_tasks_version_ref, active_tasks_version_ref, current_stage, gate_result, release_recommendation, residual_risk, uncovered_boundary, conditional_release_basis, not_executed_reason, ruled_out_issues, stage_results, obligation_results, issue_ledger, browser_tool, entry_url, browser_evidence]
         consumers: [delivery-owner]
 
   - name: consistency-auditor
@@ -112,7 +112,7 @@ chain:
       optional: ["phase-{N}/units/UNIT-{N}.json", "phase-{N}/design.json", "phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/unit-{N}/test-cases.json", "phase-{N}/code-review-result.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json", "phase-{N}/qa-result.json", "phase-{N}/delivery-state.json", "phase-{N}/signoff-package.json"]
     outputs:
       - artifact: "phase-{N}/consistency-audit-result.json"
-        key_fields: [decision_authority, consumer, blocked_layers, skipped_layers, tool_warning, findings, required_owner_action]
+        key_fields: [active_tasks_version_ref, evidence_refs, decision_authority, consumer, audit_scope, mode, blocked_layers, skipped_layers, tool_warning, findings, required_owner_action, runtime_chain]
         consumers: [tech-lead, delivery-owner]
 
   - name: fix
@@ -148,7 +148,7 @@ chain:
           required: ["phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json", "phase-{N}/code-review-result.json", "phase-{N}/qa-result.json", "phase-{N}/consistency-audit-result.json"]
     outputs:
       - artifact: "phase-{N}/delivery-state.json"
-        key_fields: [active_tasks_version_ref, current_stage, status, control_action, tasks, kickoff, progress_signal, consecutive_no_progress_count, owner_action_consumption, blocker_id, blocker_owner, blocker_basis_refs, resume_stage, next_action, resume_condition]
+        key_fields: [active_tasks_version_ref, current_stage, status, control_action, tasks, kickoff, progress_signal, consecutive_no_progress_count, owner_action_consumption, blocker_id, blocker_owner, blocker_basis_refs, resume_stage, next_action, resume_condition, blocked_from_stage, blocker_reason_code, blocker_resolution_evidence_refs, unblocked_by_ref]
         terminal: true
       - artifact: "phase-{N}/artifact-registry.json"
         operation: append_revision
@@ -166,7 +166,7 @@ chain:
         terminal: true
       - artifact: "phase-{N}/target-change.json"
         operation: record_target_change
-        key_fields: [baseline_tasks_version_ref, active_tasks_version_ref, changed_target_type, affected_refs, invalidates_refs, superseded_evidence_refs, rebaseline_required, rebaseline_owner, required_fresh_proof_after_rebaseline, authority_proof_refs, decision_basis_refs]
+        key_fields: [baseline_tasks_version_ref, active_tasks_version_ref, changed_target_type, affected_refs, invalidates_refs, superseded_evidence_refs, rebaseline_required, rebaseline_owner, required_fresh_proof_after_rebaseline, authority_proof_refs, decision_basis_refs, actor_id, change_source]
         consumers: [product-director, tech-lead, delivery-owner]
         terminal: true
 

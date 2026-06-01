@@ -23,13 +23,13 @@
 | 配置安全 | 密钥、Token、环境地址和端口来自配置或环境。 | 业务代码硬编码 secret、URL、端口或环境路径。 |
 | 信息安全 | 用户面错误不泄露堆栈、密钥或内部路径。 | 错误消息暴露敏感内部细节。 |
 
-代码规范 MUST 以 `{{RUNTIME_HOME}}/rules/代码规范.md` 为准；本文件只给 verify 阶段的取证口径。
+代码规范以 `{{RUNTIME_HOME}}/rules/code-changes.md` 的 Code Changes 规则为准；本文件只给 verify 阶段的取证口径。
 
 ## Phase2C：规范与测试有效性
 
 | 检查 | PASS | ISSUE |
 | --- | --- | --- |
-| 代码规范 | 复杂度、注释、错误处理、死代码和硬编码符合规则源。 | 违反 MUST，或无证据证明不适用。 |
+| 代码规范 | Scope、reuse、complexity、comments、error handling、configuration、dead code、external calls and performance risks satisfy the rule source. | 违反 Code Changes 规则，或无证据证明不适用。 |
 | 测试有效性 | 测试断言 AC 行为、边界、错误路径或副作用。 | 只跑 happy path、无断言、断言实现细节。 |
 | 测试可维护性 | 测试命名清楚、状态隔离、setup 清理配对。 | 顺序依赖、全局状态污染、过度断言、复制粘贴 setup。 |
 

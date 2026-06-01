@@ -80,6 +80,50 @@
         "baseline_tasks_version_ref",
         "active_tasks_version_ref"
       ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "changed_target_type"
+            ]
+          },
+          {
+            "required": [
+              "change_source"
+            ]
+          },
+          {
+            "required": [
+              "affected_refs"
+            ]
+          },
+          {
+            "required": [
+              "invalidates_refs"
+            ]
+          },
+          {
+            "required": [
+              "superseded_evidence_refs"
+            ]
+          },
+          {
+            "required": [
+              "rebaseline_required"
+            ]
+          },
+          {
+            "required": [
+              "rebaseline_owner"
+            ]
+          },
+          {
+            "required": [
+              "required_fresh_proof_after_rebaseline"
+            ]
+          }
+        ]
+      },
       "additionalProperties": true
     }
   ]

@@ -14,11 +14,16 @@ fail() {
 test -d "$ROOT/shared/runtime" || fail "missing shared/runtime directory"
 test ! -f "$ROOT/shared/runtime/runtime-catalog.json" || fail "runtime-catalog.json should be retired"
 test ! -f "$ROOT/tools/community/render_runtime_contract.py" || fail "runtime contract renderer should be retired"
-test -f "$ROOT/shared/rules/完成前验证.md" || fail "missing completion verification rule"
+test -f "$ROOT/shared/rules/completion-claims.md" || fail "missing completion verification rule"
+test -f "$ROOT/shared/rules/code-changes.md" || fail "missing code changes rule"
 test ! -f "$ROOT/shared/rules/交付验收底线.md" || fail "legacy delivery acceptance rule should be retired"
-test ! -f "$ROOT/shared/reference/完成前验证.md" || fail "completion verification should be a rule, not a reference"
+test ! -f "$ROOT/shared/rules/完成前验证.md" || fail "legacy Chinese completion rule filename should be retired"
+test ! -f "$ROOT/shared/rules/代码规范.md" || fail "legacy Chinese code rule filename should be retired"
+test ! -f "$ROOT/shared/reference/completion-claims.md" || fail "completion verification should be a rule, not a reference"
+test ! -f "$ROOT/shared/reference/性能效率.md" || fail "legacy Chinese performance reference filename should be retired"
+test ! -f "$ROOT/shared/reference/硬编码治理规范.md" || fail "legacy Chinese constants reference filename should be retired"
 
-python3 - "$ROOT/shared/rules/完成前验证.md" <<'PY' || fail "completion verification rule shape contract violated"
+python3 - "$ROOT/shared/rules/completion-claims.md" <<'PY' || fail "completion verification rule shape contract violated"
 import sys
 from pathlib import Path
 
@@ -62,24 +67,118 @@ if len(nonempty) != 1 + len(lead) + len(bullets):
     raise SystemExit("rule contains unexpected non-empty content")
 PY
 
+python3 - "$ROOT/shared/rules/code-changes.md" <<'PY' || fail "code changes rule shape contract violated"
+import re
+import sys
+from pathlib import Path
+
+rule = Path(sys.argv[1])
+text = rule.read_text(encoding="utf-8")
+lines = text.splitlines()
+if not lines or lines[0] != "# Code Changes":
+    raise SystemExit("rule must use the Code Changes title")
+if any(line.startswith("## ") for line in lines):
+    raise SystemExit("rule must stay flat; detailed guidance belongs in reference files")
+if "TODO" in text or "TBD" in text:
+    raise SystemExit("rule must not contain placeholders")
+if any(term in text for term in ("MUST（必须遵守）", "复用治理规范", "复杂度约束", "硬编码规范")):
+    raise SystemExit("rule must not regress to the old handbook structure")
+
+first_bullet = next((index for index, line in enumerate(lines) if line.startswith("- ")), None)
+if first_bullet is None:
+    raise SystemExit("rule must contain bullet constraints")
+lead = [line for line in lines[1:first_bullet] if line.strip()]
+if len(lead) != 1:
+    raise SystemExit("rule must have exactly one lead sentence before constraints")
+
+bullets = [line for line in lines if line.startswith("- ")]
+if not 18 <= len(bullets) <= 26:
+    raise SystemExit(f"rule should stay concise: got {len(bullets)} bullets")
+if sum(1 for line in bullets if line.startswith("- Test: ")) != 1:
+    raise SystemExit("rule must include exactly one explicit self-test bullet")
+long_lines = [str(index) for index, line in enumerate(lines, start=1) if len(line) > 220]
+if long_lines:
+    raise SystemExit(f"rule lines are too long: {', '.join(long_lines)}")
+
+refs = set(re.findall(r"\{\{RUNTIME_HOME\}\}/reference/[^`]+\.md", text))
+expected_refs = {
+    "{{RUNTIME_HOME}}/reference/code-structure-reuse.md",
+    "{{RUNTIME_HOME}}/reference/code-comments.md",
+    "{{RUNTIME_HOME}}/reference/error-handling.md",
+    "{{RUNTIME_HOME}}/reference/constants-and-configuration.md",
+    "{{RUNTIME_HOME}}/reference/performance-and-efficiency.md",
+}
+if refs != expected_refs:
+    raise SystemExit(f"unexpected reference set: {sorted(refs)}")
+
+allowed_lines = {"", "# Code Changes", *lead, *bullets}
+unexpected = [
+    f"{index}: {line}"
+    for index, line in enumerate(lines, start=1)
+    if line not in allowed_lines
+]
+if unexpected:
+    raise SystemExit("rule must remain one lead sentence plus bullets:\n" + "\n".join(unexpected))
+PY
+
+python3 - "$ROOT" <<'PY' || fail "code changes baseline scenario coverage violated"
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+required_terms = {
+    "shared/rules/code-changes.md": [
+        "current target scope",
+    ],
+    "shared/reference/code-structure-reuse.md": [
+        "senior engineer perspective",
+        "maintainability",
+        "evolvability",
+    ],
+    "shared/reference/code-comments.md": [
+        "adding or changing database schema",
+        "columns",
+        "constraints",
+    ],
+    "shared/reference/performance-and-efficiency.md": [
+        "CPU-intensive",
+        "user paths",
+        "high-frequency queries",
+    ],
+}
+
+missing = []
+for relative_path, terms in required_terms.items():
+    text = (root / relative_path).read_text(encoding="utf-8")
+    for term in terms:
+        if term not in text:
+            missing.append(f"{relative_path}: {term}")
+
+if missing:
+    raise SystemExit("missing baseline scenario terms:\n" + "\n".join(missing))
+PY
+
 if rg -n 'RUNTIME_(?:ASSISTANT|RULE_[A-Z0-9_]+)_CONTRACT' "$ROOT/shared/assistant.md" "$ROOT/shared/rules" "$ROOT/install.sh" >/dev/null 2>&1; then
   fail "assistant/rules runtime contracts should be inline, not rendered through RUNTIME_*_CONTRACT placeholders"
 fi
 
 for path in \
   "reference/协作判断.md" \
+  "reference/code-structure-reuse.md" \
+  "reference/code-comments.md" \
+  "reference/error-handling.md" \
   "reference/测试规范.md" \
   "reference/设计原则.md" \
   "reference/影响范围分析.md" \
   "reference/系统调试.md" \
   "reference/全栈开发.md" \
-  "reference/性能效率.md" \
-  "reference/硬编码治理规范.md"; do
+  "reference/performance-and-efficiency.md" \
+  "reference/constants-and-configuration.md"; do
   rg -n "\{\{RUNTIME_HOME\}\}/$path" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \
     || fail "missing assistant runtime reference: $path"
 done
 
-rg -n "\{\{RUNTIME_HOME\}\}/rules/完成前验证\.md" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \
+rg -n "\{\{RUNTIME_HOME\}\}/rules/completion-claims\.md" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \
   || fail "missing assistant completion rule reference"
 
 if rg -n '补充细则：|只提供补充细则|必要时查看|可参考' "$ROOT/shared/assistant.md" >/dev/null 2>&1; then

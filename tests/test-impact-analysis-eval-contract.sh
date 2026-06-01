@@ -26,6 +26,8 @@ payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 assert payload["status"] == "pass"
 assert payload["case_count"] == 8
 assert payload["rubric_count"] == 8
+assert payload["pilot_status"] == "team_pilot_ready"
+assert payload["pilot_sample_size"] == "3-5 real tasks before hard-gate adoption"
 assert payload["parallel_safe"] == ["case_execution", "independent_grading"]
 PY
 

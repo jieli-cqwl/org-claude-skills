@@ -10,7 +10,9 @@
   "authoritative_fields": [
     "$.active_revision_id",
     "$.runtime_artifact_policy",
-    "$.revisions"
+    "$.revisions",
+    "$.scope_ref",
+    "$.registry_revision"
   ],
   "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
   "registry_revision": "rev-1",

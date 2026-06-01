@@ -140,7 +140,7 @@ verify 负责写入当前 Task 的 `verify-result.json`；派发 code-reviewer /
 
 `verify-result.json` 至少能回答：
 
-- 当前验收的是哪个 Task、哪个 active plan / tasks / developer report。
+- 当前验收的是哪个 Task、哪个 `active_tasks_version_ref`、哪个 developer report。
 - 每条 AC 的实现证据、测试证据、边界检查和状态。
 - Phase1 / Phase2A / Phase2B / Phase2C 的结论和证据引用。
 - 未通过项的 owner、reason、file:line 或缺证据路径。

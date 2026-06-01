@@ -638,6 +638,166 @@ assert_canonical_runtime_artifacts() {
   assert_present 'canonical envelope' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
 }
 
+assert_standard_chain_production_readiness_contracts() {
+  python3 - "$ROOT" <<'PY' || fail "standard-chain production-readiness contracts drift"
+import json
+import sys
+from pathlib import Path
+
+import yaml
+
+root = Path(sys.argv[1])
+chain = yaml.safe_load((root / "contracts/standard-chain.yaml").read_text(encoding="utf-8"))
+consumption = yaml.safe_load((root / "contracts/standard-chain-field-consumption.yaml").read_text(encoding="utf-8"))
+failures = []
+
+runtime_evidence_paths = {
+    "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json",
+    "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json",
+    "phase-{N}/code-review-result.json",
+    "phase-{N}/qa-result.json",
+    "phase-{N}/consistency-audit-result.json",
+    "phase-{N}/fix-result.json",
+}
+roles = {role["name"]: role for role in chain["chain"]}
+delivery_inputs = roles["delivery-owner"]["inputs"]["stage_inputs"]
+do_s1_required = set(delivery_inputs["DO-S1"]["required"])
+for forbidden in sorted(runtime_evidence_paths):
+    if forbidden in do_s1_required:
+        failures.append(f"delivery-owner DO-S1 must not require runtime evidence: {forbidden}")
+for stage in ("DO-S5", "DO-S6", "DO-S7", "DO-S8"):
+    required = set(delivery_inputs[stage]["required"])
+    if not required & runtime_evidence_paths:
+        failures.append(f"delivery-owner {stage} must declare its runtime evidence inputs")
+
+for role in chain["chain"]:
+    for output in role.get("outputs", []):
+        fields = set(output.get("key_fields", []))
+        if "active_plan_version_ref" in fields:
+            failures.append(f"{role['name']}:{output.get('artifact')} must not write active_plan_version_ref")
+
+for artifact in consumption.get("artifacts", []):
+    if "active_plan_version_ref" in artifact.get("fields", {}):
+        failures.append(f"{artifact.get('path')} must not consume active_plan_version_ref")
+
+plan_schema = json.loads((root / "shared/skills/tech-lead/contracts/plan.schema.json").read_text(encoding="utf-8"))
+if "baseline_plan_version_ref" in plan_schema.get("required", []):
+    failures.append("tech-lead plan.schema.json must not require baseline_plan_version_ref")
+plan_template = json.loads((root / "shared/skills/tech-lead/templates/plan.template.json").read_text(encoding="utf-8"))
+if "baseline_plan_version_ref" in plan_template:
+    failures.append("tech-lead plan.template.json must not write baseline_plan_version_ref")
+
+template_expectations = {
+    "shared/skills/developer/templates/developer-report.template.json": {
+        "task_id",
+        "active_tasks_version_ref",
+        "task_scope",
+        "file_changes",
+        "self_testing",
+        "fresh_proof",
+    },
+    "shared/skills/qa/templates/qa-result.template.json": {
+        "active_tasks_version_ref",
+        "browser_tool",
+        "entry_url",
+        "browser_evidence",
+    },
+    "shared/skills/delivery-owner/templates/delivery-state.template.json": {
+        "blocked_from_stage",
+        "blocker_reason_code",
+        "blocker_resolution_evidence_refs",
+        "unblocked_by_ref",
+    },
+    "shared/skills/delivery-owner/templates/target-change.template.json": {
+        "actor_id",
+        "change_source",
+        "invalidates_refs",
+        "superseded_evidence_refs",
+    },
+}
+for relative_path, required_fields in template_expectations.items():
+    payload = json.loads((root / relative_path).read_text(encoding="utf-8"))
+    missing = sorted(required_fields - set(payload))
+    if missing:
+        failures.append(f"{relative_path} missing fields: {missing}")
+    authoritative = {
+        field.removeprefix("$.")
+        for field in payload.get("authoritative_fields", [])
+        if isinstance(field, str)
+    }
+    missing_authority = sorted(required_fields - authoritative)
+    if missing_authority:
+        failures.append(f"{relative_path} authoritative_fields missing: {missing_authority}")
+
+signoff = json.loads((root / "shared/skills/delivery-owner/templates/signoff-package.template.json").read_text(encoding="utf-8"))
+matrix_types = {
+    row.get("artifact_type")
+    for row in signoff.get("runtime_evidence_matrix", [])
+    if isinstance(row, dict)
+}
+expected_matrix_types = {
+    "developer-report",
+    "verify-result",
+    "code-review-result",
+    "qa-result",
+    "consistency-audit-result",
+}
+if matrix_types != expected_matrix_types:
+    failures.append(f"signoff runtime_evidence_matrix type drift: {sorted(matrix_types)}")
+for ref in json.dumps(signoff, ensure_ascii=False).split():
+    if "views/" in ref or "replay/" in ref or "projection-manifest" in ref:
+        failures.append("signoff-package template must not use projection/replay artifacts as signoff truth")
+        break
+
+schema_forbidden_fields = {
+    "shared/skills/delivery-owner/contracts/user-decision.schema.json": {
+        "changed_target_type",
+        "change_source",
+        "affected_refs",
+        "invalidates_refs",
+        "superseded_evidence_refs",
+        "rebaseline_required",
+        "rebaseline_owner",
+        "required_fresh_proof_after_rebaseline",
+    },
+    "shared/skills/delivery-owner/contracts/target-change.schema.json": {
+        "decision",
+        "sign_off_status",
+        "business_risk_acceptance_status",
+        "director_lock_digests",
+        "decision_payload_digest",
+    },
+}
+
+def collect_forbidden_required_fields(node):
+    if isinstance(node, dict):
+        fields = set()
+        any_of = node.get("not", {}).get("anyOf", [])
+        for item in any_of:
+            if isinstance(item, dict):
+                fields.update(item.get("required", []))
+        for value in node.values():
+            fields.update(collect_forbidden_required_fields(value))
+        return fields
+    if isinstance(node, list):
+        fields = set()
+        for item in node:
+            fields.update(collect_forbidden_required_fields(item))
+        return fields
+    return set()
+
+for relative_path, expected_fields in schema_forbidden_fields.items():
+    schema = json.loads((root / relative_path).read_text(encoding="utf-8"))
+    forbidden = collect_forbidden_required_fields(schema)
+    missing = sorted(expected_fields - forbidden)
+    if missing:
+        failures.append(f"{relative_path} missing semantic-separation forbidden fields: {missing}")
+
+if failures:
+    raise SystemExit("\n".join(failures))
+PY
+}
+
 assert_canonical_only_scripts() {
   local script
   for script in \
@@ -923,6 +1083,7 @@ if should_run_scope static; then
   assert_refactor_gate_ignores_placeholder_transcript_candidates
   assert_standard_chain_control_contract
   assert_canonical_runtime_artifacts
+  assert_standard_chain_production_readiness_contracts
   assert_canonical_only_scripts
   assert_completion_gate_registry_manifest_alignment
   assert_completion_gate_handlers_help

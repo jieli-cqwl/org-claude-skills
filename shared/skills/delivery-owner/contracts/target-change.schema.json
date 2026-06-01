@@ -95,6 +95,35 @@
         "authority_proof_refs",
         "decision_basis_refs"
       ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "decision"
+            ]
+          },
+          {
+            "required": [
+              "sign_off_status"
+            ]
+          },
+          {
+            "required": [
+              "business_risk_acceptance_status"
+            ]
+          },
+          {
+            "required": [
+              "director_lock_digests"
+            ]
+          },
+          {
+            "required": [
+              "decision_payload_digest"
+            ]
+          }
+        ]
+      },
       "additionalProperties": true
     }
   ]

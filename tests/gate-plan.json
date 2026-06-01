@@ -486,6 +486,21 @@
       "timeout_sec": 180
     },
     {
+      "id": "rule-runtime-team-readiness-pack",
+      "command": [
+        "bash",
+        "tests/test-rule-runtime-team-readiness-pack.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "quick",
+      "tags": [
+        "runtime-surface",
+        "team-readiness"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
       "id": "codex-hook-trust-audit",
       "command": [
         "bash",
@@ -947,7 +962,7 @@
       "tier": "full",
       "tags": [],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 300
     },
     {
       "id": "design-minimal-field-contract",
@@ -1909,6 +1924,38 @@
       ],
       "parallel_safe": true,
       "timeout_sec": 90
+    },
+    {
+      "id": "standard-chain-product-delivery-production-readiness",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-product-delivery-production-readiness.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "quick",
+      "tags": [
+        "standard-chain",
+        "contract",
+        "production-readiness"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
+      "id": "standard-chain-product-delivery-negative-modes",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-product-delivery-negative-modes.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "standard-chain",
+        "negative",
+        "production-readiness"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 180
     },
     {
       "id": "standard-chain-validator-stack",

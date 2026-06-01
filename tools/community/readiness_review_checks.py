@@ -8,6 +8,13 @@ LoadJson = Callable[[Path], dict]
 
 def assert_code_review_pass(phase_dir: Path, load_json: LoadJson) -> None:
     review = load_json(phase_dir / "code-review-result.json")
+    delivery_state = load_json(phase_dir / "delivery-state.json")
+    if review.get("active_tasks_version_ref") != delivery_state.get(
+        "active_tasks_version_ref"
+    ):
+        raise ValueError(
+            "code-review-result active_tasks_version_ref must match active delivery-state tasks ref"
+        )
     if review.get("gate_result") != "PASS":
         raise ValueError("code-review-result gate_result must be PASS at readiness")
     if review.get("review_conclusion") != "APPROVE":
