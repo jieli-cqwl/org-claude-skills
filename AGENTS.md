@@ -25,4 +25,4 @@
 
 ## Workflow
 - 执行前定目标、对象、成功标准；改动前追影响面；交付前验证命令和 `git diff` 都要对上本次范围。
-- 文档命名、归档、接手和 standard-chain 状态规则以 `shared/rules/文档管理.md` 为准；`worklog.md` 只做导航。
+- 文档命名、归档、接手和 standard-chain 状态规则以 `shared/rules/document-governance.md` 为准；`worklog.md` 只做导航。

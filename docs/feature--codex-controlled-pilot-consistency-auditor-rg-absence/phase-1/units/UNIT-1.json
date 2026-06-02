@@ -131,6 +131,6 @@
   ],
   "rule_refs": [
     "shared/rules/completion-claims.md",
-    "shared/rules/执行纪律.md"
+    "shared/rules/execution-control.md"
   ]
 }

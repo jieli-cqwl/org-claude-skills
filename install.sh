@@ -1312,6 +1312,8 @@ retired_runtime_rule_names() {
 代码规范.md
 完成前验证.md
 交付验收底线.md
+执行纪律.md
+文档管理.md
 旧质量指南.md
 铁律.md
 EOF

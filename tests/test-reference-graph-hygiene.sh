@@ -32,8 +32,8 @@ def assert_self_checks() -> None:
     invalid_samples = [
         "{{RUNTIME_HOME}}/rules/code-changes.md",
         ".claude/rules/completion-claims.md",
-        ".codex/rules/执行纪律.md",
-        "./rules/文档管理.md",
+        ".codex/rules/execution-control.md",
+        "./rules/document-governance.md",
         "../rules/code-changes.md",
         "shared/rules/code-changes.md",
         "rules/code-changes.md",

@@ -21,8 +21,8 @@ violations = []
 global_docs = {
     "rules/completion-claims.md",
     "rules/code-changes.md",
-    "rules/执行纪律.md",
-    "rules/文档管理.md",
+    "rules/document-governance.md",
+    "rules/execution-control.md",
     "reference/协作判断.md",
     "reference/code-comments.md",
     "reference/code-structure-reuse.md",
