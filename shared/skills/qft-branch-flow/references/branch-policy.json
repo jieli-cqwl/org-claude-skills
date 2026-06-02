@@ -30,9 +30,9 @@
       ]
     },
     "bugfix": {
-      "description": "从版本分支创建 BUG 分支",
+      "description": "从版本分支确保 BUG 分支可用",
       "steps": [
-        "create_bug_branch"
+        "ensure_bug_branch"
       ]
     },
     "bugfix-finish": {
