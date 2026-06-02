@@ -39,13 +39,14 @@
     },
     {
       "id": 3,
-      "prompt": "继续一个已确认上下文：场景是线上 BUG；项目是 APP qft-harmonyos-vue3 和租客端 H5 qft-universal.gitersal；版本号 0301；用户已确认项目和分支信息。请输出后续操作计划确认、执行确认和 push 确认应如何交互，不要真的执行 Git 命令。",
+      "prompt": "继续一个已确认上下文：场景是线上 BUG；项目是 APP qft-harmonyos-vue3 和租客端 H5 qft-universal.gitersal；线上版本号 0528；客户反馈日期 0602；用户已确认项目和分支信息。请输出后续操作计划确认、执行确认和 push 确认应如何交互，不要真的执行 Git 命令。",
       "expectations": [
         "展示 APP qft-harmonyos-vue3 和 H5 qft-universal.gitersal。",
-        "来源版本分支为 V.0301。",
-        "目标 BUG 分支为 3.0.0.MASTER_BUG_0301。",
-        "计划只包含从 V.0301 创建 BUG 分支，不包含修复后合回。",
-        "说明修复完成后需要另行执行 bugfix-finish 将 BUG 分支合回 V.0301。",
+        "来源版本分支为 V.0528。",
+        "目标 BUG 分支为 3.0.0.MASTER_BUG_0602。",
+        "计划只包含从 V.0528 确保 BUG 分支可用，不包含修复后合回。",
+        "说明目标 BUG 分支已存在时复用，不存在时才创建。",
+        "说明修复完成后需要另行执行 bugfix-finish 将 BUG 分支合回 V.0528。",
         "本地 Git 写操作确认和 push 确认是分开的。",
         "push 单独确认。"
       ],
