@@ -111,8 +111,8 @@
     }
   ],
   "runtime_facts": [
-    "active artifact-registry.json chooses the consumable plan, task, and runtime artifact revisions; evidence=tests/fixtures/standard-chain-foundation/golden-pilot/codex-controlled-pilot-consistency-auditor-rg-absence/phase-1/artifact-registry.json#/active_revision_id; observed_at=2026-06-01T00:00:00Z",
-    "delivery-state carries the active phase stage and task runtime status; evidence=tests/fixtures/standard-chain-foundation/golden-pilot/codex-controlled-pilot-consistency-auditor-rg-absence/phase-1/delivery-state.json#/active_stage; observed_at=2026-06-01T00:00:00Z"
+    "active artifact-registry.json chooses the consumable plan, task, and runtime artifact revisions; evidence=docs/feature--codex-controlled-pilot-consistency-auditor-rg-absence/phase-1/artifact-registry.json#/active_revision_id; observed_at=2026-06-01T00:00:00Z",
+    "delivery-state carries the active phase stage and task runtime status; evidence=docs/feature--codex-controlled-pilot-consistency-auditor-rg-absence/phase-1/delivery-state.json#/active_stage; observed_at=2026-06-01T00:00:00Z"
   ],
   "interfaces": [
     {
@@ -400,26 +400,26 @@
     "rejected_constraints": []
   },
   "review_closure": {
-    "reviewed_design_digest": "sha256:d868f43aeeb137114ec5997a372357d46f9b2d56e9dc5c3ea8a6998bb7ae533c",
+    "reviewed_design_digest": "sha256:27365b8437047650131f2c1ea7148302bd7da368523123297f5fd367b4a6c5de",
     "reviewed_at": "2026-06-01T00:00:00Z",
     "reviewers": [
       {
         "reviewer": "architecture",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:d868f43aeeb137114ec5997a372357d46f9b2d56e9dc5c3ea8a6998bb7ae533c"
+        "reviewed_design_digest": "sha256:27365b8437047650131f2c1ea7148302bd7da368523123297f5fd367b4a6c5de"
       },
       {
         "reviewer": "product",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:d868f43aeeb137114ec5997a372357d46f9b2d56e9dc5c3ea8a6998bb7ae533c"
+        "reviewed_design_digest": "sha256:27365b8437047650131f2c1ea7148302bd7da368523123297f5fd367b4a6c5de"
       },
       {
         "reviewer": "test",
         "verdict": "PASS",
         "finding_refs": [],
-        "reviewed_design_digest": "sha256:d868f43aeeb137114ec5997a372357d46f9b2d56e9dc5c3ea8a6998bb7ae533c"
+        "reviewed_design_digest": "sha256:27365b8437047650131f2c1ea7148302bd7da368523123297f5fd367b4a6c5de"
       }
     ],
     "resolved_failures": [],
