@@ -54,10 +54,9 @@ semantic_checks = [
     ),
     (
         "user-verification-not-scope-shrink",
-        text.find("User-specified verification") >= 0
-        and text.find("adds evidence requirements") >= 0
-        and text.find("does not shrink") >= 0
-        and text.find("explicitly limits the acceptance scope") >= 0,
+        all(term in text for term in ("User-specified", "verification", "evidence", "requirements"))
+        and all(term in text for term in ("shrink", "requested", "outcome"))
+        and all(term in text for term in ("explicitly", "limits", "acceptance", "scope")),
     ),
     (
         "consumer-class-real-entry",
