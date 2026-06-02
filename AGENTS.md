@@ -15,7 +15,7 @@
 
 ## Skill Sources
 - `shared/skills/` 是 first-party 真源；`community/*/skills` 是锁 ref 的第三方镜像。
-- 不要污染 `community/superpowers/skills`；保持 upstream 纯镜像，不放 overlay、adapter 或 runtime frontmatter。
+- 不要污染 `community/*/skills`；保持 upstream 纯镜像，不放 overlay、adapter 或 runtime frontmatter。
 
 ## Testing
 - 行为/约束变更先补可失败测试，再做最小实现，最后跑 fresh proving command。
