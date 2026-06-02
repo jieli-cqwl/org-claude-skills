@@ -12,17 +12,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 
 把已确认的 Director Phase 收敛成下游可直接消费的 PM WHAT 产物。你主导产品判断、推荐切法和证据闭合；用户只确认会改变结论的业务事实、约束或裁决。
 
-## 目标与完成边界
-
-目标不是写一份“看起来完整”的 PRD，而是把 Director 已确认的 Phase 转成下游无需补造业务事实即可消费的 canonical JSON 包。
-
-- 下游 `/design` 能读懂业务行为、状态、权限、约束、风险和必须决策的问题。
-- 下游 `/test-design` 能从 AC 与 Verification Plan 推导真实验证路径、失败路径、边界条件和证据目标。
-- 下游执行角色能按 UNIT 闭环、优先级、依赖、排除项和 Integration Context 判断交付顺序。
-- 用户能从最终报告看出 PM 推荐结论、阻断与裁决、验证证据和 artifact path。
-
-完成边界：Handoff gate、Pre-UNIT gate、Self-check、Review digest、Agent review、PM handoff gate 和 Delivery 全部闭合；仍有 `NEEDS_DECISION`、`OPEN/BLOCKED` 风险、open FAIL、未承接 WARN、过期 digest、Director drift 或未确认 delivery 时，不声明 PM 交付完成。
-
 ## HARD-GATE
 
 进入 PM 细化前先验准入。缺任一项时停在 Handoff gate，不输出 PRD、UNIT 或 AC 草案。
@@ -44,16 +33,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 - 用户给方案词时，改写为业务行为、业务约束、可观察结果、风险或 design handoff；仍无法落到 WHAT 时登记为待下游角色裁决。
 - PM 能基于业务事实直接判断的问题在 PM 产物内关闭；需要 `/design` 选择的问题只交接候选选项、约束和影响 UNIT。
 
-## 工作方式
-
-每一步都按同一节奏推进：读取当前 canonical JSON 与必要证据，先给 PM 推荐判断，再写入本步拥有字段，随后用 gate、self-check、digest 或 reviewer 证据证明可进入下一步。
-
-- 推荐优先：用户没要求你填表时，不把字段清单甩给用户；先提出 PM 推荐切法、依据和会改变结论的一个问题。
-- 消费者优先：写每个字段时说明它服务哪个下游判断；没有消费者的描述不落入 canonical JSON。
-- 证据优先：事实、假设、N/A、用户裁决和缺口分开写；假设只能支撑未阻断字段，不能伪装成事实。
-- 回流优先：发现缺口时回 owning step 修正；不要在后续步骤补造前序字段来绕过 gate。
-- 简洁优先：聊天回复只放当前判断、阻断、确认问题和验证证据；完整内容落到 JSON artifact。
-
 ## 运行边界
 
 模板、schema 和脚本是字段真源；`SKILL.md` 只规定执行节奏和判断边界。
@@ -63,18 +42,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 - 每个节点闭合后立即写入该节点拥有字段；后续发现缺口时回到字段拥有节点补齐。
 - Handoff、Self-check、Review digest 前的问题写 `pre_review_issue_ledger`；Review digest 后的问题、风险接受、延期和关闭写 `issue_ledger`；评审 digest 和 reviewer verdict 写 `review_conclusion`；用户接受后写 `brief.json.delivery_confirmation`。
 - 共创时先给 PM 推荐结论、依据和会改变结论的未闭合业务假设，再向用户确认一个会改变边界、优先级、依赖、排除项或交付确认的事实。
-
-## 产物质量标准
-
-PM 产物必须能回答下列问题；回答不了就回对应 owning step，而不是继续拆 UNIT 或送审。
-
-- Evidence/AS-IS：当前业务入口、角色、动作、对象状态、痛点和证据来源是什么；哪些判断只是 ASSUMPTION，缺什么证据，会阻断哪些字段。
-- TO-BE：目标流程如何达成 Phase 目标；正常、无权限、空态、错误、边界、失败、重试或升级路径的可观察结果是什么。
-- Feature/Risk：Director 目标、成功标准、范围、非目标、风险、Phase 入口/出口和输入清单逐条映射到功能、覆盖、风险、技术证据、UNIT、AC、Verification Plan 或 N/A/边界。
-- UNIT：每个 UNIT 都有业务触发、核心行为、可观察闭环、优先级依据、依赖、排除项、Integration Context 和功能/流程/风险/规则追溯。
-- AC：每条 AC 都能被业务操作观察，包含示例输入、预期结果、边界情况、失败模式和来源引用。
-- Verification Plan：每条计划说明要证明的业务结果、业务操作、预期观察、证据类型、证据目标和 `covers_refs`。
-- Design handoff：只保留 PM 无法基于业务事实直接决策、且需要 `/design` 在 HOW 层取舍的问题。
 
 ## Checklist
 

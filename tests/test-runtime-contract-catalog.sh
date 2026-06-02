@@ -193,7 +193,8 @@ from pathlib import Path
 root = Path(sys.argv[1])
 required_terms = {
     "shared/rules/code-changes.md": [
-        "current target scope",
+        "current change",
+        "blocking current correctness/build/verification",
     ],
     "shared/reference/code-structure-reuse.md": [
         "senior engineer perspective",

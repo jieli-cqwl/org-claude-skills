@@ -344,7 +344,7 @@
       "expected_agent_behavior": [
         "Limit the change to the requested bug and required verification.",
         "Ignore or report unrelated cleanup instead of performing it.",
-        "Remove only dead code introduced, touched, or found inside the current target scope."
+        "Remove only dead code introduced or touched by the current change, or blocking current correctness/build/verification."
       ],
       "pass_signals": [
         "Defines target scope before edits.",
