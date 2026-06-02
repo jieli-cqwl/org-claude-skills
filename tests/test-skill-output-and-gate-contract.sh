@@ -271,10 +271,10 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 requirements = {
     "frozen_tasks": ["tech-lead", "tasks"],
-    "delivery_review": ["交付", "review"],
+    "delivery_review": ["DO-S2", "review"],
     "loop_limit": ["10 轮"],
     "commit_dispatch": ["/commit"],
-    "user_decision": ["用户", "决策方"],
+    "user_decision": ["user-decision.json", "target-change.json"],
 }
 missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
 if missing:
@@ -596,13 +596,45 @@ assert_standard_chain_control_contract() {
   assert_absent 'gate_escalation' "$ROOT/contracts/standard-chain.yaml"
 
   assert_delivery_owner_control_terms
-  assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-  assert_present 'references/followup-loops.md' "$ROOT/shared/skills/delivery-owner/SKILL.md"
+  python3 - "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+import yaml
+
+root = Path(sys.argv[1])
+chain = yaml.safe_load((root / "contracts/standard-chain.yaml").read_text(encoding="utf-8"))
+roles = {role["name"]: role for role in chain["chain"]}
+delivery_inputs = roles["delivery-owner"]["inputs"]["stage_inputs"]
+if "phase-{N}/artifact-registry.json" not in delivery_inputs["DO-S1"]["required"]:
+    raise SystemExit("delivery-owner DO-S1 must require phase artifact-registry.json")
+authority = chain["authority_contract"]
+if authority.get("phase_delivery_owner") != "delivery-owner":
+    raise SystemExit("authority_contract phase_delivery_owner must be delivery-owner")
+if "sidecar_dispatch" not in authority.get("delivery_owner_may_decide", []):
+    raise SystemExit("delivery-owner may-decide contract must retain sidecar_dispatch")
+if "references/followup-loops.md" not in (root / "shared/skills/delivery-owner/SKILL.md").read_text(encoding="utf-8"):
+    raise SystemExit("delivery-owner skill must keep followup-loops reference path")
+PY
   assert_absent 'signoff_ready|control_decision_check|gap_delta|rebaseline_needed' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 
-  assert_present 'planning owner' "$ROOT/shared/skills/tech-lead/SKILL.md"
-  assert_present 'brief\.json\.review_conclusion' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
-  assert_present 'issue_ledger' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
+  jq -e '
+    .allOf[1].required
+    | index("user_confirmation") != null
+  ' "$ROOT/shared/skills/tech-lead/contracts/tasks.schema.json" >/dev/null \
+    || fail "tech-lead tasks schema must require user_confirmation"
+  jq -e '
+    .allOf[1].properties.user_confirmation.properties.status.enum
+    | index("CONFIRMED") != null
+  ' "$ROOT/shared/skills/tech-lead/contracts/tasks.schema.json" >/dev/null \
+    || fail "tech-lead tasks user_confirmation must allow CONFIRMED"
+  jq -e '
+    .authoritative_fields
+    | index("$.review_conclusion") != null
+      and index("$.issue_ledger") != null
+  ' "$ROOT/shared/skills/product-manager/templates/brief.template.json" >/dev/null \
+    || fail "product-manager brief template must expose review conclusion and issue ledger authority"
   assert_absent 'product-manager-review\.md' "$ROOT/shared/skills/product-manager/references/review-orchestration.md"
 }
 
@@ -633,9 +665,19 @@ assert_canonical_runtime_artifacts() {
   assert_present 'backward_compatibility' "$ROOT/shared/skills/review/templates/code-review-result.template.json"
   assert_present 'references/final-artifacts\.md' "$ROOT/shared/skills/product-director/SKILL.md"
   assert_absent 'references/output\.md#' "$ROOT/shared/skills/product-director/SKILL.md"
-  assert_present 'shared/skills/product-director/templates/brief.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
-  assert_present 'shared/skills/product-director/templates/phase-prd.template.json' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
-  assert_present 'canonical envelope' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+  python3 - "$ROOT/shared/skills/product-director/references/final-artifacts.md" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+required_paths = [
+    "shared/skills/product-director/templates/brief.template.json",
+    "shared/skills/product-director/templates/phase-prd.template.json",
+]
+missing = [path for path in required_paths if path not in text]
+if missing:
+    raise SystemExit(f"product-director final artifacts missing template paths: {missing}")
+PY
 }
 
 assert_standard_chain_production_readiness_contracts() {
@@ -665,10 +707,28 @@ do_s1_required = set(delivery_inputs["DO-S1"]["required"])
 for forbidden in sorted(runtime_evidence_paths):
     if forbidden in do_s1_required:
         failures.append(f"delivery-owner DO-S1 must not require runtime evidence: {forbidden}")
-for stage in ("DO-S5", "DO-S6", "DO-S7", "DO-S8"):
+for stage in ("DO-S5", "DO-S6", "DO-S7", "DO-S8a"):
     required = set(delivery_inputs[stage]["required"])
     if not required & runtime_evidence_paths:
         failures.append(f"delivery-owner {stage} must declare its runtime evidence inputs")
+
+do_s8a_required = set(delivery_inputs["DO-S8a"]["required"])
+do_s8b_required = set(delivery_inputs["DO-S8b"]["required"])
+do_s8c_required = set(delivery_inputs["DO-S8c"]["required"])
+if "phase-{N}/signoff-package.json" in do_s8a_required:
+    failures.append("delivery-owner DO-S8a must not require signoff-package before producing it")
+if "phase-{N}/user-decision.json" in do_s8a_required:
+    failures.append("delivery-owner DO-S8a must not require user-decision before requesting it")
+if "phase-{N}/signoff-package.json" not in do_s8b_required:
+    failures.append("delivery-owner DO-S8b must require signoff-package for user decision intake")
+for closeout_artifact in (
+    "phase-{N}/signoff-package.json",
+    "phase-{N}/user-decision.json",
+):
+    if closeout_artifact not in do_s8c_required:
+        failures.append(
+            f"delivery-owner DO-S8c must require final closeout evidence: {closeout_artifact}"
+        )
 
 for role in chain["chain"]:
     for output in role.get("outputs", []):

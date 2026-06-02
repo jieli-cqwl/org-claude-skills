@@ -2210,7 +2210,16 @@ artifacts:
         authority: user
         consumers:
           - consumer: product-director
-            consumed_for: route goal, scope, AC, task, or design changes back to baseline owners
+            consumed_for: route goal changes back to director-owned baseline fields
+            consume_mode: gate
+          - consumer: product-manager
+            consumed_for: route scope and AC changes back to phase PRD and unit-definition baselines
+            consume_mode: gate
+          - consumer: design
+            consumed_for: route design-impacting target changes back to design baseline
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: route changed product or design targets back to test-case and QA obligation baselines
             consume_mode: gate
           - consumer: tech-lead
             consumed_for: decide whether plan and task baselines must be regenerated
@@ -2221,8 +2230,20 @@ artifacts:
         producer: delivery-owner
         authority: delivery-owner
         consumers:
+          - consumer: product-manager
+            consumed_for: identify product baseline artifacts requiring rebaseline
+            consume_mode: gate
+          - consumer: design
+            consumed_for: identify design artifacts requiring revalidation or rebaseline
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: identify test-case and QA obligation artifacts requiring regeneration
+            consume_mode: gate
           - consumer: tech-lead
             consumed_for: identify frozen artifacts that need rebaseline
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: block closeout until affected artifacts are rebaselined or explicitly superseded
             consume_mode: gate
         required_when: target change is recorded
         failure_effect: rebaseline owner cannot determine affected scope
@@ -2230,6 +2251,18 @@ artifacts:
         producer: delivery-owner
         authority: delivery-owner
         consumers:
+          - consumer: product-manager
+            consumed_for: avoid reusing invalidated PRD, unit, or acceptance criteria baselines
+            consume_mode: gate
+          - consumer: design
+            consumed_for: avoid reusing invalidated design decisions or interface assumptions
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: avoid reusing invalidated test cases, coverage, or QA handoff obligations
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: avoid planning or tasking from invalidated baselines
+            consume_mode: gate
           - consumer: delivery-owner
             consumed_for: mark old baseline refs as unusable for closeout
             consume_mode: gate
@@ -2254,8 +2287,20 @@ artifacts:
         producer: delivery-owner
         authority: delivery-owner
         consumers:
+          - consumer: product-manager
+            consumed_for: decide whether product artifacts must be regenerated
+            consume_mode: gate
+          - consumer: design
+            consumed_for: decide whether design artifacts must be regenerated
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: decide whether test design artifacts must be regenerated
+            consume_mode: gate
           - consumer: tech-lead
             consumed_for: force return to baseline freezing before more execution
+            consume_mode: gate
+          - consumer: delivery-owner
+            consumed_for: block stage advancement until rebaseline is completed
             consume_mode: gate
         required_when: target change is recorded
         failure_effect: execution can continue without rebaseline
@@ -2263,6 +2308,18 @@ artifacts:
         producer: delivery-owner
         authority: delivery-owner
         consumers:
+          - consumer: product-manager
+            consumed_for: accept ownership for product target or scope rebaseline
+            consume_mode: gate
+          - consumer: design
+            consumed_for: accept ownership for design-impacting rebaseline
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: accept ownership for test and QA obligation rebaseline
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: accept ownership for plan and task rebaseline
+            consume_mode: gate
           - consumer: delivery-owner
             consumed_for: route the target change to the correct owner
             consume_mode: gate
@@ -2272,6 +2329,18 @@ artifacts:
         producer: delivery-owner
         authority: delivery-owner
         consumers:
+          - consumer: product-manager
+            consumed_for: produce fresh product artifacts required by the changed target
+            consume_mode: gate
+          - consumer: design
+            consumed_for: produce fresh design evidence required by the changed target
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: produce fresh test design and QA handoff evidence required by the changed target
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: produce fresh plan and tasks required by the changed target
+            consume_mode: gate
           - consumer: delivery-owner
             consumed_for: define which runtime evidence must be regenerated after rebaseline
             consume_mode: gate
@@ -2281,6 +2350,18 @@ artifacts:
         producer: delivery-owner
         authority: delivery-owner
         consumers:
+          - consumer: product-manager
+            consumed_for: avoid consuming the task baseline invalidated by the target change
+            consume_mode: gate
+          - consumer: design
+            consumed_for: avoid consuming design work tied only to the invalidated task baseline
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: avoid consuming tests tied only to the invalidated task baseline
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: regenerate plan/tasks from the invalidated baseline boundary
+            consume_mode: gate
           - consumer: delivery-owner
             consumed_for: record which baseline is invalidated by the target change
             consume_mode: gate
@@ -2290,6 +2371,18 @@ artifacts:
         producer: delivery-owner
         authority: delivery-owner
         consumers:
+          - consumer: product-manager
+            consumed_for: bind fresh product artifacts to the active task registry after rebaseline
+            consume_mode: gate
+          - consumer: design
+            consumed_for: bind fresh design artifacts to the active task registry after rebaseline
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: bind fresh test artifacts to the active task registry after rebaseline
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: bind fresh plan and task artifacts to the active task registry after rebaseline
+            consume_mode: gate
           - consumer: delivery-owner
             consumed_for: invalidate or rebaseline the active task registry affected by the target change
             consume_mode: gate
@@ -2308,6 +2401,18 @@ artifacts:
         producer: delivery-owner
         authority: user
         consumers:
+          - consumer: product-manager
+            consumed_for: trace product rebaseline to user-authorized target-change evidence
+            consume_mode: gate
+          - consumer: design
+            consumed_for: trace design rebaseline to user-authorized target-change evidence
+            consume_mode: gate
+          - consumer: test-design
+            consumed_for: trace test-design rebaseline to user-authorized target-change evidence
+            consume_mode: gate
+          - consumer: tech-lead
+            consumed_for: trace plan/task rebaseline to user-authorized target-change evidence
+            consume_mode: gate
           - consumer: delivery-owner
             consumed_for: trace the target change to the decision evidence that justified rebaseline
             consume_mode: gate
@@ -2331,6 +2436,18 @@ artifacts:
             consume_mode: gate
         required_when: target change invalidates baseline or runtime evidence
         failure_effect: evidence can be invalidated without accountable authority
+      target_change_payload_digest:
+        producer: delivery-owner
+        authority: user
+        consumers:
+          - consumer: delivery-owner
+            consumed_for: detect tampering or drift in the authorized target-change payload
+            consume_mode: gate
+          - consumer: consistency-auditor
+            consumed_for: verify rebaseline evidence consumed the exact authorized target-change payload
+            consume_mode: gate
+        required_when: target change invalidates baseline or runtime evidence
+        failure_effect: target-change payload can drift after authority proof is recorded
 
   - path: docs/{feature}/phase-{N}/fix-result.json
     producer: fix

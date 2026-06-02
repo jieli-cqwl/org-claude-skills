@@ -124,4 +124,42 @@ if python3 "$VALIDATOR" --matrix "$TMP_DIR/needs-human-decision.md" >"$TMP_DIR/m
   fail "matrix validator must reject unresolved needs-human-decision rows"
 fi
 
+python3 - "$MATRIX" "$TMP_DIR/target-change-missing-consumers.md" <<'PY'
+import sys
+from pathlib import Path
+
+source = Path(sys.argv[1]).read_text(encoding="utf-8")
+bad = source.replace(
+    "Product-director, product-manager, design, test-design, tech-lead, delivery-owner, consistency-auditor",
+    "Product-director, tech-lead, delivery-owner, consistency-auditor",
+    1,
+)
+Path(sys.argv[2]).write_text(bad, encoding="utf-8")
+PY
+if python3 "$VALIDATOR" --matrix "$TMP_DIR/target-change-missing-consumers.md" >"$TMP_DIR/matrix_target_change_consumers.out" 2>&1; then
+  cat "$TMP_DIR/matrix_target_change_consumers.out" >&2
+  fail "matrix validator must reject target-change rows that omit downstream rebaseline consumers"
+fi
+grep -Eq 'target-change X-001 consumers|product-manager|design|test-design' "$TMP_DIR/matrix_target_change_consumers.out" \
+  || fail "target-change consumer failure should name downstream consumers"
+
+python3 - "$MATRIX" "$TMP_DIR/target-change-missing-director.md" <<'PY'
+import sys
+from pathlib import Path
+
+source = Path(sys.argv[1]).read_text(encoding="utf-8")
+bad = source.replace(
+    "Product-director, product-manager, design, test-design, tech-lead, delivery-owner, consistency-auditor",
+    "product-manager, design, test-design, tech-lead, delivery-owner, consistency-auditor",
+    1,
+)
+Path(sys.argv[2]).write_text(bad, encoding="utf-8")
+PY
+if python3 "$VALIDATOR" --matrix "$TMP_DIR/target-change-missing-director.md" >"$TMP_DIR/matrix_target_change_director.out" 2>&1; then
+  cat "$TMP_DIR/matrix_target_change_director.out" >&2
+  fail "matrix validator must reject target-change rows that omit product-director"
+fi
+grep -Eq 'target-change X-001 consumers|product-director' "$TMP_DIR/matrix_target_change_director.out" \
+  || fail "target-change consumer failure should name product-director"
+
 printf '[PASS] standard-chain product-delivery production readiness matrix\n'

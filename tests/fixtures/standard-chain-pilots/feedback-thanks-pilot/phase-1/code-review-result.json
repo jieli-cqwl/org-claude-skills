@@ -126,7 +126,7 @@
       "line_number": 145,
       "status": "RESOLVED",
       "red_evidence": "FAILED: negative Content-Length returned 303 See Other with /thanks?id before fix",
-      "green_evidence": "Ran 9 tests in 0.511s OK after rejecting length < 0"
+      "green_evidence": "Ran 12 tests in 0.529s OK after feedback pilot coverage expansion"
     },
     {
       "finding_id": "CR-DOC-001",

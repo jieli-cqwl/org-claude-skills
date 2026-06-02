@@ -51,11 +51,19 @@ def assert_task_runtime_identity(
             f"extra={sorted(set(state_task_ids) - set(expected_task_ids))}"
         )
     expected_goal_refs = set(expected_signoff_goal_refs(brief, phase_prd))
+    task_by_id = {
+        str(item.get("task_id")): item
+        for item in tasks
+        if isinstance(item, dict) and item.get("task_id")
+    }
     developer_report_refs: dict[str, str] = {}
     for artifact_type, task_id, runtime_path in task_runtime_entries:
         if artifact_type != "developer-report":
             continue
         payload = load_json(runtime_path)
+        assert_developer_fresh_proof_matches_task(
+            task_by_id[task_id], payload, runtime_path
+        )
         developer_report_refs[task_id] = (
             f"artifact://developer-report/{payload.get('artifact_id')}@v1#tdd-evidence-index"
         )
@@ -143,3 +151,60 @@ def assert_task_runtime_identity(
                 raise ValueError(
                     f"verify-result goal_closure must contain at least one MET row at readiness: {runtime_path}"
                 )
+
+
+def assert_developer_fresh_proof_matches_task(
+    task: dict, report: dict, runtime_path: Path
+) -> None:
+    task_id = str(task.get("task_id", "")).strip()
+    expected_target = f"developer-report.json#task-{task_id}.fresh_proof"
+    if str(task.get("evidence_target", "")).strip() != expected_target:
+        raise ValueError(
+            f"task {task_id} evidence_target must resolve to developer-report fresh_proof: {runtime_path}"
+        )
+
+    task_command = str(task.get("proving_command", "")).strip()
+    if not task_command:
+        raise ValueError(f"task {task_id} proving_command is required at readiness")
+
+    proof = report.get("fresh_proof")
+    if not isinstance(proof, dict):
+        raise ValueError(f"developer-report fresh_proof is required: {runtime_path}")
+    current_refs = {
+        str(ref).strip()
+        for ref in proof.get("current_evidence_refs", [])
+        if str(ref).strip()
+    }
+    if not current_refs:
+        raise ValueError(
+            f"developer-report fresh_proof.current_evidence_refs must be non-empty: {runtime_path}"
+        )
+    proving_commands = proof.get("proving_commands")
+    if not isinstance(proving_commands, list) or not proving_commands:
+        raise ValueError(
+            f"developer-report fresh_proof.proving_commands must be non-empty: {runtime_path}"
+        )
+
+    matching_commands = [
+        row
+        for row in proving_commands
+        if isinstance(row, dict) and str(row.get("command", "")).strip() == task_command
+    ]
+    if not matching_commands:
+        raise ValueError(
+            f"task {task_id} proving_command must match developer-report fresh_proof: {runtime_path}"
+        )
+    for row in matching_commands:
+        output_ref = str(row.get("current_output_ref", "")).strip()
+        if not output_ref:
+            raise ValueError(
+                f"task {task_id} developer-report proving_command missing current_output_ref: {runtime_path}"
+            )
+        if output_ref not in current_refs:
+            raise ValueError(
+                f"task {task_id} developer-report proving_command current_output_ref must be listed in fresh_proof.current_evidence_refs: {runtime_path}"
+            )
+        if str(row.get("result", "")).strip() != "PASS":
+            raise ValueError(
+                f"task {task_id} developer-report proving_command result must be PASS at readiness: {runtime_path}"
+            )

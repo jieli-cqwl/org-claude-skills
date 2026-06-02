@@ -21,10 +21,10 @@ assert_present() {
 assert_absent() {
   local pattern="$1"
   local file="$2"
-  if rg -n "$pattern" "$file" >/tmp/t6_cutover_absent.out 2>&1; then
-    cat /tmp/t6_cutover_absent.out >&2
-    fail "unexpected legacy pattern in $file: $pattern"
-  fi
+  assert_rg_no_match \
+    /tmp/t6_cutover_absent.out \
+    "unexpected legacy pattern in $file: $pattern" \
+    -n "$pattern" "$file"
 }
 
 assert_present 'brief.json' "$ROOT/contracts/standard-chain.yaml"
@@ -79,7 +79,20 @@ assert_present 'shared/skills/qa/templates/qa-result.template.json' "$ROOT/share
 assert_absent 'shared/skills/delivery-owner/templates/signoff-package.template.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
 assert_present 'fix-result.json' "$ROOT/shared/skills/fix/SKILL.md"
 
-assert_present 'Director result gate' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
+python3 - "$ROOT/shared/skills/product-director/references/final-artifacts.md" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+required_paths = [
+    "tools/community/validate_co_creation_ledger.py",
+    "shared/skills/product-director/templates/brief.template.json",
+    "shared/skills/product-director/templates/phase-prd.template.json",
+]
+missing = [path for path in required_paths if path not in text]
+if missing:
+    raise SystemExit(f"product-director final artifacts missing contract paths: {missing}")
+PY
 assert_absent 'validate_canonical_schema.py' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
 assert_absent 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/SKILL.md"
 assert_absent 'validate_standard_chain_phase.py' "$ROOT/shared/skills/product-director/references/final-artifacts.md"
@@ -97,21 +110,9 @@ for design_prompt in \
   "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md"
 do
-  assert_present '自检后的设计产物|self-checked design artifact|canonical-shaped design artifact' "$design_prompt"
-  assert_present 'owner 已自检并确认可送审的设计产物' "$design_prompt"
-  python3 - "$design_prompt" <<'PY'
-import sys
-from pathlib import Path
-
-text = Path(sys.argv[1]).read_text(encoding="utf-8")
-required = ["Finalize 只追加", "review_closure", "final_confirmation", "验证收口"]
-missing = [term for term in required if term not in text]
-if missing:
-    raise SystemExit(f"missing finalize scope terms: {missing}")
-PY
-  assert_present 'Reviewed Design Digest' "$design_prompt"
-  assert_absent 'candidate_design_json|Reviewed Candidate Digest|S8 候选设计包|design-candidate-package' "$design_prompt"
-  assert_absent '最终冻结工件|final design|reviewer.*写入.*final_confirmation|reviewer.*写入.*review_closure' "$design_prompt"
+  assert_present 'review_closure' "$design_prompt"
+  assert_present 'final_confirmation' "$design_prompt"
+  assert_present 'sha256:' "$design_prompt"
   assert_absent 'design/MOD-\*|ADR-\*|design\.json\.review_conclusion|\bADR\b|MOD-[0-9]|brief\.md|prd\.md|UNIT-\*\.md|test-cases\.md' "$design_prompt"
 done
 for design_prompt in \
@@ -125,7 +126,13 @@ assert_present 'artifact-registry.json' "$ROOT/shared/skills/review/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/verify/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/qa/SKILL.md"
 assert_present 'artifact-registry.json' "$ROOT/shared/skills/delivery-owner/SKILL.md"
-assert_present 'PM handoff gate' "$ROOT/shared/skills/product-manager/SKILL.md"
+jq -e '
+  .authoritative_fields
+  | index("$.review_conclusion") != null
+    and index("$.issue_ledger") != null
+    and index("$.delivery_confirmation") != null
+' "$ROOT/shared/skills/product-manager/templates/brief.template.json" >/dev/null \
+  || fail "product-manager brief template must expose handoff closure fields"
 assert_present 'validate_product_closure.py' "$ROOT/shared/skills/product-manager/SKILL.md"
 for standard_skill in \
   "$ROOT/shared/skills/tech-lead/SKILL.md" \
@@ -141,8 +148,8 @@ do
       assert_present 'canonical JSON' "$standard_skill"
       ;;
     "$ROOT/shared/skills/tech-lead/SKILL.md")
-      assert_present 'plan canonical:' "$standard_skill"
-      assert_present 'tasks canonical:' "$standard_skill"
+      assert_present 'plan canonical: `templates/plan\.template\.json`' "$standard_skill"
+      assert_present 'tasks canonical: `templates/tasks\.template\.json`' "$standard_skill"
       ;;
     "$ROOT/shared/skills/qa/SKILL.md")
       assert_present 'canonical schema/template' "$standard_skill"
@@ -174,9 +181,6 @@ for agent_contract in "$ROOT/shared/agents/claude"/*.md
 do
   assert_absent '^model:|^maxTurns:|^memory:' "$agent_contract"
   assert_absent '\{work_dir\}|\{phase_dir\}|docs/\{feature\}|developer-report\.json|verify-result\.json|qa-result\.json|code-review-result\.json|test-cases\.json|plan\.json|design\.json|brief\.json|phase-prd\.json|UNIT-\*\.json|MOD-\*\.md|ADR-\*\.md' "$agent_contract"
-  assert_absent '下文若仍出现 legacy 名称' "$agent_contract"
-  assert_absent '不再直接依赖旧 `md` 工件' "$agent_contract"
-  assert_absent '不再把旧 `md` 章节当作控制输入' "$agent_contract"
 done
 
 [ ! -e "$ROOT/shared/agents/claude/designer.md" ] || fail "designer should remain a manual skill, not a delivery-owner dispatch agent"

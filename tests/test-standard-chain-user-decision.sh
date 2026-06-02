@@ -2,6 +2,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=tests/lib/test-env.sh
+. "$ROOT/tests/lib/test-env.sh"
+ensure_test_rg
 FIXTURE_ROOT="$ROOT/tests/fixtures/standard-chain-foundation/user-decision"
 TMP_DIR="$(mktemp -d)"
 
@@ -117,6 +120,29 @@ for negative_proof_case in authority-conflict digest-mismatch expired-proof; do
   fi
 done
 
+baseline_mismatch_decision="$TMP_DIR/baseline-mismatch.out.json"
+baseline_mismatch_proof="$TMP_DIR/baseline-mismatch.proof.json"
+python3 "$ROOT/tools/community/write_user_decision.py" --fixture "$FIXTURE_ROOT/approve.json" >"$baseline_mismatch_decision" || fail "baseline-mismatch writer should pass"
+build_validation_fixture "$FIXTURE_ROOT/approve.json" "$baseline_mismatch_decision" "$baseline_mismatch_proof"
+python3 - "$baseline_mismatch_proof" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["runtime_state"]["baseline_tasks_version_ref"] = (
+    "artifact://tasks/sample-feature.phase-1.tasks@stale#task-registry"
+)
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/authority_proof.py" --fixture "$baseline_mismatch_proof" >/tmp/t4_baseline_mismatch.out 2>&1; then
+  cat /tmp/t4_baseline_mismatch.out >&2
+  fail "baseline-mismatch authority proof should fail"
+fi
+rg -q "stale task baseline" /tmp/t4_baseline_mismatch.out \
+  || fail "baseline-mismatch failure should name stale task baseline"
+
 for negative_rule_case in script-source stale-baseline; do
   decision_output="$TMP_DIR/$negative_rule_case.out.json"
   rule_fixture="$TMP_DIR/$negative_rule_case.rule.json"
@@ -173,6 +199,89 @@ PY
 python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$target_change_rule_fixture" >/dev/null \
   || fail "target-change template should pass canonical schema validation"
 
+target_change_wrong_owner="$TMP_DIR/target-change-wrong-owner.rule.json"
+python3 - "$ROOT" "$target_change_wrong_owner" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+target_change = json.loads(
+    (root / "shared/skills/delivery-owner/templates/target-change.template.json").read_text(encoding="utf-8")
+)
+target_change["changed_target_type"] = "AC"
+target_change["rebaseline_owner"] = "tech-lead"
+payload = {
+    "artifacts": [target_change],
+    "runtime_state": {
+        "active_tasks_version_ref": target_change["active_tasks_version_ref"],
+    },
+}
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$target_change_wrong_owner" >/tmp/t4_target_change_wrong_owner.out 2>&1; then
+  cat /tmp/t4_target_change_wrong_owner.out >&2
+  fail "target-change schema should route AC changes back to product-manager"
+fi
+
+target_change_missing_pm_fresh_proof="$TMP_DIR/target-change-missing-pm-fresh-proof.rule.json"
+python3 - "$ROOT" "$target_change_missing_pm_fresh_proof" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+target_change = json.loads(
+    (root / "shared/skills/delivery-owner/templates/target-change.template.json").read_text(encoding="utf-8")
+)
+target_change["changed_target_type"] = "SCOPE"
+target_change["required_fresh_proof_after_rebaseline"] = [
+    item
+    for item in target_change["required_fresh_proof_after_rebaseline"]
+    if item != "unit-definition"
+]
+payload = {
+    "artifacts": [target_change],
+    "runtime_state": {
+        "active_tasks_version_ref": target_change["active_tasks_version_ref"],
+    },
+}
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$target_change_missing_pm_fresh_proof" >/tmp/t4_target_change_missing_pm_fresh_proof.out 2>&1; then
+  cat /tmp/t4_target_change_missing_pm_fresh_proof.out >&2
+  fail "target-change schema should require unit-definition proof for SCOPE changes"
+fi
+
+target_change_missing_brief_fresh_proof="$TMP_DIR/target-change-missing-brief-fresh-proof.rule.json"
+python3 - "$ROOT" "$target_change_missing_brief_fresh_proof" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+target_change = json.loads(
+    (root / "shared/skills/delivery-owner/templates/target-change.template.json").read_text(encoding="utf-8")
+)
+target_change["changed_target_type"] = "AC"
+target_change["required_fresh_proof_after_rebaseline"] = [
+    item
+    for item in target_change["required_fresh_proof_after_rebaseline"]
+    if item != "brief"
+]
+payload = {
+    "artifacts": [target_change],
+    "runtime_state": {
+        "active_tasks_version_ref": target_change["active_tasks_version_ref"],
+    },
+}
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$target_change_missing_brief_fresh_proof" >/tmp/t4_target_change_missing_brief_fresh_proof.out 2>&1; then
+  cat /tmp/t4_target_change_missing_brief_fresh_proof.out >&2
+  fail "target-change schema should require brief proof for AC changes"
+fi
+
 user_decision_with_target_field="$TMP_DIR/user-decision-with-target-field.rule.json"
 python3 - "$FIXTURE_ROOT/approve.json" "$user_decision_with_target_field" <<'PY'
 import json
@@ -216,6 +325,92 @@ if python3 "$ROOT/tools/community/validate_canonical_schema.py" --fixture "$targ
   cat /tmp/t4_target_change_with_signoff_field.out >&2
   fail "target-change schema should reject user-decision signoff fields"
 fi
+
+python3 - "$ROOT" <<'PY' || fail "simple schema fallback should enforce target/user separation"
+import copy
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+sys.path.insert(0, str(root / "tools/community"))
+from normalize_canonical_artifact import normalize_artifact
+from simple_json_schema import SimpleSchemaValidator, SimpleValidationError
+
+schema_paths = [
+    root / "shared/skills/lib/contracts/shared-core.schema.json",
+    root / "shared/skills/delivery-owner/contracts/target-change.schema.json",
+    root / "shared/skills/delivery-owner/contracts/user-decision.schema.json",
+]
+schemas = {json.loads(path.read_text(encoding="utf-8"))["$id"]: json.loads(path.read_text(encoding="utf-8")) for path in schema_paths}
+validator = SimpleSchemaValidator(schemas)
+target_schema = schemas[
+    "https://org-claude-skills.local/shared/skills/delivery-owner/contracts/target-change.schema.json"
+]
+decision_schema = schemas[
+    "https://org-claude-skills.local/shared/skills/delivery-owner/contracts/user-decision.schema.json"
+]
+target = normalize_artifact(
+    json.loads(
+        (root / "shared/skills/delivery-owner/templates/target-change.template.json").read_text(
+            encoding="utf-8"
+        )
+    )
+)
+decision = normalize_artifact(
+    json.loads(
+        (
+            root
+            / "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature/phase-1/user-decision.json"
+        ).read_text(encoding="utf-8")
+    )
+)
+
+validator.validate(target, target_schema)
+validator.validate(decision, decision_schema)
+
+bad_target = copy.deepcopy(target)
+bad_target["changed_target_type"] = "SCOPE"
+bad_target["required_fresh_proof_after_rebaseline"] = [
+    item for item in bad_target["required_fresh_proof_after_rebaseline"] if item != "unit-definition"
+]
+try:
+    validator.validate(bad_target, target_schema)
+except SimpleValidationError:
+    pass
+else:
+    raise SystemExit("fallback accepted target-change without required SCOPE unit-definition proof")
+
+bad_target = copy.deepcopy(target)
+bad_target["changed_target_type"] = "AC"
+bad_target["required_fresh_proof_after_rebaseline"] = [
+    item for item in bad_target["required_fresh_proof_after_rebaseline"] if item != "brief"
+]
+try:
+    validator.validate(bad_target, target_schema)
+except SimpleValidationError:
+    pass
+else:
+    raise SystemExit("fallback accepted target-change without required AC brief proof")
+
+bad_decision = copy.deepcopy(decision)
+bad_decision["changed_target_type"] = "AC"
+try:
+    validator.validate(bad_decision, decision_schema)
+except SimpleValidationError:
+    pass
+else:
+    raise SystemExit("fallback accepted target-change field on user-decision")
+
+bad_target = copy.deepcopy(target)
+bad_target["sign_off_status"] = "SIGNED_OFF"
+try:
+    validator.validate(bad_target, target_schema)
+except SimpleValidationError:
+    pass
+else:
+    raise SystemExit("fallback accepted user-decision signoff field on target-change")
+PY
 
 signoff_rule_fixture="$TMP_DIR/signoff.rule.json"
 python3 - "$ROOT" "$signoff_rule_fixture" <<'PY'

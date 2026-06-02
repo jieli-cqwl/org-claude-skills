@@ -69,6 +69,18 @@
   ],
   "ac_coverage_matrix": [
     {
+      "ac_id": "AC-U1-01",
+      "positive_case_refs": [
+        "TC-T1-1"
+      ],
+      "negative_case_refs": [
+        "TC-T1-NEG"
+      ],
+      "boundary_case_refs": [
+        "TC-T1-BND"
+      ]
+    },
+    {
       "ac_id": "AC-T1-1",
       "positive_case_refs": [
         "TC-T1-1"
@@ -340,7 +352,11 @@
       "skip_policy": "RECORD_NOT_EXECUTED_REASON",
       "evidence_contract_ref": "QHO-RELEASE-CLOSURE#evidence",
       "design_source_refs": [
-        "design.json#product_handoff.accepted_refs"
+        "design.json#product_handoff.accepted_refs",
+        "design.json#key_decisions[0]",
+        "design.json#key_decisions[1]",
+        "design.json#interfaces[0]",
+        "design.json#interfaces[1]"
       ]
     }
   ],
@@ -464,7 +480,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:b445664df66960e8f97cd8826e3c26568a0f6244067c9a517f801289df017420",
+        "reviewed_test_cases_digest": "sha256:fc8e19a7f788d674db17a247d31ac472d7bca3c1b10c7861033268cc3ea516fb",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -474,7 +490,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:b445664df66960e8f97cd8826e3c26568a0f6244067c9a517f801289df017420",
+        "reviewed_test_cases_digest": "sha256:fc8e19a7f788d674db17a247d31ac472d7bca3c1b10c7861033268cc3ea516fb",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -484,7 +500,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:b445664df66960e8f97cd8826e3c26568a0f6244067c9a517f801289df017420",
+        "reviewed_test_cases_digest": "sha256:fc8e19a7f788d674db17a247d31ac472d7bca3c1b10c7861033268cc3ea516fb",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -510,7 +526,7 @@
         ]
       }
     ],
-      "reviewed_test_cases_digest": "sha256:b445664df66960e8f97cd8826e3c26568a0f6244067c9a517f801289df017420",
+    "reviewed_test_cases_digest": "sha256:fc8e19a7f788d674db17a247d31ac472d7bca3c1b10c7861033268cc3ea516fb",
     "closure_status": "CLOSED"
   },
   "issue_ledger": []

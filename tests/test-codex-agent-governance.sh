@@ -131,14 +131,33 @@ expected_skill_for() {
   esac
 }
 
-duplicated_skill_detail_pattern='先读并严格遵循|硬约束|完整方法论|可用工具|Write 仅用于|禁止使用 Edit|禁止 Edit|developer-report\.json|verify-result\.json|qa-result\.json|code-review-result\.json|consistency-audit-result\.json|\{\{HOME\}\}/\.codex/rules|\{\{HOME\}\}/\.agents/skills'
-
 for agent in "${expected_agents[@]}"; do
   file="$ROOT/shared/agents/codex/$agent.toml"
   assert_present '^sandbox_mode = "workspace-write"$' "$file"
   assert_present '^developer_instructions = """$' "$file"
   [ -f "$ROOT/shared/skills/$(expected_skill_for "$agent")/SKILL.md" ] || fail "declared Codex agent skill source missing: $agent -> $(expected_skill_for "$agent")"
-  assert_absent "$duplicated_skill_detail_pattern" "$file"
+  python3 - "$file" <<'PY'
+import sys
+import tomllib
+from pathlib import Path
+
+payload = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+instructions = payload.get("developer_instructions", "")
+lines = [line for line in instructions.splitlines() if line.strip()]
+if len(lines) != 1:
+    raise SystemExit("Codex agent developer_instructions must stay one-line and delegate to its skill")
+for forbidden in (
+    ".codex/rules",
+    ".agents/skills",
+    "developer-report.json",
+    "verify-result.json",
+    "qa-result.json",
+    "code-review-result.json",
+    "consistency-audit-result.json",
+):
+    if forbidden in instructions:
+        raise SystemExit(f"Codex agent duplicates runtime/skill details: {forbidden}")
+PY
 done
 
 for removed in generic-code-reviewer designer tech-lead test-designer; do

@@ -9,6 +9,7 @@ MANAGER_CHECK="$ROOT/shared/skills/product-manager/scripts/completion_check.sh"
 DIRECTOR_FINAL_ARTIFACTS_REFERENCE="$ROOT/shared/skills/product-director/references/final-artifacts.md"
 MANAGER_SKILL="$ROOT/shared/skills/product-manager/SKILL.md"
 DESIGN_SKILL="$ROOT/shared/skills/design/SKILL.md"
+DESIGN_TEMPLATE="$ROOT/shared/skills/design/templates/design.template.json"
 DESIGN_CHECK="$ROOT/shared/skills/design/scripts/completion_check.sh"
 ROLE_CONTRACT_TEST="$ROOT/tests/test-product-role-split-contract.sh"
 
@@ -56,8 +57,8 @@ assert_present '"producer"[[:space:]]*:[[:space:]]*"product"' "$ROOT/shared/skil
 assert_present 'validate_product_closure\.py' "$MANAGER_CHECK"
 assert_present 'validate_product_closure\.py' "$DESIGN_CHECK"
 assert_present 'require-delivery' "$DESIGN_CHECK"
-assert_present 'delivery_confirmation\.status=confirmed' "$DESIGN_SKILL"
-assert_present 'issue_ledger' "$DESIGN_SKILL"
+assert_present 'final_confirmation\.status=confirmed' "$DESIGN_SKILL"
+assert_present 'phase-prd\.json#review_conclusion' "$DESIGN_TEMPLATE"
 assert_absent 'REQUIRED_BRIEF_LOCK_HEADINGS=\(' "$MANAGER_CHECK"
 assert_absent 'REQUIRED_PRD_LOCK_HEADINGS=\(' "$MANAGER_CHECK"
 assert_absent '"业务背景与根问题"[[:space:]]+"目标与成功标准"' "$MANAGER_CHECK"
@@ -196,9 +197,9 @@ manager_phase_template = load_json("shared/skills/product-manager/templates/phas
 unit_template = load_json("shared/skills/product-manager/templates/unit-definition.template.json")
 
 require_schema_fields(brief_schema, director_brief_fields, "brief")
-require_exact_template_fields(director_brief_template, director_brief_fields, "director brief")
+require_authoritative_fields(director_brief_template, director_brief_fields, "director brief")
 require_delivery_plan_timebox(brief_schema, director_brief_template, "director brief")
-require_exact_template_fields(director_phase_template, phase_prd_director_fields, "director phase-prd")
+require_authoritative_fields(director_phase_template, phase_prd_director_fields, "director phase-prd")
 
 require_schema_properties(phase_schema, phase_prd_manager_fields, "phase-prd")
 require_conditional_manager_phase_fields(phase_schema, phase_prd_manager_fields)
@@ -208,7 +209,7 @@ require_schema_fields(unit_schema, unit_manager_fields, "unit-definition")
 require_authoritative_fields(unit_template, unit_manager_fields, "unit-definition")
 ac_items = unit_schema["allOf"][1]["properties"]["acceptance_criteria"]["items"]
 require(ac_items.get("type") == "object", "unit acceptance_criteria must be structured objects")
-for field in ["ac_id", "description", "example_input", "expected_result", "boundary_case", "failure_mode"]:
+for field in ["ac_id", "description", "example_input", "expected_result", "boundary_case", "failure_mode", "source_refs"]:
     require(field in ac_items.get("required", []), f"unit acceptance_criteria item must require {field}")
 evidence_types = set(
     phase_schema["allOf"][1]["properties"]["evidence_sources"]["items"]["properties"]["source_type"]["enum"]

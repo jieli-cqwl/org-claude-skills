@@ -34,6 +34,28 @@ ensure_test_rg() {
   return 1
 }
 
+assert_rg_no_match() {
+  local output_path="$1"
+  local failure_message="$2"
+  shift 2
+
+  local status
+  set +e
+  rg "$@" >"$output_path" 2>&1
+  status=$?
+  set -e
+  if [ "$status" -eq 0 ]; then
+    cat "$output_path" >&2
+    printf '[FAIL] %s\n' "$failure_message" >&2
+    exit 1
+  fi
+  if [ "$status" -ne 1 ]; then
+    cat "$output_path" >&2
+    printf '[FAIL] rg absence check failed with exit %s: %s\n' "$status" "$failure_message" >&2
+    exit 1
+  fi
+}
+
 prepare_fake_openspec() {
   local home_dir="$1"
   local bin_dir="$home_dir/.org-test-bin"

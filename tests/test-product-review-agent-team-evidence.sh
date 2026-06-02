@@ -178,6 +178,25 @@ assert_validator_blocks_summary_only \
   "$workspace/docs/sample-feature/phase-1/phase-prd.json" \
   'reviewed_bundle_digest|digest'
 
+workspace="$(prepare_workspace)"
+python3 - "$workspace/docs/sample-feature/phase-1/units/UNIT-1.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+unit_path = Path(sys.argv[1])
+payload = json.loads(unit_path.read_text(encoding="utf-8"))
+payload["acceptance_criteria"][0]["source_refs"] = [
+    "artifact://brief/sample-feature.brief@v1#ac-999"
+]
+unit_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$VALIDATOR" --artifact "$workspace/docs/sample-feature/phase-1/units/UNIT-1.json" >"$TMP_DIR/ghost-unit-source-ref.out" 2>&1; then
+  fail "validator should reject UNIT acceptance_criteria source_refs that do not resolve to brief AC"
+fi
+grep -Eq 'source_refs|brief acceptance_criteria ref|ac-999' "$TMP_DIR/ghost-unit-source-ref.out" \
+  || fail "ghost UNIT source_ref failure should name source_refs"
+
 assert_agent_team_runtime_tools
 
 printf '[PASS] product review agent-team evidence contract\n'

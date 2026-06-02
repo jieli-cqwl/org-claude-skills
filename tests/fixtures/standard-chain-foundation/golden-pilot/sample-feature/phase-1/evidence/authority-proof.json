@@ -3,10 +3,11 @@
   "proof_type": "HUMAN_CONFIRMED_IMPORT",
   "verified_actor_id": "user-001",
   "verified_channel": "manual-import",
-  "verified_at": "2026-04-14T00:00:00Z",
+  "verified_at": "2026-04-13T23:59:59Z",
   "verified_until": "2026-04-14T05:00:00Z",
   "proof_basis_refs": [
     "artifact://evidence/sample-feature.phase-1.authority-proof@ev-approve#proof-root"
   ],
-  "decision_payload_digest": "sha256:04506e57f0d35b8c3e7860873059124b5a501876667a8a1e39d75a6e7269c81a"
+  "decision_payload_digest": "sha256:04506e57f0d35b8c3e7860873059124b5a501876667a8a1e39d75a6e7269c81a",
+  "target_change_payload_digest": "sha256:a62714d79a5473e19c8b82a1be8ba6dd4ed2e80cf260b0a7414d4e1d346c868c"
 }

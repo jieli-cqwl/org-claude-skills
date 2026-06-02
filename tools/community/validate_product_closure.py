@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -67,6 +68,15 @@ def is_string_list(value: object, *, allow_empty: bool = False) -> bool:
     if not allow_empty and not value:
         return False
     return all(is_substantive_text(item) for item in value)
+
+
+def is_brief_acceptance_ref(value: str) -> bool:
+    normalized = value.lower()
+    return "brief" in normalized and (
+        "acceptance_criteria" in normalized
+        or "#ac-" in normalized
+        or "#gac-" in normalized
+    )
 
 
 def parse_iso_datetime(value: object, label: str) -> None:
@@ -159,7 +169,36 @@ def feature_root_for_artifact(path: Path) -> Path:
         return path.parent
     if path.name == "phase-prd.json":
         return path.parent.parent
+    if path.parent.name == "units":
+        return path.parent.parent.parent
     return path.parent
+
+
+def canonical_brief_acceptance_refs(artifact_path: Path) -> set[str]:
+    brief_path = feature_root_for_artifact(artifact_path) / "brief.json"
+    if not brief_path.is_file():
+        raise FileNotFoundError(
+            f"{artifact_path.name} source_refs require sibling feature brief.json: {brief_path}"
+        )
+    brief = load_json(brief_path)
+    artifact_id = str(brief.get("artifact_id", "")).strip()
+    if not artifact_id:
+        raise ValueError("brief artifact_id is required for UNIT source_refs")
+    criteria = brief.get("acceptance_criteria")
+    if not isinstance(criteria, list) or not criteria:
+        raise ValueError("brief acceptance_criteria must be non-empty for UNIT source_refs")
+    refs: set[str] = set()
+    for index, _criterion in enumerate(criteria, start=1):
+        refs.add(f"artifact://brief/{artifact_id}@v1#ac-{index:03d}")
+        refs.add(f"brief.json#acceptance_criteria[{index - 1}]")
+    return refs
+
+
+def looks_like_brief_acceptance_ref(value: str) -> bool:
+    return bool(
+        re.search(r"(^|/)brief(?:\.json)?($|[/#@])", value, re.IGNORECASE)
+        and ("acceptance_criteria" in value or re.search(r"#(?:g)?ac-\d+", value, re.IGNORECASE))
+    )
 
 
 def assert_reviewed_bundle_digest(
@@ -446,7 +485,9 @@ def assert_final_phase_units(payload: dict, label: str, artifact_path: Path) -> 
             )
 
 
-def assert_unit_definition_fields(payload: dict, label: str) -> None:
+def assert_unit_definition_fields(
+    payload: dict, label: str, artifact_path: Path | None = None
+) -> None:
     """Require PM-owned UNIT artifacts to carry executable WHAT-layer context."""
 
     if payload.get("artifact_type") != "unit-definition":
@@ -481,6 +522,11 @@ def assert_unit_definition_fields(payload: dict, label: str) -> None:
     criteria = payload.get("acceptance_criteria")
     if not isinstance(criteria, list) or not criteria:
         raise ValueError(f"{label} acceptance_criteria must be non-empty")
+    brief_acceptance_refs = (
+        canonical_brief_acceptance_refs(artifact_path)
+        if artifact_path is not None
+        else set()
+    )
     for index, criterion in enumerate(criteria, start=1):
         if not isinstance(criterion, dict):
             raise ValueError(f"{label} acceptance_criteria[{index}] must be an object")
@@ -499,6 +545,31 @@ def assert_unit_definition_fields(payload: dict, label: str) -> None:
         if missing:
             raise ValueError(
                 f"{label} acceptance_criteria[{index}] missing fields: {', '.join(missing)}"
+            )
+        source_refs = criterion.get("source_refs")
+        if not is_string_list(source_refs):
+            raise ValueError(
+                f"{label} acceptance_criteria[{index}] source_refs must be a non-empty string array"
+            )
+        refs = [str(source_ref).strip() for source_ref in source_refs]
+        if artifact_path is None:
+            if not any(is_brief_acceptance_ref(source_ref) for source_ref in refs):
+                raise ValueError(
+                    f"{label} acceptance_criteria[{index}] source_refs must include a brief acceptance_criteria ref"
+                )
+            continue
+        brief_refs = [ref for ref in refs if looks_like_brief_acceptance_ref(ref)]
+        unresolved_brief_refs = sorted(
+            ref for ref in brief_refs if ref not in brief_acceptance_refs
+        )
+        if unresolved_brief_refs:
+            raise ValueError(
+                f"{label} acceptance_criteria[{index}] source_refs contain unresolved brief acceptance_criteria refs: "
+                + ", ".join(unresolved_brief_refs)
+            )
+        if not any(ref in brief_acceptance_refs for ref in refs):
+            raise ValueError(
+                f"{label} acceptance_criteria[{index}] source_refs must include a resolvable brief acceptance_criteria ref"
             )
 
     plan = payload.get("verification_plan")
@@ -539,7 +610,7 @@ def validate_product_artifact(
     if payload.get("artifact_type") != "unit-definition":
         assert_confirmation(payload, "director_confirmation", "passed", label)
         assert_director_lock(payload, label)
-    assert_unit_definition_fields(payload, label)
+    assert_unit_definition_fields(payload, label, path)
     if require_delivery:
         assert_confirmation(payload, "delivery_confirmation", "confirmed", label)
     if require_review:

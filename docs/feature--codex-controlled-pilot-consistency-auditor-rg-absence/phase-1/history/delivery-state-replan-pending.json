@@ -1,0 +1,29 @@
+{
+  "artifact_type": "delivery-state",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.delivery-state",
+  "schema_version": "1.0.0",
+  "producer": "delivery-owner",
+  "produced_at": "2026-06-01T02:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.current_stage",
+    "$.kickoff",
+    "$.tasks"
+  ],
+  "active_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v1#task-registry",
+  "current_stage": "REPLAN_PENDING",
+  "status": "IN_PROGRESS",
+  "control_action": "REPLAN",
+  "kickoff": {
+    "status": "READY",
+    "plan_version_ref": "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v1#plan-version",
+    "preflight_evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.preflight@ev-1#readiness",
+    "environment_ready": true,
+    "dependency_ready": true,
+    "risk_owner_ready": true,
+    "qa_handoff_ready": true
+  },
+  "tasks": []
+}

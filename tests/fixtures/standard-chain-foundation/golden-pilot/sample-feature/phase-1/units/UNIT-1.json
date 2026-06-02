@@ -35,7 +35,10 @@
       "example_input": "representative business operation for this acceptance criterion",
       "expected_result": "catalog and canonical tree exist",
       "boundary_case": "minimum valid and invalid boundary states are covered",
-      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift",
+      "source_refs": [
+        "artifact://brief/sample-feature.brief@v1#ac-001"
+      ]
     }
   ],
   "exclusions": [

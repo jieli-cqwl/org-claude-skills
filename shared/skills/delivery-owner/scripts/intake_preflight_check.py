@@ -16,10 +16,13 @@ from intake_handoff import validate_test_cases
 
 def resolve_runtime_root(script_path: Path) -> Path:
     resolved = script_path.resolve()
+    runtime_home = Path(os.environ.get("HOME", str(Path.home())))
     candidates = [
         *list(resolved.parents)[:6],
-        Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")),
-        Path(os.environ.get("CLAUDE_HOME", Path.home() / ".claude")),
+        Path(os.environ.get("CODEX_HOME", runtime_home / ".codex")),
+        runtime_home / ".codex",
+        Path(os.environ.get("CLAUDE_HOME", runtime_home / ".claude")),
+        runtime_home / ".claude",
     ]
     for candidate in candidates:
         if (
@@ -33,6 +36,50 @@ RUNTIME_ROOT = resolve_runtime_root(Path(__file__))
 sys.path.insert(0, str(RUNTIME_ROOT / "tools" / "community"))
 
 from validate_product_closure import assert_confirmation, assert_director_lock  # noqa: E402
+from validate_standard_chain_readiness import collect_test_design_obligation_refs  # noqa: E402
+
+TASK_REQUIRED_FIELDS = (
+    "task_id",
+    "phase_ref",
+    "unit_refs",
+    "scope_item_refs",
+    "design_refs",
+    "decision_refs",
+    "test_refs",
+    "depends_on",
+    "shared_files",
+    "batch",
+    "acceptance_targets",
+    "proving_command",
+    "real_dependency_refs",
+    "evidence_target",
+    "mock_boundary",
+)
+TASK_ARRAY_FIELDS = (
+    "unit_refs",
+    "scope_item_refs",
+    "design_refs",
+    "decision_refs",
+    "test_refs",
+    "depends_on",
+    "shared_files",
+    "acceptance_targets",
+    "real_dependency_refs",
+)
+TASK_NONEMPTY_ARRAY_FIELDS = (
+    "scope_item_refs",
+    "design_refs",
+    "decision_refs",
+    "test_refs",
+    "acceptance_targets",
+    "real_dependency_refs",
+)
+TASK_NONEMPTY_STRING_FIELDS = (
+    "task_id",
+    "phase_ref",
+    "proving_command",
+    "evidence_target",
+)
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -207,6 +254,16 @@ def validate_tasks(tasks_payload: dict[str, Any]) -> dict[str, Any]:
                 f"task at index {index} must be an object",
                 [f"tasks[{index}]"],
             )
+        contract_errors = task_contract_errors(task, index)
+        if contract_errors:
+            raise IntakeFailure(
+                "TASK_CONTRACT_DRIFT",
+                "NEEDS_BASELINE",
+                "tech-lead",
+                "tasks.json task entries must preserve tech-lead dispatch contract fields: "
+                + "; ".join(contract_errors[:5]),
+                [error.split(" ", 1)[0] for error in contract_errors[:5]],
+            )
         task_id = task.get("task_id")
         if not isinstance(task_id, str) or not task_id.strip():
             raise IntakeFailure(
@@ -242,6 +299,88 @@ def validate_tasks(tasks_payload: dict[str, Any]) -> dict[str, Any]:
             ["task.acceptance_basis"],
         )
     return {"task_count": len(tasks), "task_ids": task_ids}
+
+
+def assert_test_design_obligations_consumed(
+    phase_dir: Path,
+    plan_payload: dict[str, Any],
+    tasks_payload: dict[str, Any],
+) -> None:
+    try:
+        expected_refs = collect_test_design_obligation_refs(phase_dir)
+    except ValueError as exc:
+        raise IntakeFailure(
+            "TEST_DESIGN_OBLIGATION_DRIFT",
+            "NEEDS_BASELINE",
+            "test-design",
+            str(exc),
+            ["unit-*/test-cases.json"],
+        ) from exc
+    plan_refs = {
+        str(ref).strip()
+        for ref in plan_payload.get("obligation_source_refs", [])
+        if str(ref).strip()
+    }
+    missing_plan_refs = sorted(expected_refs - plan_refs)
+    if missing_plan_refs:
+        raise IntakeFailure(
+            "TEST_DESIGN_OBLIGATION_DRIFT",
+            "NEEDS_BASELINE",
+            "tech-lead",
+            "plan obligation_source_refs must consume required test-design obligations: "
+            + ", ".join(missing_plan_refs),
+            ["plan.obligation_source_refs"],
+        )
+
+    task_refs = {
+        str(ref).strip()
+        for task in tasks_payload.get("tasks", [])
+        if isinstance(task, dict)
+        for ref in task.get("test_refs", [])
+        if str(ref).strip()
+    }
+    missing_task_refs = sorted(expected_refs - task_refs)
+    if missing_task_refs:
+        raise IntakeFailure(
+            "TEST_DESIGN_OBLIGATION_DRIFT",
+            "NEEDS_BASELINE",
+            "tech-lead",
+            "tasks test_refs must consume required test-design obligations: "
+            + ", ".join(missing_task_refs),
+            ["tasks.test_refs"],
+        )
+
+
+def task_contract_errors(task: dict[str, Any], index: int) -> list[str]:
+    errors: list[str] = []
+    label = f"tasks[{index}]"
+    for field in TASK_REQUIRED_FIELDS:
+        if field not in task:
+            errors.append(f"{label}.{field} is required")
+    for field in TASK_NONEMPTY_STRING_FIELDS:
+        if field in task and not (
+            isinstance(task.get(field), str) and task.get(field, "").strip()
+        ):
+            errors.append(f"{label}.{field} must be a non-empty string")
+    for field in TASK_ARRAY_FIELDS:
+        if field in task and not isinstance(task.get(field), list):
+            errors.append(f"{label}.{field} must be an array")
+    for field in TASK_NONEMPTY_ARRAY_FIELDS:
+        if field in task and not nonempty_strings(task.get(field)):
+            errors.append(f"{label}.{field} must be a non-empty array")
+    if "batch" in task and not (
+        isinstance(task.get("batch"), int) and not isinstance(task.get("batch"), bool)
+    ):
+        errors.append(f"{label}.batch must be an integer")
+    mock_boundary = task.get("mock_boundary")
+    if "mock_boundary" in task:
+        if not isinstance(mock_boundary, dict):
+            errors.append(f"{label}.mock_boundary must be an object")
+        elif mock_boundary.get("final_acceptance_requires_real_evidence") is not True:
+            errors.append(
+                f"{label}.mock_boundary.final_acceptance_requires_real_evidence must be true"
+            )
+    return errors
 
 
 def success_payload(
@@ -300,6 +439,7 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
     assert_plan_ready(plan, tasks)
     task_summary = validate_tasks(tasks)
     qa_handoff_count = validate_test_cases(phase_dir, registry)
+    assert_test_design_obligations_consumed(phase_dir, plan, tasks)
     return success_payload(phase_dir, tasks, task_summary, qa_handoff_count)
 
 

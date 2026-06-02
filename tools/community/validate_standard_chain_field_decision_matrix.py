@@ -25,7 +25,14 @@ EXPECTED_HEADER = [
     "Cleanup surface",
     "Decision evidence",
 ]
-ALLOWED_DECISIONS = {"keep", "delete", "derive", "move", "rename", "needs-human-decision"}
+ALLOWED_DECISIONS = {
+    "keep",
+    "delete",
+    "derive",
+    "move",
+    "rename",
+    "needs-human-decision",
+}
 DETERMINISTIC_TOKENS = {
     "schema",
     "validator",
@@ -77,6 +84,15 @@ REQUIRED_MARKERS = {
     "fix-result.json": ("fix-result.json",),
     "projection/replay exclusion": ("projection-manifest.json", "replay"),
 }
+TARGET_CHANGE_X001_REQUIRED_CONSUMERS = {
+    "product-director",
+    "product-manager",
+    "design",
+    "test-design",
+    "tech-lead",
+    "delivery-owner",
+    "consistency-auditor",
+}
 
 
 @dataclass(frozen=True)
@@ -110,7 +126,9 @@ def is_separator(cells: list[str]) -> bool:
 def extract_matrix_rows(text: str) -> list[Row]:
     lines = text.splitlines()
     try:
-        matrix_index = next(index for index, line in enumerate(lines) if line.strip() == "## Matrix")
+        matrix_index = next(
+            index for index, line in enumerate(lines) if line.strip() == "## Matrix"
+        )
     except StopIteration as exc:
         raise ValueError("missing ## Matrix section") from exc
 
@@ -154,7 +172,9 @@ def validate_row(row: Row) -> None:
     row_id = row.field("ID")
     if not row_id:
         raise ValueError(f"matrix row {row.index} has empty ID")
-    empty_columns = [column for column, value in row.values.items() if not value.strip()]
+    empty_columns = [
+        column for column, value in row.values.items() if not value.strip()
+    ]
     if empty_columns:
         raise ValueError(f"{row_id} has empty cells: {', '.join(empty_columns)}")
 
@@ -165,7 +185,9 @@ def validate_row(row: Row) -> None:
         raise ValueError(f"{row_id} remains unresolved: needs-human-decision")
 
     verification = row.field("Verification method").casefold()
-    if decision == "keep" and not any(token in verification for token in DETERMINISTIC_TOKENS):
+    if decision == "keep" and not any(
+        token in verification for token in DETERMINISTIC_TOKENS
+    ):
         raise ValueError(f"{row_id} keep row lacks deterministic verification method")
 
     if decision != "keep":
@@ -174,7 +196,9 @@ def validate_row(row: Row) -> None:
                 raise ValueError(f"{row_id} non-keep row lacks {column}")
 
     source = row.field("Source of truth").casefold()
-    if decision == "derive" and not any(token in source for token in DETERMINISTIC_SOURCE_TOKENS):
+    if decision == "derive" and not any(
+        token in source for token in DETERMINISTIC_SOURCE_TOKENS
+    ):
         raise ValueError(f"{row_id} derive row lacks deterministic source of truth")
 
 
@@ -186,7 +210,37 @@ def validate_required_markers(rows: list[Row]) -> None:
             if marker.casefold() not in matrix_text:
                 missing.append(f"{label} missing marker {marker}")
     if missing:
-        raise ValueError("matrix missing required production-readiness markers: " + "; ".join(missing))
+        raise ValueError(
+            "matrix missing required production-readiness markers: "
+            + "; ".join(missing)
+        )
+
+
+def validate_target_change_consumers(rows: list[Row]) -> None:
+    target_rows = [
+        row
+        for row in rows
+        if row.field("ID") == "X-001"
+        and "target-change.json" in row.field("Artifact")
+        and "$.invalidates_refs" in row.field("JSONPath")
+    ]
+    if len(target_rows) != 1:
+        raise ValueError(
+            "matrix must contain exactly one target-change X-001 invalidation row"
+        )
+    consumers = {
+        item.strip().casefold() for item in target_rows[0].field("Consumer").split(",")
+    }
+    missing = sorted(
+        consumer
+        for consumer in TARGET_CHANGE_X001_REQUIRED_CONSUMERS
+        if consumer not in consumers
+    )
+    if missing:
+        raise ValueError(
+            "target-change X-001 consumers must include downstream rebaseline consumers: "
+            + ", ".join(missing)
+        )
 
 
 def validate_rows(rows: list[Row]) -> None:
@@ -198,6 +252,7 @@ def validate_rows(rows: list[Row]) -> None:
             raise ValueError(f"duplicate matrix ID: {row_id}")
         seen.add(row_id)
     validate_required_markers(rows)
+    validate_target_change_consumers(rows)
 
 
 def main() -> int:

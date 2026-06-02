@@ -11,9 +11,9 @@
   },
   "scenarios": {
     "create-dev": {
-      "description": "从项目主分支创建业务开发分支",
+      "description": "从项目主分支确保业务开发分支可用",
       "steps": [
-        "create_branch"
+        "ensure_business_branch"
       ]
     },
     "dev-sync": {
@@ -30,9 +30,9 @@
       ]
     },
     "bugfix": {
-      "description": "从版本分支创建 BUG 分支",
+      "description": "从版本分支确保 BUG 分支可用",
       "steps": [
-        "create_bug_branch"
+        "ensure_bug_branch"
       ]
     },
     "bugfix-finish": {
@@ -42,8 +42,9 @@
       ]
     },
     "release-sync-before": {
-      "description": "上线前将主分支同步到版本分支",
+      "description": "上线前确保版本分支可用并将主分支同步到版本分支",
       "steps": [
+        "ensure_release_branch",
         "merge_main_to_release"
       ]
     },

@@ -30,7 +30,20 @@
     "artifact://brief/feedback-thanks-pilot.brief@v1#delivery-plan-phase-1"
   ],
   "obligation_source_refs": [
-    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa-handoff"
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-FEEDBACK-THANKS",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa-handoff",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-CLOSURE",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-JOURNEY",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-NEGATIVE",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-SMOKE",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-LEN-1",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-OBS-1",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-T1-1",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-T2-1",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:1",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:2",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:3",
+    "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:4"
   ],
   "execution_basis_refs": [
     "artifact://plan/feedback-thanks-pilot.phase-1.plan@plan-v2#scope-freeze",

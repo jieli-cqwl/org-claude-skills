@@ -1,0 +1,146 @@
+{
+  "artifact_type": "tasks",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks",
+  "schema_version": "1.0.0",
+  "producer": "tech-lead",
+  "produced_at": "2026-06-01T11:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.plan_version",
+    "$.user_confirmation",
+    "$.tasks"
+  ],
+  "goal_source_refs": [
+    "artifact://brief/codex-controlled-pilot-consistency-auditor-rg-absence.brief@v1#goal-001",
+    "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal"
+  ],
+  "constraint_source_refs": [],
+  "obligation_source_refs": [
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#AC-U1-01",
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#AC-U1-02",
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#traceability_matrix:1",
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#traceability_matrix:2",
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-RUNTIME-CONTROL",
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-STATIC-CONTRACT",
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RUNTIME-REPLAY",
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RECOVERY-COVERAGE",
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RELEASE-CLOSURE"
+  ],
+  "execution_basis_refs": [
+    "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v2#execution-basis-refs"
+  ],
+  "evidence_refs": [
+    "artifact://evidence/codex-controlled-pilot.phase-1.tasking@ev-1#tasks"
+  ],
+  "plan_version": "plan-v2",
+  "user_confirmation": {
+    "status": "CONFIRMED",
+    "confirmed_by": "codex-controlled-pilot-operator",
+    "confirmed_at": "2026-06-01T11:05:00Z",
+    "evidence_ref": "conversation://2026-06-01/user-authorized-controlled-pilot-plan"
+  },
+  "tasks": [
+    {
+      "task_id": "T1",
+      "phase_ref": "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal",
+      "unit_refs": [
+        "artifact://unit-definition/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1@v1#unit"
+      ],
+      "scope_item_refs": [
+        "artifact://brief/codex-controlled-pilot-consistency-auditor-rg-absence.brief@v1#ac-001",
+        "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal"
+      ],
+      "design_refs": [
+        "artifact://design/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.design@v1#key-decisions"
+      ],
+      "decision_refs": [
+        "artifact://design/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.design@v1#key-decisions"
+      ],
+      "test_refs": [
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#AC-U1-01",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#AC-U1-02",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#traceability_matrix:1",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#traceability_matrix:2",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-RUNTIME-CONTROL",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-STATIC-CONTRACT",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RUNTIME-REPLAY",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RECOVERY-COVERAGE",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RELEASE-CLOSURE"
+      ],
+      "depends_on": [],
+      "shared_files": [],
+      "batch": 1,
+      "acceptance_targets": [
+        "AC-U1-01"
+      ],
+      "proving_command": "bash tests/test-task-contract-consumer-alignment.sh",
+      "real_dependency_refs": [
+        "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.task-T1.dependencies@v1#real-dependency-refs"
+      ],
+      "evidence_target": "developer-report.json#task-T1.fresh_proof",
+      "mock_boundary": {
+        "mock_allowed": true,
+        "allowed_for": [
+          "unit_isolation",
+          "fixture_data"
+        ],
+        "final_acceptance_requires_real_evidence": true
+      },
+      "wbs_ref": "WP-1",
+      "critical_path_role": "critical"
+    },
+    {
+      "task_id": "T2",
+      "phase_ref": "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal",
+      "unit_refs": [
+        "artifact://unit-definition/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1@v1#unit"
+      ],
+      "scope_item_refs": [
+        "artifact://brief/codex-controlled-pilot-consistency-auditor-rg-absence.brief@v1#ac-002",
+        "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal"
+      ],
+      "design_refs": [
+        "artifact://design/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.design@v1#key-decisions"
+      ],
+      "decision_refs": [
+        "artifact://design/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.design@v1#key-decisions"
+      ],
+      "test_refs": [
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#AC-U1-01",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#AC-U1-02",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#traceability_matrix:1",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#traceability_matrix:2",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-RUNTIME-CONTROL",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-STATIC-CONTRACT",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RUNTIME-REPLAY",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RECOVERY-COVERAGE",
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RELEASE-CLOSURE"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "shared_files": [],
+      "batch": 2,
+      "acceptance_targets": [
+        "AC-U1-02"
+      ],
+      "proving_command": "bash tests/test-standard-chain-runtime-layering-contract.sh",
+      "real_dependency_refs": [
+        "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.task-T2.dependencies@v1#real-dependency-refs"
+      ],
+      "evidence_target": "developer-report.json#task-T2.fresh_proof",
+      "mock_boundary": {
+        "mock_allowed": true,
+        "allowed_for": [
+          "unit_isolation",
+          "fixture_data"
+        ],
+        "final_acceptance_requires_real_evidence": true
+      },
+      "wbs_ref": "WP-1",
+      "critical_path_role": "critical"
+    }
+  ]
+}

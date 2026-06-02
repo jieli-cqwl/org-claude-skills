@@ -31,6 +31,7 @@
         "artifact://unit-definition/sample-feature.phase-1.unit-1@v1#unit"
       ],
       "scope_item_refs": [
+        "artifact://brief/sample-feature.brief@v1#ac-001",
         "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
       ],
       "design_refs": [
@@ -40,7 +41,14 @@
         "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
       ],
       "test_refs": [
-        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-U1-01",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-RUNTIME-CONTROL",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RECOVERY-COVERAGE",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RELEASE-CLOSURE",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RUNTIME-REPLAY",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-STATIC-CONTRACT",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#traceability_matrix:1"
       ],
       "depends_on": [],
       "shared_files": [],
@@ -80,7 +88,13 @@
         "artifact://design/sample-feature.phase-1.design@v1#key-decisions"
       ],
       "test_refs": [
-        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T2-1"
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T2-1",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-RUNTIME-CONTROL",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RECOVERY-COVERAGE",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RELEASE-CLOSURE",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RUNTIME-REPLAY",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-STATIC-CONTRACT",
+        "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#traceability_matrix:1"
       ],
       "depends_on": [
         "T1"
@@ -90,7 +104,7 @@
       "acceptance_targets": [
         "runtime"
       ],
-      "proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "proving_command": "bash tests/test-standard-chain-runtime-state.sh",
       "real_dependency_refs": [
         "artifact://evidence/sample-feature.phase-1.task-T2.dependencies@v1#real-dependency-refs"
       ],

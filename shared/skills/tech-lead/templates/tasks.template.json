@@ -35,6 +35,7 @@
         "artifact://unit-definition/sample-feature.phase-1.unit-1@v1#unit-1"
       ],
       "scope_item_refs": [
+        "artifact://brief/sample-feature.brief@v1#ac-001",
         "artifact://design/sample-feature.phase-1.design@v1#scope"
       ],
       "design_refs": [
@@ -56,7 +57,7 @@
       "real_dependency_refs": [
         "artifact://evidence/sample-feature.phase-1.task-T1.dependencies@v1#local-schema-catalog-fixtures"
       ],
-      "evidence_target": "developer-report.json#fresh_proof",
+      "evidence_target": "developer-report.json#task-T1.fresh_proof",
       "mock_boundary": {
         "mock_allowed": true,
         "allowed_for": [

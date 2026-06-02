@@ -80,7 +80,7 @@ def make_create_dev_plan(
         policy, template, owner=owner, requirement=requirement, version=version
     )
     steps = [
-        step(repo, registry[repo]["main_branch"], target_branch, "create_branch")
+        step(repo, registry[repo]["main_branch"], target_branch, "ensure_branch")
         for repo in projects
     ]
     plan = base_plan(args.scenario, version, projects, target_branch, steps)
@@ -90,6 +90,12 @@ def make_create_dev_plan(
     return plan
 
 
+def require_bug_version(args: Any) -> str:
+    return require_pattern(
+        args.bug_version, r"^[0-9]{4}$", "bug-version must match ^[0-9]{4}$"
+    )
+
+
 def make_bugfix_plan(
     args: Any,
     policy: dict[str, Any],
@@ -97,11 +103,14 @@ def make_bugfix_plan(
     projects: list[str],
     release_branch: str,
 ) -> dict[str, Any]:
-    target_branch = branch_name(policy, "bugfix", version=version)
+    bug_version = require_bug_version(args)
+    target_branch = branch_name(policy, "bugfix", version=bug_version)
     steps = [
-        step(repo, release_branch, target_branch, "create_branch") for repo in projects
+        step(repo, release_branch, target_branch, "ensure_branch") for repo in projects
     ]
-    return base_plan(args.scenario, version, projects, target_branch, steps)
+    plan = base_plan(args.scenario, version, projects, target_branch, steps)
+    plan["bug_version"] = bug_version
+    return plan
 
 
 def make_bugfix_finish_plan(
@@ -111,9 +120,12 @@ def make_bugfix_finish_plan(
     projects: list[str],
     release_branch: str,
 ) -> dict[str, Any]:
-    target_branch = branch_name(policy, "bugfix", version=version)
-    steps = [step(repo, target_branch, release_branch, "merge") for repo in projects]
-    return base_plan(args.scenario, version, projects, release_branch, steps)
+    bug_version = require_bug_version(args)
+    bug_branch = branch_name(policy, "bugfix", version=bug_version)
+    steps = [step(repo, bug_branch, release_branch, "merge") for repo in projects]
+    plan = base_plan(args.scenario, version, projects, release_branch, steps)
+    plan["bug_version"] = bug_version
+    return plan
 
 
 def make_dev_sync_plan(
@@ -173,10 +185,11 @@ def make_release_sync_before_plan(
     projects: list[str],
     release_branch: str,
 ) -> dict[str, Any]:
-    steps = [
-        step(repo, registry[repo]["main_branch"], release_branch, "merge")
-        for repo in projects
-    ]
+    steps = []
+    for repo in projects:
+        main_branch = registry[repo]["main_branch"]
+        steps.append(step(repo, main_branch, release_branch, "ensure_branch"))
+        steps.append(step(repo, main_branch, release_branch, "merge"))
     return base_plan(args.scenario, version, projects, release_branch, steps)
 
 

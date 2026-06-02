@@ -107,7 +107,7 @@ def create_dev_plan(target_branch: str = "3.0.0.DEV_ZY_4109_0625") -> dict:
                 "repo": "qft-app",
                 "source_branch": "master",
                 "target_branch": target_branch,
-                "action": "create_branch",
+                "action": "ensure_branch",
             }
         ],
         "push": {"confirmed": False, "branches": []},
@@ -158,6 +158,27 @@ def release_merge_plan(
                 "target_branch": release_branch,
                 "action": "merge",
             },
+        ],
+        "push": {"confirmed": False, "branches": []},
+    }
+
+
+def bugfix_plan(release_version: str = "0528", bug_version: str = "0602") -> dict:
+    bug_branch = f"3.0.0.MASTER_BUG_{bug_version}"
+    return {
+        "schema_version": "1.0.0",
+        "scenario": "bugfix",
+        "version": release_version,
+        "bug_version": bug_version,
+        "projects": ["qft-app"],
+        "target_branch": bug_branch,
+        "steps": [
+            {
+                "repo": "qft-app",
+                "source_branch": f"V.{release_version}",
+                "target_branch": bug_branch,
+                "action": "ensure_branch",
+            }
         ],
         "push": {"confirmed": False, "branches": []},
     }

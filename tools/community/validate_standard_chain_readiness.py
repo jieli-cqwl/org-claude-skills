@@ -12,7 +12,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from manage_artifact_registry import load_json as load_registry_json
+from manage_artifact_registry import assert_append_only, load_json as load_registry_json
 from normalize_canonical_artifact import ROOT, load_json
 from validate_standard_chain_phase import PIPELINE, assert_canonical_only_layout, assert_catalog_contract
 from validate_product_closure import validate_product_artifact
@@ -88,6 +88,13 @@ FAIL_TRIAGE_REQUIRED_FIELDS = {
 REQUIRED_QA_STAGES = {"QA_A", "QA_B", "QA_C", "QA_D"}
 QA_RELEASE_PAIR = ("PASS", "ALLOW")
 CONFIRMED_STATUSES = {"CONFIRMED", "APPROVED"}
+BLOCK_CONTRACT_KEYS = {
+    "status",
+    "owner",
+    "reason",
+    "recovery_condition",
+    "signoff_allowed",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -253,6 +260,7 @@ def assert_task_acceptance_refs(phase_dir: Path) -> None:
     tasks = tasks_registry.get("tasks")
     if not isinstance(tasks, list) or not tasks:
         raise ValueError("tasks.json tasks must be a non-empty array")
+    task_scope_refs: set[str] = set()
     for index, task in enumerate(tasks, start=1):
         if not isinstance(task, dict):
             raise ValueError(f"tasks.json tasks[{index}] must be an object")
@@ -263,6 +271,249 @@ def assert_task_acceptance_refs(phase_dir: Path) -> None:
                 raise ValueError(
                     f"tasks.json task {task_id} must include non-empty {field} before readiness"
                 )
+        task_scope_refs.update(str(ref).strip() for ref in task.get("scope_item_refs", []))
+    missing_brief_ac_refs = sorted(collect_brief_acceptance_refs(phase_dir) - task_scope_refs)
+    if missing_brief_ac_refs:
+        raise ValueError(
+            "tasks scope_item_refs must cover brief acceptance_criteria: "
+            + ", ".join(missing_brief_ac_refs)
+        )
+
+
+def collect_brief_acceptance_refs(phase_dir: Path) -> set[str]:
+    brief_path = phase_dir.parent / "brief.json"
+    if not brief_path.is_file():
+        return set()
+    brief = load_json(brief_path)
+    criteria = brief.get("acceptance_criteria")
+    if not isinstance(criteria, list) or not criteria:
+        return set()
+    artifact_id = str(brief.get("artifact_id", "")).strip()
+    if not artifact_id:
+        raise ValueError("brief artifact_id is required for acceptance criteria refs")
+    return {
+        f"artifact://brief/{artifact_id}@v1#ac-{index:03d}"
+        for index, _item in enumerate(criteria, start=1)
+    }
+
+
+def unit_acceptance_ref(unit_file: Path, index: int) -> str:
+    return f"{unit_file.name}#acceptance_criteria[{index}].ac_id"
+
+
+def collect_unit_acceptance_source_map(phase_dir: Path) -> dict[str, set[str]]:
+    source_to_unit_ac_ids: dict[str, set[str]] = {}
+    for unit_path in sorted((phase_dir / "units").glob("*.json")):
+        unit = load_json(unit_path)
+        criteria = unit.get("acceptance_criteria")
+        if not isinstance(criteria, list):
+            raise ValueError(f"{unit_path.relative_to(phase_dir)} acceptance_criteria must be an array")
+        for index, row in enumerate(criteria):
+            if not isinstance(row, dict):
+                raise ValueError(
+                    f"{unit_path.relative_to(phase_dir)} acceptance_criteria[{index}] must be an object"
+                )
+            ac_id = str(row.get("ac_id", "")).strip()
+            if not ac_id:
+                raise ValueError(
+                    f"{unit_path.relative_to(phase_dir)} acceptance_criteria[{index}] missing ac_id"
+                )
+            source_refs = row.get("source_refs")
+            if not isinstance(source_refs, list) or not any(str(ref).strip() for ref in source_refs):
+                raise ValueError(
+                    f"{unit_path.relative_to(phase_dir)} acceptance_criteria[{index}] source_refs must be non-empty"
+                )
+            for source_ref in source_refs:
+                ref = str(source_ref).strip()
+                if ref:
+                    source_to_unit_ac_ids.setdefault(ref, set()).add(ac_id)
+    return source_to_unit_ac_ids
+
+
+def resolve_traceability_unit_ac_id(phase_dir: Path, ac_ref: str) -> str:
+    match = re.match(r"^([^/#]+\.json)#acceptance_criteria\[(\d+)\]\.ac_id$", ac_ref)
+    if not match:
+        return ac_ref
+    unit_path = phase_dir / "units" / match.group(1)
+    unit = load_json(unit_path)
+    criteria = unit.get("acceptance_criteria")
+    index = int(match.group(2))
+    if not isinstance(criteria, list) or index >= len(criteria) or not isinstance(criteria[index], dict):
+        raise ValueError(f"test-cases traceability_matrix ac_ref points at missing UNIT AC: {ac_ref}")
+    return str(criteria[index].get("ac_id", "")).strip()
+
+
+def collect_test_design_unit_ac_refs(phase_dir: Path) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    ac_coverage_refs: dict[str, set[str]] = {}
+    traceability_refs: dict[str, set[str]] = {}
+    for test_cases_path in sorted(phase_dir.glob("unit-*/test-cases.json")):
+        payload = load_json(test_cases_path)
+        for row in payload.get("ac_coverage_matrix", []):
+            if not isinstance(row, dict):
+                continue
+            ac_id = str(row.get("ac_id", "")).strip()
+            if ac_id:
+                ac_coverage_refs.setdefault(ac_id, set()).add(test_cases_obligation_ref(payload, ac_id))
+        for index, row in enumerate(payload.get("traceability_matrix", []), start=1):
+            if not isinstance(row, dict):
+                continue
+            ac_ref = str(row.get("ac_ref", "")).strip()
+            if not ac_ref:
+                continue
+            ac_id = resolve_traceability_unit_ac_id(phase_dir, ac_ref)
+            if ac_id:
+                traceability_refs.setdefault(ac_id, set()).add(
+                    test_cases_obligation_ref(payload, f"traceability_matrix:{index}")
+                )
+    return ac_coverage_refs, traceability_refs
+
+
+def assert_brief_acceptance_test_design_coverage(phase_dir: Path) -> None:
+    brief_ac_refs = collect_brief_acceptance_refs(phase_dir)
+    if not brief_ac_refs:
+        return
+    source_to_unit_ac_ids = collect_unit_acceptance_source_map(phase_dir)
+    missing_unit_refs = sorted(brief_ac_refs - set(source_to_unit_ac_ids))
+    if missing_unit_refs:
+        raise ValueError(
+            "brief acceptance_criteria must map through UNIT and test-design coverage: missing UNIT source_refs for "
+            + ", ".join(missing_unit_refs)
+        )
+    required_unit_ac_ids = {
+        ac_id
+        for brief_ref in brief_ac_refs
+        for ac_id in source_to_unit_ac_ids.get(brief_ref, set())
+    }
+    ac_coverage_refs, traceability_refs = collect_test_design_unit_ac_refs(phase_dir)
+    task_refs = {
+        str(ref).strip()
+        for task in load_json(phase_dir / "tasks.json").get("tasks", [])
+        if isinstance(task, dict)
+        for ref in task.get("test_refs", [])
+        if str(ref).strip()
+    }
+    missing_test_design: list[str] = []
+    missing_task_refs: list[str] = []
+    for ac_id in sorted(required_unit_ac_ids):
+        expected_refs = set()
+        expected_refs.update(ac_coverage_refs.get(ac_id, set()))
+        expected_refs.update(traceability_refs.get(ac_id, set()))
+        if not ac_coverage_refs.get(ac_id) or not traceability_refs.get(ac_id):
+            missing_test_design.append(ac_id)
+            continue
+        absent = sorted(expected_refs - task_refs)
+        if absent:
+            missing_task_refs.extend(absent)
+    if missing_test_design:
+        raise ValueError(
+            "brief acceptance_criteria must map through UNIT and test-design coverage: missing test-design coverage for "
+            + ", ".join(missing_test_design)
+        )
+    if missing_task_refs:
+        raise ValueError(
+            "brief acceptance_criteria must map through UNIT and task test_refs: "
+            + ", ".join(sorted(set(missing_task_refs)))
+        )
+
+
+def test_cases_obligation_ref(payload: dict, anchor: str) -> str:
+    artifact_id = str(payload.get("artifact_id", "")).strip()
+    if not artifact_id:
+        raise ValueError("test-cases artifact_id is required for obligation refs")
+    return f"artifact://test-cases/{artifact_id}@v1#{anchor}"
+
+
+def collect_test_design_obligation_refs(phase_dir: Path) -> set[str]:
+    refs: set[str] = set()
+    for test_cases_path in sorted(phase_dir.glob("unit-*/test-cases.json")):
+        payload = load_json(test_cases_path)
+        ac_rows = payload.get("ac_coverage_matrix")
+        if not isinstance(ac_rows, list):
+            raise ValueError(f"{test_cases_path.relative_to(phase_dir)} ac_coverage_matrix must be an array")
+        for index, row in enumerate(ac_rows, start=1):
+            if not isinstance(row, dict):
+                raise ValueError(
+                    f"{test_cases_path.relative_to(phase_dir)} ac_coverage_matrix[{index}] must be an object"
+                )
+            ac_id = str(row.get("ac_id", "")).strip()
+            if not ac_id:
+                raise ValueError(
+                    f"{test_cases_path.relative_to(phase_dir)} ac_coverage_matrix[{index}] missing ac_id"
+                )
+            refs.add(test_cases_obligation_ref(payload, ac_id))
+        traceability_rows = payload.get("traceability_matrix")
+        if not isinstance(traceability_rows, list):
+            raise ValueError(f"{test_cases_path.relative_to(phase_dir)} traceability_matrix must be an array")
+        for index, row in enumerate(traceability_rows, start=1):
+            if not isinstance(row, dict):
+                raise ValueError(
+                    f"{test_cases_path.relative_to(phase_dir)} traceability_matrix[{index}] must be an object"
+                )
+            refs.add(test_cases_obligation_ref(payload, f"traceability_matrix:{index}"))
+        handoff_rows = payload.get("qa_handoff_contract")
+        if not isinstance(handoff_rows, list):
+            raise ValueError(f"{test_cases_path.relative_to(phase_dir)} qa_handoff_contract must be an array")
+        for index, row in enumerate(handoff_rows, start=1):
+            if not isinstance(row, dict):
+                raise ValueError(
+                    f"{test_cases_path.relative_to(phase_dir)} qa_handoff_contract[{index}] must be an object"
+                )
+            if row.get("requiredness") != "REQUIRED":
+                continue
+            obligation_id = str(row.get("obligation_id", "")).strip()
+            if not obligation_id:
+                raise ValueError(
+                    f"{test_cases_path.relative_to(phase_dir)} qa_handoff_contract[{index}] missing obligation_id"
+                )
+            refs.add(test_cases_obligation_ref(payload, f"qa_handoff_contract:{obligation_id}"))
+        cross_unit_rows = payload.get("cross_unit_obligations")
+        if not isinstance(cross_unit_rows, list):
+            raise ValueError(f"{test_cases_path.relative_to(phase_dir)} cross_unit_obligations must be an array")
+        for index, row in enumerate(cross_unit_rows, start=1):
+            if not isinstance(row, dict):
+                raise ValueError(
+                    f"{test_cases_path.relative_to(phase_dir)} cross_unit_obligations[{index}] must be an object"
+                )
+            journey_id = str(row.get("journey_id", "")).strip()
+            if not journey_id:
+                raise ValueError(
+                    f"{test_cases_path.relative_to(phase_dir)} cross_unit_obligations[{index}] missing journey_id"
+                )
+            refs.add(test_cases_obligation_ref(payload, f"cross_unit_obligations:{journey_id}"))
+    if not refs:
+        raise ValueError("test-design obligations must produce consumable refs")
+    return refs
+
+
+def assert_tech_lead_consumes_test_design_obligations(phase_dir: Path) -> None:
+    expected_refs = collect_test_design_obligation_refs(phase_dir)
+    plan = load_json(phase_dir / "plan.json")
+    plan_refs = {
+        str(ref).strip()
+        for ref in plan.get("obligation_source_refs", [])
+        if str(ref).strip()
+    }
+    missing_plan_refs = sorted(expected_refs - plan_refs)
+    if missing_plan_refs:
+        raise ValueError(
+            "plan obligation_source_refs must consume required test-design obligations: "
+            + ", ".join(missing_plan_refs)
+        )
+
+    tasks_registry = load_json(phase_dir / "tasks.json")
+    task_refs = {
+        str(ref).strip()
+        for task in tasks_registry.get("tasks", [])
+        if isinstance(task, dict)
+        for ref in task.get("test_refs", [])
+        if str(ref).strip()
+    }
+    missing_task_refs = sorted(expected_refs - task_refs)
+    if missing_task_refs:
+        raise ValueError(
+            "tasks test_refs must consume required test-design obligations: "
+            + ", ".join(missing_task_refs)
+        )
 
 
 def collect_required_qa_obligations(phase_dir: Path) -> set[str]:
@@ -435,6 +686,45 @@ def build_phase_scenario(phase_dir: Path) -> dict:
     }
 
 
+def extract_subprocess_failure_reason(
+    completed: subprocess.CompletedProcess[str], label: str
+) -> str:
+    output = "\n".join(
+        part for part in (completed.stdout, completed.stderr) if part
+    ).strip()
+    decoder = json.JSONDecoder()
+    for index, char in enumerate(output):
+        if char != "{":
+            continue
+        try:
+            payload, _end = decoder.raw_decode(output[index:])
+        except json.JSONDecodeError:
+            continue
+        if (
+            isinstance(payload, dict)
+            and BLOCK_CONTRACT_KEYS.issubset(payload)
+            and str(payload.get("reason", "")).strip()
+        ):
+            return str(payload["reason"])
+    for line in reversed(output.splitlines()):
+        stripped = line.strip()
+        if stripped and not stripped.startswith("Traceback"):
+            return stripped
+    return f"{label} failed with exit code {completed.returncode}"
+
+
+def run_validator_command(command: list[str], label: str) -> None:
+    completed = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        reason = extract_subprocess_failure_reason(completed, label)
+        raise ValueError(f"{label}: {reason}")
+
+
 def run_phase_validator(phase_dir: Path, catalog: Path) -> None:
     tools_dir = Path(__file__).resolve().parent
     scenario = build_phase_scenario(phase_dir)
@@ -451,21 +741,21 @@ def run_phase_validator(phase_dir: Path, catalog: Path) -> None:
         for script_name in PIPELINE:
             script = tools_dir / script_name
             if script_name == "validate_projection_manifest.py":
-                subprocess.run(
+                run_validator_command(
                     [sys.executable, str(script), "--phase-dir", str(phase_dir)],
-                    check=True,
+                    script_name,
                 )
                 continue
-            subprocess.run(
+            run_validator_command(
                 [sys.executable, str(script), "--fixture", str(fixture)],
-                check=True,
+                script_name,
             )
 
 
 def run_replay_validator(phase_dir: Path, profiles: Path) -> None:
     script = Path(__file__).resolve().parent / "replay_canonical_phase.py"
     oracle = phase_dir / "replay/phase-operational.replay-oracle.json"
-    subprocess.run(
+    run_validator_command(
         [
             sys.executable,
             str(script),
@@ -476,7 +766,7 @@ def run_replay_validator(phase_dir: Path, profiles: Path) -> None:
             "--oracle",
             str(oracle),
         ],
-        check=True,
+        "replay_canonical_phase.py",
     )
 
 
@@ -491,6 +781,8 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     collect_required_glob_files(phase_dir)
     assert_plan_tasks_alignment(phase_dir)
     assert_task_acceptance_refs(phase_dir)
+    assert_brief_acceptance_test_design_coverage(phase_dir)
+    assert_tech_lead_consumes_test_design_obligations(phase_dir)
     assert_task_runtime_identity(iter_required_task_runtime_files(phase_dir), phase_dir)
     assert_code_review_pass(phase_dir)
     assert_browser_required_evidence(phase_dir)
@@ -505,6 +797,7 @@ def validate_phase_dir(phase_dir: Path, catalog: Path, profiles: Path) -> None:
     assert_delivery_state_closeout(phase_dir, load_json)
     assert_target_change_signoff_freshness(phase_dir, load_json)
     registry = load_registry_json(phase_dir / "artifact-registry.json")
+    assert_append_only(registry)
     assert_active_registry_matches_artifacts(phase_dir, collect_validation_artifact_paths(phase_dir), registry)
     assert_signoff_runtime_evidence_matrix(phase_dir, registry)
     assert_authority_proof(phase_dir)

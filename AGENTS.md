@@ -9,13 +9,12 @@
 | `CODEX_SKILLS_DIR="$PWD/community/anthropic/skills" bash tests/run-all.sh --quick` | 本机缺 `skill-creator` 时的 quick 口径 |
 
 ## Instruction Sources
-- `AGENTS.md` 是共享项目指令真源；`CLAUDE.md` 只保留 `@AGENTS.md` import，除非确有 Claude-only 规则。
 - 不要把项目记忆写进 `shared/assistant.md`；它只维护安装后的 runtime 默认入口。
 - `shared/rules/*.md` 会安装到用户全局 runtime rules；只放安装后团队项目应统一遵守的硬规则。
 - 本仓维护规则写在根入口或 repo-local 文档，并用测试锁定承载位置。
 
 ## Skill Sources
-- `shared/skills/` 是 first-party 真源；`community/*/skills` 是锁 ref 的第三方镜像。
+- `shared/skills/` 是 first-party 真源；`community/superpowers/skills` 是锁 ref 的第三方镜像。
 - 不要污染 `community/superpowers/skills`；保持 upstream 纯镜像，不放 overlay、adapter 或 runtime frontmatter。
 
 ## Testing

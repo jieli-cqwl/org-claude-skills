@@ -57,8 +57,36 @@ PY
 [ -x "$home_dir/.claude/hooks/block_dangerous.sh" ] || install_test_fail "claude dangerous hook wrapper should be executable"
 [ -x "$home_dir/.claude/hooks/managed/block_dangerous.sh" ] || install_test_fail "claude managed dangerous hook should be executable"
 printf '{}' | bash "$home_dir/.claude/hooks/block_dangerous.sh" >/dev/null 2>&1 || install_test_fail "claude dangerous hook wrapper should run without permission errors"
-post_compact_payload="$(printf '{}' | bash "$home_dir/.claude/hooks/post_compact.sh")" || install_test_fail "claude post_compact hook should emit JSON payload"
+mkdir -p "$home_dir/project"
+compact_summary='Sensitive compact summary should be stored locally and must not be injected into additionalContext'
+post_compact_input="$(jq -nc \
+  --arg sid "session-postcompact-runtime" \
+  --arg cwd "$home_dir/project" \
+  --arg transcript "$home_dir/transcript.jsonl" \
+  --arg summary "$compact_summary" \
+  '{
+    session_id: $sid,
+    transcript_path: $transcript,
+    cwd: $cwd,
+    hook_event_name: "PostCompact",
+    trigger: "auto",
+    compact_summary: $summary
+  }')"
+post_compact_payload="$(printf '%s' "$post_compact_input" | HOME="$home_dir" bash "$home_dir/.claude/hooks/post_compact.sh")" || install_test_fail "claude post_compact hook should emit JSON payload"
+post_compact_state="$home_dir/.claude/hooks/state/post-compact/latest-session-postcompact-runtime.json"
+post_compact_events="$home_dir/.claude/hooks/state/post-compact/events.jsonl"
 printf '%s' "$post_compact_payload" | jq -e '.hookSpecificOutput.hookEventName == "PostCompact"' >/dev/null 2>&1 || install_test_fail "claude post_compact hook should keep PostCompact event name"
+install_test_assert_file_exists "$post_compact_state" "claude post_compact hook should persist latest compact summary"
+install_test_assert_file_exists "$post_compact_events" "claude post_compact hook should append compact summary audit events"
+jq -e --arg summary "$compact_summary" '
+  .session_id == "session-postcompact-runtime"
+  and .trigger == "auto"
+  and .compact_summary == $summary
+  and (.summary_length == ($summary | length))
+' "$post_compact_state" >/dev/null 2>&1 || install_test_fail "claude post_compact latest state should preserve compact payload fields"
+tail -n 1 "$post_compact_events" | jq -e --arg summary "$compact_summary" '.compact_summary == $summary' >/dev/null 2>&1 || install_test_fail "claude post_compact events log should preserve compact summary"
+printf '%s' "$post_compact_payload" | grep -Fq "$compact_summary" && install_test_fail "claude post_compact hook must not inject compact summary into additionalContext"
+printf '%s' "$post_compact_payload" | jq -e '.hookSpecificOutput.additionalContext | contains("compact_summary_ref")' >/dev/null 2>&1 || install_test_fail "claude post_compact hook should expose compact summary state reference"
 printf '%s' "$post_compact_payload" | grep -Fq 'mode / stage / status / scope_ref / state_ref / next_ref / blocker / decision_needed' || install_test_fail "claude post_compact hook should restore state anchors"
 printf '%s' "$post_compact_payload" | grep -Fq '如果 goal / owner / lane / phase 已变化，先回源纠偏，不继续执行' || install_test_fail "claude post_compact hook should require freshness check before continuing"
 printf '%s' "$post_compact_payload" | grep -Fq 'blocked / waiting_on / unblock_condition / decision_needed' || install_test_fail "claude post_compact hook should describe blocked fallback"
@@ -370,9 +398,12 @@ install_test_case_start "runtime: codex audit removes legacy symlink residue and
 home_dir="$(install_test_clone_baseline_home runtime-audit-residue)"
 state_root="$(install_test_state_root "$home_dir")"
 mkdir -p "$home_dir/.codex/rules"
+mkdir -p "$home_dir/.codex/reference"
 printf 'platform default rules\n' > "$home_dir/.codex/rules/default.rules"
 default_rules_hash="$(shasum "$home_dir/.codex/rules/default.rules" | awk '{print $1}')"
 ln -s "$home_dir/.claude/reference/旧质量指南.md" "$home_dir/.codex/rules/旧质量指南.md"
+printf 'legacy hard rule\n' > "$home_dir/.codex/rules/铁律.md"
+printf 'legacy reuse reference\n' > "$home_dir/.codex/reference/代码复用.md"
 mkdir -p "$INSTALL_TEST_REPO_FINGERPRINT_PROBE"
 printf 'non-runtime eval probe\n' > "$INSTALL_TEST_REPO_FINGERPRINT_PROBE/probe.txt"
 mkdir -p "$INSTALL_TEST_REPO_WORKSPACE_PROBE"
@@ -385,11 +416,56 @@ after_version="$(cat "$state_root/codex/installed-version")"
 rm -rf "$INSTALL_TEST_REPO_FINGERPRINT_PROBE"
 rm -rf "$INSTALL_TEST_REPO_WORKSPACE_PROBE"
 install_test_assert_path_absent "$home_dir/.codex/rules/旧质量指南.md" "legacy residue should be removed"
+install_test_assert_path_absent "$home_dir/.codex/rules/铁律.md" "retired hard rule residue should be removed"
+install_test_assert_path_absent "$home_dir/.codex/reference/代码复用.md" "retired reference residue should be removed"
 install_test_assert_file_exists "$home_dir/.codex/rules/default.rules" "default.rules should be preserved"
 [ "$default_rules_hash" = "$(shasum "$home_dir/.codex/rules/default.rules" | awk '{print $1}')" ] || install_test_fail "default.rules content should remain unchanged"
 archive_path="$(find "$state_root/codex/unexpected-artifacts" \( -type f -o -type l \) -path '*/rules/旧质量指南.md' | head -1)"
 [ -n "$archive_path" ] || install_test_fail "legacy residue should be archived"
+archive_path="$(find "$state_root/codex/unexpected-artifacts" \( -type f -o -type l \) -path '*/rules/铁律.md' | head -1)"
+[ -n "$archive_path" ] || install_test_fail "retired hard rule residue should be archived"
+archive_path="$(find "$state_root/codex/unexpected-artifacts" \( -type f -o -type l \) -path '*/reference/代码复用.md' | head -1)"
+[ -n "$archive_path" ] || install_test_fail "retired reference residue should be archived"
+install_test_run_install "$home_dir" "$(install_test_log_path runtime-audit-residue-uninstall)" --target codex --uninstall
+install_test_assert_path_absent "$home_dir/.codex/rules/旧质量指南.md" "codex uninstall should not restore retired legacy rule residue"
+install_test_assert_path_absent "$home_dir/.codex/rules/铁律.md" "codex uninstall should not restore retired hard rule residue"
+install_test_assert_path_absent "$home_dir/.codex/reference/代码复用.md" "codex uninstall should not restore retired reference residue"
 install_test_case_pass "runtime: codex audit removes legacy symlink residue and preserves platform defaults"
+
+install_test_case_start "runtime: rule audit preserves local unmanaged team rules"
+home_dir="$(install_test_clone_baseline_home runtime-local-team-rule)"
+state_root="$(install_test_state_root "$home_dir")"
+mkdir -p "$home_dir/.claude/rules"
+printf 'local team safety rule\n' > "$home_dir/.claude/rules/local-team-safety.md"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-local-team-rule-install)" --target claude --check quick
+install_test_assert_file_contains "$home_dir/.claude/rules/local-team-safety.md" "local team safety rule" "local unmanaged team rule should remain active"
+archive_path="$(find "$state_root/claude/unexpected-artifacts" \( -type f -o -type l \) -path '*/rules/local-team-safety.md' 2>/dev/null | head -1 || true)"
+[ -z "$archive_path" ] || install_test_fail "local unmanaged team rule should not be archived"
+install_test_case_pass "runtime: rule audit preserves local unmanaged team rules"
+
+install_test_case_start "runtime: claude audit removes legacy active rule residue"
+home_dir="$(install_test_clone_baseline_home runtime-claude-rule-residue)"
+state_root="$(install_test_state_root "$home_dir")"
+mkdir -p "$home_dir/.claude/rules"
+mkdir -p "$home_dir/.claude/reference"
+printf 'legacy code rules\n' > "$home_dir/.claude/rules/代码规范.md"
+printf 'legacy completion rules\n' > "$home_dir/.claude/rules/完成前验证.md"
+printf 'legacy hard rule\n' > "$home_dir/.claude/rules/铁律.md"
+printf 'legacy performance reference\n' > "$home_dir/.claude/reference/性能效率.md"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-claude-rule-residue-install)" --target claude --check quick
+install_test_assert_path_absent "$home_dir/.claude/rules/代码规范.md" "claude legacy code rule residue should be removed"
+install_test_assert_path_absent "$home_dir/.claude/rules/完成前验证.md" "claude legacy completion rule residue should be removed"
+install_test_assert_path_absent "$home_dir/.claude/rules/铁律.md" "claude retired hard rule residue should be removed"
+install_test_assert_path_absent "$home_dir/.claude/reference/性能效率.md" "claude retired reference residue should be removed"
+archive_path="$(find "$state_root/claude/unexpected-artifacts" \( -type f -o -type l \) -path '*/rules/代码规范.md' | head -1)"
+[ -n "$archive_path" ] || install_test_fail "claude legacy code rule residue should be archived"
+archive_path="$(find "$state_root/claude/unexpected-artifacts" \( -type f -o -type l \) -path '*/rules/完成前验证.md' | head -1)"
+[ -n "$archive_path" ] || install_test_fail "claude legacy completion rule residue should be archived"
+archive_path="$(find "$state_root/claude/unexpected-artifacts" \( -type f -o -type l \) -path '*/rules/铁律.md' | head -1)"
+[ -n "$archive_path" ] || install_test_fail "claude retired hard rule residue should be archived"
+archive_path="$(find "$state_root/claude/unexpected-artifacts" \( -type f -o -type l \) -path '*/reference/性能效率.md' | head -1)"
+[ -n "$archive_path" ] || install_test_fail "claude retired reference residue should be archived"
+install_test_case_pass "runtime: claude audit removes legacy active rule residue"
 
 install_test_case_start "runtime: codex install removes retired project-agents-init residue"
 home_dir="$(install_test_clone_baseline_home runtime-retired-project-agents-init)"

@@ -526,6 +526,27 @@ with tempfile.TemporaryDirectory() as tmp:
         "signoff-package",
     )
 
+    missing_target_change_audit_consumer = tmp_dir / "missing-target-change-audit-consumer.yaml"
+    data = yaml.safe_load(contract.read_text(encoding="utf-8"))
+    for artifact in data["artifacts"]:
+        if artifact.get("path") != "docs/{feature}/phase-{N}/target-change.json":
+            continue
+        digest = artifact["fields"]["target_change_payload_digest"]
+        digest["consumers"] = [
+            consumer
+            for consumer in digest["consumers"]
+            if consumer.get("consumer") != "consistency-auditor"
+        ]
+        write_yaml(missing_target_change_audit_consumer, data)
+        break
+    else:
+        raise SystemExit("missing target-change artifact in field consumption contract")
+    expect_validator_failure(
+        standard_chain,
+        missing_target_change_audit_consumer,
+        "target-change",
+    )
+
     mutated_contract = tmp_dir / "field-consumption.yaml"
     contract_text = contract.read_text(encoding="utf-8")
     field_probe = """  - path: docs/{feature}/phase-{N}/pm-ledger.json\n    producer: product-manager\n    fields:\n      root_problem:\n        producer: product-manager\n        authority: product-manager\n        consumers:\n          - consumer: design\n            consumed_for: forbidden product-manager ledger probe\n            consume_mode: reference\n        required_when: negative probe runs\n        failure_effect: validator must reject product-manager ledgers\n"""

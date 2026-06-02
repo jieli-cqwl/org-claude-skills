@@ -41,6 +41,14 @@ REQUIRED_FIELD_KEYS = (
     "failure_effect",
 )
 REQUIRED_CONSUMER_KEYS = ("consumer", "consumed_for", "consume_mode")
+REQUIRED_FIELD_CONSUMERS = (
+    (
+        "docs/{feature}/phase-{N}/target-change.json",
+        "target_change_payload_digest",
+        "consistency-auditor",
+        "gate",
+    ),
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -293,6 +301,31 @@ def required_fields_by_path(
     return fields
 
 
+def validate_required_field_consumers(
+    contract: dict[str, dict[str, set[str]]], raw_contract: dict[str, Any]
+) -> None:
+    artifacts = raw_contract.get("artifacts")
+    artifact_lookup = {
+        str(artifact.get("path")): artifact
+        for artifact in artifacts
+        if isinstance(artifact, dict)
+    }
+    for path, field_name, consumer_name, consume_mode in REQUIRED_FIELD_CONSUMERS:
+        if consumer_name not in contract.get(path, {}).get(field_name, set()):
+            raise ValueError(
+                f"field contract {path}.{field_name} must declare {consumer_name} as a {consume_mode} consumer"
+            )
+        field = artifact_lookup[path]["fields"][field_name]
+        if not any(
+            consumer.get("consumer") == consumer_name
+            and consumer.get("consume_mode") == consume_mode
+            for consumer in field.get("consumers", [])
+        ):
+            raise ValueError(
+                f"field contract {path}.{field_name} must declare {consumer_name} as a {consume_mode} consumer"
+            )
+
+
 def validate_active_co_creation_ledgers(standard_chain: dict[str, Any]) -> None:
     co_creation_ledgers = standard_chain.get("co_creation_ledgers", {})
     if co_creation_ledgers is None:
@@ -324,6 +357,7 @@ def validate(standard_chain_path: Path, field_consumption_path: Path) -> None:
     if contract.get("version") != 1:
         raise ValueError("version must be 1")
     contract_fields = validate_artifacts(contract)
+    validate_required_field_consumers(contract_fields, contract)
     requirements = standard_chain_requirements(standard_chain)
     required_fields = required_fields_by_path(requirements)
     for path, declared_fields in contract_fields.items():

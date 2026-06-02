@@ -89,6 +89,22 @@ fi
 rg -q "acceptance_criteria" "$TMP_ROOT/broken-unit-output.json" \
   || fail "UNIT acceptance_criteria failure should be explicit"
 
+BROKEN_UNIT_SOURCE_REFS="$TMP_ROOT/broken-unit-source-refs.json"
+python3 - "$PACKAGE" "$BROKEN_UNIT_SOURCE_REFS" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+payload["units"][0]["acceptance_criteria"][0].pop("source_refs", None)
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" --package "$BROKEN_UNIT_SOURCE_REFS" >"$TMP_ROOT/broken-unit-source-refs-output.json"; then
+  fail "product-manager package must reject UNIT acceptance_criteria without source_refs"
+fi
+rg -q "source_refs" "$TMP_ROOT/broken-unit-source-refs-output.json" \
+  || fail "UNIT acceptance_criteria source_refs failure should be explicit"
+
 DRIFT="$TMP_ROOT/director-drift.json"
 python3 - "$PACKAGE" "$DRIFT" <<'PY'
 import json

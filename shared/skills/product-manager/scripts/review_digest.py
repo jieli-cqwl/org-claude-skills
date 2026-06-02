@@ -12,12 +12,13 @@ from pathlib import Path
 
 def resolve_runtime_root(script_path: Path) -> Path:
     resolved = script_path.resolve()
+    runtime_home = Path(os.environ.get("HOME", str(Path.home())))
     candidates = [
         *list(resolved.parents)[:5],
-        Path.home() / ".codex",
-        Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")),
-        Path.home() / ".claude",
-        Path(os.environ.get("CLAUDE_HOME", Path.home() / ".claude")),
+        Path(os.environ.get("CODEX_HOME", runtime_home / ".codex")),
+        runtime_home / ".codex",
+        Path(os.environ.get("CLAUDE_HOME", runtime_home / ".claude")),
+        runtime_home / ".claude",
     ]
 
     for candidate in candidates:

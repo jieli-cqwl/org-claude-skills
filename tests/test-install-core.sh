@@ -162,6 +162,7 @@ if should_run_group claude-agents; then
   rm -f "$home_dir/.claude/agents/developer.md"
   verifier_agent="$home_dir/.claude/agents/verifier.md"
   python3 - "$verifier_agent" <<'PY'
+import re
 import sys
 from pathlib import Path
 
@@ -258,7 +259,8 @@ if should_run_group codex-agent-file-contracts || should_run_group codex-agent-f
   home_dir="$(install_test_clone_baseline_home core-codex-agent-file-contracts)"
   install_test_refresh_installed_version "$home_dir" codex
   verifier_agent="$home_dir/.codex/agents/verifier.toml"
-  python3 - "$verifier_agent" <<'PY'
+python3 - "$verifier_agent" <<'PY'
+import re
 import sys
 from pathlib import Path
 
@@ -270,18 +272,18 @@ text = text.replace(
     1,
 )
 text = text.replace('sandbox_mode = "workspace-write"', 'sandbox_mode = "read-only"', 1)
-old_instruction = '加载 `verify` skill，结合目标和成功标准交付结果。\n'
-if old_instruction not in text:
-    raise SystemExit("missing verifier platform instruction in baseline fixture")
-text = text.replace(
-    old_instruction,
+text = re.sub(
+    r'developer_instructions = """[\s\S]*?"""',
     (
+        'developer_instructions = """'
         '先读并严格遵循以下文档后再执行：\n'
         '- 硬约束：{{HOME}}/.codex/rules/completion-claims.md\n'
         '- 完整方法论：{{HOME}}/.agents/skills/verify/SKILL.md\n'
         '可用工具：Read, Bash, Glob, Grep, Write。Write 仅用于输出 verify-result.json；禁止使用 Edit。\n'
+        '"""'
     ),
-    1,
+    text,
+    count=1,
 )
 path.write_text(text, encoding="utf-8")
 PY

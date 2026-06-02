@@ -30,7 +30,19 @@
     "artifact://brief/login-homepage-pilot.brief@v1#delivery-plan-phase-1"
   ],
   "obligation_source_refs": [
-    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa-handoff"
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-LOGIN-HOMEPAGE",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa-handoff",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-CLOSURE",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-JOURNEY",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-NEGATIVE",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-OBS",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-SMOKE",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-OBS-1",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-T1-1",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-T2-1",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:1",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:2",
+    "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:3"
   ],
   "execution_basis_refs": [
     "artifact://plan/login-homepage-pilot.phase-1.plan@plan-v2#scope-freeze",

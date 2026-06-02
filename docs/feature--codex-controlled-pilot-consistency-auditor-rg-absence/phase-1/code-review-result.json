@@ -1,0 +1,113 @@
+{
+  "artifact_type": "code-review-result",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review",
+  "schema_version": "1.0.0",
+  "producer": "review",
+  "produced_at": "2026-06-01T11:42:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.gate_result",
+    "$.review_round",
+    "$.active_tasks_version_ref",
+    "$.dimension_verdicts",
+    "$.findings",
+    "$.excluded",
+    "$.evidence_integrity",
+    "$.review_conclusion"
+  ],
+  "gate_result": "PASS",
+  "review_round": 1,
+  "active_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "dimension_verdicts": {
+    "review_a": "REVIEW_A_OK",
+    "review_b": "REVIEW_B_OK",
+    "review_c": "REVIEW_C_OK",
+    "correctness": "OK",
+    "safety": "OK",
+    "error_handling": "OK",
+    "concurrency_state": "OK",
+    "design": "OK",
+    "test_coverage": "OK",
+    "comment_accuracy": "OK",
+    "performance": "OK",
+    "observability": "OK",
+    "backward_compatibility": "OK"
+  },
+  "findings": [],
+  "excluded": [
+    {
+      "issue_id": "EP-001",
+      "summary": "reviewed rollback branch and confirmed canonical restore proof already anchors freeze quarantine behavior",
+      "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#excluded-1"
+    },
+    {
+      "issue_id": "EP-002",
+      "summary": "reviewed projection manifest escaping path and confirmed rendered html keeps dangerous content escaped",
+      "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#excluded-2"
+    }
+  ],
+  "evidence_integrity": {
+    "applicability": "applicable",
+    "trigger_refs": [
+      "standard-chain contract change",
+      "validator change",
+      "shell runtime gate change",
+      "canonical pilot artifact change"
+    ],
+    "checks": [
+      {
+        "id": "EI-1",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-1"
+      },
+      {
+        "id": "EI-2",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-2"
+      },
+      {
+        "id": "EI-3",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-3"
+      },
+      {
+        "id": "EI-4",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-4"
+      },
+      {
+        "id": "EI-5",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-5"
+      },
+      {
+        "id": "EI-6",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-6"
+      },
+      {
+        "id": "EI-7",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-7"
+      },
+      {
+        "id": "EI-8",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-8"
+      },
+      {
+        "id": "EI-9",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-9"
+      },
+      {
+        "id": "EI-10",
+        "status": "NOT_OBSERVED",
+        "evidence_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@ev-review#ei-10"
+      }
+    ]
+  },
+  "review_conclusion": "APPROVE"
+}

@@ -9,6 +9,7 @@ Completion means the requested outcome is proven at its acceptance scope, not th
 - Tests do not define scope; they only provide evidence for the behavior they exercise.
 - Unit or local checks do not automatically prove integration, E2E, full-flow, runtime, dependency, cross-boundary, or multi-environment behavior.
 - Claims about user paths, boundaries, runtimes, dependencies, contracts, integrations, or environments require evidence at that same level.
+- API or curl evidence plus a statement that the frontend uses it does not prove full-stack, end-to-end, browser, or real user-path completion; do not use that wording without same-level UI/E2E evidence.
 - If a change touches shared contracts, entrypoints, data formats, install/runtime paths, or downstream consumers, verify representative consumers or prove why they are not in scope.
 - Evidence must be current to this task/run, direct, reproducible, and tied to the requested outcome.
 - Manual evidence must record input, path, environment/preconditions, expected result, and observed result.

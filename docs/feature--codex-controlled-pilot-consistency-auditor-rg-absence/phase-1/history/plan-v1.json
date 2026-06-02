@@ -1,0 +1,87 @@
+{
+  "artifact_type": "plan",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan",
+  "schema_version": "1.0.0",
+  "producer": "tech-lead",
+  "produced_at": "2026-06-01T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.baseline_plan_version_ref",
+    "$.baseline_tasks_version_ref",
+    "$.goal_source_refs",
+    "$.constraint_source_refs",
+    "$.obligation_source_refs",
+    "$.execution_basis_refs",
+    "$.planning_readiness",
+    "$.implementation_path",
+    "$.goal_fidelity_review",
+    "$.user_confirmation"
+  ],
+  "baseline_plan_version_ref": "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v1#plan-version",
+  "baseline_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v1#task-registry",
+  "goal_source_refs": [
+    "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal"
+  ],
+  "constraint_source_refs": [],
+  "obligation_source_refs": [],
+  "execution_basis_refs": [
+    "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v1#scope-freeze",
+    "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v1#task-registry"
+  ],
+  "evidence_refs": [],
+  "planning_mode": "standard-chain",
+  "plan_version": "plan-v1",
+  "goal_fidelity_review": [
+    {
+      "goal_ref": "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal",
+      "task_refs": [
+        "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v1#task-T1"
+      ],
+      "execution_basis_ref": "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v1#scope-freeze",
+      "status": "COVERED"
+    }
+  ],
+  "user_confirmation": {
+    "status": "CONFIRMED",
+    "confirmed_by": "user-001",
+    "confirmed_at": "2026-06-01T03:00:00Z"
+  },
+  "planning_readiness": {
+    "status": "READY",
+    "blocking_gaps": [],
+    "decision_package": {
+      "required": false,
+      "options": [],
+      "recommended_option": "Proceed with plan freeze after user confirmation."
+    }
+  },
+  "implementation_path": {
+    "wbs": [
+      {
+        "work_package_id": "WP-1",
+        "task_refs": [
+          "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v1#task-T1"
+        ]
+      }
+    ],
+    "critical_path": [
+      "T1"
+    ],
+    "investment_risk_signals": [
+      {
+        "risk_id": "IR-1",
+        "signal_type": "INTEGRATION_RISK",
+        "impact_level": "MEDIUM",
+        "owner": "tech-lead",
+        "source_refs": [
+          "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v1#task-T1"
+        ],
+        "mitigation_refs": [
+          "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v1#task-T1"
+        ]
+      }
+    ]
+  }
+}

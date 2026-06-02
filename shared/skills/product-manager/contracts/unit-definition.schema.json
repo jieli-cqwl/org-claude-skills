@@ -78,7 +78,8 @@
               "example_input",
               "expected_result",
               "boundary_case",
-              "failure_mode"
+              "failure_mode",
+              "source_refs"
             ],
             "properties": {
               "ac_id": {
@@ -104,6 +105,14 @@
               "failure_mode": {
                 "type": "string",
                 "minLength": 1
+              },
+              "source_refs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
               }
             },
             "additionalProperties": true

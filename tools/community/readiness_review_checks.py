@@ -21,6 +21,40 @@ def assert_code_review_pass(phase_dir: Path, load_json: LoadJson) -> None:
         raise ValueError(
             "code-review-result review_conclusion must be APPROVE at readiness"
         )
+    evidence_integrity = review.get("evidence_integrity")
+    if not isinstance(evidence_integrity, dict):
+        raise ValueError("code-review-result evidence_integrity must be an object")
+    checks = evidence_integrity.get("checks")
+    if not isinstance(checks, list):
+        raise ValueError("code-review-result evidence_integrity.checks must be an array")
+    applicability = evidence_integrity.get("applicability")
+    blocking_statuses = {"FINDING", "BLOCKED"}
+    if applicability == "not_applicable":
+        for index, check in enumerate(checks, start=1):
+            if not isinstance(check, dict):
+                raise ValueError(
+                    f"code-review-result evidence_integrity.checks[{index}] must be an object"
+                )
+            if check.get("status") != "NOT_APPLICABLE":
+                raise ValueError(
+                    "code-review-result evidence_integrity not_applicable checks must be NOT_APPLICABLE"
+                )
+    else:
+        for index, check in enumerate(checks, start=1):
+            if not isinstance(check, dict):
+                raise ValueError(
+                    f"code-review-result evidence_integrity.checks[{index}] must be an object"
+                )
+            if check.get("status") == "NOT_APPLICABLE":
+                raise ValueError(
+                    "code-review-result evidence_integrity applicable checks must not be NOT_APPLICABLE: "
+                    f"{check.get('id', index)}"
+                )
+            if check.get("status") in blocking_statuses:
+                raise ValueError(
+                    "code-review-result evidence_integrity contains blocking status: "
+                    f"{check.get('id', index)}"
+                )
     verdicts = review.get("dimension_verdicts")
     if not isinstance(verdicts, dict):
         raise ValueError("code-review-result dimension_verdicts must be an object")

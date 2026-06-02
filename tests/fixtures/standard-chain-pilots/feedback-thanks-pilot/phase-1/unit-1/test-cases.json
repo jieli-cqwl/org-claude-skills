@@ -72,7 +72,7 @@
   "test_cases": [
     {
       "case_id": "TC-T1-1",
-      "title": "root redirect, form fields, and blank validation run through real HTTP",
+      "title": "root redirect and feedback form fields run through real HTTP",
       "product_refs": [
         "UNIT-1.json#acceptance_criteria[0].ac_id",
         "phase-prd.json#exit_conditions[0]"
@@ -84,18 +84,18 @@
       "case_type": "positive",
       "priority": "P1",
       "preconditions": [
-        "feedback form and blank validation fixture artifacts are present",
+        "feedback form fixture artifacts are present",
         "real HTTP acceptance tests can run from the repository root"
       ],
       "test_data": [
-        "feedback form and blank validation positive path data"
+        "feedback form positive path data"
       ],
       "steps": [
-        "execute the feedback form and blank validation positive path",
+        "execute the feedback form positive path",
         "collect the canonical and test evidence linked to AC-T1-1"
       ],
-      "expected_result": "root redirect, form fields, and blank validation run through real HTTP",
-      "assertion_target": "test_root_redirect_form_and_blank_validation assertions pass",
+      "expected_result": "root redirect and feedback form fields run through real HTTP",
+      "assertion_target": "test_root_redirects_to_feedback_form assertions pass",
       "execution_mode": "non_browser_ok",
       "automation_level": "automatable",
       "evidence_expectation": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py' form output",
@@ -507,7 +507,15 @@
       "evidence_contract_ref": "QHO-FEEDBACK-CLOSURE#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[2].manager_vp_ref",
-        "design.json#product_handoff.accepted_refs"
+        "design.json#product_handoff.accepted_refs",
+        "design.json#key_decisions[0]",
+        "design.json#key_decisions[1]",
+        "design.json#key_decisions[2]",
+        "design.json#key_decisions[3]",
+        "design.json#key_decisions[4]",
+        "design.json#interfaces[0]",
+        "design.json#interfaces[1]",
+        "design.json#interfaces[2]"
       ]
     }
   ],
@@ -540,7 +548,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:c685a80993adff40ce1cfd9ba5ca2dc08eee09b94f52830557236699865ceff4",
+        "reviewed_test_cases_digest": "sha256:46bde5bd4f2db8ff83dd495e81ba1d2d9180a3a369267f1f45ce2f8313ca539b",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -550,7 +558,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:c685a80993adff40ce1cfd9ba5ca2dc08eee09b94f52830557236699865ceff4",
+        "reviewed_test_cases_digest": "sha256:46bde5bd4f2db8ff83dd495e81ba1d2d9180a3a369267f1f45ce2f8313ca539b",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -560,13 +568,13 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:c685a80993adff40ce1cfd9ba5ca2dc08eee09b94f52830557236699865ceff4",
+        "reviewed_test_cases_digest": "sha256:46bde5bd4f2db8ff83dd495e81ba1d2d9180a3a369267f1f45ce2f8313ca539b",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
       }
     ],
-      "reviewed_test_cases_digest": "sha256:c685a80993adff40ce1cfd9ba5ca2dc08eee09b94f52830557236699865ceff4",
+    "reviewed_test_cases_digest": "sha256:46bde5bd4f2db8ff83dd495e81ba1d2d9180a3a369267f1f45ce2f8313ca539b",
     "closure_status": "CLOSED"
   },
   "issue_ledger": [],

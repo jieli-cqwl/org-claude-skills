@@ -30,7 +30,7 @@ P0/P1 findings require E2 or higher, structured `evidence_checks` that re-open t
 | Dimension | Weight | 9-10 | 7-8 | 5-6 | 0-4 |
 | --- | ---: | --- | --- | --- | --- |
 | Real Use Capability | 15 | Real scenario, user value, expected output, and team reason are explicit. | Mostly clear with minor missing boundary. | Plausible but generic or consumer is weak. | No clear reason to use the Skill. |
-| Trigger And Routing | 10 | Description and body route exact scenarios and adjacent Skills. | Good trigger with minor ambiguity. | Overbroad, underbroad, or mixes neighboring work. | Runtime can misroute the request. |
+| Trigger And Routing | 10 | Runtime mode, description, and entry boundary route the request without stealing adjacent Skill work. | Good routing with minor ambiguity. | Overbroad, underbroad, or mixes neighboring work. | Runtime can misroute the request. |
 | Instruction Contract | 20 | Sentences are executable contracts with conditions, objects, outputs, evidence, and failure states. | Most key instructions are executable. | Many advice-like or vague instructions remain. | The Skill reads like prose or ambiguous policy. |
 | Workflow Causality | 10 | Steps follow the real order of work and each output feeds the next consumer. | Order is usable with minor gaps. | Steps are mixed, repetitive, or weakly causal. | The workflow cannot reliably guide execution. |
 | Output And Handoff | 10 | Output format, consumer, repair target, and verification are explicit. | Output is clear but handoff can be sharper. | Output exists but downstream must infer. | No consumable output contract. |

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from normalize_canonical_artifact import load_json
 
-OPTIONAL_PHASE_FILES = ("fix-result.json",)
+OPTIONAL_PHASE_FILES = ("fix-result.json", "target-change.json")
 POST_FIX_FIXED_EVIDENCE_FILES = (
     ("code-review-result.produced_at", "code-review-result.json"),
     ("qa-result.produced_at", "qa-result.json"),

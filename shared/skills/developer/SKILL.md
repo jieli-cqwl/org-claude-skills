@@ -26,7 +26,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 5. DEV-HG-5 只修改声明 Scope 内文件
    - Scope 外文件只能读取，不能写入；需要范围外变更时交回上游刷新 Task / Scope。
    - Why: developer 的交付边界由 Task scope 约束，越界修改会破坏 owner 责任、review 范围和 verify 复验路径。
-6. DEV-HG-6 完成前必须有当前验证证据
+6. DEV-HG-6 完成前必须有当前验证证据和 `fresh_proof.current_evidence_refs`
    - 完成前必须运行目标测试、相关回归、静态分析和必要冒烟 / E2E；存在既有失败时只能给 BLOCKED / 部分完成口径。
    - Why: 完成结论必须由 fresh proving command 支撑，不能用历史结果、主观信心或局部绿灯替代验收证据。
 7. DEV-HG-7 `developer-report.json` 必须能被 review / verify 复验

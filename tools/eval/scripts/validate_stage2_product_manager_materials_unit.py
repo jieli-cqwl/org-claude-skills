@@ -51,6 +51,7 @@ def build_unit(brief: dict[str, Any]) -> dict[str, Any]:
                 "expected_result": "系统形成建议回复、上下文来源和人工确认状态，不自动外发",
                 "boundary_case": "缺少上下文时进入人工接管状态并暴露缺口原因",
                 "failure_mode": "agent 调度失败时保留原始消息和失败原因，不能吞消息或自动回复",
+                "source_refs": ["brief.json#acceptance_criteria[0]"],
             }
         ],
         "exclusions": ["语音/图片/附件消息", "多渠道统一接入", "自动外发客户消息"],

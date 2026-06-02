@@ -50,6 +50,7 @@ REQUIRED_CATALOG_DEFAULT_PATHS = {
     "fix-result": "docs/{feature}/phase-{N}/fix-result.json",
     "signoff-package": "docs/{feature}/phase-{N}/signoff-package.json",
     "user-decision": "docs/{feature}/phase-{N}/user-decision.json",
+    "target-change": "docs/{feature}/phase-{N}/target-change.json",
     "artifact-registry": "docs/{feature}/phase-{N}/artifact-registry.json",
     "projection-manifest": "docs/{feature}/phase-{N}/views/phase-operational.projection-manifest.json",
 }
@@ -66,9 +67,15 @@ def parse_args() -> argparse.Namespace:
 def assert_canonical_only_layout(phase_dir: Path) -> None:
     feature_dir = phase_dir.parent
     for relative_path in LEGACY_CANONICAL_ONLY_PATHS:
-        candidate = feature_dir / relative_path if relative_path == "brief.md" else phase_dir / relative_path
+        candidate = (
+            feature_dir / relative_path
+            if relative_path == "brief.md"
+            else phase_dir / relative_path
+        )
         if candidate.exists():
-            raise FileExistsError(f"canonical-only phase must not keep legacy runtime source: {candidate}")
+            raise FileExistsError(
+                f"canonical-only phase must not keep legacy runtime source: {candidate}"
+            )
     for pattern in LEGACY_CANONICAL_ONLY_GLOBS:
         matches = sorted(phase_dir.glob(pattern))
         if matches:
@@ -85,7 +92,9 @@ def assert_catalog_contract(catalog_path: Path) -> None:
     for artifact_type, default_path in REQUIRED_CATALOG_DEFAULT_PATHS.items():
         entry = artifacts.get(artifact_type)
         if not isinstance(entry, dict):
-            raise ValueError(f"standard-chain catalog missing artifact: {artifact_type}")
+            raise ValueError(
+                f"standard-chain catalog missing artifact: {artifact_type}"
+            )
         if entry.get("default_path") != default_path:
             raise ValueError(
                 f"standard-chain catalog drift for {artifact_type}: "

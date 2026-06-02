@@ -34,6 +34,7 @@ LABEL_WORDS = {
     "Signal",
     "Synthesis",
 }
+LABEL_WORDS_LOWER = {word.lower() for word in LABEL_WORDS}
 
 
 def is_markdown_prose_target(target: str) -> bool:
@@ -81,6 +82,10 @@ def machine_contract_literal(text: str) -> bool:
         return True
     if re.match(r"(python3|bash|node|jq|rg|grep)\b", text):
         return True
+    if not re.search(r"\s", text) and re.search(
+        r"\.(?:md|json|py|sh|ya?ml|toml)\b", text
+    ):
+        return True
     return bool(
         "/" in text
         and re.search(r"\.(?:md|json|py|sh|ya?ml|toml)\b", text)
@@ -93,6 +98,8 @@ def prose_label_like(text: str) -> bool:
     if len(words) < 2:
         return False
     if any(word in LABEL_WORDS for word in words):
+        return True
+    if any(word.lower() in LABEL_WORDS_LOWER for word in words):
         return True
     return bool(re.search(r"[A-Z][a-z]+(?:[ -][A-Z][a-z]+){2,}", text))
 
@@ -119,6 +126,12 @@ def low_signal_kind(assertion: str, pattern: str) -> str | None:
     if assertion == "present" and cjk_count(normalized) >= 2 and not has_contract:
         return "short-present-phrase"
     if assertion == "present" and prose_label_like(normalized) and not has_contract:
+        return "short-present-phrase"
+    if assertion == "present" and re.search(
+        r"\b(?:wording|prose|sentence)\b.*\b(?:frozen|preserve|remain|exact)\b",
+        normalized,
+        re.IGNORECASE,
+    ):
         return "short-present-phrase"
     if (
         assertion == "present"

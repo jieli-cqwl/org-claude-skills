@@ -46,7 +46,10 @@ digraph delivery_owner_flow {
   "DO-S4 派发开发" -> "DO-S5 开发/验证循环";
   "DO-S5 开发/验证循环" -> "DO-S6 提测前整体 review";
   "DO-S6 提测前整体 review" -> "DO-S7 QA/修复循环";
-  "DO-S7 QA/修复循环" -> "DO-S8 提交与汇报";
+  "DO-S7 QA/修复循环" -> "DO-S8a 收口包准备";
+  "DO-S8a 收口包准备" -> "DO-S8b 用户决策接收";
+  "DO-S8b 用户决策接收" -> "DO-S8c 最终准入";
+  "DO-S8c 最终准入" -> "DO-S8d 提交与汇报";
   "DO-S1 接手与 preflight" -> "Pause 用户决策" [label="FAIL"];
   "DO-S1 接手与 preflight" -> "Pause 用户决策" [label="baseline audit owner action"];
   "DO-S2 交付 review" -> "Pause 用户决策" [label="风险/冲突"];
@@ -119,15 +122,27 @@ digraph delivery_owner_flow {
 - 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无进展时暂停。
 - QA 非 PASS、fixer agent 后 code-review 新鲜度不清或循环不收敛时，读取 `references/followup-loops.md`，应用其诊断框架分类根因并调整策略。
 
-### DO-S8 提交与汇报
+### DO-S8a 收口包准备
 
 - qa agent 通过后，调度 consistency-auditor agent 做提交准备前 full advisory 一致性审计；输入至少包含 brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、developer-report、verify-result、code-review-result、qa-result 和 `qa-result.obligation_results`。
 - consistency-auditor agent 只给 advisory-only owner action；若存在 blocked_layers、CRITICAL finding 或 required_owner_action，先按 owner action 回流对应 owner 或暂停给用户，不能把 advisory 结论升级成签收或风险接受。
 - full advisory owner action 的处理也必须写入 `owner_action_consumption[]`；缺少 action id、owner、routing、result、evidence 或 state update 时，不得进入提交准备。
-- qa agent 通过、consistency-auditor agent 无阻断 owner action 且没有未决风险后，先确认用户提交授权、变更范围、验证证据和提交摘要。
-- 授权明确时调度 `/commit`；受限环境无法实际调用时输出 `/commit` handoff 并标记 `dispatch_ready`；授权不清时暂停给用户。
-- developer/verifier/code-reviewer/qa/consistency-auditor 证据闭合、无未决风险且用户授权明确时，形成 `/commit` handoff；`signoff-package.json.runtime_evidence_matrix` 必须逐项覆盖 active registry 中当前 `developer-report`、`verify-result`、`code-review-result`、`qa-result` 和 `consistency-audit-result`，每项包含 canonical ref、producer、status、freshness basis、active registry proof、stale/superseded check。逻辑摘要只能解释证据，不能替代 canonical runtime artifact refs；只有证据、范围或授权冲突时才退回 DO-S1。
-- `READY_FOR_COMMIT` 只表示 signoff package 和 `/commit` handoff 已准备好；不得当作已交付。只有 `/commit` 返回并记录 `commit_result` / `commit_result_ref` 后，才能在交付报告中使用 `DELIVERED`。
+- qa agent 通过、consistency-auditor agent 无阻断 owner action 且没有未决风险后，形成 `signoff-package.json`。`signoff-package.json.runtime_evidence_matrix` 必须逐项覆盖 active registry 中当前 `developer-report`、`verify-result`、`code-review-result`、`qa-result` 和 `consistency-audit-result`，每项包含 canonical ref、producer、status、freshness basis、active registry proof、stale/superseded check。逻辑摘要只能解释证据，不能替代 canonical runtime artifact refs；只有证据、范围或授权冲突时才退回 DO-S1。
+
+### DO-S8b 用户决策接收
+
+- `signoff-package.json` 准备完成后，向用户请求提交授权、风险接受或变更裁决；授权或风险接受明确时写 `user-decision.json`，并符合 `contracts/user-decision.schema.json`。
+- 用户改变 scope、AC、goal、tasks 或 design 目标时，不能写成 `user-decision.json`；必须写 `target-change.json`，记录 `invalidates_refs`、`superseded_evidence_refs`、`rebaseline_owner` 和 `required_fresh_proof_after_rebaseline`，并回到对应 owner 重新冻结 baseline 后再消费 fresh evidence。
+- 授权不清、风险接受不清或目标变更缺权威证明时暂停给用户。
+
+### DO-S8c 最终准入
+
+- 最终准入必须同时消费 `signoff-package.json` 和 `user-decision.json`；两者的 tasks baseline、signoff 状态、风险状态、授权证明和 decision basis 必须一致。
+- `READY_FOR_COMMIT` 只表示 signoff package、user decision 和 `/commit` handoff 已准备好；不得当作已交付。只有 `/commit` 返回并记录 `commit_result` / `commit_result_ref` 后，才能在交付报告中使用 `DELIVERED`。
+
+### DO-S8d 提交与汇报
+
+- 授权明确时调度 `/commit`；受限环境无法实际调用时输出 `/commit` handoff 并标记 `dispatch_ready`。
 - `/commit` 返回后收集 commit result，并用 `templates/delivery-report.template.md` 汇报交付结果。
 
 ## 输出
@@ -140,7 +155,9 @@ digraph delivery_owner_flow {
 - `delivery-state.json.current_stage`、`status`、`control_action` 必须使用 shared-core 词表；当状态为 BLOCKED 或请求用户决策时，必须写 `blocker_id`、`blocker_owner`、`blocker_basis_refs`、`resume_stage`、`next_action` 和 `resume_condition`。
 - 新增或更新任何结构化 runtime artifact 后，同步更新 `artifact-registry.json`，并符合 `contracts/artifact-registry.schema.json`。
 - 各 producer 只负责写自己的 artifact；delivery-owner 在派发下一个 consumer 前，必须确认该 artifact 在 active registry 中有且只有一个 `FINALIZED + active_for_consumption=true` entry。
-- 进入 DO-S8 且 qa agent PASS、consistency-auditor agent advisory 无阻断 owner action、风险状态明确、提交授权明确时，输出交付结果报告，字段使用 `templates/delivery-report.template.md`；提交前写 `signoff-package.json`，并符合 `contracts/signoff-package.schema.json`，其中 `runtime_evidence_matrix` 不得缺失任何 active runtime evidence 类型或 task-level entry。
+- 进入 DO-S8a 且 qa agent PASS、consistency-auditor agent advisory 无阻断 owner action 且风险状态明确时，写 `signoff-package.json`，并符合 `contracts/signoff-package.schema.json`，其中 `runtime_evidence_matrix` 不得缺失任何 active runtime evidence 类型或 task-level entry。
+- 进入 DO-S8b 时，基于 `signoff-package.json` 接收用户提交授权、风险接受或目标变更裁决；用户授权或风险接受写 `user-decision.json`，目标变更写 `target-change.json`。
+- 进入 DO-S8c 时，同时消费 `signoff-package.json` 和 `user-decision.json` 做最终准入；通过后才能输出 `/commit` handoff 和交付报告。
 
 ## 停手边界
 
@@ -169,4 +186,6 @@ tasks 未冻结；scope、AC、依赖或 QA handoff 冲突；缺 executor、权�
 - [ ] 触发用户暂停时已输出用户决策包。
 - [ ] 触发 runtime state 变化时已更新 `delivery-state.json`。
 - [ ] 新增或更新结构化 artifact 后已同步 `artifact-registry.json`。
-- [ ] DO-S8 提交准备时已输出交付报告并写 `signoff-package.json`，且 `runtime_evidence_matrix` 已覆盖全部 active runtime evidence。
+- [ ] DO-S8a 已形成 `signoff-package.json`，且 `runtime_evidence_matrix` 已覆盖全部 active runtime evidence。
+- [ ] DO-S8b 已接收用户授权、风险接受或目标变更裁决；授权/风险接受写入 `user-decision.json`，目标变更写入 `target-change.json`。
+- [ ] DO-S8c 已同时消费 `signoff-package.json` 和 `user-decision.json` 完成最终准入。

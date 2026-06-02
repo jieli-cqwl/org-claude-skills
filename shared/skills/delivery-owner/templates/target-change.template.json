@@ -3,7 +3,7 @@
   "artifact_id": "sample-feature.phase-1.target-change",
   "schema_version": "1.0.0",
   "producer": "delivery-owner",
-  "produced_at": "2026-04-14T00:00:00Z",
+  "produced_at": "2026-04-13T23:59:59Z",
   "chain_version": "standard-chain/v1",
   "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
   "authority_scope": "phase",
@@ -20,12 +20,13 @@
     "$.rebaseline_owner",
     "$.required_fresh_proof_after_rebaseline",
     "$.authority_proof_refs",
-    "$.decision_basis_refs"
+    "$.decision_basis_refs",
+    "$.target_change_payload_digest"
   ],
   "baseline_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
-  "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+  "active_tasks_version_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry",
   "changed_target_type": "AC",
-  "change_source": "authenticated-user-decision",
+  "change_source": "authenticated-target-change",
   "actor_id": "user-001",
   "affected_refs": [
     "artifact://test-cases/sample-feature.phase-1.unit-1.test-cases@v1#AC-T1-1"
@@ -38,19 +39,26 @@
     "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-result"
   ],
   "rebaseline_required": true,
-  "rebaseline_owner": "tech-lead",
+  "rebaseline_owner": "product-manager",
   "required_fresh_proof_after_rebaseline": [
-    "tasks",
+    "brief",
+    "phase-prd",
+    "unit-definition",
+    "design",
     "test-cases",
+    "plan",
+    "tasks",
     "developer-report",
     "verify-result",
     "code-review-result",
-    "qa-result"
+    "qa-result",
+    "consistency-audit-result"
   ],
   "authority_proof_refs": [
-    "artifact://evidence/sample-feature.phase-1.authority-proof@ev-target-change#proof-root"
+    "artifact://evidence/sample-feature.phase-1.authority-proof@ev-approve#proof-root"
   ],
   "decision_basis_refs": [
     "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal"
-  ]
+  ],
+  "target_change_payload_digest": "sha256:a925026a580fb9ab704cafc7b9eabbe84930daca55d34e31a853772a3d74a9eb"
 }

@@ -16,6 +16,7 @@ from normalize_canonical_artifact import load_json
 def canonical_digest(payload: dict) -> str:
     serializable = copy.deepcopy(payload)
     serializable.pop("decision_payload_digest", None)
+    serializable.pop("target_change_payload_digest", None)
     serial = json.dumps(serializable, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return "sha256:" + hashlib.sha256(serial.encode("utf-8")).hexdigest()
 

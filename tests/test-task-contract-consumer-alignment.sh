@@ -246,6 +246,11 @@ tasks_template = json.loads(
 )
 for index, row in enumerate(tasks_template.get("tasks", [])):
     require("task_title" not in row, f"tasks.template.json tasks[{index}] must not include task_title")
+    task_id = row.get("task_id")
+    require(
+        row.get("evidence_target") == f"developer-report.json#task-{task_id}.fresh_proof",
+        f"tasks.template.json tasks[{index}] evidence_target must be task-specific fresh_proof",
+    )
 for source_root in (
     root / "tests/fixtures/standard-chain-foundation",
     root / "tests/fixtures/standard-chain-pilots",
@@ -318,6 +323,9 @@ for derived_field in ("scope_freeze", "task_list"):
 delivery_owner = next(
     role for role in standard_chain["chain"] if role.get("name") == "delivery-owner"
 )
+consistency_auditor = next(
+    role for role in standard_chain["chain"] if role.get("name") == "consistency-auditor"
+)
 qa_role = next(role for role in standard_chain["chain"] if role.get("name") == "qa")
 product_director = next(
     role for role in standard_chain["chain"] if role.get("name") == "product-director"
@@ -342,7 +350,7 @@ require(
     "delivery-owner top-level required inputs must not include future runtime artifacts",
 )
 stage_inputs = delivery_inputs.get("stage_inputs", {})
-for stage in ("DO-S1", "DO-S5", "DO-S6", "DO-S7", "DO-S8"):
+for stage in ("DO-S1", "DO-S5", "DO-S6", "DO-S7", "DO-S8a", "DO-S8b", "DO-S8c"):
     require(stage in stage_inputs, f"delivery-owner inputs must define {stage} stage inputs")
 require(
     set(stage_inputs["DO-S1"].get("required", [])) == {
@@ -372,8 +380,42 @@ require(
     "delivery-owner DO-S7 inputs must include qa-result",
 )
 require(
-    "phase-{N}/consistency-audit-result.json" in set(stage_inputs["DO-S8"].get("required", [])),
-    "delivery-owner DO-S8 inputs must include consistency-audit-result",
+    "phase-{N}/consistency-audit-result.json" in set(stage_inputs["DO-S8a"].get("required", [])),
+    "delivery-owner DO-S8a inputs must include consistency-audit-result",
+)
+require(
+    "phase-{N}/signoff-package.json" not in set(stage_inputs["DO-S8a"].get("required", [])),
+    "delivery-owner DO-S8a must not require its own signoff-package output as input",
+)
+require(
+    "phase-{N}/signoff-package.json" in set(stage_inputs["DO-S8b"].get("required", [])),
+    "delivery-owner DO-S8b inputs must include signoff-package for user decision intake",
+)
+require(
+    {
+        "phase-{N}/signoff-package.json",
+        "phase-{N}/user-decision.json",
+    }.issubset(set(stage_inputs["DO-S8c"].get("required", []))),
+    "delivery-owner DO-S8c inputs must include final signoff and user-decision evidence",
+)
+
+target_change_path = "phase-{N}/target-change.json"
+target_change_output = next(
+    output
+    for output in delivery_owner.get("outputs", [])
+    if output.get("artifact") == target_change_path
+)
+require(
+    "consistency-auditor" in set(target_change_output.get("consumers", [])),
+    "standard-chain target-change output must declare consistency-auditor consumer",
+)
+require(
+    target_change_path in set(consistency_auditor["inputs"].get("optional", [])),
+    "consistency-auditor optional inputs must include target-change for stale-ref audits",
+)
+require(
+    "phase-{N}/signoff-package.json" not in set(consistency_auditor["inputs"].get("optional", [])),
+    "consistency-auditor optional inputs must not include signoff-package before DO-S8a closeout audit",
 )
 
 
@@ -395,6 +437,7 @@ phase_prd_path = "docs/{feature}/phase-{N}/phase-prd.json"
 unit_path = "docs/{feature}/phase-{N}/units/UNIT-{N}.json"
 design_path = "docs/{feature}/phase-{N}/design.json"
 code_review_path = "docs/{feature}/phase-{N}/code-review-result.json"
+target_change_consumption_path = "docs/{feature}/phase-{N}/target-change.json"
 
 
 def output_key_fields(role: dict, artifact: str) -> set[str]:
@@ -439,6 +482,8 @@ require_consumer(code_review_path, "dimension_verdicts", "delivery-owner", "refe
 require_consumer(code_review_path, "findings", "delivery-owner", "gate")
 require_consumer(code_review_path, "excluded", "delivery-owner", "reference")
 require_consumer(code_review_path, "review_conclusion", "delivery-owner", "gate")
+for field in ("invalidates_refs", "superseded_evidence_refs", "target_change_payload_digest"):
+    require_consumer(target_change_consumption_path, field, "consistency-auditor", "gate")
 
 developer_report_schema = json.loads(
     (root / "shared/skills/developer/contracts/developer-report.schema.json").read_text(
