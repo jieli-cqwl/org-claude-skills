@@ -35,7 +35,10 @@
       "example_input": "request includes required business details and reviewer has permission to decide",
       "expected_result": "request status changes to approved and requester sees the next action",
       "boundary_case": "request missing required details stays pending with a clear correction prompt",
-      "failure_mode": "unauthorized reviewer cannot change status and requester sees no false approval"
+      "failure_mode": "unauthorized reviewer cannot change status and requester sees no false approval",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]"
+      ]
     }
   ],
   "exclusions": [

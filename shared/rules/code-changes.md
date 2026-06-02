@@ -12,11 +12,11 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - If complexity exceeds the project threshold, split by responsibility unless the shape is forced by a framework or public contract.
 - Comments must explain intent, invariants, boundaries, tradeoffs, failure modes, or non-obvious business rules; do not narrate obvious code.
 - Do not swallow errors, log-and-continue after failure, return fake defaults, or convert failure into success.
-- External API, network, database, filesystem, and long-running operations need timeouts, failure handling, cleanup, and observable failure states.
+- External API, network, database, shell, remote filesystem, and long-running operations need timeouts, failure handling, cleanup, and observable failure states.
 - User-visible errors must be understandable and must not expose secrets, stack traces, SQL, internal paths, or service internals.
 - Never hardcode secrets, tokens, passwords, credentials, environment-specific addresses, or deployment differences.
 - Cross-module constants are allowed only for stable public contracts; do not import another module's private constants across ownership boundaries.
-- Remove unused imports, variables, functions, fields, unreachable branches, and commented-out old implementations introduced, touched, or found inside the current target scope.
+- Remove unused imports, variables, functions, fields, unreachable branches, and commented-out old implementations introduced or touched by the current change, or blocking current correctness/build/verification.
 - Temporary files, retries, loops, polling, async jobs, and batch work must have bounded paths, limits, timeouts, and cleanup.
 - Do not add shared, persistent, cross-request, or freshness-affecting cache without explicit user approval and a verified invalidation/failure strategy.
 - For structure, complexity, reuse, compatibility, or shared contracts, read `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`.

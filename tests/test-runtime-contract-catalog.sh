@@ -43,6 +43,33 @@ semantic_checks = [
         text.find("current") >= 0 and text.find("direct") >= 0 and text.find("evidence") >= 0,
     ),
     (
+        "acceptance-scope-derivation",
+        text.find("derive the acceptance scope") >= 0
+        and text.find("success criteria") >= 0
+        and text.find("impact analysis") >= 0
+        and text.find("triggered validation dimensions") >= 0
+        and text.find("risk surfaces") >= 0
+        and text.find("real dependencies") >= 0
+        and text.find("affected user paths") >= 0,
+    ),
+    (
+        "user-verification-not-scope-shrink",
+        text.find("User-specified verification") >= 0
+        and text.find("adds evidence requirements") >= 0
+        and text.find("does not shrink") >= 0
+        and text.find("explicitly limits the acceptance scope") >= 0,
+    ),
+    (
+        "consumer-class-real-entry",
+        text.find("consumer class") >= 0 and text.find("real entry") >= 0,
+    ),
+    (
+        "accepted-residual-risk-boundary",
+        text.find("unaccepted risk") >= 0
+        and text.find("Accepted residual risks") >= 0
+        and text.find("reported separately") >= 0,
+    ),
+    (
         "same-level-scope",
         text.find("user paths") >= 0 and text.find("same level") >= 0,
     ),
