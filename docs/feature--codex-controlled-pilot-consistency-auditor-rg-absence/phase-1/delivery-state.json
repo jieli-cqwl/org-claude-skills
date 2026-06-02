@@ -1,0 +1,64 @@
+{
+  "artifact_type": "delivery-state",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.delivery-state",
+  "schema_version": "1.0.0",
+  "producer": "delivery-owner",
+  "produced_at": "2026-06-01T11:50:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.active_tasks_version_ref",
+    "$.current_stage",
+    "$.status",
+    "$.control_action",
+    "$.kickoff",
+    "$.tasks",
+    "$.blocker_id",
+    "$.blocked_from_stage",
+    "$.blocker_reason_code",
+    "$.blocker_basis_refs",
+    "$.blocker_resolution_evidence_refs",
+    "$.resume_stage",
+    "$.unblocked_by_ref"
+  ],
+  "active_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "current_stage": "CLOSED",
+  "status": "CLOSED",
+  "control_action": "CONTINUE",
+  "kickoff": {
+    "status": "READY",
+    "plan_version_ref": "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v2#plan-version",
+    "preflight_evidence_ref": "artifact://evidence/codex-controlled-pilot.phase-1.preflight@ev-1#readiness",
+    "environment_ready": true,
+    "dependency_ready": true,
+    "risk_owner_ready": true,
+    "qa_handoff_ready": true
+  },
+  "tasks": [
+    {
+      "task_id": "T1",
+      "runtime_status": "VERIFIED",
+      "owner": "developer",
+      "attempt_count": 1,
+      "current_batch": 1,
+      "next_action": "close",
+      "latest_upstream_refs": [
+        "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-T1"
+      ]
+    },
+    {
+      "task_id": "T2",
+      "runtime_status": "VERIFIED",
+      "owner": "developer",
+      "attempt_count": 1,
+      "current_batch": 1,
+      "next_action": "close",
+      "latest_upstream_refs": [
+        "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-T2"
+      ]
+    }
+  ],
+  "commit_state": "HANDOFF_PREPARED",
+  "commit_handoff_ref": "artifact://signoff-package/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.signoff@v1#goal-closure"
+}

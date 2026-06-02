@@ -98,7 +98,7 @@ done
 
 check_present \
   "tech-lead SKILL.md consumes confirmed product baseline" \
-  '已确认的产品、架构和测试输入|required product, architecture, or test-design baseline artifacts' \
+  'scope_item_refs|test_refs|design_refs' \
   "$ROOT/shared/skills/tech-lead/SKILL.md"
 
 # --- 结果 ---

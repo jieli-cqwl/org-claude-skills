@@ -39,7 +39,16 @@ done
 
 assert_no_subagent_chapter() {
   local file="$1"
-  assert_absent '^[[:space:]]*#{2,3}[[:space:]]+子代理边界$' "$file"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    stripped = line.strip()
+    if stripped.startswith(("## ", "### ")) and stripped.split(maxsplit=1)[1] == "子代理边界":
+        raise SystemExit(f"{path}:{line_no}: unexpected subagent boundary chapter")
+PY
 }
 
 extract_stage_block() {

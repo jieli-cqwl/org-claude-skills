@@ -489,7 +489,14 @@
       "evidence_contract_ref": "QHO-LOGIN-CLOSURE#evidence",
       "design_source_refs": [
         "design.json#verification_mapping[2].manager_vp_ref",
-        "design.json#product_handoff.accepted_refs"
+        "design.json#product_handoff.accepted_refs",
+        "design.json#key_decisions[0]",
+        "design.json#key_decisions[1]",
+        "design.json#key_decisions[2]",
+        "design.json#key_decisions[3]",
+        "design.json#interfaces[0]",
+        "design.json#interfaces[1]",
+        "design.json#interfaces[2]"
       ]
     },
     {
@@ -644,7 +651,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:f390b770802613ed0759b0b7b3aa749d3ac1722cfea137248d4e32b078520a36",
+        "reviewed_test_cases_digest": "sha256:89ced89fb42f2df8b2295daed430025aa31afffe9c50daa4d5e926a08e5acf44",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -654,7 +661,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:f390b770802613ed0759b0b7b3aa749d3ac1722cfea137248d4e32b078520a36",
+        "reviewed_test_cases_digest": "sha256:89ced89fb42f2df8b2295daed430025aa31afffe9c50daa4d5e926a08e5acf44",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -664,7 +671,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:f390b770802613ed0759b0b7b3aa749d3ac1722cfea137248d4e32b078520a36",
+        "reviewed_test_cases_digest": "sha256:89ced89fb42f2df8b2295daed430025aa31afffe9c50daa4d5e926a08e5acf44",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -690,7 +697,7 @@
         ]
       }
     ],
-      "reviewed_test_cases_digest": "sha256:f390b770802613ed0759b0b7b3aa749d3ac1722cfea137248d4e32b078520a36",
+    "reviewed_test_cases_digest": "sha256:89ced89fb42f2df8b2295daed430025aa31afffe9c50daa4d5e926a08e5acf44",
     "closure_status": "CLOSED"
   },
   "issue_ledger": []

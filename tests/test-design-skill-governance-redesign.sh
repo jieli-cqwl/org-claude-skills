@@ -39,11 +39,9 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 requirements = {
     "preflight_entry": ["preflight_check.sh --arguments", "--phase-dir"],
-    "subagent_raw_evidence": ["sub agent", "stdout/stderr"],
-    "subagent_fact_scan": ["sub agent", "observed_at", "架构关注点"],
-    "main_context_fact_filter": ["主上下文", "决策所需事实"],
-    "owner_verification": ["亲自复核 sub agent 结果"],
-    "owner_decision": ["决策判断", "方案取舍", "边界合并", "本人完成"],
+    "fact_capture_fields": ["stdout/stderr", "observed_at", "runtime_facts"],
+    "decision_artifacts": ["option_analysis", "key_decisions", "impact_scope"],
+    "review_commands": ["review_digest.py", "check_design_reference_integrity.py"],
 }
 missing = [
     name
@@ -65,9 +63,8 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 requirements = {
     "constitution_ref": ["docs/constitution.md"],
-    "cross_scope_trigger": ["跨 Phase", "跨 feature"],
-    "user_confirmation": ["用户确认"],
-    "phase_local_design": ["单个 Phase", "design.json"],
+    "constitution_template": ["assets/constitution-template.md"],
+    "phase_local_design": ["design.json"],
 }
 missing = [
     name
@@ -88,13 +85,10 @@ from pathlib import Path
 path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 requirements = {
-    "delegation_condition": ["复杂采证", "sub agent"],
-    "owner_context": ["主上下文", "最终取舍", "验证"],
-    "owner_artifact": ["所有设计裁决", "最终", "design.json"],
-    "review_ready": ["owner", "自检", "送审"],
-    "finalize_scope": ["Finalize", "review", "最终确认", "验证收口"],
-    "stakeholder_concerns": ["stakeholder", "关注点"],
-    "asr": ["Architecture-Significant Requirements"],
+    "owner_artifact": ["design.json", "option_analysis", "key_decisions"],
+    "review_ready": ["review_digest.py --review-payload"],
+    "finalize_scope": ["review_closure", "final_confirmation"],
+    "integrity_check": ["check_design_reference_integrity.py"],
 }
 missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
 if missing:
@@ -131,7 +125,7 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 requirements = {
     "evidence_shape": ["evidence=", "observed_at="],
-    "decision_blocker": ["冻结决策", "未验证", "阻断"],
+    "self_ref_boundary": ["design.json#runtime_facts"],
 }
 missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
 if missing:
@@ -185,6 +179,101 @@ if missing:
 PY
 }
 
+assert_no_design_reference_resource_contracts() {
+  python3 - "$@" <<'PY'
+import sys
+from pathlib import Path
+
+legacy_fields = {"Trigger", "Read", "Expect", "Consume", "Evidence", "Sync"}
+for raw in sys.argv[1:]:
+    path = Path(raw)
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        stripped = line.strip()
+        quote_stripped = stripped.removeprefix(">").strip()
+        if stripped.startswith("## ") and "Resource Contract" in stripped:
+            raise SystemExit(f"{path}:{line_no}: legacy resource contract heading")
+        if stripped.startswith("|"):
+            cells = {cell.strip() for cell in stripped.strip("|").split("|")}
+            if cells & legacy_fields:
+                raise SystemExit(f"{path}:{line_no}: legacy resource contract table")
+        prefix = quote_stripped.split(":", 1)[0]
+        if prefix in legacy_fields:
+            raise SystemExit(f"{path}:{line_no}: legacy resource contract field")
+PY
+}
+
+assert_design_method_reference_contract() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+lines = path.read_text(encoding="utf-8").splitlines()
+headings = {line[3:].strip() for line in lines if line.startswith("## ")}
+if not (headings & {"产出", "冻结产出"}):
+    raise SystemExit(f"{path}: missing output heading")
+legacy_headings = {"最小字段", "输出模板", "Gate 对齐要求"}
+legacy_terms = {"最佳实践调研", "Trigger", "Read", "Expect", "Consume", "Evidence", "Sync"}
+for line_no, line in enumerate(lines, 1):
+    heading = line[3:].strip() if line.startswith("## ") else ""
+    if heading in legacy_headings:
+        raise SystemExit(f"{path}:{line_no}: legacy method heading")
+    if any(term in line for term in legacy_terms):
+        raise SystemExit(f"{path}:{line_no}: legacy resource term")
+PY
+}
+
+assert_design_reviewer_legacy_absent() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+lines = path.read_text(encoding="utf-8").splitlines()
+if not any(
+    ("最终" in line and ("design owner" in line or "设计 owner" in line or "设计执行者" in line))
+    for line in lines
+):
+    raise SystemExit(f"{path}: missing owner finalization boundary")
+legacy_terms = {
+    "candidate_design_json",
+    "Reviewed Candidate Digest",
+    "输入候选包",
+    "候选设计包",
+    "design-candidate-package",
+    "最终冻结工件",
+    "final design",
+    "固定头部契约",
+    "[具体发现]",
+    "[具体文件/章节/内容]",
+    "不要要求",
+}
+for line_no, line in enumerate(lines, 1):
+    if any(term in line for term in legacy_terms):
+        raise SystemExit(f"{path}:{line_no}: legacy reviewer wording")
+    stripped = line.strip()
+    if stripped in {"## 输出格式", "## Prompt", "## 不信任原则"}:
+        raise SystemExit(f"{path}:{line_no}: legacy reviewer heading")
+    if stripped.startswith("# ") and stripped.endswith("Prompt"):
+        raise SystemExit(f"{path}:{line_no}: legacy prompt title")
+PY
+}
+
+assert_test_design_reference_legacy_absent() {
+  python3 - "$@" <<'PY'
+import sys
+from pathlib import Path
+
+for raw in sys.argv[1:]:
+    path = Path(raw)
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if "主 Agent" in line or "主 agent" in line:
+            raise SystemExit(f"{path}:{line_no}: legacy main-agent wording")
+PY
+}
+
 assert_design_option_decision_write_boundary() {
   local file="$1"
   python3 - "$file" <<'PY'
@@ -194,8 +283,8 @@ from pathlib import Path
 path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 requirements = {
-    "option_analysis": ["option_analysis", "候选方案", "取舍", "事实锚点"],
-    "key_decisions": ["key_decisions", "最终选择", "失效条件", "fact_refs"],
+    "option_analysis": ["option_analysis", "decision_ref", "decision_status"],
+    "key_decisions": ["key_decisions", "decision_id", "decision_state", "fact_refs"],
 }
 missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
 if missing:
@@ -212,8 +301,8 @@ from pathlib import Path
 path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 requirements = {
-    "websearch_condition": ["WebSearch", "最新外部事实"],
-    "source_record": ["option_analysis", "来源"],
+    "websearch_condition": ["WebSearch"],
+    "source_record": ["option_analysis", "observed_at"],
 }
 missing = [name for name, terms in requirements.items() if not all(term in text for term in terms)]
 if missing:
@@ -413,7 +502,7 @@ text = Path(sys.argv[1]).read_text(encoding="utf-8")
 required = {
     "return_fields": ["phase_dir", "brief", "phase_prd", "units", "constitution"],
     "closure_status": ["preflight", "PASS", "BLOCKED"],
-    "script_boundary": ["不自行 glob", "脚本判断"],
+    "script_boundary": ["preflight_check.sh --arguments"],
 }
 missing = [name for name, terms in required.items() if not all(term in text for term in terms)]
 if missing:
@@ -2071,9 +2160,7 @@ assert_present 'render_projection\.py --design "\$PHASE_DIR/design\.json" --adr-
 assert_present 'render_projection\.py' "$DESIGN_SKILL"
 assert_absent 'build_candidate_package\.py' "$DESIGN_SKILL"
 
-for design_reference in "$ROOT/shared/skills/design/references"/*.md; do
-  assert_absent '^## .*Resource Contract|^\| (Trigger|Read|Expect|Consume|Evidence|Sync) \||^>?[[:space:]]*(Trigger|Read|Expect|Consume|Evidence|Sync):' "$design_reference"
-done
+assert_no_design_reference_resource_contracts "$ROOT"/shared/skills/design/references/*.md
 python3 - "$ROOT/shared/skills/design/references/design-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md" <<'PY'
@@ -2209,18 +2296,14 @@ for design_method_reference in \
   "$ROOT/shared/skills/design/references/risk-assessment.md" \
   "$ROOT/shared/skills/design/references/runtime-fact-capture.md" \
   "$ROOT/shared/skills/design/references/service-decomposition.md"; do
-  assert_present '^## (产出|冻结产出)$' "$design_method_reference"
-  assert_absent '最佳实践调研|## 最小字段|## 输出模板|## Gate 对齐要求|Trigger|Read|Expect|Consume|Evidence|Sync' "$design_method_reference"
+  assert_design_method_reference_contract "$design_method_reference"
 done
 for design_reviewer in \
   "$ROOT/shared/skills/design/references/design-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-product-reviewer-prompt.md" \
   "$ROOT/shared/skills/design/references/design-test-reviewer-prompt.md"; do
   assert_design_reviewer_contract "$design_reviewer"
-  assert_present 'design owner.*最终|设计 owner.*最终|设计执行者.*最终' "$design_reviewer"
-  assert_absent 'candidate_design_json|Reviewed Candidate Digest|输入候选包|候选设计包|design-candidate-package|最终冻结工件|final design|固定头部契约|\\[具体发现\\]|\\[具体文件/章节/内容\\]' "$design_reviewer"
-  assert_absent '不要要求|^## 输出格式$|^# .*Prompt$' "$design_reviewer"
-  assert_absent '^## Prompt$|^## 不信任原则$' "$design_reviewer"
+  assert_design_reviewer_legacy_absent "$design_reviewer"
 done
 
 progress "phase schema and required design field mutation checks"
@@ -2376,8 +2459,14 @@ for active_reference in \
   "$TEST_DESIGN_PRODUCT_REVIEWER" \
   "$TEST_DESIGN_ARCH_REVIEWER"; do
   assert_absent '^(>|[[:space:]])*(Trigger|Read|Expect|Consume|Sync):' "$active_reference"
-  assert_absent '主 Agent|主 agent' "$active_reference"
 done
+assert_test_design_reference_legacy_absent \
+  "$TEST_DESIGN_METHODOLOGY" \
+  "$TEST_DESIGN_OBLIGATION_SHAPING" \
+  "$TEST_DESIGN_SPECIALTY_METHOD" \
+  "$TEST_DESIGN_REVIEWER" \
+  "$TEST_DESIGN_PRODUCT_REVIEWER" \
+  "$TEST_DESIGN_ARCH_REVIEWER"
 for removed_reference in \
   "$ROOT/shared/skills/test-design/references/integration-test-methodology.md" \
   "$ROOT/shared/skills/test-design/references/contract-test-methodology.md" \

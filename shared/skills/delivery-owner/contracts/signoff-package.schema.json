@@ -81,7 +81,8 @@
                   "verify-result",
                   "code-review-result",
                   "qa-result",
-                  "consistency-audit-result"
+                  "consistency-audit-result",
+                  "fix-result"
                 ]
               },
               "artifact_ref": {

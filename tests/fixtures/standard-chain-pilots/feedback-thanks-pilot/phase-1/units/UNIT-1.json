@@ -35,7 +35,13 @@
       "example_input": "representative business operation for this acceptance criterion",
       "expected_result": "root redirect, form field rendering, blank validation, and access-log observability behave as specified.",
       "boundary_case": "minimum valid and invalid boundary states are covered",
-      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift",
+      "source_refs": [
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-001",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-002",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-003",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-009"
+      ]
     },
     {
       "ac_id": "AC-LEN-1",
@@ -43,7 +49,11 @@
       "example_input": "representative business operation for this acceptance criterion",
       "expected_result": "negative Content-Length and oversized form bodies are rejected with readable errors before feedback is accepted.",
       "boundary_case": "minimum valid and invalid boundary states are covered",
-      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift",
+      "source_refs": [
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-004",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-005"
+      ]
     },
     {
       "ac_id": "AC-T2-1",
@@ -51,7 +61,12 @@
       "example_input": "representative business operation for this acceptance criterion",
       "expected_result": "valid submission, thanks page rendering, HTML escaping, and missing-id handling behave as specified.",
       "boundary_case": "minimum valid and invalid boundary states are covered",
-      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift",
+      "source_refs": [
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-006",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-007",
+        "artifact://brief/feedback-thanks-pilot.brief@v1#ac-008"
+      ]
     }
   ],
   "exclusions": [

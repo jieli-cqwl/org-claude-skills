@@ -104,6 +104,20 @@ elif mutation == "missing-special-trigger":
 elif mutation == "orphan-test-case":
     orphan_id = data["traceability_matrix"][0]["test_case_refs"].pop()
     assert orphan_id in {case["case_id"] for case in data["test_cases"]}
+elif mutation == "missing-design-obligation-refs":
+    for row in data["qa_handoff_contract"]:
+        row["design_source_refs"] = [
+            ref
+            for ref in row.get("design_source_refs", [])
+            if not (
+                ref.startswith("design.json#key_decisions[")
+                or ref.startswith("design.json#interfaces[")
+            )
+        ]
+    old_digest = "sha256:b445664df66960e8f97cd8826e3c26568a0f6244067c9a517f801289df017420"
+    data["review_conclusion"]["reviewed_test_cases_digest"] = old_digest
+    for row in data["review_conclusion"]["reviewer_verdicts"]:
+        row["reviewed_test_cases_digest"] = old_digest
 else:
     raise SystemExit(f"unknown mutation: {mutation}")
 
@@ -151,6 +165,7 @@ for mutation in \
   reviewer-warn-aggregate-mismatch \
   unknown-handoff-obligation \
   missing-special-trigger \
+  missing-design-obligation-refs \
   orphan-test-case; do
   phase_dir="$(make_phase "$mutation")"
   mutate_test_cases "$phase_dir" "$mutation"
@@ -168,6 +183,7 @@ for mutation in \
     reviewer-warn-aggregate-mismatch) expected='WARN verdicts require aggregate WARN' ;;
     unknown-handoff-obligation) expected='handoff_obligation_refs|unknown refs' ;;
     missing-special-trigger) expected='special_test_triggers source refs' ;;
+    missing-design-obligation-refs) expected='design_source_refs missing manager refs|key_decisions|interfaces' ;;
     orphan-test-case) expected='traceability_matrix must reference every test_cases' ;;
   esac
   assert_fail "$mutation" "$phase_dir" "$expected"

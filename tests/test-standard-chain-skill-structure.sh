@@ -25,10 +25,10 @@ assert_present() {
 assert_absent() {
   local pattern="$1"
   local file="$2"
-  if rg -n "$pattern" "$file" >/tmp/t6_structure_absent.out 2>&1; then
-    cat /tmp/t6_structure_absent.out >&2
-    fail "unexpected pattern in $file: $pattern"
-  fi
+  assert_rg_no_match \
+    /tmp/t6_structure_absent.out \
+    "unexpected pattern in $file: $pattern" \
+    -n "$pattern" "$file"
 }
 
 assert_structural_order() {
@@ -110,7 +110,8 @@ PY
 
 assert_retired_runtime_lane_absent() {
   local file="$1"
-  python3 - "$file" <<'PY'
+python3 - "$file" <<'PY'
+import re
 import sys
 from pathlib import Path
 
@@ -124,11 +125,16 @@ retired_terms = {
         "lock sidecar",
         "legacy projection lane",
         "standard-chain lane",
-        "producer 口头解释",
     ],
     "retired_product_review_lane": ["product-manager-review.md"],
 }
+retired_heading_patterns = {
+    "legacy_runtime_authority_heading": r"(?m)^##+\s+Runtime \"?Authority\"?\s*$",
+}
 violations = [name for name, terms in retired_terms.items() if any(term in text for term in terms)]
+violations.extend(
+    name for name, pattern in retired_heading_patterns.items() if re.search(pattern, text)
+)
 if violations:
     raise SystemExit(f"{path}: retired runtime lane content remains: {', '.join(violations)}")
 PY
@@ -151,12 +157,10 @@ done < <(read_standard_chain_skills)
 
 [ "${#STANDARD_CHAIN_SKILLS[@]}" -eq 10 ] || fail "expected 10 standard-chain main skills, got ${#STANDARD_CHAIN_SKILLS[@]}: ${STANDARD_CHAIN_SKILLS[*]}"
 
-OLD_RUNTIME_HEADING='^## Runtime '"Authority"'$'
 for skill in "${STANDARD_CHAIN_SKILLS[@]}"; do
   skill_file="$ROOT/shared/skills/$skill/SKILL.md"
   test -f "$skill_file" || fail "missing standard-chain skill: $skill_file"
 
-  assert_absent "$OLD_RUNTIME_HEADING" "$skill_file"
   assert_structural_order "$skill_file"
   assert_reference_use_point_contracts "$skill_file"
   assert_retired_runtime_lane_absent "$skill_file"

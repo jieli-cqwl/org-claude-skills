@@ -24,6 +24,50 @@ python3 "$SCRIPT" \
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
+python3 - \
+  "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  "$TMP_DIR/catalog-missing-target-change.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+source_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+catalog = json.loads(source_path.read_text(encoding="utf-8"))
+catalog["artifacts"].pop("target-change", None)
+target_path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$PHASE_VALIDATOR" \
+  --phase-dir "$PHASE_DIR" \
+  --catalog "$TMP_DIR/catalog-missing-target-change.json" >/tmp/t6_catalog_missing_target_change.out 2>&1; then
+  cat /tmp/t6_catalog_missing_target_change.out >&2
+  fail "phase validator should reject catalog when target-change artifact is missing"
+fi
+grep -Eq 'target-change' /tmp/t6_catalog_missing_target_change.out \
+  || fail "missing target-change catalog failure should name target-change"
+
+python3 - "$SCRIPT" <<'PY'
+import importlib.util
+import subprocess
+import sys
+from pathlib import Path
+
+script_path = sys.argv[1]
+sys.path.insert(0, str(Path(script_path).parent))
+spec = importlib.util.spec_from_file_location("readiness", script_path)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+completed = subprocess.CompletedProcess(
+    args=["validator"],
+    returncode=1,
+    stdout='prefix\n{"status":"BLOCKED","owner":"delivery-owner","reason":"semantic stale evidence","recovery_condition":"rerun","signoff_allowed":false}\n',
+    stderr="",
+)
+reason = module.extract_subprocess_failure_reason(completed, "phase validator")
+if reason != "semantic stale evidence":
+    raise SystemExit(f"nested validator reason should be semantic, got: {reason}")
+PY
+
 expect_block_contract() {
   local label="$1"
   local output_file="$2"
@@ -211,6 +255,46 @@ if python3 "$SCRIPT" \
   cat /tmp/t6_code_review_blocking_finding.out >&2
   fail "readiness gate should reject verified S0/S1/S2 code-review findings at closeout"
 fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/task-proving-command-drift"
+python3 - "$TMP_DIR/task-proving-command-drift/phase-1/tasks.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+tasks_path = Path(sys.argv[1])
+payload = json.loads(tasks_path.read_text(encoding="utf-8"))
+payload["tasks"][0]["proving_command"] = "bash tests/not-run-by-developer-report.sh"
+tasks_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "task proving_command drift" \
+  "task T1 proving_command must match developer-report fresh_proof" \
+  /tmp/t6_task_proving_command_drift.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/task-proving-command-drift/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/task-evidence-target-drift"
+python3 - "$TMP_DIR/task-evidence-target-drift/phase-1/tasks.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+tasks_path = Path(sys.argv[1])
+payload = json.loads(tasks_path.read_text(encoding="utf-8"))
+payload["tasks"][0]["evidence_target"] = "developer-report.json#task-T999.fresh_proof"
+tasks_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "task evidence_target drift" \
+  "task T1 evidence_target must resolve to developer-report fresh_proof" \
+  /tmp/t6_task_evidence_target_drift.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/task-evidence-target-drift/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
 
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/missing-brief-active-entry"
 python3 - "$TMP_DIR/missing-brief-active-entry/phase-1/artifact-registry.json" <<'PY'
@@ -763,6 +847,69 @@ if python3 "$SCRIPT" \
   fail "readiness gate should reject tasks.json entries without developer-report/verify-result coverage"
 fi
 
+cp -R "$ROOT/tests/fixtures/standard-chain-pilots/login-homepage-pilot" "$TMP_DIR/tasks-missing-brief-ac-coverage"
+python3 - "$TMP_DIR/tasks-missing-brief-ac-coverage/phase-1/tasks.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+tasks_path = Path(sys.argv[1])
+payload = json.loads(tasks_path.read_text(encoding="utf-8"))
+missing_ref = "artifact://brief/login-homepage-pilot.brief@v1#ac-005"
+for task in payload["tasks"]:
+    task["scope_item_refs"] = [
+        ref for ref in task.get("scope_item_refs", []) if ref != missing_ref
+    ]
+tasks_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "tasks missing upstream brief acceptance criterion coverage" \
+  "tasks scope_item_refs must cover brief acceptance_criteria" \
+  /tmp/t6_tasks_missing_brief_ac_coverage.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/tasks-missing-brief-ac-coverage/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-pilots/login-homepage-pilot" "$TMP_DIR/test-design-missing-brief-ac-coverage"
+python3 - \
+  "$TMP_DIR/test-design-missing-brief-ac-coverage/phase-1/unit-1/test-cases.json" \
+  "$TMP_DIR/test-design-missing-brief-ac-coverage/phase-1/tasks.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+test_cases_path = Path(sys.argv[1])
+tasks_path = Path(sys.argv[2])
+test_cases = json.loads(test_cases_path.read_text(encoding="utf-8"))
+test_cases["ac_coverage_matrix"] = [
+    row for row in test_cases["ac_coverage_matrix"] if row.get("ac_id") != "AC-T2-1"
+]
+test_cases["traceability_matrix"] = [
+    row
+    for row in test_cases["traceability_matrix"]
+    if row.get("ac_ref") != "UNIT-1.json#acceptance_criteria[1].ac_id"
+]
+test_cases_path.write_text(json.dumps(test_cases, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+tasks = json.loads(tasks_path.read_text(encoding="utf-8"))
+for task in tasks["tasks"]:
+    task["test_refs"] = [
+        ref
+        for ref in task.get("test_refs", [])
+        if not ref.endswith("#AC-T2-1") and not ref.endswith("#traceability_matrix:2")
+    ]
+tasks_path.write_text(json.dumps(tasks, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "test-design missing upstream brief acceptance criterion coverage" \
+  "brief acceptance_criteria must map through UNIT and test-design coverage" \
+  /tmp/t6_test_design_missing_brief_ac_coverage.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/test-design-missing-brief-ac-coverage/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/duplicate-task-id"
 python3 - "$TMP_DIR/duplicate-task-id/phase-1/tasks.json" <<'PY'
 import json
@@ -913,6 +1060,125 @@ if python3 "$SCRIPT" \
   cat /tmp/t6_empty_qa_handoff_contract.out >&2
   fail "readiness gate should reject test-cases.json when qa_handoff_contract is empty"
 fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/missing-design-obligation-refs"
+python3 - "$TMP_DIR/missing-design-obligation-refs/phase-1/unit-1/test-cases.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+test_cases_path = Path(sys.argv[1])
+payload = json.loads(test_cases_path.read_text(encoding="utf-8"))
+for row in payload["qa_handoff_contract"]:
+        row["design_source_refs"] = [
+            ref
+            for ref in row.get("design_source_refs", [])
+            if not (
+                ref.startswith("design.json#key_decisions[")
+                or ref.startswith("design.json#interfaces[")
+            )
+        ]
+test_cases_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" \
+  --phase-dir "$TMP_DIR/missing-design-obligation-refs/phase-1" \
+  --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+  --profiles "$ROOT/shared/runtime/replay-profiles.json" >/tmp/t6_missing_design_obligation_refs.out 2>&1; then
+  cat /tmp/t6_missing_design_obligation_refs.out >&2
+  fail "readiness gate should reject test-cases.json when design key decisions or interfaces are not traceable"
+fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/plan-missing-test-design-obligations"
+python3 - "$TMP_DIR/plan-missing-test-design-obligations/phase-1/plan.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+plan_path = Path(sys.argv[1])
+payload = json.loads(plan_path.read_text(encoding="utf-8"))
+payload["obligation_source_refs"] = []
+plan_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "plan missing test-design obligation refs" \
+  "plan obligation_source_refs must consume required test-design obligations" \
+  /tmp/t6_plan_missing_test_design_obligations.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/plan-missing-test-design-obligations/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/tasks-missing-test-design-obligations"
+python3 - "$TMP_DIR/tasks-missing-test-design-obligations/phase-1/tasks.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+tasks_path = Path(sys.argv[1])
+payload = json.loads(tasks_path.read_text(encoding="utf-8"))
+for task in payload["tasks"]:
+    task["test_refs"] = [
+        ref for ref in task.get("test_refs", [])
+        if "qa_handoff_contract:" not in ref and "cross_unit_obligations:" not in ref
+    ]
+tasks_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "tasks missing test-design obligation refs" \
+  "tasks test_refs must consume required test-design obligations" \
+  /tmp/t6_tasks_missing_test_design_obligations.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/tasks-missing-test-design-obligations/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/tasks-missing-ac-coverage-refs"
+python3 - "$TMP_DIR/tasks-missing-ac-coverage-refs/phase-1/tasks.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+tasks_path = Path(sys.argv[1])
+payload = json.loads(tasks_path.read_text(encoding="utf-8"))
+for task in payload["tasks"]:
+    task["test_refs"] = [
+        ref for ref in task.get("test_refs", [])
+        if "#AC-" not in ref
+    ]
+tasks_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "tasks missing ac coverage refs" \
+  "brief acceptance_criteria must map through UNIT and task test_refs" \
+  /tmp/t6_tasks_missing_ac_coverage_refs.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/tasks-missing-ac-coverage-refs/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/tasks-missing-traceability-refs"
+python3 - "$TMP_DIR/tasks-missing-traceability-refs/phase-1/tasks.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+tasks_path = Path(sys.argv[1])
+payload = json.loads(tasks_path.read_text(encoding="utf-8"))
+for task in payload["tasks"]:
+    task["test_refs"] = [
+        ref for ref in task.get("test_refs", [])
+        if "#traceability_matrix:" not in ref
+    ]
+tasks_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "tasks missing traceability refs" \
+  "brief acceptance_criteria must map through UNIT and task test_refs" \
+  /tmp/t6_tasks_missing_traceability_refs.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/tasks-missing-traceability-refs/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
 
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/missing-qa-ruled-out"
 python3 - "$TMP_DIR/missing-qa-ruled-out/phase-1/qa-result.json" <<'PY'
@@ -1412,6 +1678,164 @@ if python3 "$SCRIPT" \
   fail "readiness gate should reject waiver scope_refs that do not bind to closed upstream goals"
 fi
 
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/accept-risk-pending-status"
+python3 - \
+  "$TMP_DIR/accept-risk-pending-status/phase-1/user-decision.json" \
+  "$TMP_DIR/accept-risk-pending-status/phase-1/evidence/authority-proof.json" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+decision_path = Path(sys.argv[1])
+proof_path = Path(sys.argv[2])
+
+decision = json.loads(decision_path.read_text(encoding="utf-8"))
+decision["decision"] = "ACCEPT_RISK"
+decision["business_risk_acceptance_status"] = "PENDING"
+digest_payload = dict(decision)
+digest_payload.pop("decision_payload_digest", None)
+decision["decision_payload_digest"] = "sha256:" + hashlib.sha256(
+    json.dumps(digest_payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+).hexdigest()
+decision_path.write_text(json.dumps(decision, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["decision_payload_digest"] = decision["decision_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "accept risk pending status" \
+  "waiver_type requires business_risk_acceptance_status=ACCEPTED" \
+  /tmp/t6_accept_risk_pending_status.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/accept-risk-pending-status/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/allow-pending-risk-status"
+python3 - \
+  "$TMP_DIR/allow-pending-risk-status/phase-1/signoff-package.json" \
+  "$TMP_DIR/allow-pending-risk-status/phase-1/user-decision.json" \
+  "$TMP_DIR/allow-pending-risk-status/phase-1/evidence/authority-proof.json" \
+  "$TMP_DIR/allow-pending-risk-status/phase-1/replay/phase-operational.replay-oracle.json" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+signoff_path = Path(sys.argv[1])
+decision_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+oracle_path = Path(sys.argv[4])
+
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+signoff["release_recommendation"] = "ALLOW"
+signoff["business_risk_acceptance_status"] = "PENDING"
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+decision = json.loads(decision_path.read_text(encoding="utf-8"))
+decision["business_risk_acceptance_status"] = "PENDING"
+digest_payload = dict(decision)
+digest_payload.pop("decision_payload_digest", None)
+decision["decision_payload_digest"] = "sha256:" + hashlib.sha256(
+    json.dumps(digest_payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+).hexdigest()
+decision_path.write_text(json.dumps(decision, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["decision_payload_digest"] = decision["decision_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+oracle = json.loads(oracle_path.read_text(encoding="utf-8"))
+oracle["artifacts"]["signoff-package"]["release_recommendation"] = "ALLOW"
+oracle["artifacts"]["user-decision"]["decision_payload_digest"] = decision["decision_payload_digest"]
+oracle["artifacts"]["user-decision"]["business_risk_acceptance_status"] = "PENDING"
+oracle_path.write_text(json.dumps(oracle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "allow pending risk status" \
+  "business_risk_acceptance_status" \
+  /tmp/t6_allow_pending_risk_status.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/allow-pending-risk-status/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/conditional-allow-without-waiver"
+python3 - "$TMP_DIR/conditional-allow-without-waiver/phase-1/signoff-package.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+signoff_path = Path(sys.argv[1])
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+signoff["waiver_entries"] = []
+for row in signoff.get("goal_closure", []):
+    if row.get("result") == "PARTIAL":
+        row["result"] = "MET"
+        row.pop("remaining_gap_text", None)
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "conditional allow without waiver" \
+  "CONDITIONAL_ALLOW requires waiver_entries" \
+  /tmp/t6_conditional_allow_without_waiver.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/conditional-allow-without-waiver/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/signoff-release-block"
+python3 - \
+  "$TMP_DIR/signoff-release-block/phase-1/signoff-package.json" \
+  "$TMP_DIR/signoff-release-block/phase-1/replay/phase-operational.replay-oracle.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+signoff_path = Path(sys.argv[1])
+oracle_path = Path(sys.argv[2])
+
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+signoff["release_recommendation"] = "BLOCK"
+signoff["active_blocker"] = "remaining release blocker"
+signoff["blocker_owner"] = "delivery-owner"
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+oracle = json.loads(oracle_path.read_text(encoding="utf-8"))
+oracle["artifacts"]["signoff-package"]["release_recommendation"] = "BLOCK"
+oracle_path.write_text(json.dumps(oracle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "signoff release recommendation block" \
+  "signoff-package release_recommendation" \
+  /tmp/t6_signoff_release_block.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/signoff-release-block/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/expired-risk-waiver"
+python3 - "$TMP_DIR/expired-risk-waiver/phase-1/signoff-package.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+signoff_path = Path(sys.argv[1])
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+signoff["waiver_entries"][0]["expires_at"] = "2026-04-14T03:38:59Z"
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "expired risk waiver" \
+  "waiver_entries[1].expires_at" \
+  /tmp/t6_expired_risk_waiver.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/expired-risk-waiver/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/signoff-ref-anchor-drift"
 python3 - "$TMP_DIR/signoff-ref-anchor-drift/phase-1/signoff-package.json" <<'PY'
 import json
@@ -1503,6 +1927,182 @@ if python3 "$SCRIPT" \
   cat /tmp/t6_signoff_missing_runtime_evidence_type.out >&2
   fail "readiness gate should reject signoff runtime_evidence_matrix missing code-review-result coverage"
 fi
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/signoff-runtime-evidence-anchor-drift"
+python3 - "$TMP_DIR/signoff-runtime-evidence-anchor-drift/phase-1/signoff-package.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+signoff_path = Path(sys.argv[1])
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+for row in signoff["runtime_evidence_matrix"]:
+    if row.get("artifact_type") == "qa-result":
+        row["artifact_ref"] = "artifact://qa-result/sample-feature.phase-1.qa@v1#gate-result"
+        break
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "signoff runtime evidence unsupported anchor" \
+  "unsupported artifact_ref anchor" \
+  /tmp/t6_signoff_runtime_evidence_anchor_drift.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/signoff-runtime-evidence-anchor-drift/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/active-fix-result-missing-signoff-row"
+python3 - \
+  "$ROOT/shared/skills/fix/templates/fix-result.template.json" \
+  "$TMP_DIR/active-fix-result-missing-signoff-row/phase-1/fix-result.json" \
+  "$TMP_DIR/active-fix-result-missing-signoff-row/phase-1/artifact-registry.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+fix_path = Path(sys.argv[2])
+registry_path = Path(sys.argv[3])
+fix_result = json.loads(template_path.read_text(encoding="utf-8"))
+fix_result["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
+fix_path.write_text(json.dumps(fix_result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+registry = json.loads(registry_path.read_text(encoding="utf-8"))
+registry["revisions"][-1]["entries"].append({
+    "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+    "artifact_id": fix_result["artifact_id"],
+    "artifact_type": "fix-result",
+    "version": "v1",
+    "artifact_path": "fix-result.json",
+    "lifecycle_state": "FINALIZED",
+    "active_for_consumption": True,
+    "produced_by": "fix",
+    "restore_basis_refs": [],
+})
+registry_path.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "active fix-result missing signoff runtime evidence row" \
+  "missing active runtime evidence" \
+  /tmp/t6_active_fix_result_missing_signoff_row.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/active-fix-result-missing-signoff-row/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-stale-active-fix-result"
+python3 - \
+  "$ROOT/shared/skills/fix/templates/fix-result.template.json" \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-stale-active-fix-result/phase-1/fix-result.json" \
+  "$TMP_DIR/target-change-stale-active-fix-result/phase-1/artifact-registry.json" \
+  "$TMP_DIR/target-change-stale-active-fix-result/phase-1/signoff-package.json" \
+  "$TMP_DIR/target-change-stale-active-fix-result/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-stale-active-fix-result/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+fix_template_path = Path(sys.argv[1])
+target_template_path = Path(sys.argv[2])
+fix_path = Path(sys.argv[3])
+registry_path = Path(sys.argv[4])
+signoff_path = Path(sys.argv[5])
+target_path = Path(sys.argv[6])
+proof_path = Path(sys.argv[7])
+root = Path(sys.argv[8])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+active_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+
+fix_result = json.loads(fix_template_path.read_text(encoding="utf-8"))
+fix_result["produced_at"] = "2026-04-13T23:00:00Z"
+fix_result["active_tasks_version_ref"] = active_tasks_ref
+fix_path.write_text(json.dumps(fix_result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+registry = json.loads(registry_path.read_text(encoding="utf-8"))
+registry["revisions"][-1]["entries"].append({
+    "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+    "artifact_id": fix_result["artifact_id"],
+    "artifact_type": "fix-result",
+    "version": "v1",
+    "artifact_path": "fix-result.json",
+    "lifecycle_state": "FINALIZED",
+    "active_for_consumption": True,
+    "produced_by": "fix",
+    "restore_basis_refs": [],
+})
+registry_path.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+signoff["runtime_evidence_matrix"].append({
+    "artifact_type": "fix-result",
+    "artifact_ref": "artifact://fix-result/sample-feature.phase-1.fix@v1#completion-status",
+    "producer": "fix",
+    "status": "FIXED",
+    "freshness_basis_ref": active_tasks_ref,
+    "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/sample-feature.phase-1.artifact-registry@rev-4#active-entry:fix-result:sample-feature.phase-1.fix",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": True,
+    },
+    "stale_superseded_check": "CURRENT",
+})
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+target = json.loads(target_template_path.read_text(encoding="utf-8"))
+target["affected_refs"] = ["artifact://brief/sample-feature.brief@v1#ac-001"]
+target["invalidates_refs"] = [old_tasks_ref]
+target["superseded_evidence_refs"] = [old_tasks_ref]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change stale active fix-result freshness" \
+  "target-change required_fresh_proof_after_rebaseline must include active runtime evidence artifacts: fix-result" \
+  /tmp/t6_target_change_stale_active_fix_result.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-stale-active-fix-result/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+python3 - \
+  "$TMP_DIR/target-change-stale-active-fix-result/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-stale-active-fix-result/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+target_path = Path(sys.argv[1])
+proof_path = Path(sys.argv[2])
+root = Path(sys.argv[3])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+target = json.loads(target_path.read_text(encoding="utf-8"))
+target["required_fresh_proof_after_rebaseline"].append("fix-result")
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change stale active fix-result timestamp" \
+  "target-change required fresh proof artifact is not newer than target-change" \
+  /tmp/t6_target_change_stale_active_fix_result_timestamp.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-stale-active-fix-result/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
 
 cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/developer-runtime-status-drift"
 python3 - "$TMP_DIR/developer-runtime-status-drift/phase-1/unit-1/tasks/T1/developer-report.json" <<'PY'
@@ -1800,7 +2400,49 @@ cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-featur
 python3 - \
   "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
   "$TMP_DIR/target-change-stale-signoff-evidence/phase-1/target-change.json" \
-  "$TMP_DIR/target-change-stale-signoff-evidence/phase-1/signoff-package.json" <<'PY'
+  "$TMP_DIR/target-change-stale-signoff-evidence/phase-1/signoff-package.json" \
+  "$TMP_DIR/target-change-stale-signoff-evidence/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+signoff_path = Path(sys.argv[3])
+proof_path = Path(sys.argv[4])
+root = Path(sys.argv[5])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+target = json.loads(template_path.read_text(encoding="utf-8"))
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+target["baseline_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+target["active_tasks_version_ref"] = signoff["active_tasks_version_ref"]
+target["superseded_evidence_refs"] = [signoff["runtime_evidence_matrix"][0]["artifact_ref"]]
+target["invalidates_refs"] = [
+    "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry",
+    signoff["runtime_evidence_matrix"][0]["artifact_ref"],
+]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change superseded evidence remains in signoff matrix" \
+  "target-change superseded evidence remains in signoff-package.runtime_evidence_matrix" \
+  /tmp/t6_target_change_stale_signoff_evidence.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-stale-signoff-evidence/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-empty-invalidations"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-empty-invalidations/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-empty-invalidations/phase-1/signoff-package.json" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -1810,18 +2452,676 @@ target_path = Path(sys.argv[2])
 signoff_path = Path(sys.argv[3])
 target = json.loads(template_path.read_text(encoding="utf-8"))
 signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
-target["baseline_tasks_version_ref"] = signoff["baseline_tasks_version_ref"]
+target["baseline_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
 target["active_tasks_version_ref"] = signoff["active_tasks_version_ref"]
-target["superseded_evidence_refs"] = [signoff["runtime_evidence_matrix"][0]["artifact_ref"]]
-target["invalidates_refs"] = [signoff["runtime_evidence_matrix"][0]["artifact_ref"]]
+for field in ("affected_refs", "invalidates_refs", "superseded_evidence_refs", "authority_proof_refs", "decision_basis_refs"):
+    target[field] = []
 target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 expect_block_contract_reason \
-  "target-change superseded evidence remains in signoff matrix" \
-  "target-change superseded evidence remains in signoff-package.runtime_evidence_matrix" \
-  /tmp/t6_target_change_stale_signoff_evidence.out \
+  "target-change empty invalidation refs" \
+  "target-change affected_refs must be non-empty" \
+  /tmp/t6_target_change_empty_invalidations.out \
   python3 "$SCRIPT" \
-    --phase-dir "$TMP_DIR/target-change-stale-signoff-evidence/phase-1" \
+    --phase-dir "$TMP_DIR/target-change-empty-invalidations/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-stale-task-baseline"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-stale-task-baseline/phase-1/target-change.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+source_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+target = json.loads(source_path.read_text(encoding="utf-8"))
+target["active_tasks_version_ref"] = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change stale task baseline" \
+  "target-change active_tasks_version_ref must match delivery-state active_tasks_version_ref" \
+  /tmp/t6_target_change_stale_task_baseline.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-stale-task-baseline/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-baseline-not-invalidated"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-baseline-not-invalidated/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-baseline-not-invalidated/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+root = Path(sys.argv[4])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+active_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
+target = json.loads(template_path.read_text(encoding="utf-8"))
+target["baseline_tasks_version_ref"] = active_tasks_ref
+target["active_tasks_version_ref"] = active_tasks_ref
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change baseline points at active tasks" \
+  "target-change baseline_tasks_version_ref must point to the invalidated prior tasks baseline" \
+  /tmp/t6_target_change_baseline_not_invalidated.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-baseline-not-invalidated/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-unresolved-invalidation-ref"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-unresolved-invalidation-ref/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-unresolved-invalidation-ref/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+root = Path(sys.argv[4])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+target = json.loads(template_path.read_text(encoding="utf-8"))
+target["invalidates_refs"] = [
+    old_tasks_ref,
+    "artifact://verify-result/sample-feature.phase-1.unit-1.task-T999.verify-result@v1#verify-root",
+]
+target["superseded_evidence_refs"] = [old_tasks_ref]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change unresolved invalidation ref" \
+  "target-change invalidates_refs[2] does not resolve to registry or known evidence" \
+  /tmp/t6_target_change_unresolved_invalidation_ref.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-unresolved-invalidation-ref/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-unresolved-invalidation-anchor"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-unresolved-invalidation-anchor/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-unresolved-invalidation-anchor/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+root = Path(sys.argv[4])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+target = json.loads(template_path.read_text(encoding="utf-8"))
+target["invalidates_refs"] = [
+    old_tasks_ref,
+    old_tasks_ref.replace("#task-registry", "#not-task-registry"),
+]
+target["superseded_evidence_refs"] = [old_tasks_ref]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change unresolved invalidation anchor" \
+  "target-change invalidates_refs[2] does not resolve to registry or known evidence" \
+  /tmp/t6_target_change_unresolved_invalidation_anchor.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-unresolved-invalidation-anchor/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-registered-self-ref"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-registered-self-ref/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-registered-self-ref/phase-1/artifact-registry.json" \
+  "$TMP_DIR/target-change-registered-self-ref/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+registry_path = Path(sys.argv[3])
+proof_path = Path(sys.argv[4])
+root = Path(sys.argv[5])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+bogus_ref = "artifact://verify-result/sample-feature.phase-1.unit-1.task-T999.verify-result@v1#verify-root"
+target = json.loads(template_path.read_text(encoding="utf-8"))
+target["invalidates_refs"] = [old_tasks_ref, bogus_ref]
+target["superseded_evidence_refs"] = [old_tasks_ref]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+registry = json.loads(registry_path.read_text(encoding="utf-8"))
+active_revision = next(
+    revision
+    for revision in registry["revisions"]
+    if revision["revision_id"] == registry["active_revision_id"]
+)
+active_revision["entries"].append(
+    {
+        "scope_ref": "artifact://phase-prd/sample-feature.phase-1.prd@v1#phase-goal",
+        "artifact_id": "sample-feature.phase-1.target-change",
+        "artifact_type": "target-change",
+        "version": "v1",
+        "artifact_path": "target-change.json",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": True,
+        "produced_by": "delivery-owner",
+        "restore_basis_refs": [],
+    }
+)
+registry_path.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change registered self ref cannot authorize bogus invalidation" \
+  "target-change invalidates_refs[2] does not resolve to registry or known evidence" \
+  /tmp/t6_target_change_registered_self_ref.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-registered-self-ref/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-signoff-extra-ref-echo"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-signoff-extra-ref-echo/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-signoff-extra-ref-echo/phase-1/signoff-package.json" \
+  "$TMP_DIR/target-change-signoff-extra-ref-echo/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+signoff_path = Path(sys.argv[3])
+proof_path = Path(sys.argv[4])
+root = Path(sys.argv[5])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+bogus_ref = "artifact://verify-result/sample-feature.phase-1.unit-1.task-T999.verify-result@v1#verify-root"
+target = json.loads(template_path.read_text(encoding="utf-8"))
+target["invalidates_refs"] = [old_tasks_ref, bogus_ref]
+target["superseded_evidence_refs"] = [old_tasks_ref]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+signoff["unvalidated_ref_echo"] = bogus_ref
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change signoff extra field cannot authorize bogus invalidation" \
+  "target-change invalidates_refs[2] does not resolve to registry or known evidence" \
+  /tmp/t6_target_change_signoff_extra_ref_echo.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-signoff-extra-ref-echo/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-missing-authority-proof"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-missing-authority-proof/phase-1/target-change.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+source_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+target = json.loads(source_path.read_text(encoding="utf-8"))
+target["authority_proof_refs"] = [
+    "artifact://evidence/sample-feature.phase-1.authority-proof@ev-missing#proof-root"
+]
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change missing authority proof" \
+  "target-change authority proof not found" \
+  /tmp/t6_target_change_missing_authority_proof.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-missing-authority-proof/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-unknown-change-source"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-unknown-change-source/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-unknown-change-source/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+root = Path(sys.argv[4])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+target = json.loads(template_path.read_text(encoding="utf-8"))
+target["change_source"] = "manual-override"
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change unknown change source" \
+  "target-change change_source must be authenticated-target-change" \
+  /tmp/t6_target_change_unknown_change_source.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-unknown-change-source/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-payload-tamper"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-payload-tamper/phase-1/target-change.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+target = json.loads(template_path.read_text(encoding="utf-8"))
+target["affected_refs"] = ["artifact://brief/sample-feature.brief@v1#ac-999"]
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change payload tamper without digest refresh" \
+  "target-change target_change_payload_digest does not match payload" \
+  /tmp/t6_target_change_payload_tamper.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-payload-tamper/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-missing-runtime-fresh-proof"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-missing-runtime-fresh-proof/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-missing-runtime-fresh-proof/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+root = Path(sys.argv[4])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+target = json.loads(template_path.read_text(encoding="utf-8"))
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+target["invalidates_refs"] = [old_tasks_ref]
+target["superseded_evidence_refs"] = [old_tasks_ref]
+target["required_fresh_proof_after_rebaseline"] = [
+    item
+    for item in target["required_fresh_proof_after_rebaseline"]
+    if item != "qa-result"
+]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change missing runtime fresh proof type" \
+  "target-change required_fresh_proof_after_rebaseline must include active runtime evidence artifacts" \
+  /tmp/t6_target_change_missing_runtime_fresh_proof.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-missing-runtime-fresh-proof/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-authority-digest-mismatch"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-authority-digest-mismatch/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-authority-digest-mismatch/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+root = Path(sys.argv[4])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+target = json.loads(template_path.read_text(encoding="utf-8"))
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+target["invalidates_refs"] = [old_tasks_ref]
+target["superseded_evidence_refs"] = [old_tasks_ref]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = "sha256:" + "0" * 64
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change authority proof digest mismatch" \
+  "target-change authority_proof_refs[1] target_change_payload_digest does not match target-change" \
+  /tmp/t6_target_change_authority_digest_mismatch.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-authority-digest-mismatch/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-fresh-proof-equal-to-change"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-fresh-proof-equal-to-change/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-fresh-proof-equal-to-change/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+root = Path(sys.argv[4])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+
+target = json.loads(template_path.read_text(encoding="utf-8"))
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+target["produced_at"] = "2026-04-14T00:00:00Z"
+target["invalidates_refs"] = [old_tasks_ref]
+target["superseded_evidence_refs"] = [old_tasks_ref]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change fresh proof equal to target-change" \
+  "target-change required fresh proof artifact is not newer than target-change" \
+  /tmp/t6_target_change_fresh_proof_equal_to_change.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-fresh-proof-equal-to-change/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-fresh-proof-older-than-change"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-fresh-proof-older-than-change/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-fresh-proof-older-than-change/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+root = Path(sys.argv[4])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+target = json.loads(template_path.read_text(encoding="utf-8"))
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+target["produced_at"] = "2026-04-30T00:00:00Z"
+target["invalidates_refs"] = [old_tasks_ref]
+target["superseded_evidence_refs"] = [old_tasks_ref]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["verified_until"] = "2026-05-01T00:00:00Z"
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change fresh proof older than target-change" \
+  "target-change required fresh proof artifact is not newer than target-change" \
+  /tmp/t6_target_change_fresh_proof_older_than_change.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-fresh-proof-older-than-change/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/code-review-evidence-integrity-finding"
+python3 - "$TMP_DIR/code-review-evidence-integrity-finding/phase-1/code-review-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+review_path = Path(sys.argv[1])
+payload = json.loads(review_path.read_text(encoding="utf-8"))
+payload["evidence_integrity"]["applicability"] = "applicable"
+payload["evidence_integrity"]["trigger_refs"] = [
+    "artifact://code-review-result/sample-feature.phase-1.review@v1#manual-negative"
+]
+payload["evidence_integrity"]["checks"][0]["status"] = "FINDING"
+review_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "code-review evidence integrity finding" \
+  "code-review-result evidence_integrity contains blocking status" \
+  /tmp/t6_code_review_evidence_integrity_finding.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/code-review-evidence-integrity-finding/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/code-review-evidence-integrity-not-applicable"
+python3 - "$TMP_DIR/code-review-evidence-integrity-not-applicable/phase-1/code-review-result.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+review_path = Path(sys.argv[1])
+payload = json.loads(review_path.read_text(encoding="utf-8"))
+payload["evidence_integrity"]["applicability"] = "applicable"
+payload["evidence_integrity"]["trigger_refs"] = [
+    "artifact://code-review-result/sample-feature.phase-1.review@v1#manual-negative"
+]
+payload["evidence_integrity"]["checks"][0]["status"] = "NOT_APPLICABLE"
+review_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "code-review evidence integrity applicable NOT_APPLICABLE" \
+  "applicable checks must not be NOT_APPLICABLE" \
+  /tmp/t6_code_review_evidence_integrity_not_applicable.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/code-review-evidence-integrity-not-applicable/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/qa-active-tasks-drift-with-synced-signoff"
+python3 - \
+  "$TMP_DIR/qa-active-tasks-drift-with-synced-signoff/phase-1/qa-result.json" \
+  "$TMP_DIR/qa-active-tasks-drift-with-synced-signoff/phase-1/signoff-package.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+qa_path = Path(sys.argv[1])
+signoff_path = Path(sys.argv[2])
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+qa = json.loads(qa_path.read_text(encoding="utf-8"))
+qa["active_tasks_version_ref"] = old_tasks_ref
+qa_path.write_text(json.dumps(qa, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+for row in signoff["runtime_evidence_matrix"]:
+    if row.get("artifact_type") == "qa-result":
+        row["freshness_basis_ref"] = old_tasks_ref
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "qa-result active tasks drift hidden by signoff matrix" \
+  "runtime evidence active_tasks_version_ref must match active delivery-state tasks ref" \
+  /tmp/t6_qa_active_tasks_drift_with_synced_signoff.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/qa-active-tasks-drift-with-synced-signoff/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/target-change-invalidates-active-tasks"
+python3 - \
+  "$ROOT/shared/skills/delivery-owner/templates/target-change.template.json" \
+  "$TMP_DIR/target-change-invalidates-active-tasks/phase-1/target-change.json" \
+  "$TMP_DIR/target-change-invalidates-active-tasks/phase-1/evidence/authority-proof.json" \
+  "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+root = Path(sys.argv[4])
+sys.path.insert(0, str(root / "tools/community"))
+from write_user_decision import canonical_digest
+active_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-registry"
+old_tasks_ref = "artifact://tasks/sample-feature.phase-1.tasks@tasks-v1#task-registry"
+target = json.loads(template_path.read_text(encoding="utf-8"))
+target["baseline_tasks_version_ref"] = old_tasks_ref
+target["active_tasks_version_ref"] = active_tasks_ref
+target["affected_refs"] = [active_tasks_ref]
+target["invalidates_refs"] = [old_tasks_ref, active_tasks_ref]
+target["superseded_evidence_refs"] = [old_tasks_ref, active_tasks_ref]
+target["target_change_payload_digest"] = canonical_digest(target)
+target_path.write_text(json.dumps(target, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "target-change invalidates active tasks freshness basis" \
+  "target-change superseded evidence remains in signoff-package.runtime_evidence_matrix" \
+  /tmp/t6_target_change_invalidates_active_tasks.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/target-change-invalidates-active-tasks/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/artifact-registry-active-not-latest"
+python3 - "$TMP_DIR/artifact-registry-active-not-latest/phase-1/artifact-registry.json" <<'PY'
+import copy
+import json
+import sys
+from pathlib import Path
+
+registry_path = Path(sys.argv[1])
+payload = json.loads(registry_path.read_text(encoding="utf-8"))
+shadow = copy.deepcopy(payload["revisions"][-1])
+shadow["revision_id"] = "rev-shadow"
+shadow["parent_revision_id"] = payload["revisions"][-1]["revision_id"]
+payload["revisions"].append(shadow)
+registry_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "artifact registry active revision not latest" \
+  "active_revision_id must point to last revision" \
+  /tmp/t6_artifact_registry_active_not_latest.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/artifact-registry-active-not-latest/phase-1" \
+    --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
+    --profiles "$ROOT/shared/runtime/replay-profiles.json"
+
+cp -R "$ROOT/tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature" "$TMP_DIR/signoff-package-pending-status"
+python3 - \
+  "$TMP_DIR/signoff-package-pending-status/phase-1/signoff-package.json" \
+  "$TMP_DIR/signoff-package-pending-status/phase-1/user-decision.json" \
+  "$TMP_DIR/signoff-package-pending-status/phase-1/evidence/authority-proof.json" \
+  "$TMP_DIR/signoff-package-pending-status/phase-1/replay/phase-operational.replay-oracle.json" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+signoff_path = Path(sys.argv[1])
+decision_path = Path(sys.argv[2])
+proof_path = Path(sys.argv[3])
+oracle_path = Path(sys.argv[4])
+
+signoff = json.loads(signoff_path.read_text(encoding="utf-8"))
+signoff["sign_off_status"] = "PENDING"
+signoff_path.write_text(json.dumps(signoff, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+decision = json.loads(decision_path.read_text(encoding="utf-8"))
+decision["decision"] = "ACCEPT_RISK"
+decision["sign_off_status"] = "SIGNED_OFF"
+digest_payload = dict(decision)
+digest_payload.pop("decision_payload_digest", None)
+decision["decision_payload_digest"] = "sha256:" + hashlib.sha256(
+    json.dumps(digest_payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+).hexdigest()
+decision_path.write_text(json.dumps(decision, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+proof = json.loads(proof_path.read_text(encoding="utf-8"))
+proof["decision_payload_digest"] = decision["decision_payload_digest"]
+proof_path.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+oracle = json.loads(oracle_path.read_text(encoding="utf-8"))
+oracle["artifacts"]["user-decision"]["sign_off_status"] = "SIGNED_OFF"
+oracle["artifacts"]["user-decision"]["decision_payload_digest"] = decision["decision_payload_digest"]
+oracle_path.write_text(json.dumps(oracle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_block_contract_reason \
+  "signoff package pending status" \
+  "signoff-package sign_off_status must be SIGNED_OFF" \
+  /tmp/t6_signoff_package_pending_status.out \
+  python3 "$SCRIPT" \
+    --phase-dir "$TMP_DIR/signoff-package-pending-status/phase-1" \
     --catalog "$ROOT/shared/runtime/standard-chain-catalog.json" \
     --profiles "$ROOT/shared/runtime/replay-profiles.json"
 

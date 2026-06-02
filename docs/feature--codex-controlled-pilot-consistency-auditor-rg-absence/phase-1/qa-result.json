@@ -1,0 +1,124 @@
+{
+  "artifact_type": "qa-result",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa",
+  "schema_version": "1.0.0",
+  "producer": "qa",
+  "produced_at": "2026-06-01T11:45:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.current_stage",
+    "$.baseline_tasks_version_ref",
+    "$.active_tasks_version_ref",
+    "$.gate_result",
+    "$.release_recommendation",
+    "$.residual_risk",
+    "$.uncovered_boundary",
+    "$.conditional_release_basis",
+    "$.not_executed_reason",
+    "$.ruled_out_issues",
+    "$.issue_ledger",
+    "$.stage_results",
+    "$.obligation_results"
+  ],
+  "baseline_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "active_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "current_stage": "PHASE_QA",
+  "gate_result": "PASS",
+  "release_recommendation": "ALLOW",
+  "residual_risk": [
+    "full gate intentionally not run per user constraint; controlled pilot scope covered by targeted and quick gates"
+  ],
+  "uncovered_boundary": [],
+  "conditional_release_basis": "manual import remains operator-mediated during cutover",
+  "not_executed_reason": [],
+  "ruled_out_issues": [
+    {
+      "issue": "projection replay drift",
+      "basis": "replay oracle matches rendered canonical phase view"
+    },
+    {
+      "issue": "inactive baseline refs",
+      "basis": "baseline plan/tasks refs resolve to active revisions"
+    }
+  ],
+  "issue_ledger": [],
+  "related_issue_ids": [],
+  "stage_results": [
+    {
+      "qa_stage": "QA_A",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#gate-result"
+      ]
+    },
+    {
+      "qa_stage": "QA_B",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#ac-trace"
+      ]
+    },
+    {
+      "qa_stage": "QA_C",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#issue-ledger"
+      ]
+    },
+    {
+      "qa_stage": "QA_D",
+      "gate_result": "PASS",
+      "evidence_refs": [
+        "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#release"
+      ]
+    }
+  ],
+  "obligation_results": [
+    {
+      "obligation_id": "QHO-STATIC-CONTRACT",
+      "qa_stage": "QA_A",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-STATIC-CONTRACT"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#gate-result"
+      ]
+    },
+    {
+      "obligation_id": "QHO-RUNTIME-REPLAY",
+      "qa_stage": "QA_B",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RUNTIME-REPLAY"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#ac-trace"
+      ]
+    },
+    {
+      "obligation_id": "QHO-RECOVERY-COVERAGE",
+      "qa_stage": "QA_C",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RECOVERY-COVERAGE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#issue-ledger"
+      ]
+    },
+    {
+      "obligation_id": "QHO-RELEASE-CLOSURE",
+      "qa_stage": "QA_D",
+      "gate_result": "PASS",
+      "source_refs": [
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-RELEASE-CLOSURE"
+      ],
+      "evidence_refs": [
+        "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#release"
+      ]
+    }
+  ]
+}

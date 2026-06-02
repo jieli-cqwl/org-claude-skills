@@ -1,0 +1,49 @@
+{
+  "artifact_type": "consistency-audit-result",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.consistency-audit",
+  "schema_version": "1.0.0",
+  "producer": "consistency-audit",
+  "produced_at": "2026-06-01T11:48:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.decision_authority",
+    "$.consumer",
+    "$.audit_scope",
+    "$.mode",
+    "$.blocked_layers",
+    "$.skipped_layers",
+    "$.tool_warning",
+    "$.findings",
+    "$.required_owner_action",
+    "$.runtime_chain",
+    "$.active_tasks_version_ref",
+    "$.evidence_refs"
+  ],
+  "active_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "evidence_refs": [
+    "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-STATIC-CONTRACT",
+    "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#obligation_results"
+  ],
+  "decision_authority": "advisory_only",
+  "consumer": "delivery-owner",
+  "audit_scope": "full",
+  "mode": "full",
+  "blocked_layers": [],
+  "skipped_layers": [],
+  "tool_warning": [],
+  "findings": [],
+  "required_owner_action": [],
+  "runtime_chain": {
+    "status": "CLOSED",
+    "checked_refs": [
+      "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-STATIC-CONTRACT",
+      "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#obligation_results"
+    ],
+    "uncovered_obligation_ids": [],
+    "notes": [
+      "target-change consumer and rg absence obligations covered by targeted gates"
+    ]
+  }
+}

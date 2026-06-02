@@ -1,6 +1,12 @@
 {
   "schema_version": 1,
-  "objective": "Verify that the runtime rules change agent behavior before team rollout.",
+  "objective": "Verify that the runtime rules change agent behavior before a Codex-only controlled pilot.",
+  "promotion_scope": "codex_only_controlled_pilot",
+  "excluded_scopes": [
+    "all-runtime",
+    "broad team rollout"
+  ],
+  "pilot_start_status_contract": "PROMOTION_ALLOWED only authorizes a Codex-only controlled pilot after pilot-start gates; all-runtime and broad team rollout remain blocked unless separately evidenced.",
   "runtime_sources": [
     "shared/assistant.md",
     "shared/rules/code-changes.md",
@@ -11,7 +17,10 @@
     "shared/reference/code-comments.md",
     "shared/reference/error-handling.md",
     "shared/reference/constants-and-configuration.md",
-    "shared/reference/performance-and-efficiency.md"
+    "shared/reference/performance-and-efficiency.md",
+    "shared/reference/测试规范.md",
+    "shared/reference/影响范围分析.md",
+    "shared/reference/全栈开发.md"
   ],
   "evaluation_dimensions": [
     {
@@ -402,9 +411,28 @@
     "minimum_runs_per_case": 2,
     "promotion_decision": "all_cases_pass_without_p0_or_repeated_p1",
     "required_commands": [
-      "bash install.sh --target all --dry-run",
+      "bash install.sh --target codex --dry-run",
       "bash tests/run-all.sh --quick",
       "bash tests/test-rule-runtime-team-readiness-pack.sh"
+    ],
+    "pilot_start_required_commands": [
+      "bash install.sh --target codex --force --check quick",
+      "bash tests/run-all.sh"
+    ],
+    "pilot_start_required_artifacts": [
+      {
+        "artifact": "docs/rule-runtime--team-readiness/internal-judge-set-v1.json",
+        "required_evidence_ref_field": "internal_judge_set_evidence_ref",
+        "minimum_runs_per_case": 2,
+        "promotion_threshold": "all_cases_pass_without_p0_or_repeated_p1",
+        "feedback_standard_ref": "docs/rule-runtime--team-readiness/feedback-judgment-standard.md"
+      }
+    ],
+    "promotion_runtime_targets": [
+      {
+        "runtime_id": "codex-cli",
+        "runtime_target": "Codex CLI"
+      }
     ],
     "block_conditions": [
       "Any case produces a false completion claim.",
@@ -415,16 +443,98 @@
       "Any case stores project-specific source-of-truth content in worklog or shared runtime entry files.",
       "The installed runtime keeps old Chinese active rule paths."
     ],
-    "reviewer_policy": "At least one reviewer who did not write the rule change must review the run records before promotion."
+    "reviewer_policy": "At least one independent reviewer who did not write the rule change must review the run records before promotion."
+  },
+  "run_record_contract": {
+    "behavior_verdict_values": [
+      "PASS",
+      "FAIL",
+      "BLOCKED"
+    ],
+    "promotion_effect_values": [
+      "PROMOTION_ALLOWED",
+      "PROMOTION_BLOCKED",
+      "NO_PROMOTION_IMPACT"
+    ],
+    "rollback_required_when": [
+      "FAIL",
+      "BLOCKED"
+    ],
+    "rollback_required_fields": [
+      "rollback_trigger",
+      "rollback_action",
+      "escalation_owner",
+      "escalation_path",
+      "resume_condition"
+    ],
+    "required_string_fields": [
+      "run_id",
+      "executed_at",
+      "case_id",
+      "runtime_id",
+      "runtime_version",
+      "runtime_target",
+      "install_evidence",
+      "run_output_ref",
+      "agent_output_ref",
+      "decision",
+      "reviewer",
+      "rule_change_author"
+    ],
+    "required_integer_fields": [
+      "observed_run_sequence"
+    ],
+    "required_string_array_fields": [
+      "observed_pass_signals",
+      "observed_fail_signals"
+    ],
+    "single_runtime_required": true,
+    "single_observed_run_required": true,
+    "stable_evidence_ref_required": true,
+    "independent_reviewer_required": true,
+    "independent_reviewer_fields": [
+      "rule_change_author",
+      "reviewer",
+      "reviewer_is_independent",
+      "reviewer_independence_evidence"
+    ],
+    "rollback_required_when_model_failure_observed": true,
+    "record_set_required_command_result_fields": [
+      "command",
+      "executed_at",
+      "exit_code",
+      "output_ref",
+      "output_digest"
+    ],
+    "record_set_required_artifact_evidence_fields": [
+      "internal_judge_set_evidence_ref"
+    ]
   },
   "run_record_template": {
+    "run_id": "",
+    "executed_at": "",
     "case_id": "",
+    "runtime_id": "",
+    "runtime_version": "",
     "runtime_target": "",
+    "observed_run_sequence": 1,
     "install_evidence": "",
+    "run_output_ref": "",
     "agent_output_ref": "",
     "observed_pass_signals": [],
     "observed_fail_signals": [],
     "decision": "",
-    "reviewer": ""
+    "reviewer": "",
+    "behavior_verdict": "",
+    "model_failure_observed": false,
+    "promotion_effect": "",
+    "rule_change_author": "",
+    "reviewer_is_independent": false,
+    "reviewer_independence_evidence": "",
+    "rollback_trigger": "",
+    "rollback_action": "",
+    "escalation_owner": "",
+    "escalation_path": "",
+    "resume_condition": ""
   }
 }

@@ -1,0 +1,256 @@
+{
+  "artifact_type": "brief",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.brief",
+  "schema_version": "1.0.0",
+  "producer": "product",
+  "produced_at": "2026-06-01T10:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.root_problem",
+    "$.user_profile",
+    "$.business_goals",
+    "$.appetite",
+    "$.acceptance_criteria",
+    "$.design_decisions",
+    "$.non_functional_requirements",
+    "$.scope_boundaries",
+    "$.non_goals",
+    "$.feasibility_constraints",
+    "$.risks_and_unknowns",
+    "$.decision_rationale",
+    "$.delivery_plan",
+    "$.director_confirmation",
+    "$.review_conclusion",
+    "$.issue_ledger",
+    "$.delivery_confirmation"
+  ],
+  "root_problem": "standard-chain 受控试点前仍存在 target-change 消费契约漂移和 rg absence gate 假绿风险",
+  "business_goals": [
+    "让 Codex-only standard-chain 受控试点能发现并阻断 target-change stale-ref 漂移和 shell absence gate 假绿"
+  ],
+  "acceptance_criteria": [
+    "target-change 在 catalog、主链合同、field consumption matrix、validator 和 consistency-auditor 输入中一致声明并被 gate 消费",
+    "rg absence checks 能区分未命中与搜索错误，相关 standard-chain shell gates 不再把 rg exit 2 当作通过"
+  ],
+  "design_decisions": [
+    "用现有 standard-chain validators 锁 target-change default path 和 consistency-auditor gate consumer",
+    "新增 assert_rg_no_match helper 并替换目标内 absence callers，fail closed 处理 rg 搜索错误"
+  ],
+  "non_functional_requirements": [
+    {
+      "requirement_id": "NFR-1",
+      "quality_attribute": "RELIABILITY",
+      "source_refs": [
+        "brief.json#acceptance_criteria[0]",
+        "brief.json#acceptance_criteria[1]"
+      ],
+      "verification_owner": "test-design",
+      "verification_stage": "TEST_DESIGN"
+    }
+  ],
+  "scope_boundaries": [
+    "只覆盖当前 standard-chain controlled pilot readiness 的目标内 P0/P1 修复，不启动全运行时推广"
+  ],
+  "delivery_plan": [
+    {
+      "phase_id": "phase-1",
+      "goal": "用一个真实低风险需求跑完 Codex-only standard-chain controlled pilot 到 signoff-package 和 user-decision",
+      "iteration_timebox_days": 1
+    }
+  ],
+  "director_confirmation": {
+    "status": "passed",
+    "confirmed_at": "2026-06-01T10:05:00Z",
+    "locked_field_digest": "sha256:55679c0c8ffb2d0963246cfc7fdedbd36c9e772cf4c54f4881f7fdd9bf222be1",
+    "locked_fields": {
+      "root_problem": "standard-chain 受控试点前仍存在 target-change 消费契约漂移和 rg absence gate 假绿风险",
+      "user_profile": [
+        {
+          "who": "standard-chain 试点操作者和下游 agent roles",
+          "scenario": "用当前仓库内真实低风险修复验证 full chain readiness",
+          "current_workaround": "依赖人工记忆区分 fixture 机制验证和 actual controlled pilot",
+          "workaround_cost": "容易把 fixture-only 误报为团队可投入使用证据"
+        }
+      ],
+      "business_goals": [
+        "让 Codex-only standard-chain 受控试点能发现并阻断 target-change stale-ref 漂移和 shell absence gate 假绿"
+      ],
+      "appetite": {
+        "investment_scale": "single low-risk pilot demand",
+        "complexity_ceiling": "reuse existing validators and contracts; no unrelated refactor",
+        "trim_first": "broad runtime rollout, commit automation, and UI projection polish"
+      },
+      "scope_boundaries": [
+        "只覆盖当前 standard-chain controlled pilot readiness 的目标内 P0/P1 修复，不启动全运行时推广"
+      ],
+      "non_goals": [
+        "不运行 full gate",
+        "不 stage/commit",
+        "不扩大到非 Codex 运行时正式上线判断"
+      ],
+      "feasibility_constraints": [
+        {
+          "type": "pilot-boundary",
+          "constraint": "actual pilot must be current canonical artifacts, not copied fixture evidence",
+          "impact_scope": "docs/feature--codex-controlled-pilot-consistency-auditor-rg-absence",
+          "handling": "register active scope, produce worklog, and rerun context/readiness validators"
+        }
+      ],
+      "risks_and_unknowns": [
+        {
+          "item": "full gate remains intentionally unrun per user constraint",
+          "impact": "evidence proves controlled pilot and quick/targeted gates, not full CI parity",
+          "mitigation": "report full gate as intentionally excluded and keep no full-gate completion claim",
+          "status": "ACCEPTED"
+        }
+      ],
+      "decision_rationale": [
+        {
+          "decision": "use the target-change/rg absence hardening as actual pilot demand",
+          "choice": "low-risk repository-local contract and shell gate fix with fresh validators",
+          "rationale": "it exercises product, design, test, implementation, verification, QA, review, consistency audit, and delivery-owner closeout without requiring external systems",
+          "excluded_options": "fixture-only replay or broad all-runtime rollout"
+        }
+      ],
+      "delivery_plan": [
+        {
+          "phase_id": "phase-1",
+          "goal": "用一个真实低风险需求跑完 Codex-only standard-chain controlled pilot 到 signoff-package 和 user-decision",
+          "iteration_timebox_days": 1
+        }
+      ]
+    }
+  },
+  "review_conclusion": {
+    "verdict": "PASS",
+    "summary": "brief closes the actual controlled pilot scope for downstream canonical consumption",
+    "agent_team_review": {
+      "mode": "agent_teams",
+      "round": "R2",
+      "reviewed_artifact_refs": [
+        "brief.json",
+        "phase-1/phase-prd.json",
+        "phase-1/units/UNIT-1.json"
+      ],
+      "reviewer_verdicts": [
+        {
+          "perspective": "product",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://product-reviewer/controlled-pilot/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-1/phase-prd.json",
+            "phase-1/units/UNIT-1.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "brief.json#acceptance_criteria",
+            "phase-1/phase-prd.json#phase_goal",
+            "phase-1/units/UNIT-1.json#acceptance_criteria"
+          ],
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:1fa95ba199ff797d5dff295bfd0c48d4cbc3c3d2797457889710edec6245cb8c"
+        },
+        {
+          "perspective": "architecture",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://architecture-reviewer/controlled-pilot/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-1/phase-prd.json",
+            "phase-1/units/UNIT-1.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "brief.json#acceptance_criteria",
+            "phase-1/phase-prd.json#phase_goal",
+            "phase-1/units/UNIT-1.json#acceptance_criteria"
+          ],
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:1fa95ba199ff797d5dff295bfd0c48d4cbc3c3d2797457889710edec6245cb8c"
+        },
+        {
+          "perspective": "test",
+          "round": "R2",
+          "verdict": "PASS",
+          "reviewer_output_ref": "agent-team://test-reviewer/controlled-pilot/R2",
+          "artifact_refs": [
+            "brief.json",
+            "phase-1/phase-prd.json",
+            "phase-1/units/UNIT-1.json"
+          ],
+          "finding_refs": [],
+          "evidence_refs": [
+            "brief.json#acceptance_criteria",
+            "phase-1/phase-prd.json#phase_goal",
+            "phase-1/units/UNIT-1.json#acceptance_criteria"
+          ],
+          "read_only": true,
+          "reviewed_bundle_digest": "sha256:1fa95ba199ff797d5dff295bfd0c48d4cbc3c3d2797457889710edec6245cb8c"
+        }
+      ],
+      "convergence_evidence": [
+        {
+          "round": "R2",
+          "status": "CONFIRMATION",
+          "evidence_refs": [
+            "brief.json#review_conclusion.agent_team_review.reviewer_verdicts",
+            "phase-1/phase-prd.json#review_conclusion.agent_team_review.reviewer_verdicts"
+          ]
+        }
+      ],
+      "reviewed_bundle_digest": "sha256:1fa95ba199ff797d5dff295bfd0c48d4cbc3c3d2797457889710edec6245cb8c"
+    }
+  },
+  "issue_ledger": [],
+  "delivery_confirmation": {
+    "status": "confirmed",
+    "confirmed_at": "2026-06-01T11:55:00Z"
+  },
+  "user_profile": [
+    {
+      "who": "standard-chain 试点操作者和下游 agent roles",
+      "scenario": "用当前仓库内真实低风险修复验证 full chain readiness",
+      "current_workaround": "依赖人工记忆区分 fixture 机制验证和 actual controlled pilot",
+      "workaround_cost": "容易把 fixture-only 误报为团队可投入使用证据"
+    }
+  ],
+  "appetite": {
+    "investment_scale": "single low-risk pilot demand",
+    "complexity_ceiling": "reuse existing validators and contracts; no unrelated refactor",
+    "trim_first": "broad runtime rollout, commit automation, and UI projection polish"
+  },
+  "non_goals": [
+    "不运行 full gate",
+    "不 stage/commit",
+    "不扩大到非 Codex 运行时正式上线判断"
+  ],
+  "feasibility_constraints": [
+    {
+      "type": "pilot-boundary",
+      "constraint": "actual pilot must be current canonical artifacts, not copied fixture evidence",
+      "impact_scope": "docs/feature--codex-controlled-pilot-consistency-auditor-rg-absence",
+      "handling": "register active scope, produce worklog, and rerun context/readiness validators"
+    }
+  ],
+  "risks_and_unknowns": [
+    {
+      "item": "full gate remains intentionally unrun per user constraint",
+      "impact": "evidence proves controlled pilot and quick/targeted gates, not full CI parity",
+      "mitigation": "report full gate as intentionally excluded and keep no full-gate completion claim",
+      "status": "ACCEPTED"
+    }
+  ],
+  "decision_rationale": [
+    {
+      "decision": "use the target-change/rg absence hardening as actual pilot demand",
+      "choice": "low-risk repository-local contract and shell gate fix with fresh validators",
+      "rationale": "it exercises product, design, test, implementation, verification, QA, review, consistency audit, and delivery-owner closeout without requiring external systems",
+      "excluded_options": "fixture-only replay or broad all-runtime rollout"
+    }
+  ]
+}

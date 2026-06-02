@@ -90,7 +90,7 @@
       "reason": "fixture does not require browser e2e coverage"
     },
     "unit_command": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py'",
-    "unit_result": "Ran 9 tests in 0.511s OK after Content-Length fix",
+    "unit_result": "Ran 12 tests in 0.529s OK after feedback pilot coverage expansion",
     "static_command": "python3 -m py_compile examples/feedback_thanks_app/app.py tests/test_feedback_thanks_app.py",
     "static_result": "PASS"
   },
@@ -111,7 +111,7 @@
       "phase": "GREEN",
       "test_ref": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py'",
       "result": "PASS",
-      "summary": "Ran 7 tests in 0.509s OK"
+      "summary": "Ran 12 tests in 0.529s OK after feedback pilot coverage expansion"
     }
   ],
   "fresh_proof": {

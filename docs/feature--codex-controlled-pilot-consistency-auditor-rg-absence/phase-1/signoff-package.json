@@ -1,0 +1,166 @@
+{
+  "artifact_type": "signoff-package",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.signoff",
+  "schema_version": "1.0.0",
+  "producer": "delivery-owner",
+  "produced_at": "2026-06-01T11:55:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "signoff",
+  "authoritative_fields": [
+    "$.baseline_tasks_version_ref",
+    "$.active_tasks_version_ref",
+    "$.current_stage",
+    "$.release_recommendation",
+    "$.goal_closure",
+    "$.waiver_entries",
+    "$.sign_off_status",
+    "$.business_risk_acceptance_status",
+    "$.last_observed_at",
+    "$.active_blocker",
+    "$.blocker_owner",
+    "$.decision_basis_refs",
+    "$.runtime_evidence_matrix"
+  ],
+  "baseline_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "active_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "current_stage": "CLOSED",
+  "release_recommendation": "ALLOW",
+  "sign_off_status": "SIGNED_OFF",
+  "business_risk_acceptance_status": "NOT_REQUIRED",
+  "last_observed_at": "2026-06-01T11:54:00Z",
+  "active_blocker": "",
+  "blocker_owner": "",
+  "decision_basis_refs": [
+    "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#release",
+    "artifact://code-review-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@v1#round-1",
+    "artifact://consistency-audit-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.consistency-audit@v1#audit-root",
+    "artifact://user-decision/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.decision@v1#signoff-status"
+  ],
+  "runtime_evidence_matrix": [
+    {
+      "artifact_type": "qa-result",
+      "artifact_ref": "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#obligation_results",
+      "producer": "qa",
+      "status": "PASS",
+      "freshness_basis_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.artifact-registry@rev-4#active-entry:qa-result:codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "code-review-result",
+      "artifact_ref": "artifact://code-review-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review@v1#review-conclusion",
+      "producer": "review",
+      "status": "PASS",
+      "freshness_basis_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.artifact-registry@rev-4#active-entry:code-review-result:codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.review",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "developer-report",
+      "artifact_ref": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report@v1#runtime-status",
+      "producer": "developer",
+      "status": "VERIFIED",
+      "freshness_basis_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.artifact-registry@rev-4#active-entry:developer-report:codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "verify-result",
+      "artifact_ref": "artifact://verify-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.verify-result@v1#gate-result",
+      "producer": "verify",
+      "status": "PASS",
+      "freshness_basis_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.artifact-registry@rev-4#active-entry:verify-result:codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.verify-result",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "developer-report",
+      "artifact_ref": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T2.developer-report@v1#runtime-status",
+      "producer": "developer",
+      "status": "VERIFIED",
+      "freshness_basis_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.artifact-registry@rev-4#active-entry:developer-report:codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T2.developer-report",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "verify-result",
+      "artifact_ref": "artifact://verify-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T2.verify-result@v1#gate-result",
+      "producer": "verify",
+      "status": "PASS",
+      "freshness_basis_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.artifact-registry@rev-4#active-entry:verify-result:codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T2.verify-result",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    },
+    {
+      "artifact_type": "consistency-audit-result",
+      "artifact_ref": "artifact://consistency-audit-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.consistency-audit@v1#audit-root",
+      "producer": "consistency-audit",
+      "status": "CLOSED",
+      "freshness_basis_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+      "active_registry_proof": {
+        "registry_ref": "artifact://artifact-registry/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.artifact-registry@rev-4#active-entry:consistency-audit-result:codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.consistency-audit",
+        "lifecycle_state": "FINALIZED",
+        "active_for_consumption": true
+      },
+      "stale_superseded_check": "CURRENT"
+    }
+  ],
+  "goal_closure": [
+    {
+      "goal_ref": "artifact://brief/codex-controlled-pilot-consistency-auditor-rg-absence.brief@v1#goal-001",
+      "execution_basis_ref": "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v2#execution-basis-refs",
+      "evidence_ref": "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#ac-trace",
+      "result": "MET"
+    },
+    {
+      "goal_ref": "artifact://brief/codex-controlled-pilot-consistency-auditor-rg-absence.brief@v1#ac-001",
+      "execution_basis_ref": "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v2#execution-basis-refs",
+      "evidence_ref": "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#ac-trace",
+      "result": "MET"
+    },
+    {
+      "goal_ref": "artifact://brief/codex-controlled-pilot-consistency-auditor-rg-absence.brief@v1#ac-002",
+      "execution_basis_ref": "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v2#execution-basis-refs",
+      "evidence_ref": "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#gate-result",
+      "result": "MET"
+    },
+    {
+      "goal_ref": "artifact://brief/codex-controlled-pilot-consistency-auditor-rg-absence.brief@v1#delivery-plan-phase-1",
+      "execution_basis_ref": "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v2#execution-basis-refs",
+      "evidence_ref": "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#release",
+      "result": "MET"
+    },
+    {
+      "goal_ref": "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal",
+      "execution_basis_ref": "artifact://plan/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.plan@plan-v2#execution-basis-refs",
+      "evidence_ref": "artifact://qa-result/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.qa@v1#release",
+      "result": "MET"
+    }
+  ],
+  "waiver_entries": []
+}

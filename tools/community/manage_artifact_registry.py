@@ -53,7 +53,7 @@ def assert_append_only(registry: dict) -> None:
     revisions = registry.get("revisions")
     active_revision_id = registry.get("active_revision_id")
     if not isinstance(revisions, list) or not revisions:
-      raise ValueError("artifact-registry 缺少 revisions")
+        raise ValueError("artifact-registry missing revisions")
     revision_ids: list[str] = []
     previous_id: str | None = None
     for revision in revisions:
@@ -63,11 +63,11 @@ def assert_append_only(registry: dict) -> None:
         if revision_id in revision_ids:
             raise ValueError(f"duplicate revision_id: {revision_id}")
         if previous_id is not None and revision.get("parent_revision_id") != previous_id:
-            raise ValueError(f"revision {revision_id} parent 不连续")
+            raise ValueError(f"revision {revision_id} parent is not append-only")
         revision_ids.append(revision_id)
         previous_id = revision_id
     if active_revision_id != revision_ids[-1]:
-        raise ValueError("active_revision_id 必须指向最后一个 revision")
+        raise ValueError("active_revision_id must point to last revision")
 
 
 def entry_tuple(entry: dict) -> tuple[str, str, str, str, str, bool]:

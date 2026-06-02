@@ -5,12 +5,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 from collections.abc import Callable
 from pathlib import Path
+
+from write_user_decision import canonical_digest
 
 ROOT = Path(__file__).resolve().parents[2]
 READINESS_SCRIPT = ROOT / "tools/community/validate_standard_chain_readiness.py"
@@ -23,6 +26,7 @@ REQUIRED_BLOCK_KEYS = {
 }
 
 Mutator = Callable[[Path, Path], None]
+Case = tuple[str, str, Mutator, str]
 
 
 def parse_args() -> argparse.Namespace:
@@ -189,11 +193,98 @@ def mutate_signoff_matrix_missing_row(_feature_dir: Path, phase_dir: Path) -> No
 def mutate_target_change_invalidates_evidence(_feature_dir: Path, phase_dir: Path) -> None:
     signoff = load_json(phase_dir / "signoff-package.json")
     evidence_ref = signoff["runtime_evidence_matrix"][0]["artifact_ref"]
+    proof_path = phase_dir / "evidence" / "authority-proof.json"
+    proof = load_json(proof_path)
     target = load_json(ROOT / "shared/skills/delivery-owner/templates/target-change.template.json")
-    target["baseline_tasks_version_ref"] = signoff["baseline_tasks_version_ref"]
+    target["actor_id"] = proof["verified_actor_id"]
+    target["produced_at"] = proof["verified_at"]
+    target["authority_proof_refs"] = proof["proof_basis_refs"]
+    old_tasks_ref = str(signoff["active_tasks_version_ref"]).replace(
+        "tasks-v2", "tasks-v1"
+    )
+    target["baseline_tasks_version_ref"] = old_tasks_ref
     target["active_tasks_version_ref"] = signoff["active_tasks_version_ref"]
-    target["invalidates_refs"] = [evidence_ref]
-    target["superseded_evidence_refs"] = [evidence_ref]
+    target["affected_refs"] = [old_tasks_ref]
+    target["invalidates_refs"] = [old_tasks_ref, evidence_ref]
+    target["superseded_evidence_refs"] = [old_tasks_ref, evidence_ref]
+    target["decision_basis_refs"] = [signoff["decision_basis_refs"][0]]
+    target["target_change_payload_digest"] = canonical_digest(target)
+    proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+    write_json(proof_path, proof)
+    write_json(phase_dir / "target-change.json", target)
+
+
+def mutate_target_change_active_fix_result_stale_timestamp(
+    _feature_dir: Path, phase_dir: Path
+) -> None:
+    signoff = load_json(phase_dir / "signoff-package.json")
+    active_tasks_ref = signoff["active_tasks_version_ref"]
+    old_tasks_ref = active_tasks_ref.replace("tasks-v2", "tasks-v1")
+    feature_id = signoff["artifact_id"].replace(".signoff", "")
+    fix_artifact_id = f"{feature_id}.fix"
+    fix_ref = f"artifact://fix-result/{fix_artifact_id}@v1#completion-status"
+
+    fix_result = load_json(ROOT / "shared/skills/fix/templates/fix-result.template.json")
+    fix_result["artifact_id"] = fix_artifact_id
+    fix_result["produced_at"] = "2026-04-13T23:00:00Z"
+    fix_result["active_tasks_version_ref"] = active_tasks_ref
+    write_json(phase_dir / "fix-result.json", fix_result)
+
+    def append_fix_result(entries: list[dict]) -> None:
+        entries.append(
+            {
+                "scope_ref": signoff["decision_basis_refs"][0],
+                "artifact_id": fix_artifact_id,
+                "artifact_type": "fix-result",
+                "version": "v1",
+                "artifact_path": "fix-result.json",
+                "lifecycle_state": "FINALIZED",
+                "active_for_consumption": True,
+                "produced_by": "fix",
+                "restore_basis_refs": [],
+            }
+        )
+
+    update_registry(phase_dir, append_fix_result)
+
+    signoff["runtime_evidence_matrix"].append(
+        {
+            "artifact_type": "fix-result",
+            "artifact_ref": fix_ref,
+            "producer": "fix",
+            "status": "FIXED",
+            "freshness_basis_ref": active_tasks_ref,
+            "active_registry_proof": {
+                "registry_ref": (
+                    "artifact://artifact-registry/"
+                    f"{feature_id}.artifact-registry@rev-4#active-entry:fix-result:{fix_artifact_id}"
+                ),
+                "lifecycle_state": "FINALIZED",
+                "active_for_consumption": True,
+            },
+            "stale_superseded_check": "CURRENT",
+        }
+    )
+    write_json(phase_dir / "signoff-package.json", signoff)
+
+    proof_path = phase_dir / "evidence" / "authority-proof.json"
+    proof = load_json(proof_path)
+    target = load_json(ROOT / "shared/skills/delivery-owner/templates/target-change.template.json")
+    target["artifact_id"] = f"{feature_id}.target-change"
+    target["actor_id"] = proof["verified_actor_id"]
+    target["produced_at"] = proof["verified_at"]
+    target["authority_proof_refs"] = proof["proof_basis_refs"]
+    target["baseline_tasks_version_ref"] = old_tasks_ref
+    target["active_tasks_version_ref"] = active_tasks_ref
+    target["affected_refs"] = ["artifact://brief/login-homepage-pilot.brief@v1#ac-001"]
+    target["invalidates_refs"] = [old_tasks_ref]
+    target["superseded_evidence_refs"] = [old_tasks_ref]
+    target["decision_basis_refs"] = [signoff["decision_basis_refs"][0]]
+    if "fix-result" not in target["required_fresh_proof_after_rebaseline"]:
+        target["required_fresh_proof_after_rebaseline"].append("fix-result")
+    target["target_change_payload_digest"] = canonical_digest(target)
+    proof["target_change_payload_digest"] = target["target_change_payload_digest"]
+    write_json(proof_path, proof)
     write_json(phase_dir / "target-change.json", target)
 
 
@@ -211,25 +302,121 @@ def mutate_delivered_without_commit(_feature_dir: Path, phase_dir: Path) -> None
     write_json(state_path, state)
 
 
-CASES: list[tuple[str, str, Mutator]] = [
-    ("FM-01", "missing required baseline input", mutate_remove_baseline_input),
-    ("FM-02", "director confirmation missing or failed", mutate_director_confirmation_failed),
-    ("FM-03", "director lock digest drift", mutate_director_digest_drift),
-    ("FM-04", "mixed baseline or tasks version", mutate_mixed_versions),
-    ("FM-05", "plan/tasks version mismatch", mutate_plan_tasks_version_mismatch),
-    ("FM-06", "tasks not frozen or confirmed", mutate_tasks_unconfirmed),
-    ("FM-07", "task acceptance refs missing", mutate_task_acceptance_refs_missing),
-    ("FM-08", "qa handoff obligations missing", mutate_qa_obligation_missing),
-    ("FM-09", "developer or verify evidence missing", mutate_runtime_evidence_missing),
-    ("FM-10", "code review missing stale or blocking", mutate_code_review_blocking),
-    ("FM-11", "qa result missing not pass or incomplete", mutate_qa_not_pass),
-    ("FM-12", "consistency action not consumed", mutate_consistency_action_unconsumed),
-    ("FM-13", "runtime evidence not active in registry", mutate_registry_inactive_evidence),
-    ("FM-14", "registry lifecycle inactive", mutate_registry_lifecycle_inactive),
-    ("FM-15", "signoff evidence matrix omits coverage", mutate_signoff_matrix_missing_row),
-    ("FM-16", "target change invalidates evidence", mutate_target_change_invalidates_evidence),
-    ("FM-17", "required user decision absent", mutate_user_decision_absent),
-    ("FM-18", "ready for commit treated as delivered", mutate_delivered_without_commit),
+CASES: list[Case] = [
+    (
+        "FM-01",
+        "missing required baseline input",
+        mutate_remove_baseline_input,
+        r"brief\.json",
+    ),
+    (
+        "FM-02",
+        "director confirmation missing or failed",
+        mutate_director_confirmation_failed,
+        r"director_confirmation\.status must be passed",
+    ),
+    (
+        "FM-03",
+        "director lock digest drift",
+        mutate_director_digest_drift,
+        r"Director-owned field drift.*root_problem",
+    ),
+    (
+        "FM-04",
+        "mixed baseline or tasks version",
+        mutate_mixed_versions,
+        r"active_tasks_version_ref drift from active delivery-state",
+    ),
+    (
+        "FM-05",
+        "plan/tasks version mismatch",
+        mutate_plan_tasks_version_mismatch,
+        r"plan/tasks version mismatch",
+    ),
+    (
+        "FM-06",
+        "tasks not frozen or confirmed",
+        mutate_tasks_unconfirmed,
+        r"tasks\.user_confirmation\.status must be CONFIRMED or APPROVED",
+    ),
+    (
+        "FM-07",
+        "task acceptance refs missing",
+        mutate_task_acceptance_refs_missing,
+        r"task T1 must include non-empty test_refs",
+    ),
+    (
+        "FM-08",
+        "qa handoff obligations missing",
+        mutate_qa_obligation_missing,
+        r"obligation_results missing required QA obligations",
+    ),
+    (
+        "FM-09",
+        "developer or verify evidence missing",
+        mutate_runtime_evidence_missing,
+        r"developer-report\.json.*developer-report:T1",
+    ),
+    (
+        "FM-10",
+        "code review missing stale or blocking",
+        mutate_code_review_blocking,
+        r"code-review-result gate_result must be PASS",
+    ),
+    (
+        "FM-11",
+        "qa result missing not pass or incomplete",
+        mutate_qa_not_pass,
+        r"qa-result must include a non-empty issue_ledger",
+    ),
+    (
+        "FM-12",
+        "consistency action not consumed",
+        mutate_consistency_action_unconsumed,
+        r"required_owner_action must be consumed.*ACTION-REBASELINE-001",
+    ),
+    (
+        "FM-13",
+        "runtime evidence not active in registry",
+        mutate_registry_inactive_evidence,
+        r"missing active registry binding: developer-report",
+    ),
+    (
+        "FM-14",
+        "registry lifecycle inactive",
+        mutate_registry_lifecycle_inactive,
+        r"missing active registry binding: code-review-result",
+    ),
+    (
+        "FM-15",
+        "signoff evidence matrix omits coverage",
+        mutate_signoff_matrix_missing_row,
+        r"runtime_evidence_matrix missing active runtime evidence.*code-review-result",
+    ),
+    (
+        "FM-16",
+        "target change invalidates evidence",
+        mutate_target_change_invalidates_evidence,
+        r"target-change superseded evidence remains",
+    ),
+    (
+        "FM-16A",
+        "target change stale active fix-result timestamp",
+        mutate_target_change_active_fix_result_stale_timestamp,
+        r"target-change required fresh proof artifact is not newer than target-change",
+    ),
+    (
+        "FM-17",
+        "required user decision absent",
+        mutate_user_decision_absent,
+        r"user-decision\.json",
+    ),
+    (
+        "FM-18",
+        "ready for commit treated as delivered",
+        mutate_delivered_without_commit,
+        r"DELIVERED requires commit_result_ref or equivalent_delivery_result_ref",
+    ),
 ]
 
 
@@ -273,7 +460,25 @@ def assert_block_contract(case_id: str, label: str, result: subprocess.Completed
     return reason
 
 
-def run_case(case_id: str, label: str, mutator: Mutator, pilot: Path, catalog: Path, tmp_root: Path) -> str:
+def assert_expected_reason(
+    case_id: str, label: str, reason: str, expected_reason: str
+) -> None:
+    if not re.search(expected_reason, reason):
+        raise AssertionError(
+            f"{case_id} {label}: reason did not match expected readiness violation "
+            f"{expected_reason!r}; reason={reason!r}"
+        )
+
+
+def run_case(
+    case_id: str,
+    label: str,
+    mutator: Mutator,
+    expected_reason: str,
+    pilot: Path,
+    catalog: Path,
+    tmp_root: Path,
+) -> str:
     feature_dir = tmp_root / f"{case_id}--{label.replace(' ', '-')}"
     shutil.copytree(pilot, feature_dir)
     phase_dir = feature_dir / "phase-1"
@@ -292,7 +497,9 @@ def run_case(case_id: str, label: str, mutator: Mutator, pilot: Path, catalog: P
         capture_output=True,
         text=True,
     )
-    return assert_block_contract(case_id, label, result)
+    reason = assert_block_contract(case_id, label, result)
+    assert_expected_reason(case_id, label, reason, expected_reason)
+    return reason
 
 
 def main() -> None:
@@ -303,8 +510,10 @@ def main() -> None:
         raise SystemExit(f"--pilot must point to a feature fixture with phase-1: {pilot}")
     with tempfile.TemporaryDirectory(prefix="standard-chain-negative-") as raw_tmp:
         tmp_root = Path(raw_tmp)
-        for case_id, label, mutator in CASES:
-            reason = run_case(case_id, label, mutator, pilot, catalog, tmp_root)
+        for case_id, label, mutator, expected_reason in CASES:
+            reason = run_case(
+                case_id, label, mutator, expected_reason, pilot, catalog, tmp_root
+            )
             print(f"[PASS] {case_id} {label}: {reason}")
 
 

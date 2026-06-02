@@ -1,0 +1,43 @@
+{
+  "artifact_type": "user-decision",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.decision",
+  "schema_version": "1.0.0",
+  "producer": "user-decision-writer",
+  "produced_at": "2026-06-01T11:58:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "signoff",
+  "authoritative_fields": [
+    "$.baseline_tasks_version_ref",
+    "$.active_tasks_version_ref",
+    "$.current_stage",
+    "$.decision",
+    "$.decision_source",
+    "$.actor_id",
+    "$.sign_off_status",
+    "$.business_risk_acceptance_status",
+    "$.authority_proof_refs",
+    "$.decision_basis_refs",
+    "$.director_lock_digests",
+    "$.decision_payload_digest"
+  ],
+  "baseline_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "active_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "current_stage": "SIGNOFF_RECORDED",
+  "decision": "APPROVE",
+  "decision_source": "MANUAL_IMPORT",
+  "actor_id": "user-001",
+  "sign_off_status": "SIGNED_OFF",
+  "business_risk_acceptance_status": "NOT_REQUIRED",
+  "authority_proof_refs": [
+    "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.authority-proof@ev-approve#proof-root"
+  ],
+  "decision_basis_refs": [
+    "artifact://signoff-package/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.signoff@v1#goal-closure"
+  ],
+  "director_lock_digests": {
+    "brief": "sha256:55679c0c8ffb2d0963246cfc7fdedbd36c9e772cf4c54f4881f7fdd9bf222be1",
+    "phase-prd": "sha256:4ee79761ac08461e483930f94b60b330b765ee2bac724aee7a7998bd7f6023ff"
+  },
+  "decision_payload_digest": "sha256:9cf968fa40707ec6b71d95989586c054a85ff3ca7437184c20b3a912d9d1a8a5"
+}

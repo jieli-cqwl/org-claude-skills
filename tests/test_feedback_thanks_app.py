@@ -16,7 +16,7 @@ from http import HTTPStatus
 from http.server import ThreadingHTTPServer
 from urllib.parse import urlencode
 
-from examples.feedback_thanks_app.app import create_handler
+from examples.feedback_thanks_app.app import MAX_FORM_BYTES, create_handler
 
 
 class FeedbackThanksAcceptanceTests(unittest.TestCase):
@@ -68,6 +68,16 @@ class FeedbackThanksAcceptanceTests(unittest.TestCase):
         self.assertRegex(headers["Location"], r"^/thanks\?id=[A-Za-z0-9_-]+$")
         return headers["Location"]
 
+    def assert_invalid_submission_log_evidence(self, log_output: str) -> None:
+        self.assertIn("POST /feedback", log_output)
+        self.assertIn("400", log_output)
+
+    def submission_count(self) -> int:
+        for cell in self.server.RequestHandlerClass._store_submission.__closure__ or ():
+            if isinstance(cell.cell_contents, dict):
+                return len(cell.cell_contents)
+        self.fail("feedback submission store closure is not inspectable")
+
     def raw_http_request(self, payload: bytes) -> str:
         """Send a raw HTTP payload for malformed-header boundary coverage."""
         with socket.create_connection((self.base_host, self.base_port), timeout=3) as sock:
@@ -88,7 +98,6 @@ class FeedbackThanksAcceptanceTests(unittest.TestCase):
         self.assertEqual("/feedback", headers["Location"])
         self.assertEqual("", payload)
 
-    def test_feedback_form_exposes_required_fields(self) -> None:
         status, _, payload = self.request("GET", "/feedback")
 
         self.assertEqual(HTTPStatus.OK, status)
@@ -96,6 +105,22 @@ class FeedbackThanksAcceptanceTests(unittest.TestCase):
         self.assertIn('method="post"', payload)
         self.assertIn('name="name"', payload)
         self.assertIn('name="message"', payload)
+
+    def test_minimum_blank_field_request_fails_closed_without_creating_feedback(self) -> None:
+        body = "name=&message="
+        before_count = self.submission_count()
+
+        status, headers, payload = self.request(
+            "POST",
+            "/feedback",
+            body=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        self.assertEqual(HTTPStatus.BAD_REQUEST, status)
+        self.assertNotIn("Location", headers)
+        self.assertIn("Name and message are required.", payload)
+        self.assertEqual(before_count, self.submission_count())
 
     def test_blank_submission_returns_readable_validation_error(self) -> None:
         body = urlencode({"name": "  ", "message": ""})
@@ -141,6 +166,23 @@ class FeedbackThanksAcceptanceTests(unittest.TestCase):
         self.assertEqual(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, status)
         self.assertIn("Form submission is too large.", payload)
 
+    def test_maximum_body_boundary_submission_redirects_to_thanks_page(self) -> None:
+        prefix = urlencode({"name": "Ada", "message": ""})
+        message = "x" * (MAX_FORM_BYTES - len(prefix.encode("utf-8")))
+        body = urlencode({"name": "Ada", "message": message})
+        self.assertEqual(MAX_FORM_BYTES, len(body.encode("utf-8")))
+
+        status, headers, payload = self.request(
+            "POST",
+            "/feedback",
+            body=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        self.assertEqual("", payload)
+        self.assertEqual(HTTPStatus.SEE_OTHER, status)
+        self.assertRegex(headers["Location"], r"^/thanks\?id=[A-Za-z0-9_-]+$")
+
     def test_valid_submission_redirects_to_thanks_page(self) -> None:
         location = self.submit_feedback()
 
@@ -183,8 +225,27 @@ class FeedbackThanksAcceptanceTests(unittest.TestCase):
             )
 
         log_output = captured.getvalue()
-        self.assertIn("POST /feedback", log_output)
-        self.assertIn("400", log_output)
+        self.assert_invalid_submission_log_evidence(log_output)
+
+    def test_observability_guard_rejects_missing_invalid_submission_log_evidence(self) -> None:
+        with self.assertRaises(AssertionError):
+            self.assert_invalid_submission_log_evidence("")
+
+    def test_single_invalid_submission_produces_one_auditable_status_trace(self) -> None:
+        body = urlencode({"name": "", "message": ""})
+        captured = io.StringIO()
+
+        with contextlib.redirect_stderr(captured):
+            self.request(
+                "POST",
+                "/feedback",
+                body=body,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+
+        log_lines = [line for line in captured.getvalue().splitlines() if "POST /feedback" in line]
+        self.assertEqual(1, len(log_lines))
+        self.assertIn("400", log_lines[0])
 
 
 if __name__ == "__main__":

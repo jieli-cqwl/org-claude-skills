@@ -139,20 +139,40 @@ def load_ref_artifact(phase_dir: Path, entry: dict[str, Any]) -> dict[str, Any]:
     return load_json(phase_dir / artifact_path)
 
 
-def validate_test_ref(phase_dir: Path, entry: dict[str, Any]) -> None:
-    test_cases = load_ref_artifact(phase_dir, entry)
-    anchor = entry.get("anchor")
-    known_ac = {
+def known_test_anchors(test_cases: dict[str, Any]) -> set[str]:
+    anchors = {
         row.get("ac_id")
         for row in test_cases.get("ac_coverage_matrix", [])
         if isinstance(row, dict) and isinstance(row.get("ac_id"), str)
     }
-    known_cases = {
+    anchors.update(
         row.get("case_id")
         for row in test_cases.get("test_cases", [])
         if isinstance(row, dict) and isinstance(row.get("case_id"), str)
-    }
-    if anchor and anchor not in known_ac and anchor not in known_cases:
+    )
+    anchors.update(
+        f"qa_handoff_contract:{row.get('obligation_id')}"
+        for row in test_cases.get("qa_handoff_contract", [])
+        if isinstance(row, dict) and isinstance(row.get("obligation_id"), str)
+    )
+    anchors.update(
+        f"cross_unit_obligations:{row.get('journey_id')}"
+        for row in test_cases.get("cross_unit_obligations", [])
+        if isinstance(row, dict) and isinstance(row.get("journey_id"), str)
+    )
+    anchors.update(
+        f"traceability_matrix:{index}"
+        for index, row in enumerate(test_cases.get("traceability_matrix", []), start=1)
+        if isinstance(row, dict)
+    )
+    anchors.update({"qa-handoff", "traceability"})
+    return {anchor for anchor in anchors if isinstance(anchor, str) and anchor.strip()}
+
+
+def validate_test_ref(phase_dir: Path, entry: dict[str, Any]) -> None:
+    test_cases = load_ref_artifact(phase_dir, entry)
+    anchor = entry.get("anchor")
+    if anchor and anchor not in known_test_anchors(test_cases):
         raise PreflightFailure(
             "UNRESOLVED_REF", f"test_ref anchor not found: {entry.get('ref')}"
         )

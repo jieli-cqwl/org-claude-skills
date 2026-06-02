@@ -39,8 +39,17 @@
         "artifact://design/login-homepage-pilot.phase-1.design@v1#IF-LOGIN-HANDLER"
       ],
       "test_refs": [
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-OBS-1",
         "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-T1-1",
-        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-OBS-1"
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-LOGIN-HOMEPAGE",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-CLOSURE",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-JOURNEY",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-NEGATIVE",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-OBS",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-SMOKE",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:1",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:2",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:3"
       ],
       "depends_on": [],
       "shared_files": [
@@ -53,7 +62,7 @@
         "login form",
         "invalid login error"
       ],
-      "proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "proving_command": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py'",
       "real_dependency_refs": [
         "artifact://evidence/login-homepage-pilot.phase-1.task-T1.dependencies@v1#real-dependency-refs"
       ],
@@ -87,7 +96,16 @@
         "artifact://design/login-homepage-pilot.phase-1.design@v1#IF-LOGOUT"
       ],
       "test_refs": [
-        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-T2-1"
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#AC-T2-1",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-LOGIN-HOMEPAGE",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-CLOSURE",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-JOURNEY",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-NEGATIVE",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-OBS",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-LOGIN-SMOKE",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:1",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:2",
+        "artifact://test-cases/login-homepage-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:3"
       ],
       "depends_on": [
         "T1"
@@ -102,7 +120,7 @@
         "homepage content",
         "logout stale-cookie rejection"
       ],
-      "proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "proving_command": "python3 -m unittest discover -s tests -p 'test_login_homepage_app.py'",
       "real_dependency_refs": [
         "artifact://evidence/login-homepage-pilot.phase-1.task-T2.dependencies@v1#real-dependency-refs"
       ],

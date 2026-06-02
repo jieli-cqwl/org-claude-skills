@@ -116,8 +116,36 @@ assert_hard_gate_absent 'task_packet_check.sh' "$DELIVERY_OWNER_SKILL"
 assert_hard_gate_absent 'current_gap / progress_signal' "$DELIVERY_OWNER_SKILL"
 assert_hard_gate_absent 'next_owner' "$DELIVERY_OWNER_SKILL"
 
-assert_present 'NO task handoff when the task lacks traceable goal' "$TECH_LEAD_SKILL"
-assert_present 'valid `failure_class` and owner-level disposition' "$FIX_SKILL"
+python3 - "$ROOT/shared/skills/tech-lead/contracts/tasks.schema.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+schema = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+properties = schema["allOf"][1]["properties"]
+task_required = set(properties["tasks"]["items"]["required"])
+required_task_fields = {
+    "scope_item_refs",
+    "test_refs",
+    "acceptance_targets",
+    "evidence_target",
+}
+missing = sorted(required_task_fields - task_required)
+if missing:
+    raise SystemExit(f"tech-lead task contract missing hard-gate fields: {missing}")
+PY
+python3 - "$ROOT/shared/skills/fix/contracts/fix-result.schema.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+schema = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+issue_schema = schema["allOf"][1]["properties"]["issues"]["items"]
+if "failure_class" not in issue_schema["required"]:
+    raise SystemExit("fix-result issues must require failure_class")
+if "FIXABLE" not in issue_schema["properties"]["failure_class"]["enum"]:
+    raise SystemExit("fix-result failure_class must define FIXABLE")
+PY
 
 assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized' "$DIRECTOR_SKILL"
 assert_absent 'design-ledger.json' "$DESIGN_SKILL"

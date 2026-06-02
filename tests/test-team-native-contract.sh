@@ -28,6 +28,21 @@ assert_not() {
     fi
 }
 
+prompt_has_legacy_mode_wording() {
+    local prompt="$1"
+    python3 - "$prompt" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+for line in path.read_text(encoding="utf-8").splitlines():
+    lowered = line.lower()
+    if "team 模式" in lowered or "fallback" in lowered:
+        raise SystemExit(0)
+raise SystemExit(1)
+PY
+}
+
 echo "=== 分层评审原生模式契约测试 ==="
 
 echo ""
@@ -68,8 +83,7 @@ for prompt in \
     "shared/skills/design/references/design-product-reviewer-prompt.md" \
     "shared/skills/design/references/design-test-reviewer-prompt.md"; do
     if [ -f "$prompt" ]; then
-        ! grep -qi "Team 模式" "$prompt" 2>/dev/null; assert "无 Team 模式指令: $(basename $prompt)" "$?"
-        ! grep -qi "fallback" "$prompt" 2>/dev/null; assert "无 fallback 指令: $(basename $prompt)" "$?"
+        ! prompt_has_legacy_mode_wording "$prompt"; assert "无 Team/fallback 模式指令: $(basename "$prompt")" "$?"
     fi
 done
 

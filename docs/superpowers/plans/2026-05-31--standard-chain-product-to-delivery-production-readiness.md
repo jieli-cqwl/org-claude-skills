@@ -2,11 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the `product-director -> product-manager -> tech-lead baseline -> delivery-owner -> signoff` chain production-ready for daily team use, with deterministic contracts, gates, runtime evidence, recovery, and signoff.
+**Goal:** Make the `product-director -> product-manager -> tech-lead baseline -> delivery-owner -> signoff` chain ready for a Codex-only controlled pilot, with deterministic contracts, gates, runtime evidence, recovery, and signoff. This plan does not authorize all-runtime or broad daily team rollout.
 
 **Architecture:** Treat the design spec and field decision matrix as the source of truth. Close the contract surface first, then update schemas/templates/scripts/fixtures, then prove two happy-path pilots and all blocking failure modes with deterministic validators. The model may generate and judge semantics, but it must not be the control plane for field guessing, freshness, recovery, or signoff.
 
 **Tech Stack:** Bash gate scripts, Python validators, YAML standard-chain contracts, JSON Schema artifacts, JSON fixtures, Markdown skill instructions.
+
+**Naming note:** Existing file names, gate ids, and historical labels that contain `production-readiness` are compatibility names for this workstream. The release decision in this plan is only Codex-only controlled pilot readiness; all-runtime or broad daily team rollout requires separate evidence.
 
 ---
 
@@ -35,7 +37,7 @@ This work is complete only when all of these are true:
 - Both canonical pilots pass.
 - Every failure mode `FM-01` through `FM-18` has a deterministic negative proof.
 - `bash tests/run-all.sh --quick` passes.
-- `bash tests/run-all.sh` passes before claiming production readiness.
+- A fresh `bash tests/run-all.sh` remains the final PR merge and pilot-start gate. Quick/targeted repair evidence may support review convergence, but must not be used alone to claim Codex-only controlled pilot readiness; this still does not authorize all-runtime or broad daily team rollout.
 - Two clean review loops find no new target-scope issue.
 
 ## Non-Goals
@@ -78,7 +80,7 @@ This work is complete only when all of these are true:
 | SC-6 Auditable signoff | Tasks 4, 5, 6 |
 | SC-7 Separated human decisions | Tasks 4, 6 |
 | SC-8 Repeatable pilot proof | Task 5 |
-| SC-9 Production-readiness verification | Tasks 0 through 8 |
+| SC-9 Codex-only pilot readiness verification | Tasks 0 through 8 |
 
 ## Failure Mode Map
 
@@ -896,18 +898,28 @@ bash tests/test-runtime-closeout-record.sh
 
 Expected: all pass.
 
-- [x] **Step 2: Run repository gates**
+- [x] **Step 2: Run quick repository gate**
 
 Run:
 
 ```bash
 bash tests/run-all.sh --quick
+```
+
+Expected: quick gate supports repair-loop convergence. This does not authorize pilot start by itself.
+
+- [ ] **Step 2b: Run pilot-start merge gates**
+
+Run before final PR merge or actual Codex-only pilot start:
+
+```bash
+bash install.sh --target codex --force --check quick
 bash tests/run-all.sh
 ```
 
-Expected: both pass before claiming production readiness.
+Expected: both gates pass from fresh output and are recorded in `docs/rule-runtime--team-readiness/run-record-2026-05-31.md/json`. All-runtime and broad team rollout remain explicitly out of scope.
 
-- [x] **Step 3: Review diff against scope**
+- [ ] **Step 3: Review diff against scope**
 
 Run:
 
@@ -921,13 +933,15 @@ git diff -- tools/community tests shared/skills docs/superpowers
 Expected:
 
 - no whitespace errors;
-- diff only touches task-2 production-readiness scope;
+- diff only touches task-2 Codex-only pilot readiness scope;
 - no unrelated test-system cleanup;
 - no archive/eval-result edits for search cleanliness;
 - removed fields have matching tests;
 - retained fields have owner, consumer, gate, failure, and recovery evidence.
 
-- [x] **Step 4: Complete two clean review loops**
+Current status: pending final diff review. The worktree also contains pre-existing out-of-scope top-level document deletions, so final go/no-go must distinguish target-scope changes from unrelated working-tree state.
+
+- [ ] **Step 4: Complete two clean review loops**
 
 For each loop, restate:
 

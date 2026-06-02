@@ -190,6 +190,63 @@ assert payload["task_count"] >= 1
 assert payload["qa_handoff_count"] >= 1
 PY
 
+cp -R "$PHASE/.." "$TMP_DIR/missing-task-contract-fields-feature"
+MISSING_TASK_CONTRACT_PHASE="$TMP_DIR/missing-task-contract-fields-feature/phase-1"
+jq 'del(.tasks[0].test_refs, .tasks[0].decision_refs, .tasks[0].shared_files, .tasks[0].evidence_target)' \
+  "$MISSING_TASK_CONTRACT_PHASE/tasks.json" \
+  >"$MISSING_TASK_CONTRACT_PHASE/tasks.tmp"
+mv "$MISSING_TASK_CONTRACT_PHASE/tasks.tmp" \
+  "$MISSING_TASK_CONTRACT_PHASE/tasks.json"
+set +e
+bash "$INTAKE" --phase-dir "$MISSING_TASK_CONTRACT_PHASE" >"$TMP_DIR/intake-missing-task-contract-fields.json"
+missing_task_contract_rc=$?
+set -e
+[ "$missing_task_contract_rc" -ne 0 ] || fail "intake preflight should fail when tasks omit dispatch contract fields"
+python3 - "$TMP_DIR/intake-missing-task-contract-fields.json" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "NEEDS_BASELINE"
+assert payload["failure_code"] == "TASK_CONTRACT_DRIFT"
+assert payload["owner"] == "tech-lead"
+reason = payload["reason"]
+for field in ("test_refs", "decision_refs", "shared_files", "evidence_target"):
+    assert field in reason
+assert payload["safe_to_dispatch"] is False
+assert payload["safe_for_baseline_audit"] is False
+PY
+
+cp -R "$PHASE/.." "$TMP_DIR/missing-test-design-consumption-feature"
+MISSING_TEST_DESIGN_CONSUMPTION_PHASE="$TMP_DIR/missing-test-design-consumption-feature/phase-1"
+jq '.obligation_source_refs = []' \
+  "$MISSING_TEST_DESIGN_CONSUMPTION_PHASE/plan.json" \
+  >"$MISSING_TEST_DESIGN_CONSUMPTION_PHASE/plan.tmp"
+mv "$MISSING_TEST_DESIGN_CONSUMPTION_PHASE/plan.tmp" \
+  "$MISSING_TEST_DESIGN_CONSUMPTION_PHASE/plan.json"
+jq '(.tasks[] | .test_refs) |= map(select((contains("qa_handoff_contract:") or contains("cross_unit_obligations:") or contains("#traceability_matrix:")) | not))' \
+  "$MISSING_TEST_DESIGN_CONSUMPTION_PHASE/tasks.json" \
+  >"$MISSING_TEST_DESIGN_CONSUMPTION_PHASE/tasks.tmp"
+mv "$MISSING_TEST_DESIGN_CONSUMPTION_PHASE/tasks.tmp" \
+  "$MISSING_TEST_DESIGN_CONSUMPTION_PHASE/tasks.json"
+set +e
+bash "$INTAKE" --phase-dir "$MISSING_TEST_DESIGN_CONSUMPTION_PHASE" >"$TMP_DIR/intake-missing-test-design-consumption.json"
+missing_test_design_consumption_rc=$?
+set -e
+[ "$missing_test_design_consumption_rc" -ne 0 ] || fail "intake preflight should fail when tech-lead baseline omits test-design obligation consumption"
+python3 - "$TMP_DIR/intake-missing-test-design-consumption.json" <<'PY'
+import json
+import sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+assert payload["status"] == "BLOCKED"
+assert payload["decision"] == "NEEDS_BASELINE"
+assert payload["failure_code"] == "TEST_DESIGN_OBLIGATION_DRIFT"
+assert payload["owner"] == "tech-lead"
+assert "test-design obligations" in payload["reason"]
+assert payload["safe_to_dispatch"] is False
+assert payload["safe_for_baseline_audit"] is False
+PY
+
 cp -R "$PHASE/.." "$TMP_DIR/kickoff-only-feature"
 KICKOFF_ONLY_PHASE="$TMP_DIR/kickoff-only-feature/phase-1"
 rm -f \

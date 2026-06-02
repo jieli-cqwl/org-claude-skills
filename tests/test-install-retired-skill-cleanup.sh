@@ -93,4 +93,26 @@ find "$STATE_ROOT/claude/unexpected-artifacts" -path '*/skills/ai-cli-updater/SK
 find "$STATE_ROOT/codex/unexpected-artifacts" -path '*/skills/ai-cli-updater/SKILL.md' -print -quit | grep -q . \
   || fail "codex retired ai-cli-updater should be archived"
 
+legacy_codex_skill="$TMP_HOME/.agents/skills/skill-refiner/SKILL.md"
+legacy_codex_backup="$STATE_ROOT/codex/legacy-backups/skill-refiner/SKILL.md"
+mkdir -p "$(dirname "$legacy_codex_skill")" "$(dirname "$legacy_codex_backup")"
+printf 'old retired runtime skill\n' >"$legacy_codex_skill"
+printf 'backup retired runtime skill\n' >"$legacy_codex_backup"
+printf '%s\n' "$legacy_codex_skill" >>"$STATE_ROOT/codex/installed-manifest"
+printf '%s\t%s\n' "$legacy_codex_skill" "$legacy_codex_backup" >>"$STATE_ROOT/codex/backup-manifest"
+
+env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_ROOT" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1 bash "$ROOT/install.sh" --target all --uninstall
+
+test ! -e "$TMP_HOME/.claude/skills/skill-auditor" || fail "claude uninstall must not restore retired skill-auditor"
+test ! -e "$TMP_HOME/.codex/skills/skill-auditor" || fail "codex uninstall must not restore retired skill-auditor"
+test ! -e "$TMP_HOME/.agents/skills/skill-auditor" || fail "codex runtime uninstall must not restore retired skill-auditor"
+test ! -e "$TMP_HOME/.claude/skills/skill-refiner" || fail "claude uninstall must not restore retired skill-refiner"
+test ! -e "$TMP_HOME/.codex/skills/skill-refiner" || fail "codex uninstall must not restore retired skill-refiner"
+test ! -e "$TMP_HOME/.agents/skills/skill-refiner" || fail "codex runtime uninstall must not restore retired skill-refiner"
+test ! -e "$TMP_HOME/.claude/skills/ai-cli-updater" || fail "claude uninstall must not restore retired ai-cli-updater"
+test ! -e "$TMP_HOME/.codex/skills/ai-cli-updater" || fail "codex uninstall must not restore retired ai-cli-updater"
+test ! -e "$TMP_HOME/.agents/skills/ai-cli-updater" || fail "codex runtime uninstall must not restore retired ai-cli-updater"
+test ! -e "$TMP_HOME/.claude/skills/test-design/evals" || fail "claude uninstall must not restore internal eval residue"
+test ! -e "$TMP_HOME/.agents/skills/test-design/evals" || fail "codex runtime uninstall must not restore internal eval residue"
+
 echo "[PASS] install retired skill cleanup"

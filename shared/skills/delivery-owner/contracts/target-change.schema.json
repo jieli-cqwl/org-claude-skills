@@ -24,7 +24,9 @@
         },
         "change_source": {
           "type": "string",
-          "minLength": 1
+          "enum": [
+            "authenticated-target-change"
+          ]
         },
         "actor_id": {
           "type": "string",
@@ -46,6 +48,7 @@
           "type": "string",
           "enum": [
             "product-director",
+            "product-manager",
             "tech-lead",
             "design",
             "test-design",
@@ -58,7 +61,9 @@
           "items": {
             "type": "string",
             "enum": [
+              "brief",
               "phase-prd",
+              "unit-definition",
               "design",
               "plan",
               "tasks",
@@ -67,7 +72,8 @@
               "verify-result",
               "code-review-result",
               "qa-result",
-              "consistency-audit-result"
+              "consistency-audit-result",
+              "fix-result"
             ]
           },
           "uniqueItems": true
@@ -77,6 +83,10 @@
         },
         "decision_basis_refs": {
           "$ref": "https://org-claude-skills.local/shared/skills/lib/contracts/shared-core.schema.json#/$defs/canonicalRefArray"
+        },
+        "target_change_payload_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
         }
       },
       "required": [
@@ -93,7 +103,8 @@
         "rebaseline_owner",
         "required_fresh_proof_after_rebaseline",
         "authority_proof_refs",
-        "decision_basis_refs"
+        "decision_basis_refs",
+        "target_change_payload_digest"
       ],
       "not": {
         "anyOf": [
@@ -124,6 +135,308 @@
           }
         ]
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "changed_target_type": {
+                "const": "GOAL"
+              }
+            },
+            "required": [
+              "changed_target_type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rebaseline_owner": {
+                "const": "product-director"
+              },
+              "required_fresh_proof_after_rebaseline": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "brief"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "brief"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "phase-prd"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "unit-definition"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "design"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "test-cases"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "plan"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "tasks"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "developer-report"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "verify-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "code-review-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "qa-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "consistency-audit-result"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "changed_target_type": {
+                "enum": [
+                  "SCOPE",
+                  "AC"
+                ]
+              }
+            },
+            "required": [
+              "changed_target_type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rebaseline_owner": {
+                "const": "product-manager"
+              },
+              "required_fresh_proof_after_rebaseline": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "brief"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "phase-prd"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "unit-definition"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "design"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "test-cases"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "plan"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "tasks"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "developer-report"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "verify-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "code-review-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "qa-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "consistency-audit-result"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "changed_target_type": {
+                "const": "DESIGN"
+              }
+            },
+            "required": [
+              "changed_target_type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rebaseline_owner": {
+                "const": "design"
+              },
+              "required_fresh_proof_after_rebaseline": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "design"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "test-cases"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "plan"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "tasks"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "developer-report"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "verify-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "code-review-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "qa-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "consistency-audit-result"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "changed_target_type": {
+                "const": "TASKS"
+              }
+            },
+            "required": [
+              "changed_target_type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rebaseline_owner": {
+                "const": "tech-lead"
+              },
+              "required_fresh_proof_after_rebaseline": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "plan"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "tasks"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "developer-report"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "verify-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "code-review-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "qa-result"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "consistency-audit-result"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": true
     }
   ]

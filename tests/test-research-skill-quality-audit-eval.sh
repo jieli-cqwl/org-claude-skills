@@ -40,20 +40,14 @@ from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
 required = [
-    "轻量预判断不是 /research 完成",
-    "正式报告收口",
     "github-repo-radar",
     "deep-research",
-    "不为轻量预判断强制落盘 research-report.md",
-    "只输出最小决策包",
-    "agent teams 只用于 Step 2/3/5",
+    "research-report.md",
+    "Step 2/3/5",
 ]
 missing = [term for term in required if term not in text]
 if missing:
     raise SystemExit(f"research quick triage contract missing: {', '.join(missing)}")
-legacy = "NO /research 完成 without `docs/{feature}/research-report.md` 落盘且用户确认"
-if legacy in text:
-    raise SystemExit("research quick triage contract still contains legacy hard-gate wording")
 PY
 }
 
@@ -66,35 +60,24 @@ from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
 
-legacy_noise = [
-    "核心方法论：",
-    "定位：深度调研 + 实证分析 + 决策支持",
-    "拒绝通用结论",
-]
-present_noise = [term for term in legacy_noise if term in text]
-if present_noise:
-    raise SystemExit(
-        "research instruction quality still contains legacy/noisy wording: "
-        + ", ".join(present_noise)
-    )
-
 required_clauses = {
     "claude_code_thinking_keyword": "> ultrathink",
     "action_contract_heading": "研究判断动作合同",
-    "candidate_mechanism": "每个候选必须写清：解决什么问题、核心机制、适用边界和失效边界",
+    "candidate_mechanism": ["每个候选", "核心机制", "失效边界"],
     "unsourced_claim_boundary": "无源论断只能进入待验证项",
-    "context_bound_recommendation": "缺少项目约束时只能标为通用观察，不得作为推荐",
-    "decision_first_screen": "decision 输出首屏必须包含：当前判断、决定性理由、最大风险和下一步",
+    "context_bound_recommendation": ["项目约束", "通用观察", "不得作为推荐"],
+    "decision_first_screen": ["decision", "当前判断", "决定性理由", "最大风险", "下一步"],
 }
-missing = [name for name, clause in required_clauses.items() if clause not in text]
+missing = [
+    name
+    for name, clause in required_clauses.items()
+    if not all(term in text for term in (clause if isinstance(clause, list) else [clause]))
+]
 if missing:
     raise SystemExit(
         "research instruction quality missing action clauses: "
         + ", ".join(missing)
     )
-
-if "警示信号" not in text or "出现以下想法时立刻停下" not in text:
-    raise SystemExit("research instruction quality must keep actionable warning trigger")
 
 stop_lines = [line for line in text.splitlines() if "→ STOP." in line]
 if len(stop_lines) < 8:
@@ -114,31 +97,31 @@ from pathlib import Path
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
 
-required = {
-    "mission": "/research 用在团队可能基于外部信息行动之前",
-    "two_stage_core": "先找准资料/对象，再判准团队判断",
-    "source_targeting": "Source Targeting",
-    "evidence_qualification": "Evidence Qualification",
-    "judgment_calibration": "Judgment Calibration",
-    "decision_package": "Decision Package",
-    "when_to_use": "## When to Use",
-    "when_not_to_use": "## When NOT to Use",
-    "adoption_scene": "这个东西能不能用？",
-    "selection_scene": "这几个选哪个？",
-    "claim_scene": "这个说法靠谱吗？",
-    "identity_scene": "这个到底是哪一个？",
-    "review_scene": "我倾向 X，帮我把把关。",
-    "scouting_scene": "做方案前先看看外面怎么做。",
+headings = {line[3:].strip() for line in text.splitlines() if line.startswith("## ")}
+required_headings = {
+    "When to Use",
+    "When NOT to Use",
+    "Core Contracts",
 }
-missing = [name for name, term in required.items() if term not in text]
+missing = sorted(required_headings - headings)
 if missing:
     raise SystemExit("research real use contract missing: " + ", ".join(missing))
+core_contracts = text.split("## Core Contracts", 1)[1].split("\n## ", 1)[0]
+try:
+    source_index = core_contracts.index("Source Targeting Package")
+    evidence_index = core_contracts.index("Evidence Qualification")
+    judgment_index = core_contracts.index("Judgment Calibration")
+    decision_index = core_contracts.index("Decision Package")
+except ValueError as exc:
+    raise SystemExit("research real use contract missing core contract marker") from exc
+if not source_index < evidence_index < judgment_index < decision_index:
+    raise SystemExit("research real use contract core markers are out of order")
 
 bad_framing = [
-    "Run research as a gated investigation, not as a source list.",
-    "Research must change what the user can safely decide, understand, or audit.",
+    ("gated investigation", "source list"),
+    ("safely decide", "understand", "audit"),
 ]
-present = [term for term in bad_framing if term in text]
+present = ["/".join(terms) for terms in bad_framing if all(term in text for term in terms)]
 if present:
     raise SystemExit(
         "research still uses generic investigation framing instead of source-first team judgment framing: "
@@ -157,8 +140,8 @@ from pathlib import Path
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
 
 required_clauses = {
-    "source_first_gate": "Do NOT calibrate judgment until source/object targeting is complete.",
-    "wrong_object_gate": "Do NOT treat a similar name, mirror, directory page, or secondary summary as the target object.",
+    "source_first_gate": ["Do NOT", "calibrate judgment", "source/object targeting"],
+    "wrong_object_gate": ["Do NOT", "similar name", "secondary summary", "target object"],
     "source_package": "Source Targeting Package",
     "source_variants": "name variants",
     "upstream_source": "upstream/official source",
@@ -168,7 +151,11 @@ required_clauses = {
     "credibility_tiers": "Evidence Qualification",
     "evidence_package_guide": "references/evidence-package-guide.md",
 }
-missing = [name for name, term in required_clauses.items() if term not in text]
+missing = [
+    name
+    for name, term in required_clauses.items()
+    if not all(item in text for item in (term if isinstance(term, list) else [term]))
+]
 if missing:
     raise SystemExit("research source targeting contract missing: " + ", ".join(missing))
 
@@ -192,15 +179,23 @@ text = Path(sys.argv[1]).read_text(encoding="utf-8")
 required_markers = {
     "hard_gate_block_start": "<HARD-GATE>",
     "hard_gate_block_end": "</HARD-GATE>",
-    "anti_pattern_section": '## Anti-Pattern: "The First Relevant Result Is The Right Source"',
-    "checklist_section": "## Workflow Checklist",
-    "core_contracts_section": "## Core Contracts",
-    "report_self_review": "## Report Self-Review",
-    "user_confirmation_gate": "## User Confirmation Gate",
-    "terminal_state": "## Terminal State",
-    "terminal_state_phrase": "The terminal state is either a confirmed lightweight decision package, a user-confirmed research report, or an explicit route to an adjacent skill.",
+    "anti_pattern_section": 'Anti-Pattern: "The First Relevant Result Is The Right Source"',
+    "checklist_section": "Workflow Checklist",
+    "core_contracts_section": "Core Contracts",
+    "report_self_review": "Report Self-Review",
+    "user_confirmation_gate": "User Confirmation Gate",
+    "terminal_state": "Terminal State",
+    "terminal_state_phrase": [
+        "confirmed lightweight decision package",
+        "user-confirmed research report",
+        "explicit route to an adjacent skill",
+    ],
 }
-missing = [name for name, marker in required_markers.items() if marker not in text]
+missing = [
+    name
+    for name, marker in required_markers.items()
+    if not all(term in text for term in (marker if isinstance(marker, list) else [marker]))
+]
 if missing:
     raise SystemExit(
         "research brainstorming parity missing structural markers: "

@@ -177,7 +177,7 @@ REQUIRED_SCHEMA_FIELDS = {
     "delivery-state": {"kickoff"},
     "signoff-package": {"current_stage"},
     "user-decision": {"current_stage", "director_lock_digests"},
-    "target-change": {"changed_target_type", "invalidates_refs", "superseded_evidence_refs", "rebaseline_required", "rebaseline_owner", "required_fresh_proof_after_rebaseline"},
+    "target-change": {"changed_target_type", "invalidates_refs", "superseded_evidence_refs", "rebaseline_required", "rebaseline_owner", "required_fresh_proof_after_rebaseline", "target_change_payload_digest"},
 }
 SCHEMA_PROPERTY_FIELDS = {
     "phase-prd": {"coverage_matrix", "technical_evidence_requirements", "release_readiness", "business_flows", "user_paths", "rule_mappings", "design_decision_candidates"},

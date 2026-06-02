@@ -27,6 +27,14 @@ class SimpleSchemaValidator:
             self._validate(instance, target, path, target_root_id)
         for subschema in schema.get("allOf", []):
             self._validate(instance, subschema, path, root_id)
+        if "anyOf" in schema:
+            options = schema["anyOf"]
+            if not isinstance(options, list) or not options:
+                raise SimpleValidationError(f"{path}: anyOf must contain at least one schema")
+            if not any(self._matches(instance, subschema, path, root_id) for subschema in options):
+                raise SimpleValidationError(f"{path}: does not match anyOf")
+        if "not" in schema and self._matches(instance, schema["not"], path, root_id):
+            raise SimpleValidationError(f"{path}: matches forbidden schema")
         if "if" in schema and self._matches(instance, schema["if"], path, root_id):
             self._validate(instance, schema.get("then", {}), path, root_id)
         if "const" in schema and instance != schema["const"]:
@@ -108,6 +116,25 @@ class SimpleSchemaValidator:
             raise SimpleValidationError(f"{path}: fewer items than minItems")
         if "maxItems" in schema and len(instance) > int(schema["maxItems"]):
             raise SimpleValidationError(f"{path}: more items than maxItems")
+        if schema.get("uniqueItems") is True:
+            seen = set()
+            for item in instance:
+                marker = repr(item)
+                if marker in seen:
+                    raise SimpleValidationError(f"{path}: duplicate array item")
+                seen.add(marker)
+        contains_schema = schema.get("contains")
+        if isinstance(contains_schema, dict):
+            match_count = sum(
+                1
+                for index, item in enumerate(instance)
+                if self._matches(item, contains_schema, f"{path}[{index}]", root_id)
+            )
+            min_contains = int(schema.get("minContains", 1))
+            if match_count < min_contains:
+                raise SimpleValidationError(f"{path}: fewer items than minContains")
+            if "maxContains" in schema and match_count > int(schema["maxContains"]):
+                raise SimpleValidationError(f"{path}: more items than maxContains")
         item_schema = schema.get("items")
         if isinstance(item_schema, dict):
             for index, item in enumerate(instance):

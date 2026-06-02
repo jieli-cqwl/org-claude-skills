@@ -312,7 +312,7 @@ def _assert_qa_handoff_contract(payload: dict, design: dict) -> None:
 
 
 def _expected_manager_refs(design: dict) -> set[str]:
-    return {
+    refs = {
         f"design.json#verification_mapping[{index}].manager_vp_ref"
         for index, _mapping in enumerate(
             _require_non_empty_list(
@@ -320,6 +320,19 @@ def _expected_manager_refs(design: dict) -> set[str]:
             )
         )
     }
+    refs.update(
+        f"design.json#key_decisions[{index}]"
+        for index, _decision in enumerate(
+            _require_non_empty_list(design.get("key_decisions"), "design.key_decisions")
+        )
+    )
+    refs.update(
+        f"design.json#interfaces[{index}]"
+        for index, _interface in enumerate(
+            _require_non_empty_list(design.get("interfaces"), "design.interfaces")
+        )
+    )
+    return refs
 
 
 def _actual_qa_design_refs(payload: dict, design: dict) -> set[str]:

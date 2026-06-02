@@ -16,11 +16,13 @@ class SearchCall(NamedTuple):
     target: str
 
 
-ASSIGN_RE = re.compile(r"^(?:local\s+)?([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
+ASSIGN_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 ASSERT_RE = re.compile(r"^assert_(present|absent)\b")
 ASSERT_ANY_RE = re.compile(r"^assert_any_present\b")
 SECTION_ASSERT_RE = re.compile(r"^assert_section_(present|absent)\b")
-FUNCTION_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\(\)\s*\{")
+FUNCTION_RE = re.compile(
+    r"^(?:function\s+)?([A-Za-z_][A-Za-z0-9_]*)(?:\s*\(\))?\s*\{"
+)
 FOR_RE = re.compile(r"^for\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\s+(.+?);?\s*(?:do)?$")
 VAR_RE = re.compile(r"^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?$")
 RG_OPTIONS_WITH_VALUE = {
@@ -79,8 +81,8 @@ def collect_function_arities(commands: list[str]) -> dict[str, int]:
             continue
         if current is None:
             continue
-        for arg in re.findall(r"\$(\d+)", stripped):
-            max_arg = max(max_arg, int(arg))
+        for braced_arg, bare_arg in re.findall(r"\$\{(\d+)\}|\$(\d+)", stripped):
+            max_arg = max(max_arg, int(braced_arg or bare_arg))
         depth += stripped.count("{") - stripped.count("}")
         if depth <= 0:
             arities[current] = max_arg
@@ -91,26 +93,50 @@ def collect_function_arities(commands: list[str]) -> dict[str, int]:
 def collect_loop_values(commands: list[str]) -> dict[str, list[str]]:
     values: dict[str, list[str]] = {}
     for command in commands:
-        stripped = command.strip()
-        match = FOR_RE.match(stripped)
-        if not match:
+        binding = loop_binding(command)
+        if binding is None:
             continue
-        raw_values = match.group(2).removesuffix("do").strip()
-        words = shell_words(raw_values) or []
-        literal_values = [word for word in words if not word.startswith("$")]
-        if literal_values:
-            values[match.group(1)] = literal_values
+        name, literal_values = binding
+        values[name] = literal_values
     return values
 
 
-def expand_pattern(pattern: str, loop_values: dict[str, list[str]]) -> list[str]:
-    match = VAR_RE.match(pattern.strip())
+def loop_binding(command: str) -> tuple[str, list[str]] | None:
+    stripped = command.strip()
+    match = FOR_RE.match(stripped)
+    if not match:
+        return None
+    raw_values = match.group(2).removesuffix("do").strip()
+    words = shell_words(raw_values) or []
+    literal_values = [word for word in words if word not in {"$@", "$*"}]
+    if not literal_values:
+        return None
+    return match.group(1), literal_values
+
+
+def closes_loop(command: str) -> bool:
+    return command.strip() == "done"
+
+
+def expand_loop_token(token: str, loop_values: dict[str, list[str]]) -> list[str]:
+    match = VAR_RE.match(token.strip())
     if match:
-        return loop_values.get(match.group(1), [pattern])
-    return [pattern]
+        return loop_values.get(match.group(1), [token])
+    return [token]
+
+
+def expand_pattern(pattern: str, loop_values: dict[str, list[str]]) -> list[str]:
+    return expand_loop_token(pattern, loop_values)
+
+
+def expand_target(target: str, loop_values: dict[str, list[str]]) -> list[str]:
+    return expand_loop_token(target, loop_values)
 
 
 def resolve_target(raw: str, assignments: dict[str, str]) -> str:
+    positional_match = re.fullmatch(r"\$\{?([0-9]+)\}?", raw.strip())
+    if positional_match:
+        return assignments.get(positional_match.group(1), raw)
     match = VAR_RE.match(raw.strip())
     if match:
         return assignments.get(match.group(1), raw)

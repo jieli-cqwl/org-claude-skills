@@ -1,0 +1,42 @@
+{
+  "artifact_type": "tasks",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks",
+  "schema_version": "1.0.0",
+  "producer": "tech-lead",
+  "produced_at": "2026-06-01T00:00:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "phase",
+  "authoritative_fields": [
+    "$.plan_version",
+    "$.tasks"
+  ],
+  "goal_source_refs": [],
+  "constraint_source_refs": [],
+  "obligation_source_refs": [],
+  "execution_basis_refs": [],
+  "evidence_refs": [],
+  "plan_version": "plan-v1",
+  "tasks": [
+    {
+      "task_id": "T1",
+      "phase_ref": "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal",
+      "unit_refs": [],
+      "scope_item_refs": [
+        "artifact://phase-prd/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.prd@v1#phase-goal"
+      ],
+      "design_refs": [
+        "artifact://design/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.design@v1#key-decisions"
+      ],
+      "test_refs": [
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#TC-1"
+      ],
+      "depends_on": [],
+      "shared_files": [],
+      "batch": 1,
+      "acceptance_targets": [
+        "foundation"
+      ]
+    }
+  ]
+}

@@ -1298,9 +1298,36 @@ precheck_metadata_health() {
   fi
 }
 
-build_allowed_codex_rule_names() {
+build_allowed_runtime_rule_names() {
+  local name="$1"
+
   find "$SHARED_SOURCE/rules" -maxdepth 1 -type f -name '*.md' -exec basename {} \; 2>/dev/null | sort
-  printf '%s\n' "default.rules"
+  if [ "$name" = "codex" ]; then
+    printf '%s\n' "default.rules"
+  fi
+}
+
+retired_runtime_rule_names() {
+  cat <<'EOF'
+代码规范.md
+完成前验证.md
+交付验收底线.md
+旧质量指南.md
+铁律.md
+EOF
+}
+
+retired_runtime_reference_names() {
+  cat <<'EOF'
+代码复用.md
+完成前验证.md
+性能效率.md
+硬编码治理规范.md
+EOF
+}
+
+path_exists_or_symlink() {
+  [ -e "$1" ] || [ -L "$1" ]
 }
 
 retired_runtime_skills() {
@@ -1542,55 +1569,182 @@ codex_agent_files_match_contract() {
   grep -Fq "加载 \`verify\` skill，结合目标和成功标准交付结果。" "$agents_dir/verifier.toml" || return 1
 }
 
-audit_codex_runtime_rules() {
-  local target_dir="$1"
-  local state_dir="$2"
-  local allowed_names name path archive_root=""
+audit_runtime_rules() {
+  local name="$1"
+  local target_dir="$2"
+  local state_dir="$3"
+  local apply_cleanup="${4:-0}"
+  local backup_root="${5:-}"
+  local backup_tmp="${6:-}"
+  local allowed_names retired_names rule_name path archive_root=""
 
   RUNTIME_AUDIT_DIRTY=0
   [ -d "$target_dir/rules" ] || return 0
 
-  allowed_names="$(build_allowed_codex_rule_names)"
+  allowed_names="$(build_allowed_runtime_rule_names "$name")"
+  retired_names="$(retired_runtime_rule_names)"
 
   while IFS= read -r path; do
     [ -n "$path" ] || continue
-    name="$(basename "$path")"
+    rule_name="$(basename "$path")"
 
-    if printf '%s\n' "$allowed_names" | grep -Fxq "$name"; then
-      if [ "$name" != "default.rules" ] && [ -L "$path" ]; then
+    if printf '%s\n' "$allowed_names" | grep -Fxq "$rule_name"; then
+      if [ "$rule_name" != "default.rules" ] && [ -L "$path" ]; then
         RUNTIME_AUDIT_DIRTY=1
-        if [ "$DRY_RUN" -eq 1 ]; then
-          log "[dry-run] codex 将重建受管规则软链接为真实文件: $path"
+        if [ "$DRY_RUN" -eq 1 ] || [ "$apply_cleanup" -eq 0 ]; then
+          log "[dry-run] $name 将重建受管规则软链接为真实文件: $path"
         else
+          if [ -n "$backup_root" ] && [ -n "$backup_tmp" ]; then
+            backup_existing_path "$name" "$target_dir" "$path" "$backup_root" "$backup_tmp"
+          fi
           rm -f "$path"
-          log "codex 已移除受管规则软链接，后续将重建为真实文件: $path"
+          log "$name 已移除受管规则软链接，后续将重建为真实文件: $path"
         fi
       fi
       continue
     fi
 
-    case "$name" in
-      *.md)
-        RUNTIME_AUDIT_DIRTY=1
-        if [ "$DRY_RUN" -eq 1 ]; then
-          log "[dry-run] codex 将归档并清理非受管规则残留: $path"
-          continue
-        fi
+    if printf '%s\n' "$retired_names" | grep -Fxq "$rule_name"; then
+      RUNTIME_AUDIT_DIRTY=1
+      if [ "$DRY_RUN" -eq 1 ] || [ "$apply_cleanup" -eq 0 ]; then
+        log "[dry-run] $name 将归档并清理退休规则残留: $path"
+        continue
+      fi
 
-        [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
-        mkdir -p "$archive_root/rules"
-        cp -a "$path" "$archive_root/rules/$name"
-        rm -f "$path"
-        log "codex 已归档并清理非受管规则残留: $path -> $archive_root/rules/$name"
-        ;;
-    esac
+      [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
+      mkdir -p "$archive_root/rules"
+      cp -a "$path" "$archive_root/rules/$rule_name"
+      if [ -n "$backup_root" ] && [ -n "$backup_tmp" ]; then
+        backup_existing_path "$name" "$target_dir" "$path" "$backup_root" "$backup_tmp"
+      fi
+      rm -f "$path"
+      log "$name 已归档并清理退休规则残留: $path -> $archive_root/rules/$rule_name"
+    fi
   done < <(find "$target_dir/rules" -maxdepth 1 \( -type f -o -type l \) 2>/dev/null | sort)
+}
+
+audit_runtime_references() {
+  local name="$1"
+  local target_dir="$2"
+  local state_dir="$3"
+  local apply_cleanup="${4:-0}"
+  local backup_root="${5:-}"
+  local backup_tmp="${6:-}"
+  local allowed_names retired_names reference_name path archive_root=""
+
+  [ -d "$target_dir/reference" ] || return 0
+
+  allowed_names="$(find "$SHARED_SOURCE/reference" -maxdepth 1 -type f -name '*.md' -exec basename {} \; 2>/dev/null | sort)"
+  retired_names="$(retired_runtime_reference_names)"
+
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    reference_name="$(basename "$path")"
+
+    if printf '%s\n' "$allowed_names" | grep -Fxq "$reference_name"; then
+      if [ -L "$path" ]; then
+        RUNTIME_AUDIT_DIRTY=1
+        if [ "$DRY_RUN" -eq 1 ] || [ "$apply_cleanup" -eq 0 ]; then
+          log "[dry-run] $name 将重建受管 reference 软链接为真实文件: $path"
+        else
+          if [ -n "$backup_root" ] && [ -n "$backup_tmp" ]; then
+            backup_existing_path "$name" "$target_dir" "$path" "$backup_root" "$backup_tmp"
+          fi
+          rm -f "$path"
+          log "$name 已移除受管 reference 软链接，后续将重建为真实文件: $path"
+        fi
+      fi
+      continue
+    fi
+
+    if printf '%s\n' "$retired_names" | grep -Fxq "$reference_name"; then
+      RUNTIME_AUDIT_DIRTY=1
+      if [ "$DRY_RUN" -eq 1 ] || [ "$apply_cleanup" -eq 0 ]; then
+        log "[dry-run] $name 将归档并清理退休 reference 残留: $path"
+        continue
+      fi
+
+      [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
+      mkdir -p "$archive_root/reference"
+      cp -a "$path" "$archive_root/reference/$reference_name"
+      if [ -n "$backup_root" ] && [ -n "$backup_tmp" ]; then
+        backup_existing_path "$name" "$target_dir" "$path" "$backup_root" "$backup_tmp"
+      fi
+      rm -f "$path"
+      log "$name 已归档并清理退休 reference 残留: $path -> $archive_root/reference/$reference_name"
+    fi
+  done < <(find "$target_dir/reference" -maxdepth 1 \( -type f -o -type l \) 2>/dev/null | sort)
+}
+
+is_retired_runtime_path() {
+  local name="$1"
+  local target_dir="$2"
+  local path="$3"
+  local item_name
+
+  case "$path" in
+    "$target_dir/rules/"*)
+      item_name="$(basename "$path")"
+      retired_runtime_rule_names | grep -Fxq "$item_name"
+      return $?
+      ;;
+    "$target_dir/reference/"*)
+      item_name="$(basename "$path")"
+      retired_runtime_reference_names | grep -Fxq "$item_name"
+      return $?
+      ;;
+  esac
+
+  return 1
+}
+
+is_runtime_audit_cleanup_path() {
+  local name="$1"
+  local target_dir="$2"
+  local path="$3"
+  local skills_dir legacy_skills_dir rel skill
+
+  if is_retired_runtime_path "$name" "$target_dir" "$path"; then
+    return 0
+  fi
+
+  skills_dir="$(runtime_skills_dir_for_target "$name" "$target_dir")"
+  case "$path" in
+    "$skills_dir"/*)
+      rel="${path#"$skills_dir"/}"
+      [ -n "$rel" ] || return 1
+      skill="${rel%%/*}"
+      if retired_runtime_skills | grep -Fxq "$skill"; then
+        return 0
+      fi
+      case "$skill" in
+        zz-runtime-probe*) return 0 ;;
+      esac
+      case "$rel" in
+        *-workspace|*-workspace/*|*/evals|*/evals/*|*/fixtures|*/fixtures/*|*/examples|*/examples/*|*/selves|*/selves/*)
+          return 0
+          ;;
+      esac
+      ;;
+  esac
+
+  if [ "$name" = "codex" ]; then
+    legacy_skills_dir="$target_dir/skills"
+    case "$path" in
+      "$legacy_skills_dir"/*) return 0 ;;
+    esac
+  fi
+
+  return 1
 }
 
 audit_retired_runtime_skills() {
   local name="$1"
   local target_dir="$2"
   local state_dir="$3"
+  local apply_cleanup="${4:-0}"
+  local backup_root="${5:-}"
+  local backup_tmp="${6:-}"
   local skills_dir skill skill_path archive_root=""
 
   skills_dir="$(runtime_skills_dir_for_target "$name" "$target_dir")"
@@ -1602,14 +1756,18 @@ audit_retired_runtime_skills() {
     [ -e "$skill_path" ] || [ -L "$skill_path" ] || continue
 
     RUNTIME_AUDIT_DIRTY=1
-    if [ "$DRY_RUN" -eq 1 ]; then
+    if [ "$DRY_RUN" -eq 1 ] || [ "$apply_cleanup" -eq 0 ]; then
       log "[dry-run] $name 将归档并清理退役 skill 残留: $skill_path"
       continue
     fi
 
     [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
     mkdir -p "$archive_root/skills"
-    mv "$skill_path" "$archive_root/skills/$skill"
+    cp -a "$skill_path" "$archive_root/skills/$skill"
+    if [ -n "$backup_root" ] && [ -n "$backup_tmp" ]; then
+      backup_existing_path "$name" "$target_dir" "$skill_path" "$backup_root" "$backup_tmp"
+    fi
+    rm -rf "$skill_path"
     remove_if_empty "$(dirname "$skill_path")" "$skills_dir"
     log "$name 已归档并清理退役 skill 残留: $skill_path -> $archive_root/skills/$skill"
   done < <(retired_runtime_skills)
@@ -1619,6 +1777,9 @@ audit_runtime_probe_skills() {
   local name="$1"
   local target_dir="$2"
   local state_dir="$3"
+  local apply_cleanup="${4:-0}"
+  local backup_root="${5:-}"
+  local backup_tmp="${6:-}"
   local skills_dir skill_path skill archive_root=""
 
   skills_dir="$(runtime_skills_dir_for_target "$name" "$target_dir")"
@@ -1630,14 +1791,18 @@ audit_runtime_probe_skills() {
     skill="$(basename "$skill_path")"
 
     RUNTIME_AUDIT_DIRTY=1
-    if [ "$DRY_RUN" -eq 1 ]; then
+    if [ "$DRY_RUN" -eq 1 ] || [ "$apply_cleanup" -eq 0 ]; then
       log "[dry-run] $name 将归档并清理 runtime 探针 skill 残留: $skill_path"
       continue
     fi
 
     [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
     mkdir -p "$archive_root/skills"
-    mv "$skill_path" "$archive_root/skills/$skill"
+    cp -a "$skill_path" "$archive_root/skills/$skill"
+    if [ -n "$backup_root" ] && [ -n "$backup_tmp" ]; then
+      backup_existing_path "$name" "$target_dir" "$skill_path" "$backup_root" "$backup_tmp"
+    fi
+    rm -rf "$skill_path"
     remove_if_empty "$(dirname "$skill_path")" "$skills_dir"
     log "$name 已归档并清理 runtime 探针 skill 残留: $skill_path -> $archive_root/skills/$skill"
   done < <(find "$skills_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -name 'zz-runtime-probe*' 2>/dev/null | sort)
@@ -1647,6 +1812,9 @@ audit_runtime_internal_skill_roots() {
   local name="$1"
   local target_dir="$2"
   local state_dir="$3"
+  local apply_cleanup="${4:-0}"
+  local backup_root="${5:-}"
+  local backup_tmp="${6:-}"
   local skills_dir internal_path rel archive_root=""
 
   skills_dir="$(runtime_skills_dir_for_target "$name" "$target_dir")"
@@ -1657,7 +1825,7 @@ audit_runtime_internal_skill_roots() {
     [ -e "$internal_path" ] || [ -L "$internal_path" ] || continue
 
     RUNTIME_AUDIT_DIRTY=1
-    if [ "$DRY_RUN" -eq 1 ]; then
+    if [ "$DRY_RUN" -eq 1 ] || [ "$apply_cleanup" -eq 0 ]; then
       log "[dry-run] $name 将归档并清理 runtime skill 内部目录残留: $internal_path"
       continue
     fi
@@ -1665,7 +1833,11 @@ audit_runtime_internal_skill_roots() {
     rel="${internal_path#"$skills_dir"/}"
     [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
     mkdir -p "$(dirname "$archive_root/skills/$rel")"
-    mv "$internal_path" "$archive_root/skills/$rel"
+    cp -a "$internal_path" "$archive_root/skills/$rel"
+    if [ -n "$backup_root" ] && [ -n "$backup_tmp" ]; then
+      backup_existing_path "$name" "$target_dir" "$internal_path" "$backup_root" "$backup_tmp"
+    fi
+    rm -rf "$internal_path"
     remove_if_empty "$(dirname "$internal_path")" "$skills_dir"
     log "$name 已归档并清理 runtime skill 内部目录残留: $internal_path -> $archive_root/skills/$rel"
   done < <(
@@ -1682,6 +1854,9 @@ audit_codex_legacy_skill_root() {
   local target_dir="$1"
   local staging_skills_dir="$2"
   local state_dir="$3"
+  local apply_cleanup="${4:-0}"
+  local backup_root="${5:-}"
+  local backup_tmp="${6:-}"
   local legacy_dir="$target_dir/skills"
   local skill_path skill staged_skill archive_root=""
 
@@ -1711,14 +1886,18 @@ audit_codex_legacy_skill_root() {
     fi
 
     RUNTIME_AUDIT_DIRTY=1
-    if [ "$DRY_RUN" -eq 1 ]; then
+    if [ "$DRY_RUN" -eq 1 ] || [ "$apply_cleanup" -eq 0 ]; then
       log "[dry-run] codex 将归档并清理旧 skill 路径残留: $skill_path"
       continue
     fi
 
     [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
     mkdir -p "$archive_root/skills"
-    mv "$skill_path" "$archive_root/skills/$skill"
+    cp -a "$skill_path" "$archive_root/skills/$skill"
+    if [ -n "$backup_root" ] && [ -n "$backup_tmp" ]; then
+      backup_existing_path "codex" "$target_dir" "$skill_path" "$backup_root" "$backup_tmp"
+    fi
+    rm -rf "$skill_path"
     remove_if_empty "$(dirname "$skill_path")" "$legacy_dir"
     log "codex 已归档并清理旧 skill 路径残留: $skill_path -> $archive_root/skills/$skill"
   done < <(find "$legacy_dir" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) ! -name '.*' 2>/dev/null | sort)
@@ -1837,6 +2016,10 @@ backup_rel_for_path() {
         printf 'skills/%s\n' "${path#"$CODEX_USER_SKILLS_DIR"/}"
         return 0
         ;;
+      "$target_dir/skills/"*)
+        printf 'codex-legacy-skills/%s\n' "${path#"$target_dir/skills"/}"
+        return 0
+        ;;
     esac
   fi
 
@@ -1858,7 +2041,7 @@ reuse_existing_backup_mapping() {
   local backup
 
   backup="$(lookup_backup_path "$backup_manifest" "$path" || true)"
-  if [ -n "$backup" ] && [ -f "$backup" ]; then
+  if [ -n "$backup" ] && path_exists_or_symlink "$backup"; then
     printf '%s\t%s\n' "$path" "$backup" >> "$backup_tmp"
     return 0
   fi
@@ -1978,8 +2161,9 @@ rollback_from_tmp() {
   if [ -f "$backup_map_file" ]; then
     while IFS=$'\t' read -r dst backup; do
       [ -n "$dst" ] || continue
-      [ -f "$backup" ] || continue
+      path_exists_or_symlink "$backup" || continue
       mkdir -p "$(dirname "$dst")"
+      rm -rf "$dst"
       cp -a "$backup" "$dst"
     done < "$backup_map_file"
   fi
@@ -2375,9 +2559,8 @@ install_to_target() {
   precheck_metadata_health "$state_dir"
   RUNTIME_AUDIT_DIRTY=0
 
-  if [ "$name" = "codex" ]; then
-    audit_codex_runtime_rules "$target_dir" "$state_dir"
-  fi
+  audit_runtime_rules "$name" "$target_dir" "$state_dir"
+  audit_runtime_references "$name" "$target_dir" "$state_dir"
   audit_retired_runtime_skills "$name" "$target_dir" "$state_dir"
   audit_runtime_probe_skills "$name" "$target_dir" "$state_dir"
   audit_runtime_internal_skill_roots "$name" "$target_dir" "$state_dir"
@@ -2507,6 +2690,14 @@ install_to_target() {
   ROLLBACK_TEMP_BACKUP_ROOT="$backup_root"
   trap on_err_rollback ERR
 
+  audit_runtime_rules "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
+  audit_runtime_references "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
+  audit_retired_runtime_skills "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
+  audit_runtime_probe_skills "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
+  audit_runtime_internal_skill_roots "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
+  if [ "$name" = "codex" ]; then
+    audit_codex_legacy_skill_root "$target_dir" "$staging/skills" "$state_dir" 1 "$backup_root" "$backup_tmp"
+  fi
   remove_stale_managed_files "$name" "$target_dir" "$manifest_file" "$backup_manifest_file" "$staged_abs" "$backup_root" "$backup_tmp" "$pruned_tmp"
 
   local src
@@ -2595,8 +2786,11 @@ uninstall_target() {
 
   while IFS=$'\t' read -r dst backup; do
     [ -n "$dst" ] || continue
+    if is_runtime_audit_cleanup_path "$name" "$target_dir" "$dst"; then
+      continue
+    fi
     [ -n "$backup" ] || continue
-    [ -f "$backup" ] || fail "$name 备份文件缺失，拒绝卸载以避免数据丢失: $backup"
+    path_exists_or_symlink "$backup" || fail "$name 备份文件缺失，拒绝卸载以避免数据丢失: $backup"
   done < "$backup_manifest"
 
   if [ "$DRY_RUN" -eq 1 ]; then
@@ -2616,10 +2810,16 @@ uninstall_target() {
     if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
       continue
     fi
+    if is_runtime_audit_cleanup_path "$name" "$target_dir" "$dst"; then
+      rm -rf "$dst"
+      remove_if_empty "$(dirname "$dst")" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
+      continue
+    fi
     local backup
     backup=$(awk -F '\t' -v key="$dst" '$1==key {print $2; exit}' "$backup_manifest")
-    if [ -n "$backup" ] && [ -f "$backup" ]; then
+    if [ -n "$backup" ] && path_exists_or_symlink "$backup"; then
       mkdir -p "$(dirname "$dst")"
+      rm -rf "$dst"
       cp -a "$backup" "$dst"
     else
       rm -f "$dst"
@@ -2633,14 +2833,37 @@ uninstall_target() {
       if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
         continue
       fi
+      if is_runtime_audit_cleanup_path "$name" "$target_dir" "$dst"; then
+        continue
+      fi
       local backup
       backup=$(awk -F '\t' -v key="$dst" '$1==key {print $2; exit}' "$backup_manifest")
-      if [ -n "$backup" ] && [ -f "$backup" ]; then
+      if [ -n "$backup" ] && path_exists_or_symlink "$backup"; then
         mkdir -p "$(dirname "$dst")"
+        rm -rf "$dst"
         cp -a "$backup" "$dst"
       fi
     done < "$pruned_manifest"
   fi
+
+  while IFS=$'\t' read -r dst backup; do
+    [ -n "$dst" ] || continue
+    [ -n "$backup" ] || continue
+    is_in_manifest "$manifest" "$dst" && continue
+    is_in_manifest "$pruned_manifest" "$dst" && continue
+    if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
+      continue
+    fi
+    if is_runtime_audit_cleanup_path "$name" "$target_dir" "$dst"; then
+      continue
+    fi
+    if path_exists_or_symlink "$backup"; then
+      rm -rf "$dst"
+      mkdir -p "$(dirname "$dst")"
+      cp -a "$backup" "$dst"
+      remove_if_empty "$(dirname "$dst")" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
+    fi
+  done < "$backup_manifest"
 
   if [ "$name" = "claude" ]; then
     restore_claude_settings_baseline

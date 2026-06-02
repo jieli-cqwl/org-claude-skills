@@ -35,7 +35,12 @@
       "example_input": "representative business operation for this acceptance criterion",
       "expected_result": "anonymous access and login error paths behave as specified.",
       "boundary_case": "minimum valid and invalid boundary states are covered",
-      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift",
+      "source_refs": [
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-001",
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-002",
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-004"
+      ]
     },
     {
       "ac_id": "AC-T2-1",
@@ -43,7 +48,11 @@
       "example_input": "representative business operation for this acceptance criterion",
       "expected_result": "valid login, homepage display, and logout invalidation behave as specified.",
       "boundary_case": "minimum valid and invalid boundary states are covered",
-      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift"
+      "failure_mode": "the behavior must fail closed with a readable result instead of silent drift",
+      "source_refs": [
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-003",
+        "artifact://brief/login-homepage-pilot.brief@v1#ac-005"
+      ]
     }
   ],
   "exclusions": [

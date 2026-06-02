@@ -47,7 +47,10 @@ def verify_authority_proof(
         raise ValueError("expired proof")
     if runtime_state["active_tasks_version_ref"] != decision_payload["active_tasks_version_ref"]:
         raise ValueError("stale decision after replan")
-    if runtime_state["active_tasks_version_ref"] != decision_payload["active_tasks_version_ref"]:
+    if (
+        runtime_state.get("baseline_tasks_version_ref")
+        and runtime_state["baseline_tasks_version_ref"] != decision_payload["baseline_tasks_version_ref"]
+    ):
         raise ValueError("stale task baseline after replan")
     return {
         "verified_actor_id": proof["verified_actor_id"],

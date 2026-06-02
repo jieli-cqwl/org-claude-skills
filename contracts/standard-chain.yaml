@@ -109,7 +109,7 @@ chain:
     decision_authority: advisory_only
     inputs:
       required: [brief.json, "phase-{N}/phase-prd.json", "phase-{N}/artifact-registry.json"]
-      optional: ["phase-{N}/units/UNIT-{N}.json", "phase-{N}/design.json", "phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/unit-{N}/test-cases.json", "phase-{N}/code-review-result.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json", "phase-{N}/qa-result.json", "phase-{N}/delivery-state.json", "phase-{N}/signoff-package.json"]
+      optional: ["phase-{N}/units/UNIT-{N}.json", "phase-{N}/design.json", "phase-{N}/plan.json", "phase-{N}/tasks.json", "phase-{N}/unit-{N}/test-cases.json", "phase-{N}/code-review-result.json", "phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json", "phase-{N}/qa-result.json", "phase-{N}/delivery-state.json", "phase-{N}/target-change.json"]
     outputs:
       - artifact: "phase-{N}/consistency-audit-result.json"
         key_fields: [active_tasks_version_ref, evidence_refs, decision_authority, consumer, audit_scope, mode, blocked_layers, skipped_layers, tool_warning, findings, required_owner_action, runtime_chain]
@@ -143,9 +143,15 @@ chain:
         DO-S7:
           purpose: QA and fix loop evidence
           required: ["phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json", "phase-{N}/code-review-result.json", "phase-{N}/qa-result.json"]
-        DO-S8:
-          purpose: closeout, signoff, and commit handoff evidence
+        DO-S8a:
+          purpose: closeout package assembly and commit handoff preparation
           required: ["phase-{N}/unit-{N}/tasks/{task_id}/developer-report.json", "phase-{N}/unit-{N}/tasks/{task_id}/verify-result.json", "phase-{N}/code-review-result.json", "phase-{N}/qa-result.json", "phase-{N}/consistency-audit-result.json"]
+        DO-S8b:
+          purpose: user decision intake after signoff-package preparation
+          required: ["phase-{N}/signoff-package.json"]
+        DO-S8c:
+          purpose: final readiness after user signoff or risk decision
+          required: ["phase-{N}/signoff-package.json", "phase-{N}/user-decision.json"]
     outputs:
       - artifact: "phase-{N}/delivery-state.json"
         key_fields: [active_tasks_version_ref, current_stage, status, control_action, tasks, kickoff, progress_signal, consecutive_no_progress_count, owner_action_consumption, blocker_id, blocker_owner, blocker_basis_refs, resume_stage, next_action, resume_condition, blocked_from_stage, blocker_reason_code, blocker_resolution_evidence_refs, unblocked_by_ref]
@@ -166,8 +172,8 @@ chain:
         terminal: true
       - artifact: "phase-{N}/target-change.json"
         operation: record_target_change
-        key_fields: [baseline_tasks_version_ref, active_tasks_version_ref, changed_target_type, affected_refs, invalidates_refs, superseded_evidence_refs, rebaseline_required, rebaseline_owner, required_fresh_proof_after_rebaseline, authority_proof_refs, decision_basis_refs, actor_id, change_source]
-        consumers: [product-director, tech-lead, delivery-owner]
+        key_fields: [baseline_tasks_version_ref, active_tasks_version_ref, changed_target_type, affected_refs, invalidates_refs, superseded_evidence_refs, rebaseline_required, rebaseline_owner, required_fresh_proof_after_rebaseline, authority_proof_refs, decision_basis_refs, actor_id, change_source, target_change_payload_digest]
+        consumers: [product-director, product-manager, design, test-design, tech-lead, delivery-owner, consistency-auditor]
         terminal: true
 
 co_creation_ledgers:

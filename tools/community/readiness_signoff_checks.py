@@ -12,6 +12,15 @@ SIGNOFF_RUNTIME_EVIDENCE_TYPES = {
     "code-review-result",
     "qa-result",
     "consistency-audit-result",
+    "fix-result",
+}
+SIGNOFF_RUNTIME_EVIDENCE_ANCHORS = {
+    "developer-report": {"runtime-status"},
+    "verify-result": {"gate-result"},
+    "code-review-result": {"review-conclusion"},
+    "qa-result": {"obligation_results"},
+    "consistency-audit-result": {"audit-root"},
+    "fix-result": {"completion-status"},
 }
 
 LoadJson = Callable[[Path], dict]
@@ -125,6 +134,8 @@ def expected_runtime_status(artifact_type: str, payload: dict) -> str:
         if not isinstance(runtime_chain, dict):
             return ""
         return str(runtime_chain.get("status", ""))
+    if artifact_type == "fix-result":
+        return str(payload.get("completion_status", ""))
     return ""
 
 
@@ -190,6 +201,10 @@ def assert_signoff_runtime_evidence_matrix(
     resolve_registry_path: ResolveRegistryPath,
 ) -> None:
     signoff = load_json(phase_dir / "signoff-package.json")
+    delivery_state = load_json(phase_dir / "delivery-state.json")
+    active_tasks_version_ref = delivery_state.get("active_tasks_version_ref")
+    if not isinstance(active_tasks_version_ref, str) or not active_tasks_version_ref:
+        raise ValueError("delivery-state active_tasks_version_ref must be non-empty")
     matrix = signoff.get("runtime_evidence_matrix")
     if not isinstance(matrix, list) or not matrix:
         raise ValueError(
@@ -217,13 +232,17 @@ def assert_signoff_runtime_evidence_matrix(
             raise ValueError(
                 f"signoff-package runtime_evidence_matrix[{index}] has unsupported artifact_type"
             )
-        ref_type, artifact_id, version, _anchor = split_artifact_ref(
+        ref_type, artifact_id, version, anchor = split_artifact_ref(
             str(row.get("artifact_ref", ""))
         )
         key = (artifact_type, artifact_id, version)
         if ref_type != artifact_type:
             raise ValueError(
                 f"signoff-package runtime_evidence_matrix[{index}] artifact_ref type drift"
+            )
+        if anchor not in SIGNOFF_RUNTIME_EVIDENCE_ANCHORS[artifact_type]:
+            raise ValueError(
+                f"signoff-package runtime_evidence_matrix[{index}] unsupported artifact_ref anchor for {artifact_type}: {anchor}"
             )
         if key not in expected_entries:
             raise ValueError(
@@ -262,6 +281,14 @@ def assert_signoff_runtime_evidence_matrix(
         ):
             raise ValueError(
                 f"signoff-package runtime_evidence_matrix[{index}] freshness_basis_ref drift"
+            )
+        if payload.get("active_tasks_version_ref") != active_tasks_version_ref:
+            raise ValueError(
+                f"{artifact_type} runtime evidence active_tasks_version_ref must match active delivery-state tasks ref"
+            )
+        if row.get("freshness_basis_ref") != active_tasks_version_ref:
+            raise ValueError(
+                f"signoff-package runtime_evidence_matrix[{index}] freshness_basis_ref must match active delivery-state tasks ref"
             )
         if row.get("stale_superseded_check") != "CURRENT":
             raise ValueError(

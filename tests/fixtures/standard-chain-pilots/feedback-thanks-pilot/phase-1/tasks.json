@@ -43,9 +43,18 @@
         "artifact://design/feedback-thanks-pilot.phase-1.design@v1#IF-FEEDBACK-SUBMIT"
       ],
       "test_refs": [
-        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-T1-1",
         "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-LEN-1",
-        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-OBS-1"
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-OBS-1",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-T1-1",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-FEEDBACK-THANKS",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-CLOSURE",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-JOURNEY",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-NEGATIVE",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-SMOKE",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:1",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:2",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:3",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:4"
       ],
       "depends_on": [],
       "shared_files": [
@@ -61,7 +70,7 @@
         "oversized body rejection",
         "invalid submission access log"
       ],
-      "proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "proving_command": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py'",
       "real_dependency_refs": [
         "artifact://evidence/feedback-thanks-pilot.phase-1.task-T1.dependencies@v1#real-dependency-refs"
       ],
@@ -97,7 +106,16 @@
         "artifact://design/feedback-thanks-pilot.phase-1.design@v1#IF-THANKS-PAGE"
       ],
       "test_refs": [
-        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-T2-1"
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#AC-T2-1",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#cross_unit_obligations:J-FEEDBACK-THANKS",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-CLOSURE",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-JOURNEY",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-NEGATIVE",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#qa_handoff_contract:QHO-FEEDBACK-SMOKE",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:1",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:2",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:3",
+        "artifact://test-cases/feedback-thanks-pilot.phase-1.unit-1.test-cases@v1#traceability_matrix:4"
       ],
       "depends_on": [
         "T1"
@@ -113,7 +131,7 @@
         "HTML escaping",
         "missing feedback id"
       ],
-      "proving_command": "bash tests/test-standard-chain-foundation-registry.sh",
+      "proving_command": "python3 -m unittest discover -s tests -p 'test_feedback_thanks_app.py'",
       "real_dependency_refs": [
         "artifact://evidence/feedback-thanks-pilot.phase-1.task-T2.dependencies@v1#real-dependency-refs"
       ],

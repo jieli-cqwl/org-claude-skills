@@ -1,0 +1,126 @@
+{
+  "artifact_type": "developer-report",
+  "artifact_id": "codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report",
+  "schema_version": "1.0.0",
+  "producer": "developer",
+  "produced_at": "2026-06-01T11:20:00Z",
+  "chain_version": "standard-chain/v1",
+  "chain_registry_digest": "sha256:4c810553fe67ab70692a23ce9be83b2863d048936cc059a510df30fc56589dd0",
+  "authority_scope": "artifact",
+  "authoritative_fields": [
+    "$.active_tasks_version_ref",
+    "$.evidence_refs",
+    "$.task_id",
+    "$.task_scope",
+    "$.file_changes",
+    "$.fresh_proof",
+    "$.reviewable_anchor",
+    "$.runtime_status",
+    "$.self_testing",
+    "$.tdd_evidence_index"
+  ],
+  "evidence_refs": [
+    "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.task-T1.log@ev-1#log-root"
+  ],
+  "active_tasks_version_ref": "artifact://tasks/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.tasks@tasks-v2#task-registry",
+  "task_id": "T1",
+  "runtime_status": "VERIFIED",
+  "reviewable_anchor": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report@v1#runtime-status",
+  "file_changes": [
+    "contracts/standard-chain.yaml",
+    "contracts/standard-chain-field-consumption.yaml",
+    "tools/community/validate_standard_chain_phase.py",
+    "tools/community/validate_standard_chain_field_consumption.py",
+    "tools/community/validate_standard_chain_field_decision_matrix.py",
+    "tests/test-task-contract-consumer-alignment.sh",
+    "tests/test-standard-chain-field-consumption-contract.sh",
+    "tests/test-standard-chain-readiness-gate.sh"
+  ],
+  "tdd_evidence_index": [
+    {
+      "phase": "RED",
+      "commit_sha": "e2ab752",
+      "test_ref": "tests/test-standard-chain-foundation-registry.sh#developer-report",
+      "result": "FAIL_EXPECTED",
+      "ac_refs": [
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#AC-T1-1"
+      ]
+    },
+    {
+      "phase": "GREEN",
+      "commit_sha": "9ec55db",
+      "test_ref": "tests/test-standard-chain-foundation-registry.sh#developer-report",
+      "result": "PASS",
+      "ac_refs": [
+        "artifact://test-cases/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.test-cases@v1#AC-T1-1"
+      ]
+    }
+  ],
+  "task_scope": [
+    "contracts/standard-chain.yaml",
+    "contracts/standard-chain-field-consumption.yaml",
+    "tools/community/validate_standard_chain_phase.py",
+    "tools/community/validate_standard_chain_field_consumption.py",
+    "tools/community/validate_standard_chain_field_decision_matrix.py",
+    "tests/test-task-contract-consumer-alignment.sh",
+    "tests/test-standard-chain-field-consumption-contract.sh",
+    "tests/test-standard-chain-readiness-gate.sh"
+  ],
+  "self_testing": {
+    "coverage_review": {
+      "status": "PASS",
+      "evidence_ref": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+    },
+    "full_regression": {
+      "status": "PASS",
+      "command": "bash tests/test-task-contract-consumer-alignment.sh",
+      "evidence_ref": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index",
+      "scope_note": "task-level regression for the controlled pilot; repository full gate remains intentionally unrun per user constraint"
+    },
+    "static_analysis": {
+      "lint": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+      },
+      "type_check": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+      },
+      "build": {
+        "status": "PASS",
+        "evidence_ref": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+      }
+    },
+    "smoke": {
+      "status": "PASS",
+      "evidence_ref": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+    },
+    "e2e": {
+      "status": "NOT_APPLICABLE",
+      "reason": "repository-local contract and shell gate change has no browser user path",
+      "evidence_ref": "artifact://developer-report/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.unit-1.task-T1.developer-report@v1#tdd-evidence-index"
+    }
+  },
+  "fresh_proof": {
+    "current_evidence_refs": [
+      "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.task-T1.log@ev-1#log-root"
+    ],
+    "proving_commands": [
+      {
+        "command": "bash tests/test-task-contract-consumer-alignment.sh",
+        "current_output_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.task-T1.log@ev-1#log-root",
+        "result": "PASS"
+      },
+      {
+        "command": "bash tests/test-standard-chain-field-consumption-contract.sh",
+        "current_output_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.task-T1.log@ev-1#log-root",
+        "result": "PASS"
+      },
+      {
+        "command": "bash tests/test-standard-chain-readiness-gate.sh",
+        "current_output_ref": "artifact://evidence/codex-controlled-pilot-consistency-auditor-rg-absence.phase-1.task-T1.log@ev-1#log-root",
+        "result": "PASS"
+      }
+    ]
+  }
+}

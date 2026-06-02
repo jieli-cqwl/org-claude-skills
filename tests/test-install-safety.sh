@@ -149,6 +149,58 @@ install_test_assert_failure "$rc" "install should fail when reference dir is rea
 install_test_assert_path_absent "$home_dir/.claude/agents/code-reviewer.md" "rollback should remove managed agent file"
 install_test_assert_path_absent "$state_root/claude/installed-version" "rollback should not leave version metadata"
 install_test_case_pass "safety: install failure rolls back managed files"
+
+install_test_case_start "safety: install failure rolls back runtime audit skill cleanup"
+home_dir="$(install_test_new_home safety-rollback-runtime-audit-cleanup)"
+state_root="$(install_test_state_root "$home_dir")"
+mkdir -p \
+  "$home_dir/.agents/skills/zz-runtime-probe-before-fail" \
+  "$home_dir/.codex/skills/zz-runtime-probe-legacy" \
+  "$home_dir/.codex/reference"
+printf 'probe skill should survive failed install\n' > "$home_dir/.agents/skills/zz-runtime-probe-before-fail/SKILL.md"
+printf 'legacy probe skill should survive failed install\n' > "$home_dir/.codex/skills/zz-runtime-probe-legacy/SKILL.md"
+chmod 500 "$home_dir/.codex/reference"
+set +e
+install_test_run_install_allow_failure "$home_dir" "$(install_test_log_path safety-rollback-runtime-audit-cleanup-install)" --target codex --force --check quick
+rc=$?
+set -e
+chmod 700 "$home_dir/.codex/reference" || true
+install_test_assert_failure "$rc" "install should fail after runtime audit cleanup has found stale skill roots"
+install_test_assert_file_contains "$home_dir/.agents/skills/zz-runtime-probe-before-fail/SKILL.md" "probe skill should survive failed install" "rollback should restore active runtime probe skill cleanup"
+install_test_assert_file_contains "$home_dir/.codex/skills/zz-runtime-probe-legacy/SKILL.md" "legacy probe skill should survive failed install" "rollback should restore codex legacy skill cleanup"
+install_test_assert_path_absent "$state_root/codex/installed-version" "rollback should not leave codex version metadata after audit cleanup failure"
+install_test_case_pass "safety: install failure rolls back runtime audit skill cleanup"
+
+install_test_case_start "safety: install failure restores normalized directory symlink"
+home_dir="$(install_test_new_home safety-rollback-symlink)"
+state_root="$(install_test_state_root "$home_dir")"
+external_reference="$home_dir/external-reference"
+mkdir -p "$external_reference" "$home_dir/.claude/skills"
+rm -rf "$home_dir/.claude/reference"
+ln -s "$external_reference" "$home_dir/.claude/reference"
+chmod 500 "$home_dir/.claude/skills"
+set +e
+install_test_run_install_allow_failure "$home_dir" "$(install_test_log_path safety-rollback-symlink-install)" --target claude --force --check quick
+rc=$?
+set -e
+chmod 700 "$home_dir/.claude/skills" || true
+install_test_assert_failure "$rc" "install should fail after normalizing reference symlink"
+[ -L "$home_dir/.claude/reference" ] || install_test_fail "rollback should restore reference directory symlink"
+[ "$(readlink "$home_dir/.claude/reference")" = "$external_reference" ] || install_test_fail "rollback should restore original reference symlink target"
+install_test_assert_path_absent "$state_root/claude/installed-version" "rollback should not leave version metadata after symlink normalization failure"
+install_test_case_pass "safety: install failure restores normalized directory symlink"
+
+install_test_case_start "safety: uninstall restores normalized directory symlink"
+home_dir="$(install_test_new_home safety-uninstall-symlink)"
+external_reference="$home_dir/external-reference"
+mkdir -p "$external_reference" "$home_dir/.claude"
+rm -rf "$home_dir/.claude/reference"
+ln -s "$external_reference" "$home_dir/.claude/reference"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-uninstall-symlink-install)" --target claude --force --check quick
+install_test_run_install "$home_dir" "$(install_test_log_path safety-uninstall-symlink-uninstall)" --target claude --uninstall
+[ -L "$home_dir/.claude/reference" ] || install_test_fail "uninstall should restore reference directory symlink"
+[ "$(readlink "$home_dir/.claude/reference")" = "$external_reference" ] || install_test_fail "uninstall should restore original reference symlink target"
+install_test_case_pass "safety: uninstall restores normalized directory symlink"
 fi
 
 if should_run_group codex-hooks; then

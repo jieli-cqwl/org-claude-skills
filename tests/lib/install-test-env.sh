@@ -441,7 +441,7 @@ install_test_assert_installed_control_plane_gates() {
 
   delivery_owner_input_output="$(install_test_log_path "${label}-delivery-owner-intake-preflight")"
   INSTALL_TEST_CURRENT_LOG="$delivery_owner_input_output"
-  env HOME="$home_dir" bash "$skills_dir/delivery-owner/scripts/intake_preflight_check.sh" \
+  env HOME="$home_dir" CODEX_HOME="$home_dir/.codex" CLAUDE_HOME="$home_dir/.claude" bash "$skills_dir/delivery-owner/scripts/intake_preflight_check.sh" \
     --phase-dir "$workspace/docs/sample-feature/phase-1" >"$delivery_owner_input_output" 2>&1 \
     || install_test_fail "$label installed delivery-owner intake preflight should accept valid canonical fixture"
 }
