@@ -14,8 +14,8 @@ Two additional artifacts keep the rollout independent from slow, subjective team
 Use this pack before promoting changes to:
 
 - `shared/assistant.md`
-- `shared/rules/执行纪律.md`
-- `shared/rules/文档管理.md`
+- `shared/rules/execution-control.md`
+- `shared/rules/document-governance.md`
 - `shared/rules/code-changes.md`
 - `shared/rules/completion-claims.md`
 - referenced runtime guidance under `shared/reference/`

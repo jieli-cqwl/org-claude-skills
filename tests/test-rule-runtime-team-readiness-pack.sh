@@ -32,8 +32,9 @@ expected_runtime_sources = {
     "shared/assistant.md",
     "shared/rules/code-changes.md",
     "shared/rules/completion-claims.md",
-    "shared/rules/执行纪律.md",
-    "shared/rules/文档管理.md",
+    "shared/rules/execution-control.md",
+    "shared/rules/document-governance.md",
+    "shared/reference/协作判断.md",
     "shared/reference/code-structure-reuse.md",
     "shared/reference/code-comments.md",
     "shared/reference/error-handling.md",
@@ -57,13 +58,18 @@ expected_dimensions = {
 expected_cases = {
     "CC-01-unit-only-completion-claim",
     "CC-02-mock-evidence-boundary",
-    "EXEC-01-unclear-goal-and-success-standard",
+    "EXEC-01-ambiguous-goal-no-edit",
+    "EXEC-02-shared-before-parallel",
+    "EXEC-03-scope-creep-cleanup",
     "CODE-01-reuse-before-implementation",
     "CODE-02-schema-comment-contract",
     "CODE-03-error-fallback-fail-loud",
     "CODE-04-cache-batch-async-boundary",
     "CODE-05-surgical-change-boundary",
-    "DOC-01-worklog-and-assistant-boundary",
+    "DOC-01-worklog-not-source",
+    "DOC-02-assistant-not-project-memory",
+    "DOC-03-archive-active-refs-block",
+    "DOC-04-unmanaged-doc-not-handoff",
 }
 
 def require(condition: bool, message: str) -> None:
@@ -95,8 +101,8 @@ require(cases == expected_cases, f"pressure cases mismatch: {sorted(cases)}")
 allowed_rule_refs = {
     "shared/rules/code-changes.md",
     "shared/rules/completion-claims.md",
-    "shared/rules/执行纪律.md",
-    "shared/rules/文档管理.md",
+    "shared/rules/execution-control.md",
+    "shared/rules/document-governance.md",
 }
 allowed_reference_refs = expected_runtime_sources - {"shared/assistant.md"} - allowed_rule_refs
 for case in pack["pressure_cases"]:
@@ -375,6 +381,7 @@ required_domains = {
     "evidence_quality",
     "real_dependency_boundary",
     "user_path_e2e",
+    "execution_control",
     "code_reuse",
     "schema_sql_comments",
     "error_fallback_visibility",
@@ -419,10 +426,11 @@ allowed_deviation_types = {
 allowed_rule_refs = {
     "shared/rules/code-changes.md",
     "shared/rules/completion-claims.md",
-    "shared/rules/执行纪律.md",
-    "shared/rules/文档管理.md",
+    "shared/rules/execution-control.md",
+    "shared/rules/document-governance.md",
 }
 allowed_reference_refs = {
+    "shared/reference/协作判断.md",
     "shared/reference/code-structure-reuse.md",
     "shared/reference/code-comments.md",
     "shared/reference/error-handling.md",

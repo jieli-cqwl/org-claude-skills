@@ -21,4 +21,4 @@ Documents must preserve one current source of truth for active work, runtime def
 - In standard-chain, canonical JSON and `artifact-registry.active_revision_id` define active artifact truth; human projections, chat notes, worklog text, and legacy Markdown are background only.
 - If the registry, worklog, archive, and canonical artifacts disagree, stop and report the source-of-truth conflict; do not choose the convenient source.
 - Prove handoff, archive recovery, and reference reachability with `validate_context_contract.py`, `recover_context.py`, `tools/validate-contracts.sh`, or targeted tests.
-- Test: Would a downstream agent recover the same active scope, source of truth, artifact refs, and archive boundary from current validated docs without project memory in runtime defaults? If not, fix the docs or report blocked.
+- Test: Would a downstream agent recover the same active scope, source of truth, artifact refs, and archive boundary without project memory in runtime defaults? If not, fix the docs or report blocked.
