@@ -54,12 +54,12 @@ model: sonnet
 | 延期业务分支 | `3.0.0.DEV_名字_需求编号_版本号_DELAY` | 项目主分支 | 无上线时间或暂停需求 |
 | 版本部署分支 | `V.版本号` | 项目主分支 | 测试、预发布、线上部署 |
 | 私有化部署分支（规范记录，当前向导不执行） | `V.DZ.公司名首字母` | 项目主分支 | 私有化部署 |
-| 紧急 BUG 分支 | `3.0.0.MASTER_BUG_版本号` | `V.版本号` | 紧急线上 BUG 修复 |
+| 紧急 BUG 分支 | `3.0.0.MASTER_BUG_反馈日期` | `V.线上版本号` | 紧急线上 BUG 修复 |
 
 合并方向：
 
 - 业务提测/发版：业务开发分支 -> `V.版本号` -> 项目主分支。
-- 线上 BUG：先执行 `bugfix` 从 `V.版本号` 创建紧急 BUG 分支；修复完成后再执行 `bugfix-finish` 将 BUG 分支合回 `V.版本号`。两个阶段必须分开确认，不得在创建 BUG 分支时同时合回。
+- 线上 BUG：先执行 `bugfix` 从 `V.线上版本号` 确保紧急 BUG 分支 `3.0.0.MASTER_BUG_反馈日期` 可用；修复完成后再执行 `bugfix-finish` 将 BUG 分支合回 `V.线上版本号`。两个阶段必须分开确认，不得在创建 BUG 分支时同时合回。
 - 日常同步：项目主分支 -> 当前业务开发分支。
 - 上线前同步：项目主分支 -> `V.版本号`。
 - 业务分支和 BUG 分支同时存在时，以业务分支为准。
@@ -71,13 +71,13 @@ model: sonnet
 - 项目白名单来自 `references/project-registry.json`。
 - 分支命名和场景规则来自 `references/branch-policy.json`。
 - 计划结构以 `contracts/branch-plan.schema.json` 为准。Load timing: 第 4 步生成计划前读取；purpose: 校验计划字段和步骤结构；output: 合法 plan JSON；consumer: Git 检查和执行步骤；verification: `python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
-- 生成计划：`python3 scripts/qft_branch_flow.py plan <scenario> --projects <repo1,repo2> --version <版本号> ...`
+- 生成计划：`python3 scripts/qft_branch_flow.py plan <scenario> --projects <repo1,repo2> --version <版本号> ...`；`bugfix` / `bugfix-finish` 的 `--version` 是线上版本号，必须另传 `--bug-version <客户反馈日期>`。
 - 校验计划：`python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
-- `bugfix` 只创建 BUG 分支；`bugfix-finish` 只在修复完成后将 BUG 分支合回版本分支。
+- `bugfix` 只确保 BUG 分支可用；远端已存在则复用，不存在才从线上版本分支创建。`bugfix-finish` 只在修复完成后将 BUG 分支合回版本分支。
 - 执行前检查必须调用：`python3 scripts/qft_branch_flow.py preflight --input <plan.json> --repo-root <多仓父目录>`。调用前先让用户确认 `<多仓父目录>`；preflight 输出为唯一检查依据，不要用自然语言自行推断 Git 状态。
 - preflight 必须按项目展示 resolved path，并用 `origin` URL 与 `project-registry.json` 的 `remote_url` 做归一化匹配；不要只用仓库名判断 remote。
 - preflight action 口径：`create_branch` 要求来源存在且与远端一致、目标精确不存在且无大小写冲突；`ensure_branch` 允许目标不存在，存在则要求目标与远端一致，不存在则要求来源可用于创建；`merge` 要求来源和目标都存在且与远端一致。
-- preflight 只报告需要同步的 blocker，不自动 `pull`；`pull` 会改变本地分支，必须由用户在本向导外处理或另行确认后再重跑 preflight。
+- preflight 只报告需要同步的 blocker，不自动 `pull`；`pull` 会改变本地分支，必须由用户在本向导外处理或另行确认后再重跑 preflight。`ensure_branch` 的目标远端已存在且 preflight 通过时，执行阶段按用户确认切换/创建本地跟踪分支，不重新创建同名分支。
 - 第 4 步 plan 中 `push.confirmed` 必须为 `false`，`push.branches` 必须为空；push 只能在本地操作完成后作为第 6 步运行态单独确认。
 - `target_branch` 为 `<project-main-branch>` 时，表示每个项目使用自己的主分支；实际 Git 目标以 `steps[*].target_branch` 为准。
 - `validate` 失败时停止；只能回到前序步骤修正输入或计划，不进入 Git 检查和执行。
@@ -143,8 +143,8 @@ model: sonnet
 - 开发需求：名字缩写、需求编号、版本号（月日，如 `0301`）、是否 `_DELAY`。
 - 日常同步：版本号、业务开发分支名；计划将项目主分支合入业务开发分支。
 - 提测/发版：版本号、业务分支名；计划先确保版本分支可用，再将业务分支合入版本分支。
-- 上线 BUG 创建：版本号、来源版本分支 `V.版本号`、目标 BUG 分支 `3.0.0.MASTER_BUG_版本号`；计划只包含从 `V.版本号` 创建 BUG 分支。
-- 上线 BUG 完成：版本号、已修复 BUG 分支 `3.0.0.MASTER_BUG_版本号`、目标版本分支 `V.版本号`；计划只包含将 BUG 分支合回 `V.版本号`。
+- 上线 BUG 创建：线上版本号（月日，如 `0528`）、客户反馈日期（月日，如 `0602`）、来源版本分支 `V.线上版本号`、目标 BUG 分支 `3.0.0.MASTER_BUG_反馈日期`；计划只包含从 `V.线上版本号` 确保 BUG 分支可用，目标已存在则复用，不存在才创建。
+- 上线 BUG 完成：线上版本号、客户反馈日期、已修复 BUG 分支 `3.0.0.MASTER_BUG_反馈日期`、目标版本分支 `V.线上版本号`；计划只包含将 BUG 分支合回 `V.线上版本号`。
 - 上线回合：选择上线前同步（主分支 -> 版本分支）或上线后回合（版本分支 -> 主分支）。
 
 生成或识别分支名后先回显，等待 `确认`。
@@ -186,7 +186,7 @@ python3 scripts/qft_branch_flow.py validate --input plan.json
 python3 scripts/qft_branch_flow.py preflight --input plan.json --repo-root <多仓父目录>
 ```
 
-preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时，按 blocker 输出展示阻塞原因和下一步；不要把 `create_branch` 的目标分支不存在解释为阻塞。
+preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时，按 blocker 输出展示阻塞原因和下一步；不要把 `create_branch` 或 `ensure_branch` 的目标分支不存在解释为阻塞。
 
 每个 action 的判定口径：
 
@@ -219,7 +219,7 @@ preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时�
 ## Git 执行边界
 
 - 允许执行 `git status`、`git remote -v`、`git branch`、`git fetch`、`git switch`、`git merge`、`git push`。
-- 不使用 `git pull`；preflight 发现落后远端时阻塞，由用户在向导外处理或另行确认同步后重跑 preflight。
+- preflight 不执行 `git pull` 或其他写操作；preflight 发现落后远端时阻塞，由用户在向导外处理或另行确认同步后重跑 preflight。目标远端已存在且 preflight 通过时，执行阶段可按确认结果 fetch 并切换/创建本地跟踪分支，不重新创建同名分支。
 - 遇到冲突立即停止，列出冲突文件；不要自动解决冲突。
 - 不自动删除分支；删除属于维护动作，当前只提示规范，不执行。
 - 不使用 `git reset --hard`、`git clean`、强推或跳过 hook。

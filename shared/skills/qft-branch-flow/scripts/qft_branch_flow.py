@@ -41,6 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     plan_parser.add_argument("scenario", choices=sorted(SCENARIOS))
     plan_parser.add_argument("--projects", required=True)
     plan_parser.add_argument("--version", required=True)
+    plan_parser.add_argument("--bug-version")
     plan_parser.add_argument("--owner")
     plan_parser.add_argument("--requirement")
     plan_parser.add_argument("--delay", action="store_true")

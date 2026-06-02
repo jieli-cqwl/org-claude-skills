@@ -185,9 +185,9 @@
     },
     {
       "id": "audit-artifact-triage",
-      "prompt": "Review whether overview审查.md is a valid skill-quality-audit result and whether its claims should be trusted.",
+      "prompt": "Review whether shared/skills/skill-quality-audit/evals/fixtures/artifacts/overview-transcript.md is a valid skill-quality-audit result and whether its claims should be trusted.",
       "files": [
-        "overview审查.md"
+        "shared/skills/skill-quality-audit/evals/fixtures/artifacts/overview-transcript.md"
       ],
       "expectations": [
         "Classifies the input artifact before judging content.",

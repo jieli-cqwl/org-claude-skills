@@ -2,13 +2,14 @@
 
 Use excellent Skills as mechanism benchmarks, not as wording templates.
 
-`brainstorming` is useful because it changes behavior through mechanisms:
+`brainstorming` is useful because it turns a vague request into an approved design state through behavior-changing mechanisms:
 
-- strong trigger: the description selects real situations.
-- hard implementation gate: action is blocked until intent is understood.
-- terminal state: completion requires user confirmation.
-- user confirmation points: uncertainty is resolved before writing.
-- anti-pattern: common shortcut behavior is named and blocked.
+- entry selection: the description selects real situations before the body loads.
+- target state: the task is to convert an idea into an approved design/spec.
+- hard implementation gate: action is blocked until intent is understood and the design is approved.
+- terminal state: completion transitions to the next owner only after user confirmation.
+- confirmation points: uncertainty is resolved before writing.
+- anti-pattern: the common shortcut behavior is named and blocked.
 - progressive disclosure: supporting material loads only when needed.
 - causal order: each step produces the input for the next step.
 - output and transition clarity: the next owner knows what to do.

@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from qft_branch_flow_helpers import (
     blocker_codes,
+    bugfix_plan,
     clone_project,
     commit_file,
     create_dev_plan,
@@ -100,6 +101,28 @@ class QftBranchFlowPreflightTests(unittest.TestCase):
         self.assertEqual(blocker_codes(report), set())
         merge_check = report["repos"][0]["checks"][1]
         self.assertTrue(merge_check["target_planned"])
+
+    def test_preflight_bugfix_reuses_existing_remote_bug_branch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            origin, seed = create_remote_repo(root)
+            run_git(seed, "switch", "-c", "V.0528")
+            commit_file(seed, "release.txt", "release\n")
+            run_git(seed, "push", "origin", "V.0528")
+            run_git(seed, "switch", "-c", "3.0.0.MASTER_BUG_0602")
+            commit_file(seed, "bug.txt", "bug\n")
+            run_git(seed, "push", "origin", "3.0.0.MASTER_BUG_0602")
+            clone_project(root, origin)
+
+            result = run_preflight(root, bugfix_plan())
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(blocker_codes(report), set())
+        check = report["repos"][0]["checks"][0]
+        self.assertEqual(check["action"], "ensure_branch")
+        self.assertIsNotNone(check["target"]["remote_sha"])
 
 
 if __name__ == "__main__":

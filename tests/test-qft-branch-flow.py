@@ -38,34 +38,40 @@ class QftBranchFlowPlanTests(unittest.TestCase):
         )
         self.assertFalse(plan["push"]["confirmed"])
 
-    def test_plan_bug_branch_only_creates_bug_branch(self) -> None:
+    def test_plan_bug_branch_uses_feedback_date_and_reuses_existing_branch(
+        self,
+    ) -> None:
         result = run_flow(
             "plan",
             "bugfix",
             "--projects",
             "qft-harmonyos-vue3,qft-universal.gitersal",
             "--version",
-            "0301",
+            "0528",
+            "--bug-version",
+            "0602",
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         plan = json.loads(result.stdout)
         self.assertEqual(plan["scenario"], "bugfix")
-        self.assertEqual(plan["target_branch"], "3.0.0.MASTER_BUG_0301")
+        self.assertEqual(plan["version"], "0528")
+        self.assertEqual(plan["bug_version"], "0602")
+        self.assertEqual(plan["target_branch"], "3.0.0.MASTER_BUG_0602")
         self.assertEqual(
             step_tuples(plan),
             [
                 (
                     "qft-harmonyos-vue3",
-                    "V.0301",
-                    "3.0.0.MASTER_BUG_0301",
-                    "create_branch",
+                    "V.0528",
+                    "3.0.0.MASTER_BUG_0602",
+                    "ensure_branch",
                 ),
                 (
                     "qft-universal.gitersal",
-                    "V.0301",
-                    "3.0.0.MASTER_BUG_0301",
-                    "create_branch",
+                    "V.0528",
+                    "3.0.0.MASTER_BUG_0602",
+                    "ensure_branch",
                 ),
             ],
         )
@@ -77,26 +83,30 @@ class QftBranchFlowPlanTests(unittest.TestCase):
             "--projects",
             "qft-harmonyos-vue3,qft-universal.gitersal",
             "--version",
-            "0301",
+            "0528",
+            "--bug-version",
+            "0602",
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         plan = json.loads(result.stdout)
         self.assertEqual(plan["scenario"], "bugfix-finish")
-        self.assertEqual(plan["target_branch"], "V.0301")
+        self.assertEqual(plan["version"], "0528")
+        self.assertEqual(plan["bug_version"], "0602")
+        self.assertEqual(plan["target_branch"], "V.0528")
         self.assertEqual(
             step_tuples(plan),
             [
                 (
                     "qft-harmonyos-vue3",
-                    "3.0.0.MASTER_BUG_0301",
-                    "V.0301",
+                    "3.0.0.MASTER_BUG_0602",
+                    "V.0528",
                     "merge",
                 ),
                 (
                     "qft-universal.gitersal",
-                    "3.0.0.MASTER_BUG_0301",
-                    "V.0301",
+                    "3.0.0.MASTER_BUG_0602",
+                    "V.0528",
                     "merge",
                 ),
             ],
@@ -207,6 +217,17 @@ class QftBranchFlowPlanTests(unittest.TestCase):
                 ),
                 "missing business branch for: qft-app",
             ),
+            (
+                (
+                    "plan",
+                    "bugfix",
+                    "--projects",
+                    "qft-harmonyos-vue3",
+                    "--version",
+                    "0528",
+                ),
+                "bug-version must match ^[0-9]{4}$",
+            ),
         ]
         for args, message in cases:
             with self.subTest(message=message):
@@ -219,13 +240,14 @@ class QftBranchFlowPlanTests(unittest.TestCase):
         bad_plan = {
             "schema_version": "1.0.0",
             "scenario": "bugfix",
-            "version": "0301",
+            "version": "0528",
+            "bug_version": "0602",
             "projects": ["qft-harmonyos-vue3"],
-            "target_branch": "3.0.0.MASTER_BUG_0301",
+            "target_branch": "3.0.0.MASTER_BUG_0602",
             "steps": [
                 {
                     "repo": "qft-harmonyos-vue3",
-                    "source_branch": "3.0.0.MASTER_BUG_0301",
+                    "source_branch": "3.0.0.MASTER_BUG_0602",
                     "target_branch": "master",
                     "action": "merge",
                 }
@@ -236,7 +258,7 @@ class QftBranchFlowPlanTests(unittest.TestCase):
         result = run_flow("validate", input_payload=bad_plan)
 
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("bugfix must create BUG branch from V.0301", result.stderr)
+        self.assertIn("bugfix must ensure BUG branch from V.0528", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
 
     def test_validate_rejects_preconfirmed_push_in_initial_plan(self) -> None:

@@ -57,8 +57,36 @@ PY
 [ -x "$home_dir/.claude/hooks/block_dangerous.sh" ] || install_test_fail "claude dangerous hook wrapper should be executable"
 [ -x "$home_dir/.claude/hooks/managed/block_dangerous.sh" ] || install_test_fail "claude managed dangerous hook should be executable"
 printf '{}' | bash "$home_dir/.claude/hooks/block_dangerous.sh" >/dev/null 2>&1 || install_test_fail "claude dangerous hook wrapper should run without permission errors"
-post_compact_payload="$(printf '{}' | bash "$home_dir/.claude/hooks/post_compact.sh")" || install_test_fail "claude post_compact hook should emit JSON payload"
+mkdir -p "$home_dir/project"
+compact_summary='Sensitive compact summary should be stored locally and must not be injected into additionalContext'
+post_compact_input="$(jq -nc \
+  --arg sid "session-postcompact-runtime" \
+  --arg cwd "$home_dir/project" \
+  --arg transcript "$home_dir/transcript.jsonl" \
+  --arg summary "$compact_summary" \
+  '{
+    session_id: $sid,
+    transcript_path: $transcript,
+    cwd: $cwd,
+    hook_event_name: "PostCompact",
+    trigger: "auto",
+    compact_summary: $summary
+  }')"
+post_compact_payload="$(printf '%s' "$post_compact_input" | HOME="$home_dir" bash "$home_dir/.claude/hooks/post_compact.sh")" || install_test_fail "claude post_compact hook should emit JSON payload"
+post_compact_state="$home_dir/.claude/hooks/state/post-compact/latest-session-postcompact-runtime.json"
+post_compact_events="$home_dir/.claude/hooks/state/post-compact/events.jsonl"
 printf '%s' "$post_compact_payload" | jq -e '.hookSpecificOutput.hookEventName == "PostCompact"' >/dev/null 2>&1 || install_test_fail "claude post_compact hook should keep PostCompact event name"
+install_test_assert_file_exists "$post_compact_state" "claude post_compact hook should persist latest compact summary"
+install_test_assert_file_exists "$post_compact_events" "claude post_compact hook should append compact summary audit events"
+jq -e --arg summary "$compact_summary" '
+  .session_id == "session-postcompact-runtime"
+  and .trigger == "auto"
+  and .compact_summary == $summary
+  and (.summary_length == ($summary | length))
+' "$post_compact_state" >/dev/null 2>&1 || install_test_fail "claude post_compact latest state should preserve compact payload fields"
+tail -n 1 "$post_compact_events" | jq -e --arg summary "$compact_summary" '.compact_summary == $summary' >/dev/null 2>&1 || install_test_fail "claude post_compact events log should preserve compact summary"
+printf '%s' "$post_compact_payload" | grep -Fq "$compact_summary" && install_test_fail "claude post_compact hook must not inject compact summary into additionalContext"
+printf '%s' "$post_compact_payload" | jq -e '.hookSpecificOutput.additionalContext | contains("compact_summary_ref")' >/dev/null 2>&1 || install_test_fail "claude post_compact hook should expose compact summary state reference"
 printf '%s' "$post_compact_payload" | grep -Fq 'mode / stage / status / scope_ref / state_ref / next_ref / blocker / decision_needed' || install_test_fail "claude post_compact hook should restore state anchors"
 printf '%s' "$post_compact_payload" | grep -Fq '如果 goal / owner / lane / phase 已变化，先回源纠偏，不继续执行' || install_test_fail "claude post_compact hook should require freshness check before continuing"
 printf '%s' "$post_compact_payload" | grep -Fq 'blocked / waiting_on / unblock_condition / decision_needed' || install_test_fail "claude post_compact hook should describe blocked fallback"

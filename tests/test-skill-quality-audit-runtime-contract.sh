@@ -26,14 +26,18 @@ grep -q '^allowed-tools: Read, Write, Glob, Grep, Agent, Bash(python3 shared/ski
   || fail "skill-quality-audit must not have edit tools"
 grep -Fq 'Write only audit output artifacts' "$SKILL" \
   || fail "skill-quality-audit must restrict Write to audit output artifacts"
-grep -Fq 'Default behavior:' "$SKILL" \
-  || fail "skill-quality-audit must define default audit behavior"
+! grep -Fq '## When To Use' "$SKILL" \
+  || fail "manual skill-quality-audit must not spend body attention on a When To Use section"
+grep -Fq '## Audit Run' "$SKILL" \
+  || fail "skill-quality-audit must define the positive audit run flow"
 grep -Fq 'produce a formal QA report in the same run' "$SKILL" \
   || fail "skill-quality-audit must default to a one-run formal audit"
-grep -Fq 'Do NOT ask the user for report paths' "$SKILL" \
-  || fail "skill-quality-audit must not require user-provided report paths"
+grep -Fq 'choose artifact paths automatically' "$SKILL" \
+  || fail "skill-quality-audit must choose report paths automatically"
 grep -Fq 'fall back to `/tmp`' "$SKILL" \
   || fail "skill-quality-audit must define artifact path fallback"
+grep -Fq 'Stop before severity labels, verdicts, readiness decisions, JSON report creation, or validator claims.' "$SKILL" \
+  || fail "light scan must stop before formal verdict/report claims"
 grep -Fq 'allow_implicit_invocation: false' "$AGENT" \
   || fail "skill-quality-audit must disable implicit invocation for Codex"
 
@@ -75,8 +79,8 @@ light_text = " ".join(light_evals[0]["expectations"])
 if "severity labels" not in light_text or "P0/P1/P2/P3" not in light_text:
     raise SystemExit("light scan eval must forbid severity labels")
 prompt_text = " ".join(item["prompt"] for item in prompts["prompts"])
-if "overview审查.md" not in prompt_text:
-    raise SystemExit("test prompts must cover transcript triage from overview审查.md")
+if "shared/skills/skill-quality-audit/evals/fixtures/artifacts/overview-transcript.md" not in prompt_text:
+    raise SystemExit("test prompts must cover transcript triage from the stable overview transcript fixture")
 if "Formal Gate" in prompt_text or "Quick Review" in prompt_text:
     raise SystemExit("test prompts must not expose old mode names")
 PY

@@ -163,5 +163,26 @@ def release_merge_plan(
     }
 
 
+def bugfix_plan(release_version: str = "0528", bug_version: str = "0602") -> dict:
+    bug_branch = f"3.0.0.MASTER_BUG_{bug_version}"
+    return {
+        "schema_version": "1.0.0",
+        "scenario": "bugfix",
+        "version": release_version,
+        "bug_version": bug_version,
+        "projects": ["qft-app"],
+        "target_branch": bug_branch,
+        "steps": [
+            {
+                "repo": "qft-app",
+                "source_branch": f"V.{release_version}",
+                "target_branch": bug_branch,
+                "action": "ensure_branch",
+            }
+        ],
+        "push": {"confirmed": False, "branches": []},
+    }
+
+
 def blocker_codes(result: dict) -> set[str]:
     return {blocker["code"] for repo in result["repos"] for blocker in repo["blockers"]}

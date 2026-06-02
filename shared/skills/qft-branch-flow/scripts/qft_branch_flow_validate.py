@@ -71,6 +71,7 @@ def require_plan_fields(plan: dict[str, Any]) -> None:
         "owner",
         "requirement",
         "delay",
+        "bug_version",
         "projects",
         "business_branches",
         "target_branch",
@@ -205,19 +206,28 @@ def validate_dev_sync(
     )
 
 
+def require_bug_version(plan: dict[str, Any]) -> str:
+    return require_pattern(
+        plan.get("bug_version"),
+        r"^[0-9]{4}$",
+        "bug_version must match ^[0-9]{4}$",
+    )
+
+
 def validate_bugfix(
     plan: dict[str, Any], registry: dict[str, dict[str, str]], policy: dict[str, Any]
 ) -> None:
     del registry
+    bug_version = require_bug_version(plan)
     release_branch = branch_name(policy, "release", version=plan["version"])
-    expected_target = branch_name(policy, "bugfix", version=plan["version"])
+    expected_target = branch_name(policy, "bugfix", version=bug_version)
     require_target(plan, expected_target)
     expected_steps = [
-        (repo, release_branch, expected_target, "create_branch")
+        (repo, release_branch, expected_target, "ensure_branch")
         for repo in plan["projects"]
     ]
     require_steps(
-        plan, expected_steps, f"bugfix must create BUG branch from {release_branch}"
+        plan, expected_steps, f"bugfix must ensure BUG branch from {release_branch}"
     )
 
 
@@ -225,8 +235,9 @@ def validate_bugfix_finish(
     plan: dict[str, Any], registry: dict[str, dict[str, str]], policy: dict[str, Any]
 ) -> None:
     del registry
+    bug_version = require_bug_version(plan)
     release_branch = branch_name(policy, "release", version=plan["version"])
-    bug_branch = branch_name(policy, "bugfix", version=plan["version"])
+    bug_branch = branch_name(policy, "bugfix", version=bug_version)
     require_target(plan, release_branch)
     expected_steps = [
         (repo, bug_branch, release_branch, "merge") for repo in plan["projects"]

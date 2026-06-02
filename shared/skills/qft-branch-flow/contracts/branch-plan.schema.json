@@ -33,6 +33,10 @@
       "type": "string",
       "pattern": "^[0-9]{4}$"
     },
+    "bug_version": {
+      "type": "string",
+      "pattern": "^[0-9]{4}$"
+    },
     "owner": {
       "type": "string",
       "pattern": "^[A-Z0-9]+$"

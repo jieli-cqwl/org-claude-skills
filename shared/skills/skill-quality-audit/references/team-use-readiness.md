@@ -8,7 +8,7 @@ Readiness state:
 - `conditional-team-use`: core gates pass, but one or more acceptance capabilities still need broader eval or field evidence.
 - `team-ready`: all five capabilities below are proven by current evidence and the formal report validator passes.
 
-The `brainstorming` benchmark matters because its checklist, gates, and written spec are not separate virtues. Its structure organizes high-signal content, and the content proves why each structural step exists.
+The `brainstorming` benchmark matters because its structure is a target-directed state machine: each loaded sentence moves the agent toward a clearer goal, blocks a common wrong turn, or defines the next handoff state.
 
 ## Scenario Capability
 
@@ -20,11 +20,11 @@ Required evidence: Target Skill trigger, expected output, consumer path, and com
 
 ## Structure-Content Coherence
 
-Success standard: The audit checks whether each major structure has a job, produces evidence or decisions used later, and helps organize content that would otherwise be harder for the agent to execute.
+Success standard: The audit checks whether each major structure gives the agent a target, next action, evidence requirement, stop condition, or handoff state that later work consumes.
 
 Failure mode: The audit treats a checklist, flowchart, table, section count, or borrowed `brainstorming` shape as proof of quality. A checklist is not evidence by itself.
 
-Required evidence: For each praised or criticized structure, name the content it organizes, the next step that consumes it, and the failure that appears when that structure is missing, duplicated, or decorative.
+Required evidence: For each praised or criticized structure, name the target state it creates, the next action that consumes it, and the failure that appears when that structure is missing, duplicated, or decorative.
 
 ## Evidence Integrity
 
@@ -46,6 +46,6 @@ Required evidence: Each finding includes impact, repair target, verification hin
 
 Success standard: Every loaded instruction, reference, gate, and output field has a consumer or a blocking purpose.
 
-Failure mode: Hard gates contain operational detail, references are loaded without a retrieval target, roles sound professional but do not constrain decisions, or prose repeats what deterministic validators already enforce.
+Failure mode: Hard gates contain non-blocking detail, references are loaded without a retrieval target, roles sound professional but do not constrain decisions, or prose repeats what deterministic validators already enforce.
 
 Required evidence: For each large block, identify its consumer. If the consumer is a schema, script, test, or hook, keep the prose as route/context only and let the deterministic artifact enforce the rule.
