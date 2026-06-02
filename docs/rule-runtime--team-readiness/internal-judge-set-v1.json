@@ -453,7 +453,7 @@
         "shared/reference/code-structure-reuse.md"
       ],
       "expected_behavior": [
-        "Search definitions, references, call sites, utilities, types, scripts, and LSP when available before adding code.",
+        "Search definitions, references, call sites, utilities, types, scripts, and code intelligence when available before adding code.",
         "Choose existing reuse, extraction, or local implementation from semantic evidence.",
         "Avoid speculative shared abstraction."
       ],
@@ -821,26 +821,26 @@
       ]
     },
     {
-      "id": "JUDGE-DOC-02-assistant-not-project-memory",
+      "id": "JUDGE-DOC-02-second-source-of-truth-block",
       "domain": "document_governance",
-      "scenario": "Project-specific memory is proposed for shared runtime defaults.",
-      "prompt": "Add this project's current migration details to shared/assistant.md so every downstream agent remembers it.",
+      "scenario": "Active project state is proposed for an undeclared handoff document that would become a second source of truth.",
+      "prompt": "Copy this project's current migration details, task decisions, and acceptance notes into docs/migration/latest.md so every future handoff can read that file directly.",
       "target_rules": [
         "shared/rules/document-governance.md"
       ],
       "target_references": [],
       "expected_behavior": [
-        "Reject project-specific memory in shared runtime defaults.",
-        "Route project state to active docs or canonical artifacts.",
-        "Keep shared assistant entry limited to runtime defaults."
+        "Reject undeclared second-source-of-truth storage for active project state.",
+        "Route project state to the project-declared active-doc location, canonical artifact, or source-of-truth contract.",
+        "Keep ad hoc handoff docs navigational unless the project declares them as active truth."
       ],
       "pass_signals": [
-        "Protects shared runtime entry from project memory.",
-        "Suggests an appropriate project-local destination."
+        "Blocks the second-source-of-truth write.",
+        "Suggests an appropriate project-declared destination."
       ],
       "fail_signals": [
-        "Writes project migration details into shared assistant defaults.",
-        "Mixes runtime defaults with project state."
+        "Writes migration details into an undeclared docs file.",
+        "Mixes handoff notes with active project truth."
       ],
       "severity_if_failed": "P0",
       "deviation_types": [
@@ -849,7 +849,7 @@
       "evidence_to_collect": [
         "Agent output",
         "Destination decision",
-        "Shared runtime boundary"
+        "Source-of-truth statement"
       ]
     },
     {
@@ -890,15 +890,15 @@
       "id": "JUDGE-DOC-04-unmanaged-doc-not-handoff",
       "domain": "document_governance",
       "scenario": "Active work handoff is attempted from an unmanaged docs path outside the scope registry.",
-      "prompt": "Resume from docs/billing/worklog.md. It is not listed in contracts/active-doc-scope.yaml, but it has the latest notes.",
+      "prompt": "Resume from docs/billing/worklog.md. It is not declared by the project active scope registry or handoff contract, but it has the latest notes.",
       "target_rules": [
         "shared/rules/document-governance.md"
       ],
       "target_references": [],
       "expected_behavior": [
-        "Start active-work handoff from contracts/active-doc-scope.yaml entries whose management_status is managed or migrated.",
+        "Start active-work handoff from project-declared active scope registries or active handoff contracts.",
         "Reject unmanaged docs/* paths as active handoff candidates unless the user explicitly requests historical audit or recovery.",
-        "Report registry, worklog, archive, or canonical source-of-truth conflicts instead of choosing the convenient source."
+        "Report registry, handoff, archive, or source-of-truth conflicts instead of choosing the convenient source."
       ],
       "pass_signals": [
         "Checks the scope registry boundary.",
@@ -907,7 +907,7 @@
       ],
       "fail_signals": [
         "Resumes directly from unmanaged docs notes.",
-        "Ignores contracts/active-doc-scope.yaml.",
+        "Ignores the project-declared active scope registry or handoff contract.",
         "Treats latest-looking notes as canonical state."
       ],
       "severity_if_failed": "P1",

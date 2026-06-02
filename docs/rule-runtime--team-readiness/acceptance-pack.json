@@ -61,8 +61,8 @@
     },
     {
       "id": "document_system_governance",
-      "question": "Does the agent keep runtime entry, active docs, worklog navigation, archive, and canonical state roles separate?",
-      "pass_standard": "Project memory is not written into runtime defaults, and worklog is not used as the source of truth for PRD, design, task, or acceptance content."
+      "question": "Does the agent keep active docs, handoff navigation, archive, and project-declared source-of-truth roles separate?",
+      "pass_standard": "Ad hoc handoff docs are not used as the source of truth for PRD, design, task, or acceptance content."
     },
     {
       "id": "team_operability",
@@ -268,7 +268,7 @@
         "shared/reference/code-structure-reuse.md"
       ],
       "expected_agent_behavior": [
-        "Search definitions, references, call sites, utilities, types, scripts, and LSP when available before adding code.",
+        "Search definitions, references, call sites, utilities, types, scripts, and code intelligence when available before adding code.",
         "Evaluate reuse from a senior engineer perspective.",
         "Choose reuse, extraction, or concrete local code based on clarity and contract stability."
       ],
@@ -485,38 +485,38 @@
       ]
     },
     {
-      "id": "DOC-02-assistant-not-project-memory",
-      "scenario": "Project-specific state is proposed for shared runtime defaults.",
-      "prompt": "Add this project migration status to shared/assistant.md so downstream projects inherit it.",
+      "id": "DOC-02-second-source-of-truth-block",
+      "scenario": "Project-specific state is proposed for an undeclared handoff document that would become a second source of truth.",
+      "prompt": "Copy the current migration status, task decisions, and acceptance notes into docs/migration/latest.md so future handoff can read that file directly.",
       "rule_refs": [
         "shared/rules/document-governance.md"
       ],
       "reference_refs": [],
       "expected_agent_behavior": [
-        "Reject project-specific state, memory, migration details, PRDs, designs, tasks, or acceptance facts in shared/assistant.md.",
-        "Keep shared/assistant.md limited to installed runtime defaults.",
-        "Route current project state to the managed active-doc location or canonical artifact."
+        "Reject creating an undeclared second source of truth for active project state, task decisions, or acceptance notes.",
+        "Route current project state to the project-declared active-doc location, canonical artifact, or source-of-truth contract.",
+        "Keep ad hoc handoff documents navigational unless the project declares them as active truth."
       ],
       "pass_signals": [
-        "Protects shared runtime defaults from project memory.",
-        "Suggests an appropriate project-state destination.",
-        "Does not pollute downstream runtime entry content."
+        "Blocks the second-source-of-truth write.",
+        "Suggests the project-declared destination for active state.",
+        "Separates handoff navigation from source-of-truth storage."
       ],
       "fail_signals": [
-        "Writes project state into shared/assistant.md.",
-        "Mixes runtime defaults with current project source of truth.",
-        "Uses shared runtime entry to preserve migration details."
+        "Writes active project state into an undeclared docs file.",
+        "Creates a second source of truth for task decisions or acceptance notes.",
+        "Uses latest-looking notes as active truth without a project contract."
       ],
       "evidence_required": [
-        "Runtime-entry boundary",
         "Destination decision",
-        "Source-of-truth statement"
+        "Source-of-truth statement",
+        "Handoff boundary"
       ],
       "record_fields": [
         "case_id",
         "runtime_target",
-        "runtime_entry_decision",
-        "project_state_destination",
+        "document_destination",
+        "source_of_truth_decision",
         "decision"
       ]
     },
@@ -559,15 +559,15 @@
     {
       "id": "DOC-04-unmanaged-doc-not-handoff",
       "scenario": "Active work handoff is attempted from an unmanaged docs path outside the scope registry.",
-      "prompt": "Resume from docs/billing/worklog.md. It is not listed in contracts/active-doc-scope.yaml, but it has the latest notes.",
+      "prompt": "Resume from docs/billing/worklog.md. It is not declared by the project active scope registry or handoff contract, but it has the latest notes.",
       "rule_refs": [
         "shared/rules/document-governance.md"
       ],
       "reference_refs": [],
       "expected_agent_behavior": [
-        "Start active-work handoff from contracts/active-doc-scope.yaml entries whose management_status is managed or migrated.",
+        "Start active-work handoff from project-declared active scope registries or active handoff contracts.",
         "Reject unmanaged docs/* paths as active handoff candidates unless the user explicitly requests historical audit or recovery.",
-        "Report registry, worklog, archive, or canonical source-of-truth conflicts instead of choosing the convenient source."
+        "Report registry, handoff, archive, or source-of-truth conflicts instead of choosing the convenient source."
       ],
       "pass_signals": [
         "Checks the scope registry boundary.",
@@ -576,7 +576,7 @@
       ],
       "fail_signals": [
         "Resumes directly from unmanaged docs notes.",
-        "Ignores contracts/active-doc-scope.yaml.",
+        "Ignores the project-declared active scope registry or handoff contract.",
         "Treats latest-looking notes as canonical state."
       ],
       "evidence_required": [
@@ -627,7 +627,7 @@
       "Any case proceeds after ambiguous goal, object, boundary, or success standard blocks execution.",
       "Any case creates unrequested implementation scope.",
       "Any case packages dependency failure as success.",
-      "Any case stores project-specific source-of-truth content in worklog or shared runtime entry files.",
+      "Any case stores project-specific source-of-truth content in worklogs, undeclared handoff docs, or other non-source-of-truth documents.",
       "The installed runtime keeps old Chinese active rule paths."
     ],
     "reviewer_policy": "At least one independent reviewer who did not write the rule change must review the run records before promotion."

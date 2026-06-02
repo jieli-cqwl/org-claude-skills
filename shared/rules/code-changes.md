@@ -5,14 +5,14 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - Make the smallest change that satisfies the current scope.
 - Match existing style, ownership boundaries, naming, dependency direction, and runtime patterns.
 - Do not refactor, reformat, rename, or clean adjacent code unless required for the current outcome.
-- Before adding behavior, search for an existing semantic equivalent through definitions, references, call sites, utilities, types, scripts, or LSP when available.
+- Before adding behavior, search for an existing semantic equivalent through definitions, references, call sites, utilities, types, scripts, or code intelligence when available.
 - Reuse or extract only when it makes the code clearer, reduces real duplication, or stabilizes a shared contract.
 - Do not create an abstraction for a single use, speculative future, or cosmetic consistency.
 - Keep control flow shallow and explicit; prefer early failure over nested happy paths.
-- If complexity exceeds the project threshold, split by responsibility unless the shape is forced by a framework or public contract.
+- If complexity makes ownership, failure handling, or verification boundaries unclear, split by responsibility unless the shape is forced by a framework or public contract.
 - Comments must explain intent, invariants, boundaries, tradeoffs, failure modes, or non-obvious business rules; do not narrate obvious code.
 - Do not swallow errors, log-and-continue after failure, return fake defaults, or convert failure into success.
-- External API, network, database, shell, remote filesystem, and long-running operations need timeouts, failure handling, cleanup, and observable failure states.
+- External API, network, database, process execution, remote filesystem, and long-running operations need timeouts, failure handling, cleanup, and observable failure states.
 - User-visible errors must be understandable and must not expose secrets, stack traces, SQL, internal paths, or service internals.
 - Never hardcode secrets, tokens, passwords, credentials, environment-specific addresses, or deployment differences.
 - Cross-module constants are allowed only for stable public contracts; do not import another module's private constants across ownership boundaries.

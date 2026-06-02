@@ -67,7 +67,7 @@ expected_cases = {
     "CODE-04-cache-batch-async-boundary",
     "CODE-05-surgical-change-boundary",
     "DOC-01-worklog-not-source",
-    "DOC-02-assistant-not-project-memory",
+    "DOC-02-second-source-of-truth-block",
     "DOC-03-archive-active-refs-block",
     "DOC-04-unmanaged-doc-not-handoff",
 }

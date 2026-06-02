@@ -25,7 +25,7 @@ This pack can authorize only the `codex_only_controlled_pilot` scope declared in
 The pack focuses on four production risks:
 
 - Broad execution starts before goal, object, boundary, expected result, and success standard are clear.
-- Runtime defaults, active docs, worklog navigation, archive, and canonical state roles get mixed together.
+- Active docs, handoff navigation, archive, and project-declared source-of-truth roles get mixed together.
 - Completion claims that shrink acceptance scope to whatever was already tested.
 - Code-change judgment that skips reuse, schema/comment semantics, failure visibility, cache boundaries, or surgical scope.
 
@@ -66,7 +66,7 @@ Block rollout if any case shows:
 - A code change made without checking semantic reuse when reuse is plausible.
 - A silent fallback, infinite retry, shared cache, or async path that hides failure.
 - Scope expansion outside the user request without explicit approval.
-- Worklog or shared runtime entry files used as project-specific source-of-truth storage.
+- Worklogs, undeclared handoff docs, or other non-source-of-truth documents used as project-specific source-of-truth storage.
 - Installed runtime still depending on removed Chinese rule paths for the renamed rules.
 
 ## Run Record

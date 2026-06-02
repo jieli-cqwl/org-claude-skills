@@ -12,6 +12,8 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 
 把已确认的 Director Phase 写成下游可直接消费的 PM 产物。你给产品推荐、依据和取舍；用户只确认会改变结论的业务事实、约束和裁决。
 
+PM 只写 WHAT 层业务事实、产品判断、风险、AC、Verification Plan 和 design handoff；技术实现路径、接口字段、组件方案和测试实现留给下游。
+
 ## HARD-GATE
 
 进入 PM 细化前先验五件事：
@@ -23,16 +25,6 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 - 恢复状态稳定：如果已有 PM 工作草稿、`review_conclusion`、`issue_ledger` 或 `delivery_confirmation`，先处理未关闭 FAIL、未承接 WARN、过期 digest、历史 open question 或已确认交付后的漂移。
 
 任一不成立：记录 owner、阻断事实、影响产物、回流节点和恢复条件。用户要求 HOW 层方案时，先改写为 WHAT 层约束；仍无法落到 WHAT 时写入对应 JSON 的 `issue_ledger`，标明需要的下游角色和裁决事实，不写 PM 产品结论。
-
-## 正确产出
-
-PM 的正确产出是结构化业务事实和产品判断包；JSON 承载下游需要的业务事实，聊天记录只作背景。
-
-- `phase-prd.json` 写 Phase 产品模型：现状、目标、入口、出口、角色在何条件下可触发/执行/审批/查看/撤销、对象状态变化、用户可见状态、范围边界、业务态/端/路径覆盖、风险落点、技术证据输入、设计决策候选和发布口径。
-- `units/UNIT-*.json` 回答交付切片：每个 UNIT 的触发、核心行为、可观察结果、优先级依据、依赖、排除项、Integration Context、AC、Verification Plan 和功能/流程/风险/规则追溯。
-- `brief.json` 写交付闭合：PM issue、review digest、review conclusion 和 delivery confirmation 是否已经关闭。
-- PM 过程状态写入正式 JSON：Handoff、Self-check 和 Review digest 前的阻断、open question、WARN 与漂移写 `pre_review_issue_ledger`；Review digest 后的承接、风险接受、延期和关闭写 `issue_ledger` 合法终态；评审 digest、reviewer verdict 和收敛证据写 `review_conclusion`；用户接受后写 `delivery_confirmation`。
-- 用户给方案词时，改写为业务行为、业务约束、可观察结果、风险或设计交接；技术实现路径、接口字段、组件方案和测试实现留给下游。
 
 ## Checklist
 
@@ -82,7 +74,7 @@ digraph product_manager_flow {
 
 ## The Process
 
-执行规则：读取 `shared/skills/product-manager/templates/brief.template.json`、`shared/skills/product-manager/templates/phase-prd.template.json` 和 `shared/skills/product-manager/templates/unit-definition.template.json` 创建目标 JSON；模板只提供结构起点，复制后立即替换所有样例业务值，目标 JSON 残留 `sample-feature`、`request review`、`Requester` 或 `Reviewer` 等样例文本即失败；用 `contracts/*.schema.json` 限定合法字段；用 scripts/gates 判定完成。后续节点发现缺字段时，回到字段拥有节点补齐。
+执行规则：读取 `shared/skills/product-manager/templates/brief.template.json`、`shared/skills/product-manager/templates/phase-prd.template.json` 和 `shared/skills/product-manager/templates/unit-definition.template.json` 创建目标 JSON；模板只提供结构起点，复制后立即替换所有样例业务值，目标 JSON 残留 `sample-feature`、`request review`、`Requester` 或 `Reviewer` 等样例文本即失败；用 `contracts/*.schema.json` 限定合法字段；canonical JSON 是下游控制输入，聊天记录只作背景；用 scripts/gates 判定完成。后续节点发现缺字段时，回到字段拥有节点补齐。
 
 PM 状态采用阶段化闭集写入：Handoff、Self-check 和 Review digest 前的阻断、open question、WARN 与漂移写入拥有该问题的 `pre_review_issue_ledger`；Review digest 后的承接、风险接受、延期和关闭写入 `issue_ledger` 合法终态；评审 digest、reviewer verdict 和收敛证据写入 `review_conclusion`；用户接受后写入 `brief.json.delivery_confirmation`。未能归类的 PM 状态先作为 open question 写入对应 `pre_review_issue_ledger`，不扩展模板外字段。
 

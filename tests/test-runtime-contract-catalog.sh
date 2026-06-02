@@ -49,12 +49,10 @@ semantic_checks = [
     (
         "acceptance-scope-derivation",
         text.find("derive the acceptance scope") >= 0
-        and text.find("success criteria") >= 0
-        and text.find("impact analysis") >= 0
-        and text.find("triggered validation dimensions") >= 0
-        and text.find("risk surfaces") >= 0
-        and text.find("real dependencies") >= 0
-        and text.find("affected user paths") >= 0,
+        and text.find("explicit acceptance requirements") >= 0
+        and text.find("affected paths") >= 0
+        and text.find("dependencies") >= 0
+        and text.find("required verification") >= 0,
     ),
     (
         "user-verification-not-scope-shrink",
@@ -63,8 +61,8 @@ semantic_checks = [
         and all(term in text for term in ("explicitly", "limits", "acceptance", "scope")),
     ),
     (
-        "consumer-class-real-entry",
-        text.find("consumer class") >= 0 and text.find("real entry") >= 0,
+        "representative-real-consumers",
+        text.find("representative real consumers") >= 0 and text.find("outside scope") >= 0,
     ),
     (
         "accepted-residual-risk-boundary",
@@ -231,7 +229,7 @@ semantic_checks = [
     ),
     (
         "ordered-process-verification",
-        all(term in text for term in ("skills", "task contracts", "do not merge", "Required verification", "prerequisites")),
+        all(term in text for term in ("active skills", "declared contracts", "Do not merge", "Required verification", "prerequisites")),
     ),
     (
         "state-recovery",
@@ -243,7 +241,7 @@ semantic_checks = [
     ),
     (
         "shared-before-parallel",
-        all(term in text for term in ("contract:collaboration-boundary:shared-before-parallel", "shared contracts", "shared data writes", "same user path")),
+        all(term in text for term in ("shared prerequisite", "shared contracts", "shared data writes", "same user path")),
     ),
     (
         "scope-discipline",
@@ -301,11 +299,11 @@ if long_lines:
 semantic_checks = [
     (
         "managed-path-rename-sync",
-        all(term in text for term in ("managed path", "contracts/active-doc-scope.yaml", "entry refs", "fixtures", "recovery paths")),
+        all(term in text for term in ("managed path", "project-declared scope registries", "entry refs", "fixtures", "recovery paths")),
     ),
     (
-        "assistant-runtime-boundary",
-        all(term in text for term in ("shared/assistant.md", "installed runtime defaults", "project-specific", "PRDs", "acceptance facts")),
+        "active-state-single-source",
+        all(term in text for term in ("active project state", "project-declared active-doc", "source-of-truth contract", "second source of truth")),
     ),
     (
         "doc-sync-and-stale",
@@ -313,27 +311,27 @@ semantic_checks = [
     ),
     (
         "archive-reference-cleanup",
-        all(term in text for term in ("docs/archive/", "active-doc", "test", "fixture", "runtime")),
+        all(term in text for term in ("project-declared archive location", "active-doc", "test", "fixture", "validator references")),
     ),
     (
-        "scope-registry-legacy",
-        all(term in text for term in ("management_status: legacy", "archive_ref", "archived_at", "worklog.md")),
+        "managed-archive-recoverable",
+        all(term in text for term in ("managed registry entry", "archive metadata", "recoverable handoff pointer")),
     ),
     (
-        "handoff-managed-migrated",
-        all(term in text for term in ("managed", "migrated", "unmanaged", "handoff candidates")),
+        "handoff-registry-boundary",
+        all(term in text for term in ("project-declared active scope registries", "unmanaged docs", "active handoff candidates")),
     ),
     (
         "worklog-navigation-only",
-        all(term in text for term in ("state_ref", "next_ref", "canonical:", "not replace")),
+        all(term in text for term in ("worklogs or handoff docs", "navigation", "PRDs", "canonical state")),
     ),
     (
         "canonical-conflict-stop",
-        all(term in text for term in ("artifact-registry.active_revision_id", "source-of-truth conflict", "do not choose")),
+        all(term in text for term in ("canonical artifacts", "source-of-truth conflict", "do not choose")),
     ),
     (
         "recovery-validation",
-        all(term in text for term in ("validate_context_contract.py", "recover_context.py", "tools/validate-contracts.sh")),
+        all(term in text for term in ("project-declared validators", "targeted tests", "reference reachability")),
     ),
 ]
 missing_semantics = [label for label, present in semantic_checks if not present]
@@ -407,12 +405,8 @@ if rg -n 'reference.*自动加载|自动加载.*reference|runtime 自动加载�
 fi
 
 collaboration_boundary_marker="contract:collaboration-boundary:shared-before-parallel"
-for path in \
-  "$ROOT/shared/rules/execution-control.md" \
-  "$ROOT/shared/reference/影响范围分析.md"; do
-  rg -F "$collaboration_boundary_marker" "$path" >/dev/null 2>&1 \
-    || fail "missing collaboration boundary contract marker: $path"
-done
+rg -F "$collaboration_boundary_marker" "$ROOT/shared/reference/影响范围分析.md" >/dev/null 2>&1 \
+  || fail "missing collaboration boundary contract marker: $ROOT/shared/reference/影响范围分析.md"
 
 python3 - "$ROOT/shared/reference/影响范围分析.md" <<'PY' || fail "impact analysis reference contract violated"
 import re
