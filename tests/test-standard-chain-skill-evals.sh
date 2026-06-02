@@ -111,6 +111,9 @@ required_eval_ids = {
     "typed-gap-routes-to-owner",
     "specialty-design-minimal-expansion",
     "three-view-review-convergence",
+    "ac-boundary-exclusion-coverage",
+    "review-digest-freeze-order",
+    "cross-unit-specialty-qa-contract",
 }
 actual_eval_ids = {case.get("id") for case in data.get("evals", [])}
 missing_eval_ids = sorted(required_eval_ids - actual_eval_ids)
@@ -179,6 +182,30 @@ field_expectations = {
         "product",
         "architecture",
         "issue_ledger",
+    ],
+    "ac-boundary-exclusion-coverage": [
+        "ac_coverage_matrix",
+        "positive",
+        "negative",
+        "boundary",
+        "exclusion guard",
+        "assertion_target",
+        "evidence_expectation",
+        "typed gap",
+    ],
+    "review-digest-freeze-order": [
+        "pre-review digest",
+        "reviewed_test_cases_digest",
+        "review_conclusion",
+        "issue_ledger",
+        "CONFIRMATION",
+    ],
+    "cross-unit-specialty-qa-contract": [
+        "cross_unit_obligations",
+        "special_test_triggers",
+        "qa_handoff_contract",
+        "design_source_refs",
+        "blocking typed gap",
     ],
 }
 for case_id, required_terms in field_expectations.items():

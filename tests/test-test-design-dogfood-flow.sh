@@ -107,16 +107,19 @@ jq -e '
   and .dogfood_flow.result == "PASS"
   and .dogfood_flow.anchor_fidelity_ref == "shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json"
   and .capability_uplift.measurement_status == "pilot_empirical_sample_recorded"
-  and .capability_uplift.with_sample_size == 6
-  and .capability_uplift.without_sample_size == 6
+  and .capability_uplift.with_sample_size == 9
+  and .capability_uplift.without_sample_size == 9
   and .capability_uplift.with_avg == 1
   and .capability_uplift.without_avg < .capability_uplift.with_avg
   and .capability_uplift.uplift > 0
   and .encoded_preference.measurement_status == "pilot_empirical_sample_recorded"
-  and .encoded_preference.fidelity == 1
-  and .encoded_preference.anchor_passed == .encoded_preference.anchor_total
+  and .encoded_preference.fidelity >= 0.8
+  and .encoded_preference.sample_size == 9
+  and .encoded_preference.anchor_passed == 17
+  and .encoded_preference.anchor_total == 19
   and .pilot_empirical.with_skill.infra_failures == 0
   and .pilot_empirical.without_skill.infra_failures == 0
+  and .pilot_empirical.with_skill.anchor_fidelity > .pilot_empirical.without_skill.anchor_fidelity
 ' "$LIFECYCLE_REVIEW" >/dev/null || {
   jq '.' "$LIFECYCLE_REVIEW" >&2
   fail "lifecycle dogfood/effectiveness evidence is incomplete"

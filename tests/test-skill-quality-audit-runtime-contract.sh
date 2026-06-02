@@ -26,18 +26,44 @@ grep -q '^allowed-tools: Read, Write, Glob, Grep, Agent, Bash(python3 shared/ski
   || fail "skill-quality-audit must not have edit tools"
 grep -Fq 'Write only audit output artifacts' "$SKILL" \
   || fail "skill-quality-audit must restrict Write to audit output artifacts"
-! grep -Fq '## When To Use' "$SKILL" \
-  || fail "manual skill-quality-audit must not spend body attention on a When To Use section"
-grep -Fq '## Audit Run' "$SKILL" \
-  || fail "skill-quality-audit must define the positive audit run flow"
-grep -Fq 'produce a formal QA report in the same run' "$SKILL" \
-  || fail "skill-quality-audit must default to a one-run formal audit"
-grep -Fq 'choose artifact paths automatically' "$SKILL" \
-  || fail "skill-quality-audit must choose report paths automatically"
-grep -Fq 'fall back to `/tmp`' "$SKILL" \
-  || fail "skill-quality-audit must define artifact path fallback"
-grep -Fq 'Stop before severity labels, verdicts, readiness decisions, JSON report creation, or validator claims.' "$SKILL" \
-  || fail "light scan must stop before formal verdict/report claims"
+python3 - "$SKILL" <<'PY'
+import sys
+from pathlib import Path
+
+lines = Path(sys.argv[1]).read_text(encoding="utf-8").splitlines()
+h2_labels = [
+    line[3:].strip().lower().replace(" ", "").replace("-", "")
+    for line in lines
+    if line.startswith("## ")
+]
+if "whentouse" in h2_labels:
+    raise SystemExit("unexpected-trigger-section")
+if not h2_labels or h2_labels[0] != "hardgate":
+    raise SystemExit("missing-leading-hardgate")
+if "auditrun" not in h2_labels:
+    raise SystemExit("missing-audit-run")
+PY
+python3 - "$ROOT/shared/skills/skill-quality-audit/evals/evals.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+evals = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+anchors = {item["id"]: item["anchor"] for item in evals["preference_anchors"]}
+required_anchor_ids = {"SQA-07", "SQA-08", "SQA-09", "SQA-10"}
+missing_anchor_ids = sorted(required_anchor_ids - anchors.keys())
+if missing_anchor_ids:
+    raise SystemExit(f"missing anchors: {missing_anchor_ids}")
+default_case = next(
+    item for item in evals["evals"] if item["id"] == "default-formal-audit-artifacts"
+)
+light_case = next(item for item in evals["evals"] if item["id"] == "explicit-light-scan")
+if "SQA-07" not in default_case.get("expected_anchors", []):
+    raise SystemExit("default audit eval must cover formal artifact behavior")
+if "SQA-10" not in light_case.get("expected_anchors", []):
+    raise SystemExit("light scan eval must cover severity-label prohibition")
+PY
+
 grep -Fq 'allow_implicit_invocation: false' "$AGENT" \
   || fail "skill-quality-audit must disable implicit invocation for Codex"
 

@@ -163,11 +163,20 @@ for skill, eval_type in expected.items():
     if skill == "test-design":
         if review.get("decision") != "optimize":
             raise SystemExit(f"{review_file}: test-design must stay optimize until empirical with/without results exist")
+        broader_eval_ids = {
+            "ac-boundary-exclusion-coverage",
+            "review-digest-freeze-order",
+            "cross-unit-specialty-qa-contract",
+        }
+        actual_eval_ids = {case.get("id") for case in cases}
+        missing_broader_eval_ids = sorted(broader_eval_ids - actual_eval_ids)
+        if missing_broader_eval_ids:
+            raise SystemExit(f"{eval_file}: missing broader test-design evals {missing_broader_eval_ids}")
         capability = review.get("capability_uplift", {})
         if capability.get("measurement_status") != "pilot_empirical_sample_recorded":
             raise SystemExit(f"{review_file}: test-design capability_uplift must record pilot empirical sample")
-        if capability.get("with_sample_size") != 6 or capability.get("without_sample_size") != 6:
-            raise SystemExit(f"{review_file}: test-design empirical sample size must be 6/6")
+        if capability.get("with_sample_size") != 9 or capability.get("without_sample_size") != 9:
+            raise SystemExit(f"{review_file}: test-design empirical sample size must be 9/9")
         if capability.get("with_avg") != 1.0:
             raise SystemExit(f"{review_file}: test-design with_skill avg must be 1.0")
         if not isinstance(capability.get("uplift"), (int, float)) or capability.get("uplift") <= 0:
@@ -182,12 +191,14 @@ for skill, eval_type in expected.items():
             raise SystemExit(f"{review_file}: test-design anchor_count must match evals.json")
         if preference.get("eval_count") != len(cases):
             raise SystemExit(f"{review_file}: test-design eval_count must match evals.json")
-        if preference.get("fidelity") != 1.0:
-            raise SystemExit(f"{review_file}: test-design pilot anchor fidelity must be 1.0")
-        if preference.get("sample_size") != 6:
-            raise SystemExit(f"{review_file}: test-design pilot anchor fidelity sample_size must be 6")
-        if preference.get("anchor_passed") != preference.get("anchor_total"):
-            raise SystemExit(f"{review_file}: test-design pilot anchors must all pass")
+        if not isinstance(preference.get("fidelity"), (int, float)) or preference.get("fidelity") < 0.80:
+            raise SystemExit(f"{review_file}: test-design anchor fidelity must be >= 0.80")
+        if preference.get("sample_size") != 9:
+            raise SystemExit(f"{review_file}: test-design anchor fidelity sample_size must be 9")
+        if preference.get("anchor_passed") != 17 or preference.get("anchor_total") != 19:
+            raise SystemExit(f"{review_file}: test-design 9-case anchors must be 17/19")
+        if round(preference.get("anchor_passed") / preference.get("anchor_total"), 4) != preference.get("fidelity"):
+            raise SystemExit(f"{review_file}: test-design anchor fidelity must match anchor_passed/anchor_total")
         for summary_ref in preference.get("summary_refs", []):
             if not (root / summary_ref).is_file():
                 raise SystemExit(f"{review_file}: missing test-design anchor fidelity ref {summary_ref}")

@@ -165,7 +165,11 @@
       "skip_policy": "RECORD_NOT_EXECUTED_REASON",
       "evidence_contract_ref": "QHO-STATIC-CONTRACT#evidence",
       "design_source_refs": [
-        "design.json#verification_mapping[0].manager_vp_ref"
+        "design.json#verification_mapping[0].manager_vp_ref",
+        "design.json#key_decisions[0]",
+        "design.json#key_decisions[1]",
+        "design.json#interfaces[0]",
+        "design.json#interfaces[1]"
       ]
     },
     {
@@ -351,7 +355,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:4cff32ae33af5eb9ccb9e9259bd4e4789bc2a2a9dcb721e2e6c72da6806c30f4",
+        "reviewed_test_cases_digest": "sha256:61bfdb5d7bb47f9b14cd7ca715e73f096c872ad688b1d12a5eb7dfe16feb2c4a",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -361,7 +365,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:4cff32ae33af5eb9ccb9e9259bd4e4789bc2a2a9dcb721e2e6c72da6806c30f4",
+        "reviewed_test_cases_digest": "sha256:61bfdb5d7bb47f9b14cd7ca715e73f096c872ad688b1d12a5eb7dfe16feb2c4a",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -371,7 +375,7 @@
         "verdict": "PASS",
         "issue_count": 0,
         "review_round": "R2",
-        "reviewed_test_cases_digest": "sha256:4cff32ae33af5eb9ccb9e9259bd4e4789bc2a2a9dcb721e2e6c72da6806c30f4",
+        "reviewed_test_cases_digest": "sha256:61bfdb5d7bb47f9b14cd7ca715e73f096c872ad688b1d12a5eb7dfe16feb2c4a",
         "evidence_refs": [
           "test-cases.json#review_conclusion.reviewed_test_cases_digest"
         ]
@@ -397,7 +401,7 @@
         ]
       }
     ],
-      "reviewed_test_cases_digest": "sha256:4cff32ae33af5eb9ccb9e9259bd4e4789bc2a2a9dcb721e2e6c72da6806c30f4",
+    "reviewed_test_cases_digest": "sha256:61bfdb5d7bb47f9b14cd7ca715e73f096c872ad688b1d12a5eb7dfe16feb2c4a",
     "closure_status": "CLOSED"
   },
   "issue_ledger": []

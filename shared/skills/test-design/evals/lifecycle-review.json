@@ -9,9 +9,11 @@
     "shared/skills/test-design/evals/evals.json",
     "shared/skills/test-design/references/methodology.md",
     "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json",
-    "shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json"
+    "shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json",
+    "tools/eval/results/test-design-combined-20260602-with-skill/summary.json",
+    "tools/eval/results/test-design-combined-20260602-without-skill/summary.json"
   ],
-  "next_action": "Broaden empirical sample before claiming retain; current pilot supports optimize with positive uplift.",
+  "next_action": "Broader 9/9 empirical sample is recorded with positive uplift; run human delta review and retain gate calibration before claiming retain.",
   "dogfood_flow": {
     "measurement_status": "completed_dogfood_flow",
     "dogfood_ref": "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json",
@@ -22,9 +24,9 @@
   },
   "capability_uplift": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "with_avg": 1,
-    "without_avg": 0.5405,
-    "uplift": 0.4595,
+    "with_avg": 1.0,
+    "without_avg": 0.6937,
+    "uplift": 0.3063,
     "grader_dimensions": [
       "role_boundary",
       "developer_consumability",
@@ -33,49 +35,49 @@
       "specialty_minimal_expansion",
       "reviewer_convergence"
     ],
-    "next_run": "Run a broader effectiveness eval sample before retain or retire.",
-    "with_sample_size": 6,
-    "without_sample_size": 6,
+    "next_run": "Run human delta review over the 9-case with/without summaries before retain or retire.",
+    "with_sample_size": 9,
+    "without_sample_size": 9,
     "summary_refs": [
-      "tools/eval/results/test-design-local-pilot-20260505-with-skill-final/summary.json",
-      "tools/eval/results/test-design-local-pilot-20260505-without-skill-combined/summary.json"
+      "tools/eval/results/test-design-combined-20260602-with-skill/summary.json",
+      "tools/eval/results/test-design-combined-20260602-without-skill/summary.json"
     ]
   },
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
-    "eval_count": 6,
-    "fidelity": 1,
-    "sample_size": 6,
-    "anchor_passed": 11,
-    "anchor_total": 11,
+    "eval_count": 9,
+    "fidelity": 0.8947,
+    "sample_size": 9,
+    "anchor_passed": 17,
+    "anchor_total": 19,
     "summary_refs": [
-      "tools/eval/results/test-design-local-pilot-20260505-with-skill-final/summary.json"
+      "tools/eval/results/test-design-combined-20260602-with-skill/summary.json"
     ],
-    "next_run": "Run a broader effectiveness eval sample before retain or retire."
+    "next_run": "Run human delta review over failed or weak anchors before retain or retire."
   },
   "pilot_empirical": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "skill_name": "test-design",
     "eval_type": "mixed",
     "with_skill": {
-      "summary_ref": "tools/eval/results/test-design-local-pilot-20260505-with-skill-final/summary.json",
-      "sample_size": 6,
-      "avg_pass_rate": 1,
+      "summary_ref": "tools/eval/results/test-design-combined-20260602-with-skill/summary.json",
+      "sample_size": 9,
+      "avg_pass_rate": 1.0,
       "infra_failures": 0,
-      "anchor_passed": 11,
-      "anchor_total": 11,
-      "anchor_fidelity": 1
+      "anchor_passed": 17,
+      "anchor_total": 19,
+      "anchor_fidelity": 0.8947
     },
     "without_skill": {
-      "summary_ref": "tools/eval/results/test-design-local-pilot-20260505-without-skill-combined/summary.json",
-      "sample_size": 6,
-      "avg_pass_rate": 0.5405,
+      "summary_ref": "tools/eval/results/test-design-combined-20260602-without-skill/summary.json",
+      "sample_size": 9,
+      "avg_pass_rate": 0.6937,
       "infra_failures": 0,
-      "anchor_passed": 6,
-      "anchor_total": 11,
-      "anchor_fidelity": 0.5455
+      "anchor_passed": 10,
+      "anchor_total": 19,
+      "anchor_fidelity": 0.5263
     },
-    "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
+    "decision_boundary": "Broader 9/9 empirical sample updates metrics and supports optimize with positive uplift; formal retain still requires human delta review and retain gate calibration."
   }
 }

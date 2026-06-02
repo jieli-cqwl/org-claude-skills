@@ -200,7 +200,9 @@ PM 状态采用阶段化闭集写入：Handoff、Self-check 和 Review digest �
 - 任一送审 JSON 改动后，digest 过期，回到 Review digest。
 
 **Agent review**：读取 `references/review-orchestration.md`；用于组织同一 digest 的 reviewer 循环。
-- 召集 agent teams，让 product、architecture、test 三视角 reviewer 审同一份送审包。
+- 召集可验证 agent teams，让 product、architecture、test 三视角 reviewer 审同一份送审包；PM owner 不得自演三视角 verdict。
+- 每个 reviewer verdict 必须绑定同一 `reviewed_bundle_digest`，写 read-only marker、evidence refs 和 finding refs；PM owner 写 `convergence_evidence`。
+- 无法形成可验证 agent teams 或 verdict 缺 digest / read-only / evidence refs 时，停在 Agent review 或 PM handoff gate，写 owner、阻断事实、影响产物和恢复条件；不进入 Delivery。
 - 在同一评审循环中检查高风险上线、失败重试、回滚、批量重放、外部依赖、幂等或重复提交、覆盖矩阵、技术证据输入和发布声明。
 - 关闭 FAIL；WARN 写入 owner 和承接目标。
 
@@ -248,7 +250,7 @@ PM 状态采用阶段化闭集写入：Handoff、Self-check 和 Review digest �
 - [ ] 支持/条件支持/暂不支持的端、业务态和路径已进入 `release_readiness`；开放残余风险均有 owner、处理时点和承接状态。
 - [ ] 设计交接包含 PM 已定义业务边界、且需要 `/design` 选择的决策。
 - [ ] Owner self-check 与 review digest 当前有效。
-- [ ] 三视角 reviewer 使用同一份 digest；无 open FAIL；WARN 有 owner 和承接目标。
+- [ ] 三视角 reviewer 来自可验证 agent teams，使用同一份 digest；PM owner 未自演 reviewer verdict；每个 verdict 有 digest、read-only marker、evidence refs 和 finding refs；无 open FAIL；WARN 有 owner 和承接目标。
 - [ ] `brief.json.delivery_confirmation.status=confirmed` 且 `confirmed_at` 为真实确认时间。
 - [ ] 已通过 PM handoff gate：
   - `bash shared/skills/product-manager/scripts/preflight_check.sh --brief "$BRIEF_JSON" --phase-prd "$PHASE_PRD_JSON"`

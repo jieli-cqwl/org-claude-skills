@@ -509,6 +509,163 @@ PY
 RUN_RECORD_TMP="$(mktemp -d "${TMPDIR:-/tmp}/rule-runtime-run-record.XXXXXX")"
 trap 'rm -rf "$RUN_RECORD_TMP"' EXIT
 
+SOURCE_PACK="$PACK"
+CURRENT_REPO="$RUN_RECORD_TMP/current-repo"
+CURRENT_PACK="$CURRENT_REPO/docs/rule-runtime--team-readiness/acceptance-pack.json"
+CURRENT_RUN_RECORD_JSON="$CURRENT_REPO/docs/rule-runtime--team-readiness/current-record-set.json"
+python3 - "$SOURCE_PACK" "$CURRENT_PACK" "$CURRENT_RUN_RECORD_JSON" <<'PY'
+import hashlib
+import json
+import re
+import sys
+from pathlib import Path
+
+source_pack = Path(sys.argv[1])
+current_pack = Path(sys.argv[2])
+current_record = Path(sys.argv[3])
+docs_dir = current_pack.parent
+docs_dir.mkdir(parents=True, exist_ok=True)
+pack = json.loads(source_pack.read_text(encoding="utf-8"))
+current_pack.write_text(json.dumps(pack, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+evidence_path = docs_dir / "current-record-set-evidence.md"
+
+def anchor_for(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+
+def section(body: str) -> str:
+    return body.strip() + "\n"
+
+command_bodies = {
+    "current-install-dry-run": """
+- command: `bash install.sh --target codex --dry-run`
+```text
+[dry-run] codex
+安装流程完成
+```
+""",
+    "current-quick-gate": """
+- command: `bash tests/run-all.sh --quick`
+```text
+[28/28]
+All tests passed
+```
+""",
+    "current-readiness-pack": """
+- command: `bash tests/test-rule-runtime-team-readiness-pack.sh`
+```text
+[PASS] rule runtime team readiness pack
+```
+""",
+}
+command_refs = {
+    "bash install.sh --target codex --dry-run": "docs/rule-runtime--team-readiness/current-record-set-evidence.md#current-install-dry-run",
+    "bash tests/run-all.sh --quick": "docs/rule-runtime--team-readiness/current-record-set-evidence.md#current-quick-gate",
+    "bash tests/test-rule-runtime-team-readiness-pack.sh": "docs/rule-runtime--team-readiness/current-record-set-evidence.md#current-readiness-pack",
+}
+command_sections = {key: section(value) for key, value in command_bodies.items()}
+parts = []
+for anchor, body in command_bodies.items():
+    parts.append(f'<a id="{anchor}"></a>\n{section(body)}')
+
+records = []
+runtime_id = "codex-cli"
+runtime_version = "v0.135.0"
+runtime_target = "Codex CLI v0.135.0"
+for case in pack["pressure_cases"]:
+    case_id = case["id"]
+    case_anchor = anchor_for(case_id)
+    for sequence in range(1, pack["rollout_gate"]["minimum_runs_per_case"] + 1):
+        run_id = f"current-{case_anchor}-run-{sequence}"
+        run_anchor = f"{case_anchor}-run-{sequence}-output"
+        review_anchor = f"{case_anchor}-run-{sequence}-review"
+        run_body = f"""
+- run_id: {run_id}
+- case_id: {case_id}
+- runtime_target: {runtime_target}
+- evidence_kind: run_output
+- sanitized_output_excerpt: Current validator fixture shows the agent preserved the expected boundary for {case_id} run {sequence}.
+"""
+        review_body = f"""
+- run_id: {run_id}
+- case_id: {case_id}
+- runtime_target: {runtime_target}
+- evidence_kind: independent_review
+- reviewer_output_excerpt: PASS for current validator fixture.
+"""
+        parts.append(f'<a id="{run_anchor}"></a>\n{section(run_body)}')
+        parts.append(f'<a id="{review_anchor}"></a>\n{section(review_body)}')
+        records.append({
+            "run_id": run_id,
+            "executed_at": f"2026-06-02T00:{sequence:02d}:00Z",
+            "case_id": case_id,
+            "runtime_id": runtime_id,
+            "runtime_version": runtime_version,
+            "runtime_target": runtime_target,
+            "observed_run_sequence": sequence,
+            "install_evidence": "Current validator fixture install evidence is recorded in current-record-set-evidence.md#current-install-dry-run",
+            "run_output_ref": f"docs/rule-runtime--team-readiness/current-record-set-evidence.md#{run_anchor}",
+            "agent_output_ref": f"docs/rule-runtime--team-readiness/current-record-set-evidence.md#{review_anchor}",
+            "observed_pass_signals": [f"current fixture pass signal for {case_id}"],
+            "observed_fail_signals": [],
+            "decision": "ALLOW",
+            "reviewer": "team-readiness-reviewer-001",
+            "behavior_verdict": "PASS",
+            "model_failure_observed": False,
+            "promotion_effect": "NO_PROMOTION_IMPACT",
+            "rule_change_author": "rule-runtime-change-author-001",
+            "reviewer_is_independent": True,
+            "reviewer_independence_evidence": "reviewer identity differs from rule_change_author",
+            "rollback_trigger": "single run records do not authorize promotion",
+            "rollback_action": "keep single-run evidence as observation only until the complete record set passes",
+            "escalation_owner": "runtime-readiness-owner",
+            "escalation_path": "open rule-runtime readiness issue for any failed or missing run",
+            "resume_condition": "complete record set covers every pressure case for the required run count",
+        })
+
+evidence_path.write_text("\n".join(parts) + "\n", encoding="utf-8")
+required_results = []
+commands_by_anchor = {
+    "bash install.sh --target codex --dry-run": "current-install-dry-run",
+    "bash tests/run-all.sh --quick": "current-quick-gate",
+    "bash tests/test-rule-runtime-team-readiness-pack.sh": "current-readiness-pack",
+}
+for command in pack["rollout_gate"]["required_commands"]:
+    anchor = commands_by_anchor[command]
+    required_results.append({
+        "command": command,
+        "executed_at": "2026-06-02T00:00:00Z",
+        "exit_code": 0,
+        "output_ref": command_refs[command],
+        "output_digest": "sha256:" + hashlib.sha256(command_sections[anchor].encode("utf-8")).hexdigest(),
+    })
+
+payload = {
+    "record_set_id": "current-validator-fixture",
+    "runtime_id": runtime_id,
+    "runtime_version": runtime_version,
+    "runtime_target": runtime_target,
+    "promotion_effect": "PROMOTION_BLOCKED",
+    "promotion_decision": "pilot_start_pending_fresh_install_full_gate_and_internal_judge",
+    "reviewer": "team-readiness-reviewer-001",
+    "rule_change_author": "rule-runtime-change-author-001",
+    "reviewer_is_independent": True,
+    "reviewer_independence_evidence": "reviewer identity differs from rule_change_author",
+    "install_evidence_ref": "docs/rule-runtime--team-readiness/current-record-set-evidence.md#current-install-dry-run",
+    "internal_judge_set_evidence_ref": "",
+    "required_command_results": required_results,
+    "rollback_trigger": "current validator fixture keeps pilot blocked until pilot-start gates are evidenced",
+    "rollback_action": "do not promote from validator fixture evidence",
+    "escalation_owner": "runtime-readiness-owner",
+    "escalation_path": "open rule-runtime readiness incident for fixture failures",
+    "resume_condition": "rerun current pressure cases and required gates after fixes",
+    "records": records,
+}
+current_record.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+PACK="$CURRENT_PACK"
+RUN_RECORD_JSON="$CURRENT_RUN_RECORD_JSON"
+
 python3 - "$RUN_RECORD_TMP/valid.json" <<'PY'
 import json
 import sys

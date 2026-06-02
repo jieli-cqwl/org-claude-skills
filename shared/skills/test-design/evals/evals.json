@@ -137,6 +137,69 @@
       "expected_anchors": [
         "TD-A5"
       ]
+    },
+    {
+      "id": "ac-boundary-exclusion-coverage",
+      "prompt": "产品和设计都已确认。UNIT 同时包含成功提交、必填校验、重复提交防护，并明确本期不做审批流。请说明 test-design 如何把 AC 覆盖、边界条件和本期排除项收口到测试设计。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "说明在 ac_coverage_matrix 中逐 AC 建立 positive、negative 和 boundary 覆盖",
+        "把本期排除项转成 exclusion guard 或 negative 用例，且不扩大产品 scope",
+        "测试用例必须连接 product_refs、design_refs、assertion_target 和 evidence_expectation",
+        "覆盖证据不足时输出 typed gap，而不是让 developer 或 QA 自行猜测"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A1",
+        "TD-A2",
+        "TD-A3"
+      ]
+    },
+    {
+      "id": "review-digest-freeze-order",
+      "prompt": "test-cases.json 已准备送三视角审查。请说明 test-design 在写入、审查、修正和冻结过程中如何处理 reviewed_test_cases_digest、review_conclusion 和 issue_ledger。",
+      "files": [],
+      "expectations": [
+        "owner self-check 通过后先生成不含 review_conclusion 和 issue_ledger 的 pre-review digest",
+        "三视角 reviewer 只读同一个 digest 绑定的测试设计产物，最终记录 reviewed_test_cases_digest",
+        "修正后只重提 FAIL 视角，WARN 写入 issue_ledger，首轮全 PASS 仍做 R2/CONFIRMATION",
+        "冻结前确保 final artifact、review evidence 和 digest 对齐"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A5"
+      ]
+    },
+    {
+      "id": "cross-unit-specialty-qa-contract",
+      "prompt": "一个 UNIT 的测试义务依赖另一个 UNIT 的状态同步和接口契约，设计同时命中 auth、error、logging 和 performance 风险。请说明 test-design 如何最小展开 cross_unit_obligations、special_test_triggers 和 qa_handoff_contract。",
+      "files": [
+        "tests/fixtures/standard-chain-foundation/golden-pilot/sample-feature"
+      ],
+      "expectations": [
+        "cross_unit_obligations 写明 upstream/downstream refs、owner、requiredness 和 trigger",
+        "special_test_triggers 从设计风险映射到 TEST_CASE、QA_HANDOFF 或 typed gap，不全量膨胀",
+        "qa_handoff_contract 包含 obligation_id、evidence_contract_ref、design_source_refs、execution_mode 和 skip_policy",
+        "缺少产品或设计事实源时输出 blocking typed gap，而不是把跨 UNIT 风险交给 tech-lead、developer 或 QA 自行补"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A2",
+        "TD-A3",
+        "TD-A4",
+        "TD-A6"
+      ]
     }
   ],
   "preference_anchors": [

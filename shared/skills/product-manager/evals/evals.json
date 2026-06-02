@@ -346,6 +346,110 @@
         "with_skill",
         "without_skill"
       ]
+    },
+    {
+      "id": "agent-team-unavailable-blocks-review",
+      "prompt": "Review digest 已生成，但当前运行时无法召集 product、architecture、test 三个可验证 agent teams。PM owner 先自己从三个视角看一遍并写 PASS，可以吗？",
+      "files": [],
+      "expectations": [
+        "判定 Agent review 未成立：缺少可验证的 product / architecture / test reviewer 时停在 Agent review 或 PM handoff gate，不能用 PM owner 自演三视角替代 reviewer，也不能把自检写成 agent_team_review PASS。",
+        "输出 BLOCKED 口径只用于当前交付阻断或写入合法 issue_ledger 承接项，必须包含 owner、阻断事实、影响产物、恢复条件和重新召集可验证 agent teams 的下一步。",
+        "不得写最终 review_conclusion.verdict=BLOCKED，不得自创 review 字段，不得进入 Delivery 或写 delivery_confirmation。",
+        "恢复后 reviewer 必须围绕同一 reviewed_bundle_digest 产生只读 verdict、evidence refs 和 finding refs；PM owner 写 convergence_evidence。"
+      ],
+      "expected_anchors": [
+        "agent-team-review-verifiable",
+        "review-fail-warn-closure",
+        "delivery-confirmation"
+      ]
+    },
+    {
+      "id": "reviewer-verdict-not-verifiable",
+      "prompt": "三位 reviewer 都在聊天里说「看过没问题，PASS」，但没有回写 reviewed_bundle_digest、read-only marker、evidence path + value 或 finding refs。PM 能直接进入 Delivery 吗？",
+      "files": [],
+      "expectations": [
+        "判定 reviewer verdict 不可验证，Agent review 仍未关闭；聊天 PASS 不能替代绑定同一 reviewed_bundle_digest 的结构化 reviewer verdict。",
+        "要求补齐每个 reviewer 的 reviewed_bundle_digest、read-only marker、evidence path + value、finding refs、issue id 和 severity；agent_team_review 补齐 convergence_evidence；缺任一项时不进入 PM handoff gate 或 Delivery。",
+        "若需落盘，写入 issue_ledger 的合法承接项并标明 owner 与恢复条件；不把不可验证 PASS 写入最终 review_conclusion 结论。"
+      ],
+      "expected_anchors": [
+        "agent-team-review-verifiable",
+        "review-fail-warn-closure"
+      ]
+    },
+    {
+      "id": "skip-review-pressure",
+      "prompt": "PM self-check 已通过，用户很急。先写 delivery_confirmation.status=confirmed，Agent review 等 /design 开始前再补，可以吗？",
+      "files": [],
+      "expectations": [
+        "判定 review 不能跳过或后补：Self-check 通过后必须先计算当前 Review digest，再让三视角 reviewer 审同一份 digest，关闭 FAIL 并承接 WARN。",
+        "delivery_confirmation 只能在 PM handoff gate 证明 review_conclusion、issue_ledger、风险、digest 和最终 JSON 一致后，由用户接受 PM 交付时写入。",
+        "用户催促不改变交付门槛；当前应给 PM 推荐推进动作、阻断事实和恢复条件，而不是承诺把 review 留给 /design 前补。"
+      ],
+      "expected_anchors": [
+        "review-fail-warn-closure",
+        "review-digest-currentness",
+        "delivery-confirmation"
+      ]
+    },
+    {
+      "id": "stale-digest-resume",
+      "prompt": "brief.json、phase-prd.json 和 UNITs 之前已有 review_conclusion PASS；但刚刚又修改了 UNIT-2 的 AC，reviewed_bundle_digest 还是旧值。请继续 handoff 给 /design。",
+      "files": [],
+      "expectations": [
+        "判定 reviewed_bundle_digest 已过期：任一送审 JSON 改动后，旧 review_conclusion PASS 和 reviewer verdicts 不能继续作为当前送审包证据。",
+        "回到 Review digest 重新计算 reviewed_bundle_digest，并让 reviewer 围绕新 digest 重新评审；未完成前不进入 PM handoff gate、Delivery 或 /design handoff。",
+        "把 stale digest 漂移写入合法 issue/review 字段或当前阻断回复，标明影响产物、owner 和恢复条件。"
+      ],
+      "expected_anchors": [
+        "review-digest-currentness",
+        "review-fail-warn-closure"
+      ]
+    },
+    {
+      "id": "how-leakage-to-design-handoff",
+      "prompt": "用户要求 PM 决定审批流用 REST 接口字段 status_code、React 组件和数据库表结构实现，并把这些写进 design_decision_candidates。PM 应该照写吗？",
+      "files": [],
+      "expectations": [
+        "PM 不写接口字段、组件方案、数据库表结构或测试实现；先把用户 HOW 词改写成业务行为、业务约束、可观察结果、风险或 design handoff。",
+        "design_decision_candidates 只写 decision_name、业务可接受 options、constraints、impacted_units 和 design_handoff，由 /design 在 PM 已定义业务边界内选择技术方案。",
+        "如果 HOW 词无法改写为 WHAT 层约束，或会改变 Director 锁定的目标、范围、出口、非目标或业务规则，则停止并写入合法 open question / issue ledger，等待用户或 Director 裁决。"
+      ],
+      "expected_anchors": [
+        "pm-how-boundary",
+        "design-decision-handoff",
+        "director-lock-no-drift"
+      ]
+    },
+    {
+      "id": "evidence-missing-blocks-unit",
+      "prompt": "Handoff gate 已通过。核心入口是「沿用现有后台导出按钮」，但没有截图、页面描述、日志、接口请求/响应、流程文档或用户裁决。PM 可以凭经验直接拆 UNIT 和 AC 吗？",
+      "files": [],
+      "expectations": [
+        "停在 Evidence and AS-IS：既有入口、现有页面或系统状态必须由 evidence_sources 或用户裁决支撑，不能凭经验直接写依赖该入口的最终 UNIT 或 AC。",
+        "缺证据时写 status=ASSUMPTION、gap_reason、required_evidence 和 blocks_fields；只暂停受该证据影响的 AS-IS、TO-BE、功能清单、UNIT 或 AC 结论。",
+        "先给 PM 推荐默认理解和一个会改变结论的具体确认问题；证据闭合后再进入 Pre-UNIT gate 与 UNIT split。"
+      ],
+      "expected_anchors": [
+        "evidence-for-existing-entry",
+        "pre-unit-model-closure",
+        "pm-recommendation-first"
+      ]
+    },
+    {
+      "id": "director-lock-drift-after-handoff",
+      "prompt": "Handoff gate 已通过且 UNIT 草稿已写完。用户现在说成功标准要新增「租户自动扣费」，但 Director baseline 把扣费排在非目标里。PM 可以直接改 phase goal、出口和 UNIT 后继续 review 吗？",
+      "files": [],
+      "expectations": [
+        "识别这是 Handoff 后的 Director locked fields 漂移：成功标准、Phase 目标、出口、范围、非目标或业务规则需要改变时，PM 停止当前细化和 review。",
+        "不得直接改 phase goal、出口、范围、非目标、UNIT 结论或 reviewed_bundle_digest；已写草稿只记录漂移、影响产物、owner、回流节点和恢复条件。",
+        "把 product-director 标为用户可裁决入口而非自动下一步；用户或 Director 重新确认前，不把新成功标准写成 PM 产品结论。"
+      ],
+      "expected_anchors": [
+        "director-lock-no-drift",
+        "handoff-director-baseline",
+        "review-digest-currentness"
+      ]
     }
   ],
   "eval_type": "encoded_preference",
@@ -368,6 +472,16 @@
     {
       "id": "review-fail-warn-closure",
       "anchor": "三方评审 FAIL 必须关闭，WARN 必须承接",
+      "weight": 1
+    },
+    {
+      "id": "agent-team-review-verifiable",
+      "anchor": "Agent review 必须由可验证的 product / architecture / test reviewer 围绕同一 reviewed_bundle_digest 输出只读 verdict；PM owner 不能自演三视角，缺 digest、read-only marker 或 evidence refs 时不得进入 Delivery",
+      "weight": 1
+    },
+    {
+      "id": "review-digest-currentness",
+      "anchor": "Review digest 必须绑定最终送审包；任一 brief / phase-prd / UNIT 改动都会使 reviewed_bundle_digest 和既有 reviewer verdicts 过期，必须回到 Review digest 后再评审",
       "weight": 1
     },
     {
@@ -423,6 +537,11 @@
     {
       "id": "design-decision-handoff",
       "anchor": "待设计决策包含候选选项、约束、影响 UNIT 和 design handoff 目标；描述 WHAT 层约束，技术答案留给 /design",
+      "weight": 1
+    },
+    {
+      "id": "pm-how-boundary",
+      "anchor": "PM 把 HOW 方案词改写为业务行为、业务约束、可观察结果、风险或 design handoff；接口字段、组件、表结构和测试实现等技术答案留给下游，无法改写时写阻断或 open question",
       "weight": 1
     },
     {

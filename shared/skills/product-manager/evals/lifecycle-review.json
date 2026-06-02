@@ -16,8 +16,8 @@
   "next_action": "Rerun live with/without plus dogfood checks after the PM capability, schema, pre-unit gate, and risk-closure changes.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "anchor_count": 21,
-    "eval_count": 19,
+    "anchor_count": 24,
+    "eval_count": 26,
     "fidelity": 1,
     "next_run": "Run a broader effectiveness eval sample before retain or retire.",
     "sample_size": 5,
