@@ -17,7 +17,9 @@ sys.path.insert(0, str(ROOT / "tools/eval/scripts"))
 
 from render_stage2_product_director_handoff import render  # noqa: E402
 from review_digest_common import canonical_payload_digest  # noqa: E402
-from validate_stage2_confirmed_brief_materials import build_package as build_confirmed_package  # noqa: E402
+from validate_stage2_confirmed_brief_materials import (
+    build_package as build_confirmed_package,
+)  # noqa: E402
 from validate_stage2_design_materials import build_design_package  # noqa: E402
 from validate_stage2_intake_gate import DEFAULT_INTAKE, load_json  # noqa: E402
 from validate_stage2_product_director_handoff_materials import make_real_candidate  # noqa: E402
@@ -36,17 +38,30 @@ def reviewed_test_cases_digest(payload: dict[str, Any]) -> str:
     return canonical_payload_digest(payload, POST_REVIEW_FIELDS)
 
 
-def case(case_id: str, title: str, case_type: str, owner_stage: str, expected: str) -> dict[str, Any]:
+def case(
+    case_id: str, title: str, case_type: str, owner_stage: str, expected: str
+) -> dict[str, Any]:
     return {
         "case_id": case_id,
         "title": title,
         "product_refs": ["UNIT-1.json#acceptance_criteria[0].ac_id"],
-        "design_refs": ["design.json#interfaces[0].interface_id", "design.json#verification_mapping[0].evidence_ref"],
+        "design_refs": [
+            "design.json#interfaces[0].interface_id",
+            "design.json#verification_mapping[0].evidence_ref",
+        ],
         "case_type": case_type,
         "priority": "P0",
-        "preconditions": ["Stage 2 qft-pai design package has been accepted by design gate"],
-        "test_data": ["single-channel text callback with tenant_id, conversation_id and message_id"],
-        "steps": ["submit callback", "observe suggestion package", "inspect trace and manual confirmation status"],
+        "preconditions": [
+            "Stage 2 qft-pai design package has been accepted by design gate"
+        ],
+        "test_data": [
+            "single-channel text callback with tenant_id, conversation_id and message_id"
+        ],
+        "steps": [
+            "submit callback",
+            "observe suggestion package",
+            "inspect trace and manual confirmation status",
+        ],
         "expected_result": expected,
         "assertion_target": "VP-001",
         "execution_mode": "non_browser_ok",
@@ -58,15 +73,64 @@ def case(case_id: str, title: str, case_type: str, owner_stage: str, expected: s
 
 def special_triggers() -> list[dict[str, Any]]:
     rows = [
-        ("ST-001", "quality_attribute", "design.json#quality_attributes[0]", "TEST_CASE", ["TC-003"], []),
-        ("ST-002", "data_architecture", "design.json#data_architecture", "QA_HANDOFF", [], ["QA-OB-001"]),
-        ("ST-003", "cross_cutting_concern", "design.json#cross_cutting_concerns[0]", "TEST_CASE", ["TC-001"], []),
-        ("ST-004", "cross_cutting_concern", "design.json#cross_cutting_concerns[1]", "TEST_CASE", ["TC-002"], []),
-        ("ST-005", "cross_cutting_concern", "design.json#cross_cutting_concerns[2]", "TEST_CASE", ["TC-003"], []),
-        ("ST-006", "cross_cutting_concern", "design.json#cross_cutting_concerns[3]", "TEST_CASE", ["TC-002"], []),
+        (
+            "ST-001",
+            "quality_attribute",
+            "design.json#quality_attributes[0]",
+            "TEST_CASE",
+            ["TC-003"],
+            [],
+        ),
+        (
+            "ST-002",
+            "data_architecture",
+            "design.json#data_architecture",
+            "QA_HANDOFF",
+            [],
+            ["QA-OB-001"],
+        ),
+        (
+            "ST-003",
+            "cross_cutting_concern",
+            "design.json#cross_cutting_concerns[0]",
+            "TEST_CASE",
+            ["TC-001"],
+            [],
+        ),
+        (
+            "ST-004",
+            "cross_cutting_concern",
+            "design.json#cross_cutting_concerns[1]",
+            "TEST_CASE",
+            ["TC-002"],
+            [],
+        ),
+        (
+            "ST-005",
+            "cross_cutting_concern",
+            "design.json#cross_cutting_concerns[2]",
+            "TEST_CASE",
+            ["TC-003"],
+            [],
+        ),
+        (
+            "ST-006",
+            "cross_cutting_concern",
+            "design.json#cross_cutting_concerns[3]",
+            "TEST_CASE",
+            ["TC-002"],
+            [],
+        ),
     ]
     triggers = []
-    for trigger_id, trigger_type, source_ref, handling, test_refs, obligation_refs in rows:
+    for (
+        trigger_id,
+        trigger_type,
+        source_ref,
+        handling,
+        test_refs,
+        obligation_refs,
+    ) in rows:
         row: dict[str, Any] = {
             "trigger_id": trigger_id,
             "trigger_type": trigger_type,
@@ -88,6 +152,24 @@ def special_triggers() -> list[dict[str, Any]]:
     return triggers
 
 
+def design_source_refs(design: dict[str, Any]) -> list[str]:
+    refs = [
+        f"design.json#verification_mapping[{index}].manager_vp_ref"
+        for index, _row in enumerate(design.get("verification_mapping", []))
+    ]
+    refs.extend(
+        f"design.json#key_decisions[{index}]"
+        for index, _row in enumerate(design.get("key_decisions", []))
+    )
+    refs.extend(
+        f"design.json#interfaces[{index}]"
+        for index, _row in enumerate(design.get("interfaces", []))
+    )
+    if design.get("quality_attributes"):
+        refs.append("design.json#quality_attributes[0]")
+    return refs
+
+
 def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
     design = design_package["design"]
     unit = design_package["product_manager_package"]["units"][0]
@@ -107,16 +189,33 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
             "$.test_cases",
             "$.qa_handoff_contract",
             "$.design_gap_report",
+            "$.cross_unit_obligations",
             "$.special_test_triggers",
             "$.review_conclusion",
+            "$.issue_ledger",
         ],
         "test_analysis": {
-            "risk_model": [{"risk_ref": "design.json#risks[0].risk_id", "risk_type": "context-risk", "test_depth": "positive, negative and boundary coverage"}],
-            "strategy_by_quality_area": [{"quality_area": "operability", "strategy": "围绕 trace_id、上下文来源和人工确认状态设计可复验证据"}],
+            "risk_model": [
+                {
+                    "risk_ref": "design.json#risks[0].risk_id",
+                    "risk_type": "context-risk",
+                    "test_depth": "positive, negative and boundary coverage",
+                }
+            ],
+            "strategy_by_quality_area": [
+                {
+                    "quality_area": "operability",
+                    "strategy": "围绕 trace_id、上下文来源和人工确认状态设计可复验证据",
+                }
+            ],
             "test_flow": [
                 {
                     "checkpoint_id": "FLOW-1",
-                    "source_refs": ["phase-prd.json#exit_conditions[0]", "UNIT-1.json#acceptance_criteria[0].ac_id", "design.json#verification_mapping[0].manager_vp_ref"],
+                    "source_refs": [
+                        "phase-prd.json#exit_conditions[0]",
+                        "UNIT-1.json#acceptance_criteria[0].ac_id",
+                        "design.json#verification_mapping[0].manager_vp_ref",
+                    ],
                     "expected_checkpoint": "每条回调都能映射到明确测试用例和 evidence expectation",
                 }
             ],
@@ -140,9 +239,27 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
             }
         ],
         "test_cases": [
-            case("TC-001", "valid text callback creates suggestion package", "positive", "developer", "suggestion package contains trace_id, context source and manual confirmation state"),
-            case("TC-002", "missing context enters manual takeover", "negative", "verify", "system returns takeover reason and never auto-sends a reply"),
-            case("TC-003", "duplicate callback keeps idempotent trace state", "boundary", "developer", "duplicate message_id returns the same trace state without duplicate outbound side effects"),
+            case(
+                "TC-001",
+                "valid text callback creates suggestion package",
+                "positive",
+                "developer",
+                "suggestion package contains trace_id, context source and manual confirmation state",
+            ),
+            case(
+                "TC-002",
+                "missing context enters manual takeover",
+                "negative",
+                "verify",
+                "system returns takeover reason and never auto-sends a reply",
+            ),
+            case(
+                "TC-003",
+                "duplicate callback keeps idempotent trace state",
+                "boundary",
+                "developer",
+                "duplicate message_id returns the same trace state without duplicate outbound side effects",
+            ),
         ],
         "qa_handoff_contract": [
             {
@@ -157,7 +274,7 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
                 "execution_mode": "non_browser_ok",
                 "skip_policy": "NOT_SKIPPABLE",
                 "evidence_contract_ref": "artifact://qa-result/qft-pai-stage2-phase1.qa@active#obligation-results",
-                "design_source_refs": ["design.json#verification_mapping[0].manager_vp_ref", "design.json#quality_attributes[0]"],
+                "design_source_refs": design_source_refs(design),
             }
         ],
         "design_gap_report": {"status": "NO_GAPS", "gaps": []},
@@ -171,11 +288,52 @@ def build_test_cases_artifact(design_package: dict[str, Any]) -> dict[str, Any]:
         "review_round": "R2",
         "reviewed_test_cases_digest": reviewed_digest,
         "reviewer_verdicts": [
-            {"perspective": "test_quality", "verdict": "PASS", "issue_count": 0, "review_round": "R2", "reviewed_test_cases_digest": reviewed_digest, "evidence_refs": ["test-cases.json#traceability_matrix", "test-cases.json#ac_coverage_matrix", "test-cases.json#special_test_triggers"]},
-            {"perspective": "product", "verdict": "PASS", "issue_count": 0, "review_round": "R2", "reviewed_test_cases_digest": reviewed_digest, "evidence_refs": ["test-cases.json#traceability_matrix", "UNIT-1.json#acceptance_criteria[0].ac_id"]},
-            {"perspective": "architecture", "verdict": "PASS", "issue_count": 0, "review_round": "R2", "reviewed_test_cases_digest": reviewed_digest, "evidence_refs": ["test-cases.json#qa_handoff_contract", "design.json#verification_mapping[0].manager_vp_ref"]},
+            {
+                "perspective": "test_quality",
+                "verdict": "PASS",
+                "issue_count": 0,
+                "review_round": "R2",
+                "reviewed_test_cases_digest": reviewed_digest,
+                "evidence_refs": [
+                    "test-cases.json#traceability_matrix",
+                    "test-cases.json#ac_coverage_matrix",
+                    "test-cases.json#special_test_triggers",
+                ],
+            },
+            {
+                "perspective": "product",
+                "verdict": "PASS",
+                "issue_count": 0,
+                "review_round": "R2",
+                "reviewed_test_cases_digest": reviewed_digest,
+                "evidence_refs": [
+                    "test-cases.json#traceability_matrix",
+                    "UNIT-1.json#acceptance_criteria[0].ac_id",
+                ],
+            },
+            {
+                "perspective": "architecture",
+                "verdict": "PASS",
+                "issue_count": 0,
+                "review_round": "R2",
+                "reviewed_test_cases_digest": reviewed_digest,
+                "evidence_refs": [
+                    "test-cases.json#qa_handoff_contract",
+                    "design.json#verification_mapping[0].manager_vp_ref",
+                ],
+            },
         ],
-        "convergence_evidence": [{"round": "R2", "result": "PASS", "fail_count": 0, "control_action": "CONFIRMATION", "evidence_refs": ["test-cases.json#review_conclusion.reviewer_verdicts"]}],
+        "convergence_evidence": [
+            {
+                "round": "R2",
+                "result": "PASS",
+                "fail_count": 0,
+                "control_action": "CONFIRMATION",
+                "evidence_refs": [
+                    "test-cases.json#review_conclusion.reviewer_verdicts"
+                ],
+            }
+        ],
     }
     test_cases["issue_ledger"] = []
     return test_cases
@@ -199,10 +357,17 @@ def build_test_design_package(design_package: dict[str, Any]) -> dict[str, Any]:
 
 def validate_materials(repo_root: Path) -> dict[str, Any]:
     example_payload = load_json(repo_root / DEFAULT_INTAKE.relative_to(ROOT))
-    handoff, handoff_exit = render(make_real_candidate(example_payload), Path("real-stage2-intake-facts.json"))
+    handoff, handoff_exit = render(
+        make_real_candidate(example_payload), Path("real-stage2-intake-facts.json")
+    )
     failures: list[str] = []
     if handoff_exit != 0:
-        return {"status": "fail", "failed_checks": ["real intake candidate did not render product-director handoff"]}
+        return {
+            "status": "fail",
+            "failed_checks": [
+                "real intake candidate did not render product-director handoff"
+            ],
+        }
 
     pm_package = build_pm_package(build_confirmed_package(handoff))
     design_package = build_design_package(pm_package)
@@ -213,7 +378,9 @@ def validate_materials(repo_root: Path) -> dict[str, Any]:
 
     broken = copy.deepcopy(package)
     broken["decision_boundary"]["blocked_actions"] = [
-        action for action in broken["decision_boundary"]["blocked_actions"] if action != "task_decomposition"
+        action
+        for action in broken["decision_boundary"]["blocked_actions"]
+        if action != "task_decomposition"
     ]
     broken["decision_boundary"]["allowed_actions"].append("task_decomposition")
     if validate(broken)["status"] == "pass":

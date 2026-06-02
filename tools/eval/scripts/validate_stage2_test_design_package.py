@@ -40,6 +40,18 @@ TEST_DESIGN_BLOCKED_ACTIONS = [
     "business_risk_acceptance",
     "real_qft_pai_code_modification",
 ]
+TEST_CASES_REQUIRED_FIELDS = [
+    "test_analysis",
+    "traceability_matrix",
+    "ac_coverage_matrix",
+    "test_cases",
+    "qa_handoff_contract",
+    "design_gap_report",
+    "cross_unit_obligations",
+    "special_test_triggers",
+    "review_conclusion",
+    "issue_ledger",
+]
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -54,10 +66,16 @@ def add_failure(failures: list[str], field: str, reason: str) -> None:
 
 
 def make_check(name: str, failures: list[str]) -> dict[str, Any]:
-    return {"check": name, "status": "fail" if failures else "pass", "failures": failures}
+    return {
+        "check": name,
+        "status": "fail" if failures else "pass",
+        "failures": failures,
+    }
 
 
-def require_object(payload: dict[str, Any], key: str, failures: list[str]) -> dict[str, Any] | None:
+def require_object(
+    payload: dict[str, Any], key: str, failures: list[str]
+) -> dict[str, Any] | None:
     value = payload.get(key)
     if not isinstance(value, dict):
         add_failure(failures, key, "must be object")
@@ -66,12 +84,16 @@ def require_object(payload: dict[str, Any], key: str, failures: list[str]) -> di
 
 
 def first_output_line(completed: subprocess.CompletedProcess[str]) -> str:
-    detail = (completed.stderr or completed.stdout or f"exit={completed.returncode}").strip()
+    detail = (
+        completed.stderr or completed.stdout or f"exit={completed.returncode}"
+    ).strip()
     return next((line for line in detail.splitlines() if line.strip()), detail)
 
 
 def run_command(args: list[str]) -> str | None:
-    completed = subprocess.run(args, cwd=ROOT, text=True, capture_output=True, check=False)
+    completed = subprocess.run(
+        args, cwd=ROOT, text=True, capture_output=True, check=False
+    )
     if completed.returncode == 0:
         return None
     return first_output_line(completed)
@@ -106,7 +128,9 @@ def check_design_package_binding(package: dict[str, Any]) -> dict[str, Any]:
             f"must pass design package gate: {result.get('failed_checks')}",
         )
     if result.get("next_standard_chain_role") != "test-design":
-        add_failure(failures, "design_package.next_standard_chain_role", "must be test-design")
+        add_failure(
+            failures, "design_package.next_standard_chain_role", "must be test-design"
+        )
     return make_check("design_package_binding", failures)
 
 
@@ -121,12 +145,28 @@ def check_test_cases_shape(package: dict[str, Any]) -> dict[str, Any]:
     if test_cases.get("producer") != "test-design":
         add_failure(failures, "test_cases.producer", "must be test-design")
     design = design_package.get("design") if isinstance(design_package, dict) else None
-    expected_digest = design.get("chain_registry_digest") if isinstance(design, dict) else None
+    expected_digest = (
+        design.get("chain_registry_digest") if isinstance(design, dict) else None
+    )
     if test_cases.get("chain_registry_digest") != expected_digest:
-        add_failure(failures, "test_cases.chain_registry_digest", "must match design package")
-    for field in ("traceability_matrix", "test_cases", "design_gap_report", "review_conclusion", "qa_handoff_contract"):
+        add_failure(
+            failures, "test_cases.chain_registry_digest", "must match design package"
+        )
+    for field in TEST_CASES_REQUIRED_FIELDS:
         if field not in test_cases:
             add_failure(failures, f"test_cases.{field}", "missing")
+    authoritative_fields = test_cases.get("authoritative_fields")
+    if not isinstance(authoritative_fields, list):
+        add_failure(failures, "test_cases.authoritative_fields", "must be array")
+        authoritative_fields = []
+    for field in TEST_CASES_REQUIRED_FIELDS:
+        field_path = f"$.{field}"
+        if field_path not in authoritative_fields:
+            add_failure(
+                failures,
+                "test_cases.authoritative_fields",
+                f"must include {field_path}",
+            )
     return make_check("test_cases_artifact", failures)
 
 
@@ -141,10 +181,14 @@ def materialization_failures(package: dict[str, Any]) -> list[str]:
         return failures
     for key in ("brief", "phase_prd"):
         if not isinstance(pm_package.get(key), dict):
-            failures.append(f"design_package.product_manager_package.{key}: must be object")
+            failures.append(
+                f"design_package.product_manager_package.{key}: must be object"
+            )
     units = pm_package.get("units")
     if not isinstance(units, list) or not units:
-        failures.append("design_package.product_manager_package.units: must be non-empty array")
+        failures.append(
+            "design_package.product_manager_package.units: must be non-empty array"
+        )
     if not isinstance(design_package.get("design"), dict):
         failures.append("design_package.design: must be object")
     if not isinstance(package.get("test_cases"), dict):
@@ -161,13 +205,27 @@ def write_package_files(package: dict[str, Any], root: Path) -> Path:
     unit_work_dir = phase_dir / "unit-1"
     units_dir.mkdir(parents=True, exist_ok=True)
     unit_work_dir.mkdir(parents=True, exist_ok=True)
-    (feature_dir / "brief.json").write_text(json.dumps(pm_package["brief"], ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (phase_dir / "phase-prd.json").write_text(json.dumps(pm_package["phase_prd"], ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (feature_dir / "brief.json").write_text(
+        json.dumps(pm_package["brief"], ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (phase_dir / "phase-prd.json").write_text(
+        json.dumps(pm_package["phase_prd"], ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     for unit in pm_package.get("units", []):
         if isinstance(unit, dict) and isinstance(unit.get("unit_id"), str):
-            (units_dir / f"{unit['unit_id']}.json").write_text(json.dumps(unit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (phase_dir / "design.json").write_text(json.dumps(design_package["design"], ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (unit_work_dir / "test-cases.json").write_text(json.dumps(package["test_cases"], ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            (units_dir / f"{unit['unit_id']}.json").write_text(
+                json.dumps(unit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+    (phase_dir / "design.json").write_text(
+        json.dumps(design_package["design"], ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (unit_work_dir / "test-cases.json").write_text(
+        json.dumps(package["test_cases"], ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     return phase_dir
 
 
@@ -182,7 +240,9 @@ def check_test_cases_review_digest(phase_dir: Path) -> dict[str, Any]:
         ]
     )
     if failure:
-        add_failure(failures, "test_cases.review_conclusion.reviewed_test_cases_digest", failure)
+        add_failure(
+            failures, "test_cases.review_conclusion.reviewed_test_cases_digest", failure
+        )
     return make_check("test_cases_review_digest", failures)
 
 
@@ -215,7 +275,9 @@ def check_authorization_boundary(package: dict[str, Any]) -> dict[str, Any]:
     failures: list[str] = []
     boundary = package.get("decision_boundary")
     if not isinstance(boundary, dict):
-        return make_check("authorization_boundary", ["decision_boundary: must be object"])
+        return make_check(
+            "authorization_boundary", ["decision_boundary: must be object"]
+        )
     allowed = boundary.get("allowed_actions")
     blocked = boundary.get("blocked_actions")
     if not isinstance(allowed, list):
@@ -226,12 +288,20 @@ def check_authorization_boundary(package: dict[str, Any]) -> dict[str, Any]:
         blocked = []
     for action in TEST_DESIGN_ALLOWED_ACTIONS:
         if action not in allowed:
-            add_failure(failures, "decision_boundary.allowed_actions", f"must include {action}")
+            add_failure(
+                failures, "decision_boundary.allowed_actions", f"must include {action}"
+            )
     for action in TEST_DESIGN_BLOCKED_ACTIONS:
         if action not in blocked:
-            add_failure(failures, "decision_boundary.blocked_actions", f"must include {action}")
+            add_failure(
+                failures, "decision_boundary.blocked_actions", f"must include {action}"
+            )
         if action in allowed:
-            add_failure(failures, "decision_boundary.allowed_actions", f"must not include {action}")
+            add_failure(
+                failures,
+                "decision_boundary.allowed_actions",
+                f"must not include {action}",
+            )
     return make_check("authorization_boundary", failures)
 
 
@@ -250,7 +320,9 @@ def validate(package: dict[str, Any]) -> dict[str, Any]:
             checks.append(check_test_cases_semantic_integrity(phase_dir))
     else:
         checks.append(make_check("test_cases_review_digest", materialization_errors))
-        checks.append(make_check("test_cases_semantic_integrity", materialization_errors))
+        checks.append(
+            make_check("test_cases_semantic_integrity", materialization_errors)
+        )
     failed_checks = [failure for check in checks for failure in check["failures"]]
     ready = not failed_checks
     return {
@@ -264,7 +336,9 @@ def validate(package: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--package", required=True, type=Path, help="Stage 2 test-design package JSON.")
+    parser.add_argument(
+        "--package", required=True, type=Path, help="Stage 2 test-design package JSON."
+    )
     args = parser.parse_args()
 
     payload = validate(load_json(args.package))

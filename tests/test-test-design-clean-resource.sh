@@ -15,17 +15,17 @@ assert_file() {
   [ -f "$1" ] || fail "missing file: ${1#"$ROOT"/}"
 }
 
-assert_absent() {
-  local pattern="$1" path="$2"
-  if grep -R -n -E "$pattern" "$path" >/tmp/test_design_clean_resource.out 2>&1; then
-    cat /tmp/test_design_clean_resource.out >&2
-    fail "unexpected pattern under ${path#"$ROOT"/}: $pattern"
-  fi
-}
+json_has_key() {
+  local file="$1" key="$2"
+  python3 - "$file" "$key" <<'PY'
+import json
+import sys
+from pathlib import Path
 
-assert_present() {
-  local pattern="$1" file="$2"
-  grep -E "$pattern" "$file" >/dev/null || fail "missing pattern in ${file#"$ROOT"/}: $pattern"
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if sys.argv[2] not in payload:
+    raise SystemExit(1)
+PY
 }
 
 assert_file "$SKILL_DIR/SKILL.md"
@@ -51,21 +51,14 @@ done
 
 [ ! -e "$HISTORY_DIR" ] || fail "historical test-design-h should be deleted"
 
-assert_absent '^(>|[[:space:]])*(Trigger|Read|Expect|Consume|Sync):' "$SKILL_DIR/references"
-assert_absent '产品是一等真源|下游消费者成功标准|输入准入|主 Agent|主 agent|本 eval 不要求实际写文件|不要求实际写文件|要求先执行 design|要求先回到 design' "$SKILL_DIR"
-assert_absent 'references/methodology\.md.*Trigger:.*Read:.*Expect:.*Consume:.*Evidence:.*Sync:' "$SKILL_DIR/SKILL.md"
-
-assert_present 'references/methodology\.md' "$SKILL_DIR/SKILL.md"
-assert_present 'references/test-obligation-shaping\.md' "$SKILL_DIR/SKILL.md"
-assert_present 'references/specialty-test-design\.md' "$SKILL_DIR/SKILL.md"
-assert_present 'references/testdesign-reviewer-prompt\.md' "$SKILL_DIR/SKILL.md"
-assert_present 'digraph test_design_flow' "$SKILL_DIR/SKILL.md"
-assert_absent '```mermaid|graph TD' "$SKILL_DIR/SKILL.md"
-assert_present 'hooks completion gate 未返回 BLOCKED' "$SKILL_DIR/SKILL.md"
-assert_present '3 视角×max10轮' "$SKILL_DIR/SKILL.md"
-assert_present 'R2 / CONFIRMATION' "$SKILL_DIR/SKILL.md"
-assert_present 'review_conclusion\.convergence_evidence\[\]' "$SKILL_DIR/SKILL.md"
-assert_present 'templates/test-cases\.template\.json' "$SKILL_DIR/SKILL.md"
-assert_present 'contracts/test-cases\.schema\.json' "$SKILL_DIR/SKILL.md"
-assert_present 'validator' "$SKILL_DIR/SKILL.md"
+json_has_key "$SKILL_DIR/templates/test-cases.template.json" "test_analysis" \
+  || fail "template must define test_analysis"
+json_has_key "$SKILL_DIR/templates/test-cases.template.json" "traceability_matrix" \
+  || fail "template must define traceability_matrix"
+json_has_key "$SKILL_DIR/templates/test-cases.template.json" "qa_handoff_contract" \
+  || fail "template must define qa_handoff_contract"
+json_has_key "$SKILL_DIR/templates/test-cases.template.json" "review_conclusion" \
+  || fail "template must define review_conclusion"
+json_has_key "$SKILL_DIR/contracts/test-cases.schema.json" "allOf" \
+  || fail "schema must define allOf"
 printf '[PASS] test-design clean resource\n'

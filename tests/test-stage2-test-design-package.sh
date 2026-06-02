@@ -73,6 +73,58 @@ if missing:
     raise SystemExit(f"missing checks: {missing}")
 PY
 
+python3 - "$PACKAGE" <<'PY' || fail "Stage 2 test-design package authoritative fields mismatch"
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+authoritative = set(payload["test_cases"].get("authoritative_fields", []))
+expected = {
+    "$.test_analysis",
+    "$.traceability_matrix",
+    "$.ac_coverage_matrix",
+    "$.test_cases",
+    "$.qa_handoff_contract",
+    "$.design_gap_report",
+    "$.cross_unit_obligations",
+    "$.special_test_triggers",
+    "$.review_conclusion",
+    "$.issue_ledger",
+}
+missing = sorted(expected - authoritative)
+if missing:
+    raise SystemExit(f"missing authoritative fields: {missing}")
+PY
+
+MISSING_REQUIRED="$TMP_ROOT/missing-required-field.json"
+python3 - "$PACKAGE" "$MISSING_REQUIRED" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+payload["test_cases"].pop("issue_ledger", None)
+Path(sys.argv[2]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" --package "$MISSING_REQUIRED" >"$TMP_ROOT/missing-required-output.json"; then
+  fail "test-design package must reject missing required test-cases field"
+fi
+python3 - "$TMP_ROOT/missing-required-output.json" <<'PY' \
+  || fail "missing required field failure should be reported by test_cases_artifact"
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for check in payload.get("checks", []):
+    if check.get("check") != "test_cases_artifact":
+        continue
+    if "test_cases.issue_ledger: missing" in check.get("failures", []):
+        raise SystemExit(0)
+raise SystemExit(payload)
+PY
+
 BLOCKING_GAP="$TMP_ROOT/blocking-gap.json"
 python3 - "$PACKAGE" "$BLOCKING_GAP" <<'PY'
 import json
