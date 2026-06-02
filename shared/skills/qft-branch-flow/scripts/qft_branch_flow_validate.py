@@ -176,13 +176,13 @@ def validate_create_dev(
     )
     require_target(plan, expected_target)
     expected_steps = [
-        (repo, registry[repo]["main_branch"], expected_target, "create_branch")
+        (repo, registry[repo]["main_branch"], expected_target, "ensure_branch")
         for repo in plan["projects"]
     ]
     require_steps(
         plan,
         expected_steps,
-        "create-dev must create DEV branch from project main branch",
+        "create-dev must ensure DEV branch from project main branch",
     )
 
 
@@ -276,14 +276,15 @@ def validate_release_sync_before(
 ) -> None:
     release_branch = branch_name(policy, "release", version=plan["version"])
     require_target(plan, release_branch)
-    expected_steps = [
-        (repo, registry[repo]["main_branch"], release_branch, "merge")
-        for repo in plan["projects"]
-    ]
+    expected_steps = []
+    for repo in plan["projects"]:
+        main_branch = registry[repo]["main_branch"]
+        expected_steps.append((repo, main_branch, release_branch, "ensure_branch"))
+        expected_steps.append((repo, main_branch, release_branch, "merge"))
     require_steps(
         plan,
         expected_steps,
-        f"release-sync-before must merge main branch to {release_branch}",
+        f"release-sync-before must ensure {release_branch} and merge main branch",
     )
 
 

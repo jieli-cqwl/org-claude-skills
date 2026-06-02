@@ -23,7 +23,7 @@ from qft_branch_flow_helpers import (
 
 
 class QftBranchFlowPreflightTests(unittest.TestCase):
-    def test_preflight_create_branch_allows_missing_target(self) -> None:
+    def test_preflight_ensure_branch_allows_missing_target(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)
             origin, _seed = create_remote_repo(root)
@@ -38,6 +38,30 @@ class QftBranchFlowPreflightTests(unittest.TestCase):
         check = report["repos"][0]["checks"][0]
         self.assertIsNone(check["target"]["local_sha"])
         self.assertIsNone(check["target"]["remote_sha"])
+        self.assertEqual(check["target_resolution"], "create_missing")
+        self.assertFalse(check["requires_user_confirmation"])
+
+    def test_preflight_create_dev_reuses_existing_remote_branch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            origin, seed = create_remote_repo(root)
+            dev_branch = "3.0.0.DEV_ZY_4109_0625"
+            run_git(seed, "switch", "-c", dev_branch)
+            commit_file(seed, "dev.txt", "dev\n")
+            run_git(seed, "push", "origin", dev_branch)
+            clone_project(root, origin)
+
+            result = run_preflight(root, create_dev_plan())
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(blocker_codes(report), set())
+        check = report["repos"][0]["checks"][0]
+        self.assertEqual(check["action"], "ensure_branch")
+        self.assertEqual(check["target_resolution"], "reuse_existing")
+        self.assertTrue(check["requires_user_confirmation"])
+        self.assertIsNotNone(check["target"]["remote_sha"])
 
     def test_preflight_blocks_source_when_remote_has_new_commit(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -122,6 +146,8 @@ class QftBranchFlowPreflightTests(unittest.TestCase):
         self.assertEqual(blocker_codes(report), set())
         check = report["repos"][0]["checks"][0]
         self.assertEqual(check["action"], "ensure_branch")
+        self.assertEqual(check["target_resolution"], "reuse_existing")
+        self.assertTrue(check["requires_user_confirmation"])
         self.assertIsNotNone(check["target"]["remote_sha"])
 
 

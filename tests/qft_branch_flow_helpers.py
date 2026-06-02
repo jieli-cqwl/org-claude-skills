@@ -107,7 +107,7 @@ def create_dev_plan(target_branch: str = "3.0.0.DEV_ZY_4109_0625") -> dict:
                 "repo": "qft-app",
                 "source_branch": "master",
                 "target_branch": target_branch,
-                "action": "create_branch",
+                "action": "ensure_branch",
             }
         ],
         "push": {"confirmed": False, "branches": []},

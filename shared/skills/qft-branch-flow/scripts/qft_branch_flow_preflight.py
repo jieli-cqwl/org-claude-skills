@@ -114,6 +114,7 @@ def preflight_step(
     source = branch_state(repo_path, step["source_branch"])
     target = branch_state(repo_path, step["target_branch"])
     target_planned = step["target_branch"] in planned_branches
+    target_resolution = resolve_target(step["action"], target)
     blockers = action_blockers(step["action"], source, target, target_planned)
     return {
         "index": index,
@@ -121,11 +122,21 @@ def preflight_step(
         "source_branch": step["source_branch"],
         "target_branch": step["target_branch"],
         "target_planned": target_planned,
+        "target_resolution": target_resolution,
+        "requires_user_confirmation": target_resolution == "reuse_existing",
         "status": BLOCKED if blockers else OK,
         "source": source,
         "target": target,
         "blockers": blockers,
     }
+
+
+def resolve_target(action: str, target: dict[str, Any]) -> str:
+    if action != "ensure_branch":
+        return "not_applicable"
+    if branch_exists(target):
+        return "reuse_existing"
+    return "create_missing"
 
 
 def action_blockers(
