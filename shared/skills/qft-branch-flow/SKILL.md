@@ -78,7 +78,7 @@ model: sonnet
 - 项目白名单来自 `references/project-registry.json`。
 - 分支命名和场景规则来自 `references/branch-policy.json`。
 - 计划结构以 `contracts/branch-plan.schema.json` 为准。Load timing: 第 4 步生成计划前读取；purpose: 校验计划字段和步骤结构；output: 合法 plan JSON；consumer: Git 检查和执行步骤；verification: `python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
-- 生成计划：`python3 scripts/qft_branch_flow.py plan <scenario> --projects <repo1,repo2> --version <版本号> ...`；`bugfix` / `bugfix-finish` 的 `--version` 是线上版本号，必须另传 `--bug-version <客户反馈日期>`。
+- 生成计划：`python3 scripts/qft_branch_flow.py plan <scenario> --projects <项目编号|业务名|repo,...> --version <版本号> ...`；项目输入可用项目编号、业务名或 repo，向导必须把用户选择回显为业务名、仓库名和主分支；`dev-sync` / `release-merge` 的同名业务分支优先用 `--business-branch <分支名>`，各项目不同分支时才用 `--business-branches <项目=分支,...>`；`bugfix` / `bugfix-finish` 的 `--version` 是线上版本号，必须另传 `--bug-version <客户反馈日期>`。
 - 校验计划：`python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
 - `create-dev`、`release-merge`、`bugfix` 和 `release-sync-before` 中的分支准备动作统一使用 `ensure_branch`：目标不存在才从规定来源创建，目标已存在则展示状态并等待用户确认复用。
 - `bugfix-finish` 只在修复完成后将 BUG 分支合回版本分支。

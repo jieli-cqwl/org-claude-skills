@@ -71,7 +71,11 @@ def make_create_dev_plan(
     version: str,
     projects: list[str],
 ) -> dict[str, Any]:
-    owner = require_pattern(args.owner, r"^[A-Z0-9]+$", "owner must match ^[A-Z0-9]+$")
+    owner = require_pattern(
+        args.owner.upper() if args.owner is not None else None,
+        r"^[A-Z0-9]+$",
+        "owner must match ^[A-Z0-9]+$",
+    )
     requirement = require_pattern(
         args.requirement, r"^[0-9]+$", "requirement must match ^[0-9]+$"
     )
@@ -135,7 +139,12 @@ def make_dev_sync_plan(
     projects: list[str],
 ) -> dict[str, Any]:
     business_branches = parse_business_branches(
-        args.business_branches, projects, "dev-sync"
+        args.business_branches,
+        projects,
+        "dev-sync",
+        args.business_branch,
+        version,
+        registry,
     )
     target_branch = require_common_branch(business_branches, projects, "dev-sync")
     steps = [
@@ -166,7 +175,14 @@ def make_release_merge_plan(
     projects: list[str],
     release_branch: str,
 ) -> dict[str, Any]:
-    business_branches = parse_business_branches(args.business_branches, projects)
+    business_branches = parse_business_branches(
+        args.business_branches,
+        projects,
+        "release-merge",
+        args.business_branch,
+        version,
+        registry,
+    )
     steps = []
     for repo in projects:
         steps.append(

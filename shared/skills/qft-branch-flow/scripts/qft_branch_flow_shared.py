@@ -155,10 +155,12 @@ def parse_business_branches(
     return result
 
 
-def business_branch_pairs(raw: str, projects: list[str]) -> dict[str, str]:
+def business_branch_pairs(
+    raw: str, projects: list[str], registry: dict[str, dict[str, str]] | None = None
+) -> dict[str, str]:
     result: dict[str, str] = {}
     for pair in [part.strip() for part in raw.split(",") if part.strip()]:
-        repo, branch = parse_business_branch_pair(pair)
+        repo, branch = parse_business_branch_pair(pair, registry)
         if repo not in projects:
             raise FlowError(f"business branch repo is not selected: {repo}")
         if repo in result:
@@ -167,13 +169,33 @@ def business_branch_pairs(raw: str, projects: list[str]) -> dict[str, str]:
     return result
 
 
-def parse_business_branch_pair(pair: str) -> tuple[str, str]:
+def parse_business_branch_pair(
+    pair: str, registry: dict[str, dict[str, str]] | None = None
+) -> tuple[str, str]:
     if "=" not in pair:
         raise FlowError("business branch mapping must use repo=branch")
-    repo, branch = [part.strip() for part in pair.split("=", 1)]
+    repo_token, branch = [part.strip() for part in pair.split("=", 1)]
+    repo = (
+        resolve_project_token(repo_token, registry)
+        if registry is not None
+        else repo_token
+    )
     if not branch:
         raise FlowError(f"business branch is empty for {repo}")
     return repo, branch
+
+
+def validate_business_branch_version(branch: str, version: str | None) -> None:
+    if version is None:
+        return
+    match = re.fullmatch(r"3\.0\.0\.DEV_[A-Z0-9]+_[0-9]+_([0-9]{4})(?:_DELAY)?", branch)
+    if match is None:
+        return
+    branch_version = match.group(1)
+    if branch_version != version:
+        raise FlowError(
+            f"business branch version {branch_version} must match --version {version}"
+        )
 
 
 def step(

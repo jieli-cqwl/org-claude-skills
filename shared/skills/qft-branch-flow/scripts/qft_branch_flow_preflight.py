@@ -38,9 +38,26 @@ def preflight_plan(
     repos = []
     for repo in plan["projects"]:
         steps = [step for step in plan["steps"] if step["repo"] == repo]
-        repos.append(preflight_repo(repo, root / repo, registry[repo], steps))
+        repo_path = resolve_repo_path(root, repo, registry[repo])
+        repos.append(preflight_repo(repo, repo_path, registry[repo], steps))
     status = BLOCKED if any(item["status"] == BLOCKED for item in repos) else OK
     return {"schema_version": "1.0.0", "status": status, "repos": repos}
+
+
+def resolve_repo_path(root: Path, repo: str, registry_item: dict[str, str]) -> Path:
+    candidates = [root]
+    candidates.append(root / repo)
+    if root.parent != root:
+        candidates.append(root.parent / repo)
+    seen: set[Path] = set()
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if resolved in seen or not resolved.exists() or not is_git_repo(resolved):
+            continue
+        seen.add(resolved)
+        if not check_remote(resolved, registry_item["remote_url"]):
+            return resolved
+    return root / repo
 
 
 def preflight_repo(
