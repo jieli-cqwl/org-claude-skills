@@ -5,6 +5,7 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - Make the smallest change that satisfies the current scope.
 - Match existing style, ownership boundaries, naming, dependency direction, and runtime patterns.
 - Do not refactor, reformat, rename, or clean adjacent code unless required for the current outcome.
+- Before deleting or simplifying existing artifacts, identify the constraint, consumer, invariant, or failure mode they preserve; if none is found, state that basis.
 - Before adding behavior, search for an existing semantic equivalent through definitions, references, call sites, utilities, types, scripts, or code intelligence when available.
 - Reuse or extract only when it makes the code clearer, reduces real duplication, or stabilizes a shared contract.
 - Do not create an abstraction for a single use, speculative future, or cosmetic consistency.
