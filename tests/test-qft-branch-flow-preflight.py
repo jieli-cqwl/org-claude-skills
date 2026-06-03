@@ -63,6 +63,21 @@ class QftBranchFlowPreflightTests(unittest.TestCase):
         self.assertTrue(check["requires_user_confirmation"])
         self.assertIsNotNone(check["target"]["remote_sha"])
 
+    def test_preflight_accepts_current_project_workspace(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            origin, _seed = create_remote_repo(root)
+            checkout = clone_project(root, origin)
+
+            result = run_preflight(root, create_dev_plan(), repo_root_arg=str(checkout))
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(blocker_codes(report), set())
+        self.assertEqual(report["repos"][0]["repo"], "qft-app")
+        self.assertEqual(Path(report["repos"][0]["path"]).name, "qft-app")
+
     def test_preflight_blocks_source_when_remote_has_new_commit(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)

@@ -19,6 +19,10 @@ Primary pilot scope:
 - Decision boundary: allow, block, rework, risk accept, or target-change
 - Runtime source of truth: canonical JSON artifacts and active artifact registry
 
+## Current Status
+
+The controlled pilot feature directory recorded in this historical closeout has since been manually removed. Its active scope entry has been cleared from `contracts/active-doc-scope.yaml`; do not use this report as current handoff input or run the pilot-specific commands below unless the feature directory is intentionally restored.
+
 ## 1. PR Scope Classification
 
 ### Include in the standard-chain controlled pilot PR
@@ -157,13 +161,15 @@ Pilot failure handling:
 
 No files were staged or committed during this closeout.
 
-Do not run full gate under the current user constraint:
+Historical commands from the original closeout run:
+
+Do not run full gate under the original user constraint:
 
 ```bash
 bash tests/run-all.sh
 ```
 
-Run these before merge or PR handoff:
+These were the original commands recorded for that closeout. Pilot-specific commands now require the removed feature directory to be restored first:
 
 ```bash
 git diff --check

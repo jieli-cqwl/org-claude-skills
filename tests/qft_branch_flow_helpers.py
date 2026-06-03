@@ -32,11 +32,13 @@ def run_flow(
         )
 
 
-def run_preflight(repo_root: Path, plan: dict) -> subprocess.CompletedProcess[str]:
+def run_preflight(
+    repo_root: Path, plan: dict, repo_root_arg: str | None = None
+) -> subprocess.CompletedProcess[str]:
     return run_flow(
         "preflight",
         "--repo-root",
-        str(repo_root),
+        repo_root_arg if repo_root_arg is not None else str(repo_root),
         input_payload=plan,
     )
 

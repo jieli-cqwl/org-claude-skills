@@ -46,6 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
     plan_parser.add_argument("--requirement")
     plan_parser.add_argument("--delay", action="store_true")
     plan_parser.add_argument("--business-branches")
+    plan_parser.add_argument("--business-branch")
 
     validate_parser = subparsers.add_parser(
         "validate", help="validate a branch operation plan"

@@ -62,4 +62,43 @@ if "case ids" not in "\n".join(payload.get("errors", [])):
     raise SystemExit(f"mutated failure should mention case ids: {payload}")
 PY
 
+python3 - "$VALIDATOR" "$CASE_PACK" "$TMP_DIR" <<'PY'
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+validator = Path(sys.argv[1])
+case_pack = Path(sys.argv[2])
+tmp_dir = Path(sys.argv[3])
+mutated = json.loads(case_pack.read_text(encoding="utf-8"))
+for item in mutated["rubric"]:
+    if item.get("id") == "R4":
+        item["requires"] = [
+            value
+            for value in item["requires"]
+            if value != "文件名、函数名、脚本名不是功能影响项"
+        ]
+        break
+mutated_path = tmp_dir / "cases-missing-r4-redline.json"
+try:
+    mutated_path.write_text(json.dumps(mutated, ensure_ascii=False), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, str(validator), str(mutated_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+finally:
+    mutated_path.unlink(missing_ok=True)
+
+if result.returncode == 0:
+    raise SystemExit("mutated rubric should fail")
+payload = json.loads(result.stdout)
+errors = "\n".join(payload.get("errors", []))
+if "missing requires" not in errors or "文件名、函数名、脚本名不是功能影响项" not in errors:
+    raise SystemExit(f"mutated failure should mention missing R4 redline: {payload}")
+PY
+
 printf '[PASS] impact analysis eval contract\n'

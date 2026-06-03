@@ -38,6 +38,33 @@ class QftBranchFlowPlanTests(unittest.TestCase):
         )
         self.assertFalse(plan["push"]["confirmed"])
 
+    def test_plan_accepts_project_numbers_and_business_names(self) -> None:
+        result = run_flow(
+            "plan",
+            "create-dev",
+            "--projects",
+            "1,全房通 PC 前端",
+            "--owner",
+            "qw",
+            "--requirement",
+            "0001",
+            "--version",
+            "0301",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = json.loads(result.stdout)
+        self.assertEqual(plan["owner"], "QW")
+        self.assertEqual(plan["projects"], ["qft-all", "qft-app"])
+        self.assertEqual(plan["target_branch"], "3.0.0.DEV_QW_0001_0301")
+        self.assertEqual(
+            step_tuples(plan),
+            [
+                ("qft-all", "3.0.0.MASTER", "3.0.0.DEV_QW_0001_0301", "ensure_branch"),
+                ("qft-app", "master", "3.0.0.DEV_QW_0001_0301", "ensure_branch"),
+            ],
+        )
+
     def test_plan_bug_branch_uses_feedback_date_and_reuses_existing_branch(
         self,
     ) -> None:
@@ -138,7 +165,39 @@ class QftBranchFlowPlanTests(unittest.TestCase):
             ],
         )
 
-    def test_plan_dev_sync_merges_main_branch_to_business_branch(self) -> None:
+    def test_plan_release_merge_accepts_single_business_branch_for_all_projects(
+        self,
+    ) -> None:
+        result = run_flow(
+            "plan",
+            "release-merge",
+            "--projects",
+            "qft-all,qft-app",
+            "--version",
+            "0301",
+            "--business-branch",
+            "3.0.0.DEV_QW_0001_0301",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = json.loads(result.stdout)
+        self.assertEqual(
+            plan["business_branches"],
+            {
+                "qft-all": "3.0.0.DEV_QW_0001_0301",
+                "qft-app": "3.0.0.DEV_QW_0001_0301",
+            },
+        )
+        self.assertEqual(
+            step_tuples(plan),
+            [
+                ("qft-all", "3.0.0.MASTER", "V.0301", "ensure_branch"),
+                ("qft-all", "3.0.0.DEV_QW_0001_0301", "V.0301", "merge"),
+                ("qft-app", "master", "V.0301", "ensure_branch"),
+                ("qft-app", "3.0.0.DEV_QW_0001_0301", "V.0301", "merge"),
+            ],
+        )
+
         result = run_flow(
             "plan",
             "dev-sync",
@@ -161,7 +220,56 @@ class QftBranchFlowPlanTests(unittest.TestCase):
             ],
         )
 
-    def test_plan_rejects_missing_or_invalid_inputs(self) -> None:
+    def test_plan_dev_sync_accepts_single_business_branch_for_all_projects(
+        self,
+    ) -> None:
+        result = run_flow(
+            "plan",
+            "dev-sync",
+            "--projects",
+            "qft-all,qft-app",
+            "--version",
+            "0301",
+            "--business-branch",
+            "3.0.0.DEV_QW_0001_0301",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = json.loads(result.stdout)
+        self.assertEqual(plan["target_branch"], "3.0.0.DEV_QW_0001_0301")
+        self.assertEqual(
+            plan["business_branches"],
+            {
+                "qft-all": "3.0.0.DEV_QW_0001_0301",
+                "qft-app": "3.0.0.DEV_QW_0001_0301",
+            },
+        )
+        self.assertEqual(
+            step_tuples(plan),
+            [
+                ("qft-all", "3.0.0.MASTER", "3.0.0.DEV_QW_0001_0301", "merge"),
+                ("qft-app", "master", "3.0.0.DEV_QW_0001_0301", "merge"),
+            ],
+        )
+
+    def test_plan_rejects_business_branch_version_mismatch(self) -> None:
+        result = run_flow(
+            "plan",
+            "dev-sync",
+            "--projects",
+            "qft-all,qft-app",
+            "--version",
+            "0301",
+            "--business-branch",
+            "3.0.0.DEV_QW_0001_0625",
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "business branch version 0625 must match --version 0301",
+            result.stderr,
+        )
+
         cases = [
             (
                 (

@@ -63,10 +63,17 @@ REQUIRED_CASE_FOCUS = {
     "IA-002": {"内部实现影响", "行为不变证据"},
     "IA-003": {"runtime 行为约束", "完成声明风险"},
     "IA-004": {"无额外影响依据", "覆盖盲区检查"},
-    "IA-005": {"LSP 不可见路径", "动态调用", "待裁决风险"},
+    "IA-005": {"代码智能不可见路径", "动态调用", "待裁决风险"},
     "IA-006": {"schema/script/test 同步", "功能影响项承载"},
     "IA-007": {"门禁覆盖变化", "测试可信度"},
     "IA-008": {"shared_files 不充分", "统一合并验证"},
+}
+REQUIRED_RUBRIC_REQUIRES = {
+    "R4": {
+        "技术触点",
+        "不得用文件清单替代功能影响结论",
+        "文件名、函数名、脚本名不是功能影响项",
+    },
 }
 
 
@@ -139,6 +146,15 @@ def validate_rubric(payload: dict[str, Any], errors: list[str]) -> None:
             f"rubric {item.get('id')} requires must be non-empty strings",
             errors,
         )
+        if isinstance(requires, list):
+            missing = sorted(
+                REQUIRED_RUBRIC_REQUIRES.get(item.get("id"), set()) - set(requires)
+            )
+            require(
+                not missing,
+                f"rubric {item.get('id')} missing requires {missing}",
+                errors,
+            )
 
 
 def validate_pilot_rollout(payload: dict[str, Any], errors: list[str]) -> None:

@@ -21,6 +21,9 @@
 
 Verdict: PASS | WARN | FAIL
 Reviewed Bundle Digest: sha256:<64 hex>
+Read-only Marker: read-only; no PM JSON edits
+Finding refs: PR-001, ... | none
+Evidence refs: JSON path + value, ... | none
 
 | Issue ID | Severity | Finding | Evidence | 承接目标 |
 | --- | --- | --- | --- | --- |

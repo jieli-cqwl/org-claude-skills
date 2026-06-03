@@ -74,14 +74,42 @@ def parse_projects(raw: str, registry: dict[str, dict[str, str]]) -> list[str]:
         raise FlowError("at least one project is required")
     seen: set[str] = set()
     result: list[str] = []
-    for repo in projects:
-        if repo not in registry:
-            raise FlowError(f"unknown project: {repo}")
+    for token in projects:
+        repo = resolve_project_token(token, registry)
         if repo in seen:
             raise FlowError(f"duplicate project: {repo}")
         seen.add(repo)
         result.append(repo)
     return result
+
+
+def resolve_project_token(token: str, registry: dict[str, dict[str, str]]) -> str:
+    if token in registry:
+        return token
+    if token.isdigit():
+        index = int(token) - 1
+        repos = list(registry)
+        if 0 <= index < len(repos):
+            return repos[index]
+    matches = [
+        repo
+        for repo, item in registry.items()
+        if token == item.get("business_name") or token == repo
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        raise FlowError(f"ambiguous project: {token}")
+    partial_matches = [
+        repo
+        for repo, item in registry.items()
+        if token in item.get("business_name", "") or token in repo
+    ]
+    if len(partial_matches) == 1:
+        return partial_matches[0]
+    if len(partial_matches) > 1:
+        raise FlowError(f"ambiguous project: {token}")
+    raise FlowError(f"unknown project: {token}")
 
 
 def require_pattern(value: str | None, pattern: str, message: str) -> str:
@@ -101,14 +129,29 @@ def branch_name(policy: dict[str, Any], name: str, **values: str) -> str:
 
 
 def parse_business_branches(
-    raw: str | None, projects: list[str], scenario: str = "release-merge"
+    raw: str | None,
+    projects: list[str],
+    scenario: str = "release-merge",
+    single_branch: str | None = None,
+    version: str | None = None,
+    registry: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, str]:
+    if raw is not None and single_branch is not None:
+        raise FlowError("use either --business-branch or --business-branches")
+    if single_branch is not None:
+        branch = single_branch.strip()
+        if not branch:
+            raise FlowError(f"{scenario} requires --business-branch")
+        validate_business_branch_version(branch, version)
+        return {repo: branch for repo in projects}
     if raw is None:
-        raise FlowError(f"{scenario} requires --business-branches")
-    result = business_branch_pairs(raw, projects)
+        raise FlowError(f"{scenario} requires --business-branches or --business-branch")
+    result = business_branch_pairs(raw, projects, registry)
     missing = [repo for repo in projects if repo not in result]
     if missing:
         raise FlowError(f"missing business branch for: {', '.join(missing)}")
+    for branch in result.values():
+        validate_business_branch_version(branch, version)
     return result
 
 

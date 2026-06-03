@@ -2,13 +2,13 @@
 
 Code structure should reduce current complexity, not create the appearance of architecture.
 
-## Complexity Thresholds
+## Complexity Signals
 
-- Default limits: function CC <= 10, parameters <= 5, nesting <= 3, code file <= 400 lines.
-- When a limit is exceeded, first check whether responsibilities are mixed; split by responsibility, boundary, or data flow.
-- When parameters grow, prefer a parameter object with domain meaning over loose argument lists.
-- Exceptions are limited to framework signatures, public API compatibility, generated files, pure configuration maps, or stable data tables.
-- Every exception must record the reason, risk, and verification method.
+- Treat high cyclomatic complexity, long parameter lists, deep nesting, and oversized files as signals to inspect responsibility boundaries, not as automatic refactor triggers.
+- When a complexity signal appears, first check whether responsibilities are mixed; split by responsibility, boundary, or data flow only when it clarifies ownership, failure handling, or verification.
+- When parameters grow, prefer a domain parameter object over loose argument lists if it makes required inputs, defaults, and invariants clearer.
+- Keep framework signatures, public API compatibility, generated files, pure configuration maps, and stable data tables intact when splitting would add risk or obscure intent.
+- Record the reason, risk, and verification method when a high-complexity shape is intentionally retained.
 
 ## Reuse Search
 
@@ -16,7 +16,7 @@ Before adding implementation, check:
 
 - Definitions, references, callers, types, interfaces, and public exports.
 - Same directory, same module, shared utilities, script entrypoints, and test fixtures.
-- LSP when available; use text search to cover dynamic references, configuration references, and generated paths.
+- Code intelligence, including LSP-backed reference search, IDE navigation, code indexes, and type-aware search when available; use text search to cover dynamic, configuration, and generated paths.
 
 ## Abstraction Judgment
 
