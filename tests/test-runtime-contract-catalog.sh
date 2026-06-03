@@ -79,6 +79,18 @@ semantic_checks = [
         text.find("Mock/") >= 0 and text.find("Stub/") >= 0 and text.find("Fake") >= 0,
     ),
     (
+        "checks-exercise-only",
+        all(term in text for term in ("Checks", "exercise", "define", "shrink", "acceptance scope")),
+    ),
+    (
+        "completion-evidence-distinguishes-failure-modes",
+        all(term in text for term in ("distinguish", "in-scope failure modes", "wrong behavior")),
+    ),
+    (
+        "evidence-strength-matches-claim",
+        all(term in text for term in ("strength", "partial", "sampled", "local", "indirect")),
+    ),
+    (
         "skip-xfail-delete-checks",
         text.find("skip" + "ping") >= 0
         and text.find("xfail" + "-ing") >= 0
@@ -176,6 +188,29 @@ expected_refs = {
 }
 if refs != expected_refs:
     raise SystemExit(f"unexpected reference set: {sorted(refs)}")
+
+semantic_checks = [
+    (
+        "existing-artifact-constraint-before-delete",
+        all(
+            term in text
+            for term in (
+                "deleting or simplifying",
+                "existing artifacts",
+                "constraint",
+                "consumer",
+                "invariant",
+                "failure mode",
+                "state that basis",
+            )
+        ),
+    ),
+]
+missing_semantics = [label for label, present in semantic_checks if not present]
+if missing_semantics:
+    raise SystemExit(
+        "rule missing code-change failure semantics: " + ", ".join(missing_semantics)
+    )
 
 allowed_lines = {"", "# Code Changes", *lead, *bullets}
 unexpected = [

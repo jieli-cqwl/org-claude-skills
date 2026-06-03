@@ -30,6 +30,7 @@ branch_name = shared.branch_name
 load_policy = shared.load_policy
 load_projects = shared.load_projects
 require_pattern = shared.require_pattern
+validate_business_branch_version = shared.validate_business_branch_version
 
 
 def validate_plan(plan: dict[str, Any]) -> None:
@@ -308,6 +309,10 @@ def require_business_branches(plan: dict[str, Any], scenario: str) -> dict[str, 
     business_branches = plan.get("business_branches")
     if not isinstance(business_branches, dict):
         raise FlowError(f"{scenario} requires business_branches")
+    for repo, branch in business_branches.items():
+        if not isinstance(repo, str) or not isinstance(branch, str) or not branch:
+            raise FlowError(f"{scenario} business_branches must map repo to branch")
+        validate_business_branch_version(branch, plan["version"])
     return business_branches
 
 
