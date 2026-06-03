@@ -78,6 +78,25 @@ class QftBranchFlowPreflightTests(unittest.TestCase):
         self.assertEqual(report["repos"][0]["repo"], "qft-app")
         self.assertEqual(Path(report["repos"][0]["path"]).name, "qft-app")
 
+    def test_preflight_skips_current_git_repo_when_remote_mismatches(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            app_origin, _app_seed = create_remote_repo(root)
+            clone_project(root, app_origin)
+            wrong_origin, _wrong_seed = create_remote_repo(root, "wrong-repo")
+            wrong_checkout = clone_project(root, wrong_origin, "wrong-repo")
+
+            result = run_preflight(
+                root, create_dev_plan(), repo_root_arg=str(wrong_checkout)
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(blocker_codes(report), set())
+        self.assertEqual(report["repos"][0]["repo"], "qft-app")
+        self.assertEqual(Path(report["repos"][0]["path"]).name, "qft-app")
+
     def test_preflight_blocks_source_when_remote_has_new_commit(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)

@@ -81,8 +81,10 @@ model: sonnet
 - 生成计划：`python3 scripts/qft_branch_flow.py plan <scenario> --projects <项目编号|业务名|repo,...> --version <版本号> ...`；项目输入可用项目编号、业务名或 repo，向导必须把用户选择回显为业务名、仓库名和主分支；`dev-sync` / `release-merge` 的同名业务分支优先用 `--business-branch <分支名>`，各项目不同分支时才用 `--business-branches <项目=分支,...>`；`bugfix` / `bugfix-finish` 的 `--version` 是线上版本号，必须另传 `--bug-version <客户反馈日期>`。
 - 校验计划：`python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
 - `create-dev`、`release-merge`、`bugfix` 和 `release-sync-before` 中的分支准备动作统一使用 `ensure_branch`：目标不存在才从规定来源创建，目标已存在则展示状态并等待用户确认复用。
+- `create-dev` 的名字缩写可接收小写输入，计划脚本会标准化为大写；向导回显时使用 plan 输出的标准化值。
+- `dev-sync` / `release-merge` 的业务分支如果符合 `3.0.0.DEV_*_*_版本号` 或 `_DELAY` 命名，分支尾号必须与 `--version` 一致；不一致时停止并让用户修正版本或分支。
 - `bugfix-finish` 只在修复完成后将 BUG 分支合回版本分支。
-- 执行前检查必须调用：`python3 scripts/qft_branch_flow.py preflight --input <plan.json> --repo-root <多仓父目录>`。调用前先让用户确认 `<多仓父目录>`；preflight 输出为唯一检查依据，不要用自然语言自行推断 Git 状态。
+- 执行前检查必须调用：`python3 scripts/qft_branch_flow.py preflight --input <plan.json>`，默认以当前 AI Coding workspace 作为入口自动识别当前单仓、多仓父目录或 sibling 仓库；只有自动识别失败或 remote 校验无法裁决时，才让用户提供 `--repo-root <workspace>`。preflight 输出为唯一检查依据，不要用自然语言自行推断 Git 状态。
 - preflight 必须按项目展示 resolved path，并用 `origin` URL 与 `project-registry.json` 的 `remote_url` 做归一化匹配；不要只用仓库名判断 remote。
 - preflight action 口径：`create_branch` 要求来源存在且与远端一致、目标精确不存在且无大小写冲突；`ensure_branch` 允许目标不存在，存在则要求目标与远端一致，不存在则要求来源可用于创建；`merge` 要求来源和目标都存在且与远端一致。
 - preflight 对每个 step 输出 `target_resolution`：`create_missing` 表示将新建目标分支，`reuse_existing` 表示目标分支已存在且需要用户确认复用，`not_applicable` 表示该 action 不准备目标分支。`requires_user_confirmation=true` 时，向导必须展示本地/远端 SHA、ahead/behind、来源和目标分支，再等待用户确认。
@@ -157,8 +159,8 @@ model: sonnet
 按场景只问必要字段：
 
 - 开发需求：名字缩写、需求编号、版本号（月日，如 `0301`）、是否 `_DELAY`；计划确保业务开发分支可用，目标已存在则复用确认，不存在才创建。
-- 日常同步：版本号、业务开发分支名；计划将项目主分支合入业务开发分支。
-- 提测/发版：版本号、业务分支名；计划先确保版本分支可用，再将业务分支合入版本分支；版本分支已存在时先确认复用。
+- 日常同步：版本号、业务开发分支名；多项目共用同一业务分支时只收一次分支名，计划用 `--business-branch` 将项目主分支合入该业务开发分支；各项目不同分支时才逐项目收集并映射。
+- 提测/发版：版本号、业务分支名；多项目共用同一业务分支时只收一次分支名，计划先确保版本分支可用，再将业务分支合入版本分支；各项目不同分支时才逐项目收集并映射；版本分支已存在时先确认复用。
 - 上线 BUG 创建：线上版本号（月日，如 `0528`）、客户反馈日期（月日，如 `0602`）、来源版本分支 `V.线上版本号`、目标 BUG 分支 `3.0.0.MASTER_BUG_反馈日期`；计划只包含从 `V.线上版本号` 确保 BUG 分支可用，目标已存在则复用，不存在才创建。
 - 上线 BUG 完成：线上版本号、客户反馈日期、已修复 BUG 分支 `3.0.0.MASTER_BUG_反馈日期`、目标版本分支 `V.线上版本号`；计划只包含将 BUG 分支合回 `V.线上版本号`。
 - 上线回合：选择上线前同步（先确保版本分支可用，再将主分支合入版本分支）或上线后回合（版本分支 -> 主分支）。
@@ -197,8 +199,10 @@ python3 scripts/qft_branch_flow.py validate --input plan.json
 计划校验通过后调用 preflight，不自行组合 Git 检查结论：
 
 ```bash
-python3 scripts/qft_branch_flow.py preflight --input plan.json --repo-root <多仓父目录>
+python3 scripts/qft_branch_flow.py preflight --input plan.json
 ```
+
+preflight 默认从当前 AI Coding workspace 自动识别仓库路径：当前目录是目标单仓、当前目录是多仓父目录、或当前目录是某个 sibling 仓库都应由脚本解析；只有识别失败或 remote 校验无法裁决时，才提示用户提供 `--repo-root <workspace>`。
 
 preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时，按 blocker 输出展示阻塞原因和下一步；不要把 `create_branch` 或 `ensure_branch` 的目标分支不存在解释为阻塞。
 
@@ -267,7 +271,7 @@ preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时�
 ## Verification
 
 - 计划生成后必须运行 `python3 scripts/qft_branch_flow.py validate --input <plan.json>`；只有 exit 0 且 plan JSON 符合 schema 才能进入 Git 检查。
-- 执行前必须运行 `python3 scripts/qft_branch_flow.py preflight --input <plan.json> --repo-root <多仓父目录>`；只有 exit 0 且目标项目 `status=ok` 才能执行。
+- 执行前必须运行 `python3 scripts/qft_branch_flow.py preflight --input <plan.json>`；默认使用当前 AI Coding workspace 自动识别仓库路径，只有识别失败或 remote 校验无法裁决时才追加 `--repo-root <workspace>`；只有 exit 0 且目标项目 `status=ok` 才能执行。
 - preflight 输出必须逐项目展示仓库、remote、工作区、来源分支、目标分支、`target_resolution`、`requires_user_confirmation`、同步状态和执行前确认文案；所有 blocker 原样保留，不得改写成其他 Git 结论。
 - 本地写操作后必须用 `git status` 和目标分支存在性证明结果；push 后必须显示已推送的 remote 和 branch。
 - 输出分组必须包含已完成、未执行和下一步，供用户继续处理阻塞项目。

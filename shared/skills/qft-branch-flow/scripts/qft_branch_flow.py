@@ -60,7 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
     preflight_parser.add_argument(
         "--repo-root",
         default=".",
-        help="directory containing selected project repositories",
+        help="workspace, project repo, or directory containing selected project repositories",
     )
 
     return parser

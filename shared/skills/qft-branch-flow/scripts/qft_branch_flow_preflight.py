@@ -55,7 +55,8 @@ def resolve_repo_path(root: Path, repo: str, registry_item: dict[str, str]) -> P
         if resolved in seen or not resolved.exists() or not is_git_repo(resolved):
             continue
         seen.add(resolved)
-        if check_remote(resolved, registry_item["remote_url"]):
+        remote_blockers = check_remote(resolved, registry_item["remote_url"])
+        if not remote_blockers:
             return resolved
     return root / repo
 

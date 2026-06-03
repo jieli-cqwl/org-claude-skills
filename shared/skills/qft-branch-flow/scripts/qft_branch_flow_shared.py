@@ -188,6 +188,7 @@ def parse_business_branch_pair(
 def validate_business_branch_version(branch: str, version: str | None) -> None:
     if version is None:
         return
+    # Only QFT DEV branch names carry a release date suffix we can compare safely.
     match = re.fullmatch(r"3\.0\.0\.DEV_[A-Z0-9]+_[0-9]+_([0-9]{4})(?:_DELAY)?", branch)
     if match is None:
         return
