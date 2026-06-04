@@ -100,16 +100,15 @@ actual_joined="$(printf '%s\n' "${actual_agents[@]}")"
 [ "$actual_joined" = "$expected_joined" ] || fail "codex agent catalog mismatch. expected=[$expected_joined] actual=[$actual_joined]"
 
 ambiguous_agent_boundary_terms='thin adapter|薄 adapter|厚 adapter'
-if rg -n "$ambiguous_agent_boundary_terms" \
-  "$ROOT/install.sh" \
-  "$ROOT/tests" \
-  "$ROOT/shared" \
-  "$ROOT/tools" \
-  "$ROOT/README.md" \
-  -g '!test-codex-agent-governance.sh' \
-  -g '!tests/test-codex-agent-governance.sh' \
-  -g '!tools/eval/results/**' \
-  -g '!shared/skills/research-workspace/**' >/tmp/codex_agent_ambiguous_boundary.out 2>&1; then
+if git -C "$ROOT" grep -n -E "$ambiguous_agent_boundary_terms" -- \
+  install.sh \
+  tests \
+  shared \
+  tools \
+  README.md \
+  ':(exclude)tests/test-codex-agent-governance.sh' \
+  ':(exclude)tools/eval/results/**' \
+  ':(exclude)shared/skills/research-workspace/**' >/tmp/codex_agent_ambiguous_boundary.out 2>&1; then
   cat /tmp/codex_agent_ambiguous_boundary.out >&2
   fail "agent/skill 边界不得继续使用 thin/薄/厚 adapter 这类歧义表述"
 fi
