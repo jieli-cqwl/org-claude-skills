@@ -17,6 +17,8 @@ install_test_assert_file_exists "$home_dir/.codex/rules/completion-claims.md" "c
 install_test_assert_file_exists "$home_dir/.codex/reference/测试规范.md" "codex runtime should include reference docs"
 install_test_assert_file_exists "$codex_skills_dir/product-manager/SKILL.md" "codex runtime should install managed user skills"
 install_test_assert_file_exists "$home_dir/.codex/hooks.json" "codex runtime should include hooks.json"
+install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"command": "python3 ' "codex Python hooks should pin the installer Python executable"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" "\"command\": \"$(command -v python3) $home_dir/.codex/hooks/managed/context_contract_validator.py\"" "codex context hook should use installer Python executable"
 install_test_case_pass "runtime-quick-canary: codex install exposes managed runtime entry"
 
 install_test_case_start "runtime-quick-canary: task verify ruff lint is scoped to changed files"

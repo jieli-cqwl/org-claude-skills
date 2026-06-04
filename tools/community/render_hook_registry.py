@@ -63,7 +63,11 @@ def validate_registry(registry: dict) -> None:
                 raise ValueError(f"{hook_id}: missing runtime payload for {runtime}")
 
 
-def render_command(runtime_home: str, launcher: str, command_rel: str) -> str:
+def render_command(
+    runtime_home: str, launcher: str, command_rel: str, python_launcher: str
+) -> str:
+    if launcher == "python3":
+        launcher = python_launcher
     return f"{launcher} {runtime_home}/{command_rel}"
 
 
@@ -145,7 +149,9 @@ def strip_hooks_section(frontmatter_lines: list[str]) -> list[str]:
     return new_lines
 
 
-def render_skill_hook_lines(entries: list[dict], runtime_home: str) -> list[str]:
+def render_skill_hook_lines(
+    entries: list[dict], runtime_home: str, python_launcher: str
+) -> list[str]:
     grouped: dict[str, list[dict]] = {}
     for entry in entries:
         grouped.setdefault(entry["event"], []).append(entry)
@@ -161,7 +167,9 @@ def render_skill_hook_lines(entries: list[dict], runtime_home: str) -> list[str]
                 lines.append("        - type: command")
                 lines.append(
                     "          command: "
-                    + render_command(runtime_home, "bash", entry["handler_rel"])
+                    + render_command(
+                        runtime_home, "bash", entry["handler_rel"], python_launcher
+                    )
                 )
                 lines.append(f"          timeout: {entry['timeout_sec']}")
                 continue
@@ -169,14 +177,17 @@ def render_skill_hook_lines(entries: list[dict], runtime_home: str) -> list[str]
             lines.append("    - hooks:")
             lines.append("        - type: command")
             lines.append(
-                "          command: " + render_command(runtime_home, "bash", entry["handler_rel"])
+                "          command: "
+                + render_command(runtime_home, "bash", entry["handler_rel"], python_launcher)
             )
             lines.append(f"          timeout: {entry['timeout_sec']}")
 
     return lines
 
 
-def inject_claude_skill_hooks(registry: dict, skills_dir: Path, runtime_home: str) -> None:
+def inject_claude_skill_hooks(
+    registry: dict, skills_dir: Path, runtime_home: str, python_launcher: str
+) -> None:
     grouped = group_claude_skill_hooks(registry)
     for skill_dir in sorted(skills_dir.iterdir()):
         if not skill_dir.is_dir():
@@ -195,7 +206,13 @@ def inject_claude_skill_hooks(registry: dict, skills_dir: Path, runtime_home: st
 
         _, frontmatter, body = parts
         frontmatter_lines = strip_hooks_section(frontmatter.splitlines())
-        hook_lines = render_skill_hook_lines(grouped.get(skill_dir.name, []), runtime_home) if skill_dir.name in grouped else []
+        hook_lines = (
+            render_skill_hook_lines(
+                grouped.get(skill_dir.name, []), runtime_home, python_launcher
+            )
+            if skill_dir.name in grouped
+            else []
+        )
 
         if hook_lines:
             insert_idx = len(frontmatter_lines)
@@ -215,7 +232,9 @@ def inject_claude_skill_hooks(registry: dict, skills_dir: Path, runtime_home: st
             skill_file.write_text(updated, encoding="utf-8")
 
 
-def render_runtime_hook_entries(registry: dict, runtime: str, runtime_home: str) -> dict:
+def render_runtime_hook_entries(
+    registry: dict, runtime: str, runtime_home: str, python_launcher: str
+) -> dict:
     hooks: dict[str, list[dict]] = {}
     standard_events: list[str] = []
     internal_events: list[str] = []
@@ -239,7 +258,9 @@ def render_runtime_hook_entries(registry: dict, runtime: str, runtime_home: str)
         event = payload["event"]
         if runtime == "codex" and event not in CODEX_HOOK_EVENTS:
             raise ValueError(f"Codex hook {hook['id']} uses unsupported event: {event}")
-        command = render_command(runtime_home, payload["launcher"], payload["command_rel"])
+        command = render_command(
+            runtime_home, payload["launcher"], payload["command_rel"], python_launcher
+        )
         command_entry = {"type": "command", "command": command}
         timeout_sec = payload.get("timeout_sec")
         if timeout_sec:
@@ -268,30 +289,39 @@ def main() -> int:
     settings_parser = subparsers.add_parser("claude-settings-fragment")
     settings_parser.add_argument("--registry", required=True)
     settings_parser.add_argument("--runtime-home", required=True)
+    settings_parser.add_argument("--python-launcher", default="python3")
 
     inject_parser = subparsers.add_parser("inject-claude-skill-hooks")
     inject_parser.add_argument("--registry", required=True)
     inject_parser.add_argument("--skills-dir", required=True)
     inject_parser.add_argument("--runtime-home", required=True)
+    inject_parser.add_argument("--python-launcher", default="python3")
 
     codex_parser = subparsers.add_parser("codex-hooks")
     codex_parser.add_argument("--registry", required=True)
     codex_parser.add_argument("--runtime-home", required=True)
+    codex_parser.add_argument("--python-launcher", default="python3")
 
     args = parser.parse_args()
     registry = load_registry(Path(args.registry))
 
     if args.command == "claude-settings-fragment":
-        payload = render_runtime_hook_entries(registry, "claude", args.runtime_home)
+        payload = render_runtime_hook_entries(
+            registry, "claude", args.runtime_home, args.python_launcher
+        )
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
     if args.command == "inject-claude-skill-hooks":
-        inject_claude_skill_hooks(registry, Path(args.skills_dir), args.runtime_home)
+        inject_claude_skill_hooks(
+            registry, Path(args.skills_dir), args.runtime_home, args.python_launcher
+        )
         return 0
 
     if args.command == "codex-hooks":
-        payload = render_runtime_hook_entries(registry, "codex", args.runtime_home)
+        payload = render_runtime_hook_entries(
+            registry, "codex", args.runtime_home, args.python_launcher
+        )
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 

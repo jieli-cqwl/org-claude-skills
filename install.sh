@@ -17,6 +17,7 @@ CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
 CODEX_USER_SKILLS_DIR="$HOME/.agents/skills"
 ORG_STATE_ROOT="${ORG_STATE_ROOT:-$HOME/.org-skills-state}"
+PYTHON_LAUNCHER="${ORG_HOOK_PYTHON:-$(command -v python3 || true)}"
 
 TARGET="all"
 DRY_RUN=0
@@ -217,7 +218,8 @@ render_claude_hooks_fragment() {
 
   python3 "$HOOK_RENDERER" claude-settings-fragment \
     --registry "$HOOK_REGISTRY" \
-    --runtime-home "\$HOME/.claude" > "$output"
+    --runtime-home "\$HOME/.claude" \
+    --python-launcher "$PYTHON_LAUNCHER" > "$output"
 }
 
 claude_settings_baseline_file() {
@@ -229,13 +231,13 @@ claude_settings_missing_marker() {
 }
 
 required_claude_hook_commands() {
-  cat <<'EOF'
-bash $HOME/.claude/hooks/block_dangerous.sh
-bash $HOME/.claude/hooks/code_quality_check.sh
-bash $HOME/.claude/hooks/auto_format.sh
-bash $HOME/.claude/hooks/post_compact.sh
-bash $HOME/.claude/hooks/task_verify.sh
-python3 $HOME/.claude/hooks/managed/context_contract_validator.py
+  cat <<EOF
+bash \$HOME/.claude/hooks/block_dangerous.sh
+bash \$HOME/.claude/hooks/code_quality_check.sh
+bash \$HOME/.claude/hooks/auto_format.sh
+bash \$HOME/.claude/hooks/post_compact.sh
+bash \$HOME/.claude/hooks/task_verify.sh
+$PYTHON_LAUNCHER \$HOME/.claude/hooks/managed/context_contract_validator.py
 EOF
 }
 
@@ -434,7 +436,8 @@ inject_claude_skill_hooks_from_registry() {
   python3 "$HOOK_RENDERER" inject-claude-skill-hooks \
     --registry "$HOOK_REGISTRY" \
     --skills-dir "$skills_dir" \
-    --runtime-home "\$HOME/.claude"
+    --runtime-home "\$HOME/.claude" \
+    --python-launcher "$PYTHON_LAUNCHER"
 }
 
 check_hooks_registration() {
@@ -467,15 +470,16 @@ render_codex_hooks_payload() {
 
   python3 "$HOOK_RENDERER" codex-hooks \
     --registry "$HOOK_REGISTRY" \
-    --runtime-home "$CODEX_DIR" > "$output"
+    --runtime-home "$CODEX_DIR" \
+    --python-launcher "$PYTHON_LAUNCHER" > "$output"
 }
 
 required_codex_hook_commands() {
   cat <<EOF
 bash $CODEX_DIR/hooks/managed/block_dangerous.sh
-python3 $CODEX_DIR/hooks/managed/context_contract_validator.py
-python3 $CODEX_DIR/hooks/managed/codex_user_prompt_submit.py
-python3 $CODEX_DIR/hooks/managed/codex_stop_dispatch.py
+$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/context_contract_validator.py
+$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_user_prompt_submit.py
+$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_stop_dispatch.py
 EOF
 }
 
@@ -3194,6 +3198,7 @@ parse_args() {
 
 main() {
   parse_args "$@"
+  [ -n "$PYTHON_LAUNCHER" ] || fail "未找到 python3，无法安装 Python hooks"
   assert_prerequisites
 
   if [ "$DO_UNINSTALL" -eq 1 ]; then
