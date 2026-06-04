@@ -20,9 +20,6 @@
 - 硬约束来源：`{{RUNTIME_HOME}}/rules/` 下所有规则优先于 reference；执行前必须确保这些规则已加载或已读取。
 - 测试与变更验证：读取 `{{RUNTIME_HOME}}/reference/测试规范.md`，从成功标准推导验证点，按维度和风险面审视。
 - 代码变更：读取 `{{RUNTIME_HOME}}/rules/code-changes.md`，按 Code Changes 判断最小变更、复用、复杂度、错误处理、配置、性能和共享契约。
-- 代码结构、复杂度、复用、兼容层或共享契约：读取 `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`。
-- 注释、SQL、schema、并发、协议、解析、正则或业务不变量：读取 `{{RUNTIME_HOME}}/reference/code-comments.md`。
-- 错误、外部调用、fallback、retry、cleanup 或 partial success：读取 `{{RUNTIME_HOME}}/reference/error-handling.md`。
 - 声称任务完成前：读取 `{{RUNTIME_HOME}}/rules/completion-claims.md`，按目标、验收项、证据、失败出口逐项校验。
 - 设计决策：读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用简单/合适/演化三原则判断设计取舍。
 - 评估变更影响范围：读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md`，先列变更点，系统覆盖影响维度，最后定义验证面。
