@@ -18,7 +18,7 @@
 | --- | --- | --- | --- |
 | EI-1 | 自证检测 | `observed` 是否独立于 `expected`、`category`、fixture label | 改动 `expected` 或 `category` 时测试失败；runner 不从同一字段推导输入和输出 |
 | EI-2 | 声称/证据一致 | `PASS`、`verified`、`APPROVE` 是否来自真实执行 | 结论只在 validator、runner、fresh command 或人工裁决证据完成后生成 |
-| EI-3 | 负例驱动 | 破坏输入、schema、manifest 或 fixture 后测试是否失败 | 至少有一个反例或 mutation test 能击穿错误实现 |
+| EI-3 | 负例驱动 | 破坏输入、schema、manifest、fixture 或关键判断前提后，测试或裁决是否会失败 | 至少有一个反例、mutation test 或人工核验路径能击穿错误实现或改变错误裁决 |
 | EI-4 | 过时材料清理 | 旧设计、旧目录、旧 skill 是否仍在有效 docs 或 runtime 路径 | 过时材料进入 `docs/archive/`；有效 docs 不保留相反结论 |
 | EI-5 | 行为边界 | seed eval 是否冒充 live benchmark 或质量收益 | seed eval、smoke、fixture、live benchmark 的证明边界写清 |
 | EI-6 | 消费者链路 | 字段、目录、报告、JSON artifact 是否有真实消费者 | consumer matrix、renderer、validator、下游脚本或 human review 能消费该字段 |
@@ -41,4 +41,4 @@
 - `适用性`：适用或不适用。
 - `触发依据`：列出触达的文件类型或路径。
 - `Findings`：使用 `EI-*` 维度编号。
-- `已排除项`：至少记录 2 个已调查但排除的问题；非适用场景可记录为何不触发专项。
+- `已排除项`：至少记录 2 个已调查但排除的问题，优先记录如果成立会改变裁决的失败路径、相反证据或替代解释；非适用场景可记录为何不触发专项。

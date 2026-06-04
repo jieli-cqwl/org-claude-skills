@@ -18,7 +18,6 @@
 ## 场景契约
 
 - 硬约束来源：`{{RUNTIME_HOME}}/rules/` 下所有规则优先于 reference；执行前必须确保这些规则已加载或已读取，reference 只按下列场景读取，且不得覆盖 rules 结论。
-- 确定性优先：路由、重试、状态码处理、格式转换等可枚举、可复验判断必须交给代码、schema、script、hook 或测试；模型可参与语义判断、意图澄清、方案取舍、代码生成和非结构化信息处理，但不得替代确定性控制流。
 - 测试与变更验证：读取 `{{RUNTIME_HOME}}/reference/测试规范.md`，从成功标准推导验证点，按维度和风险面审视。
 - 代码变更：读取 `{{RUNTIME_HOME}}/rules/code-changes.md`，按 Code Changes 判断最小变更、复用、复杂度、错误处理、配置、性能和共享契约。
 - 代码结构、复杂度、复用、兼容层或共享契约：读取 `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`。
