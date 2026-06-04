@@ -344,6 +344,24 @@ class QftBranchFlowPlanTests(unittest.TestCase):
                 self.assertIn(message, result.stderr)
                 self.assertNotIn("Traceback", result.stderr)
 
+    def test_plan_rejects_non_dev_business_branch(self) -> None:
+        for scenario in ("dev-sync", "release-merge"):
+            with self.subTest(scenario=scenario):
+                result = run_flow(
+                    "plan",
+                    scenario,
+                    "--projects",
+                    "qft-all,qft-app",
+                    "--version",
+                    "0301",
+                    "--business-branch",
+                    "master",
+                )
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("business branch must match", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
+
     def test_validate_rejects_business_branch_version_mismatch(self) -> None:
         plan = {
             "schema_version": "1.0.0",
@@ -370,6 +388,65 @@ class QftBranchFlowPlanTests(unittest.TestCase):
             "business branch version 0625 must match --version 0301",
             result.stderr,
         )
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_validate_rejects_business_branch_map_drift(self) -> None:
+        plan = {
+            "schema_version": "1.0.0",
+            "scenario": "dev-sync",
+            "version": "0301",
+            "projects": ["qft-all", "qft-app"],
+            "business_branches": {"qft-app": "3.0.0.DEV_QW_0001_0301"},
+            "target_branch": "3.0.0.DEV_QW_0001_0301",
+            "steps": [
+                {
+                    "repo": "qft-app",
+                    "source_branch": "master",
+                    "target_branch": "3.0.0.DEV_QW_0001_0301",
+                    "action": "merge",
+                }
+            ],
+            "push": {"confirmed": False, "branches": []},
+        }
+
+        result = run_flow("validate", input_payload=plan)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("missing business branch for: qft-all", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_validate_rejects_business_branch_for_unselected_repo(self) -> None:
+        plan = {
+            "schema_version": "1.0.0",
+            "scenario": "release-merge",
+            "version": "0301",
+            "projects": ["qft-app"],
+            "business_branches": {
+                "qft-app": "3.0.0.DEV_QW_0001_0301",
+                "qft-all": "3.0.0.DEV_QW_0001_0301",
+            },
+            "target_branch": "V.0301",
+            "steps": [
+                {
+                    "repo": "qft-app",
+                    "source_branch": "master",
+                    "target_branch": "V.0301",
+                    "action": "ensure_branch",
+                },
+                {
+                    "repo": "qft-app",
+                    "source_branch": "3.0.0.DEV_QW_0001_0301",
+                    "target_branch": "V.0301",
+                    "action": "merge",
+                },
+            ],
+            "push": {"confirmed": False, "branches": []},
+        }
+
+        result = run_flow("validate", input_payload=plan)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("business branch repo is not selected: qft-all", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
 
     def test_validate_rejects_wrong_bug_merge_direction(self) -> None:

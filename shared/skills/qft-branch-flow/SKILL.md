@@ -24,6 +24,7 @@ model: sonnet
 9. `requires_user_confirmation=true` 的已有目标分支复用、preflight blocker 后只执行通过项目，必须在执行确认文案中显式命名。
 10. push 必须在本地创建/复用/合并完成后单独确认。
 11. 工作区不干净、remote 不匹配、preflight 阻塞或必要确认缺失时，阻塞对应项目；不要静默跳过。
+12. preflight 默认入口是当前窗口目录（进程 `cwd`）；不要要求用户确认目录，不要自动创建目录，找不到或 remote 不匹配时只阻塞并报告。
 
 ## Workflow
 
@@ -82,11 +83,11 @@ model: sonnet
 - 校验计划：`python3 scripts/qft_branch_flow.py validate --input <plan.json>`。
 - `create-dev`、`release-merge`、`bugfix` 和 `release-sync-before` 中的分支准备动作统一使用 `ensure_branch`：目标不存在才从规定来源创建，目标已存在则展示状态并等待用户确认复用。
 - `create-dev` 的名字缩写可接收小写输入，计划脚本会标准化为大写；向导回显时使用 plan 输出的标准化值。
-- `dev-sync` / `release-merge` 的业务分支如果符合 `3.0.0.DEV_*_*_版本号` 或 `_DELAY` 命名，分支尾号必须与 `--version` 一致；不一致时停止并让用户修正版本或分支。
+- `dev-sync` / `release-merge` 的业务分支必须符合 `3.0.0.DEV_名字_需求编号_版本号` 或 `_DELAY` 命名，分支尾号必须与 `--version` 一致；不一致、使用 `master`、`V.版本号` 或其他非业务开发分支时停止并让用户修正。
 - `bugfix-finish` 只在修复完成后将 BUG 分支合回版本分支。
-- 执行前检查必须调用：`python3 scripts/qft_branch_flow.py preflight --input <plan.json>`，默认以当前 AI Coding workspace 作为入口自动识别当前单仓、多仓父目录或 sibling 仓库；只有自动识别失败或 remote 校验无法裁决时，才让用户提供 `--repo-root <workspace>`。preflight 输出为唯一检查依据，不要用自然语言自行推断 Git 状态。
-- preflight 必须按项目展示 resolved path，并用 `origin` URL 与 `project-registry.json` 的 `remote_url` 做归一化匹配；不要只用仓库名判断 remote。
-- preflight action 口径：`create_branch` 要求来源存在且与远端一致、目标精确不存在且无大小写冲突；`ensure_branch` 允许目标不存在，存在则要求目标与远端一致，不存在则要求来源可用于创建；`merge` 要求来源和目标都存在且与远端一致。
+- 执行前检查必须调用：`python3 scripts/qft_branch_flow.py preflight --input <plan.json>`，默认以当前窗口目录（进程 `cwd`）作为入口自动识别：当前目录在目标单仓内时解析到 git 顶层，当前目录是多仓父目录时解析 `cwd/<repo>`，当前目录在某个 sibling 仓库内时解析同级目标仓库。不要要求用户确认目录，不要自动创建目录；识别失败或 remote 不匹配时阻塞对应项目并展示 blocker。preflight 输出为唯一检查依据，不要用自然语言自行推断 Git 状态。
+- preflight 必须按项目展示 resolved path，并用 `origin` URL 与 `project-registry.json` 的 `remote_url` 做归一化匹配；remote 身份必须保持 host、port、path 一致，不得只用仓库名或 basename 判断。
+- preflight action 口径：`create_branch` 要求来源存在且与远端一致、目标精确不存在且无大小写冲突；`ensure_branch` 允许目标不存在，存在则要求目标与远端一致，不存在则要求来源可用于创建；`merge` 要求来源和目标都存在且与远端一致；本地存在但远端不存在的 local-only 分支必须阻塞。
 - preflight 对每个 step 输出 `target_resolution`：`create_missing` 表示将新建目标分支，`reuse_existing` 表示目标分支已存在且需要用户确认复用，`not_applicable` 表示该 action 不准备目标分支。`requires_user_confirmation=true` 时，向导必须展示本地/远端 SHA、ahead/behind、来源和目标分支，再等待用户确认。
 - preflight 只报告需要同步的 blocker，不自动 `pull`；`pull` 会改变本地分支，必须由用户在本向导外处理或另行确认后再重跑 preflight。`ensure_branch` 的目标远端已存在且 preflight 通过时，执行阶段按用户确认切换/创建本地跟踪分支，不重新创建同名分支。
 - 第 4 步 plan 中 `push.confirmed` 必须为 `false`，`push.branches` 必须为空；push 只能在本地操作完成后作为第 6 步运行态单独确认。
@@ -202,7 +203,7 @@ python3 scripts/qft_branch_flow.py validate --input plan.json
 python3 scripts/qft_branch_flow.py preflight --input plan.json
 ```
 
-preflight 默认从当前 AI Coding workspace 自动识别仓库路径：当前目录是目标单仓、当前目录是多仓父目录、或当前目录是某个 sibling 仓库都应由脚本解析；只有识别失败或 remote 校验无法裁决时，才提示用户提供 `--repo-root <workspace>`。
+preflight 默认从当前窗口目录（进程 `cwd`）自动识别仓库路径：当前目录是目标单仓内部任意子目录时解析到 git 顶层，当前目录是多仓父目录时解析 `cwd/<repo>`，当前目录是某个 sibling 仓库内部时解析同级仓库。不要提示用户确认目录，不要自动创建目录；识别失败、目录不是 Git 仓库或 remote 不匹配时按 blocker 展示。
 
 preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时，按 blocker 输出展示阻塞原因和下一步；不要把 `create_branch` 或 `ensure_branch` 的目标分支不存在解释为阻塞。
 
@@ -210,9 +211,9 @@ preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时�
 
 | action | 来源分支 | 目标分支 | 阻塞条件 |
 | --- | --- | --- | --- |
-| `create_branch` | 必须存在且与远端一致 | 必须精确不存在，且不能有大小写近似远端引用 | 来源缺失/落后远端、目标已存在、目标大小写冲突、remote 检查失败 |
-| `ensure_branch` | 目标不存在时必须存在且与远端一致 | 存在则复用并要求用户确认；不存在则从来源创建 | 目标大小写冲突、目标存在但落后远端、目标不存在且来源不可用 |
-| `merge` | 必须存在且与远端一致 | 必须存在且与远端一致 | 来源/目标缺失、落后远端、大小写冲突、remote 检查失败 |
+| `create_branch` | 必须存在且与远端一致 | 必须精确不存在，且不能有大小写近似远端引用 | 来源缺失/落后远端/local-only、目标已存在、目标大小写冲突、remote 检查失败 |
+| `ensure_branch` | 目标不存在时必须存在且与远端一致 | 存在则复用并要求用户确认；不存在则从来源创建 | 目标大小写冲突、目标存在但落后远端或 local-only、目标不存在且来源不可用 |
+| `merge` | 必须存在且与远端一致 | 必须存在且与远端一致 | 来源/目标缺失、落后远端、local-only、大小写冲突、remote 检查失败 |
 
 按 preflight 通过/阻塞分组展示，并同时展示计划摘要和检查摘要。存在阻塞时，让用户选择“只继续通过项目”或“全部停止”。
 
@@ -248,6 +249,7 @@ preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时�
 ## Git 执行边界
 
 - 允许执行 `git status`、`git remote -v`、`git branch`、`git fetch`、`git switch`、`git merge`、`git push`。
+- Git 检查必须非交互并有超时；不能因为远端不可达、认证弹窗或网络慢而挂住向导。
 - preflight 不执行 `git pull` 或其他写操作；preflight 发现落后远端时阻塞，由用户在向导外处理或另行确认同步后重跑 preflight。目标远端已存在且 preflight 通过时，执行阶段可按确认结果 fetch 并切换/创建本地跟踪分支，不重新创建同名分支。
 - 遇到冲突立即停止，列出冲突文件；不要自动解决冲突。
 - 不自动删除分支；删除属于维护动作，当前只提示规范，不执行。
@@ -271,7 +273,7 @@ preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时�
 ## Verification
 
 - 计划生成后必须运行 `python3 scripts/qft_branch_flow.py validate --input <plan.json>`；只有 exit 0 且 plan JSON 符合 schema 才能进入 Git 检查。
-- 执行前必须运行 `python3 scripts/qft_branch_flow.py preflight --input <plan.json>`；默认使用当前 AI Coding workspace 自动识别仓库路径，只有识别失败或 remote 校验无法裁决时才追加 `--repo-root <workspace>`；只有 exit 0 且目标项目 `status=ok` 才能执行。
+- 执行前必须运行 `python3 scripts/qft_branch_flow.py preflight --input <plan.json>`；默认使用当前窗口目录自动识别仓库路径，不要求用户确认目录，不自动创建目录；只有用户明确要检查其他 workspace 时才追加 `--repo-root <workspace>`；只有 exit 0 且目标项目 `status=ok` 才能执行。
 - preflight 输出必须逐项目展示仓库、remote、工作区、来源分支、目标分支、`target_resolution`、`requires_user_confirmation`、同步状态和执行前确认文案；所有 blocker 原样保留，不得改写成其他 Git 结论。
 - 本地写操作后必须用 `git status` 和目标分支存在性证明结果；push 后必须显示已推送的 remote 和 branch。
 - 输出分组必须包含已完成、未执行和下一步，供用户继续处理阻塞项目。
@@ -288,5 +290,7 @@ preflight exit 0 且项目 `status=ok` 才能进入执行。存在 blocker 时�
 | 手写最终执行计划 | 用 `scripts/qft_branch_flow.py plan` 生成，并用 `validate` 校验通过后再展示 |
 | validate 失败后继续执行 | 回到前序步骤修正输入或计划，通过后再进入 Git 检查 |
 | 自行解释 Git 状态、不跑 preflight | 用 `preflight` 结构化结果作为唯一执行前检查依据 |
+| 目录找不到时追问用户或创建目录 | 默认用当前窗口目录解析现有仓库；找不到或 remote 不匹配时阻塞并展示 resolved path/blocker |
+| 用同名仓库判断 remote 正确 | 必须匹配 registry 中 remote 的 host、port、path；basename 相同不能放行 |
 | 目标分支已存在时静默复用或强行新建 | 展示 preflight 的已有分支状态，用户确认复用后再执行 |
 | 一个项目失败后静默跳过 | 标为阻塞，并询问是否继续其他通过项目 |

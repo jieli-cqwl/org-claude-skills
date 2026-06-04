@@ -309,6 +309,13 @@ def require_business_branches(plan: dict[str, Any], scenario: str) -> dict[str, 
     business_branches = plan.get("business_branches")
     if not isinstance(business_branches, dict):
         raise FlowError(f"{scenario} requires business_branches")
+    selected = set(plan["projects"])
+    extra = sorted(set(business_branches) - selected)
+    if extra:
+        raise FlowError(f"business branch repo is not selected: {', '.join(extra)}")
+    missing = [repo for repo in plan["projects"] if repo not in business_branches]
+    if missing:
+        raise FlowError(f"missing business branch for: {', '.join(missing)}")
     for repo, branch in business_branches.items():
         if not isinstance(repo, str) or not isinstance(branch, str) or not branch:
             raise FlowError(f"{scenario} business_branches must map repo to branch")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -28,6 +29,7 @@ load_projects = shared.load_projects
 OK = "ok"
 BLOCKED = "blocked"
 UNKNOWN = "unknown"
+GIT_TIMEOUT_SECONDS = 10.0
 
 
 def preflight_plan(
@@ -45,11 +47,10 @@ def preflight_plan(
 
 
 def resolve_repo_path(root: Path, repo: str, registry_item: dict[str, str]) -> Path:
-    candidates = [root]
-    candidates.append(root / repo)
-    if root.parent != root:
-        candidates.append(root.parent / repo)
+    top_level = git_top_level(root)
+    candidates = repo_path_candidates(root, repo, top_level)
     seen: set[Path] = set()
+    remote_mismatch_fallback: Path | None = None
     for candidate in candidates:
         resolved = candidate.resolve()
         if resolved in seen or not resolved.exists() or not is_git_repo(resolved):
@@ -58,6 +59,31 @@ def resolve_repo_path(root: Path, repo: str, registry_item: dict[str, str]) -> P
         remote_blockers = check_remote(resolved, registry_item["remote_url"])
         if not remote_blockers:
             return resolved
+        if resolved.name == repo and remote_mismatch_fallback is None:
+            remote_mismatch_fallback = resolved
+    return remote_mismatch_fallback or missing_repo_path(root, repo, top_level)
+
+
+def repo_path_candidates(root: Path, repo: str, top_level: Path | None) -> list[Path]:
+    candidates: list[Path] = []
+    add_candidate(candidates, top_level)
+    add_candidate(candidates, root)
+    add_candidate(candidates, root / repo)
+    if top_level is not None and top_level.parent != top_level:
+        add_candidate(candidates, top_level.parent / repo)
+    if root.parent != root:
+        add_candidate(candidates, root.parent / repo)
+    return candidates
+
+
+def add_candidate(candidates: list[Path], candidate: Path | None) -> None:
+    if candidate is not None:
+        candidates.append(candidate)
+
+
+def missing_repo_path(root: Path, repo: str, top_level: Path | None) -> Path:
+    if top_level is not None and top_level.parent != top_level:
+        return top_level.parent / repo
     return root / repo
 
 
@@ -69,12 +95,16 @@ def preflight_repo(
 ) -> dict[str, Any]:
     blockers: list[dict[str, str]] = []
     checks: list[dict[str, Any]] = []
+    worktree = empty_worktree_status()
+    remote = empty_remote_status(registry_item["remote_url"])
     if not repo_path.exists():
         return repo_result(
             repo,
             repo_path,
             [blocker("repo_missing", f"repo directory not found: {repo_path}")],
             checks,
+            worktree,
+            remote,
         )
     if not is_git_repo(repo_path):
         return repo_result(
@@ -82,10 +112,16 @@ def preflight_repo(
             repo_path,
             [blocker("not_git_repo", f"not a git repository: {repo_path}")],
             checks,
+            worktree,
+            remote,
         )
 
-    blockers.extend(check_worktree(repo_path))
-    blockers.extend(check_remote(repo_path, registry_item["remote_url"]))
+    worktree = inspect_worktree(repo_path)
+    remote = inspect_remote(repo_path, registry_item["remote_url"])
+    blockers.extend(worktree["blockers"])
+    blockers.extend(remote["blockers"])
+    if remote["blockers"]:
+        return repo_result(repo, repo_path, blockers, checks, worktree, remote)
     planned_branches: set[str] = set()
     for index, step in enumerate(steps, start=1):
         check = preflight_step(repo_path, index, step, planned_branches)
@@ -96,31 +132,79 @@ def preflight_repo(
             "ensure_branch",
         }:
             planned_branches.add(step["target_branch"])
-    return repo_result(repo, repo_path, blockers, checks)
+    return repo_result(repo, repo_path, blockers, checks, worktree, remote)
 
 
 def check_worktree(repo_path: Path) -> list[dict[str, str]]:
+    return inspect_worktree(repo_path)["blockers"]
+
+
+def inspect_worktree(repo_path: Path) -> dict[str, Any]:
     result = git_output(repo_path, "status", "--porcelain")
     if result.returncode != 0:
-        return [blocker("git_status_failed", clean_error(result))]
+        return {
+            "status": UNKNOWN,
+            "clean": False,
+            "blockers": [blocker("git_status_failed", clean_error(result))],
+        }
     if result.stdout.strip():
-        return [blocker("worktree_dirty", "worktree has uncommitted changes")]
-    return []
+        return {
+            "status": BLOCKED,
+            "clean": False,
+            "blockers": [blocker("worktree_dirty", "worktree has uncommitted changes")],
+        }
+    return {"status": OK, "clean": True, "blockers": []}
 
 
 def check_remote(repo_path: Path, expected: str) -> list[dict[str, str]]:
+    return inspect_remote(repo_path, expected)["blockers"]
+
+
+def inspect_remote(repo_path: Path, expected: str) -> dict[str, Any]:
     result = git_output(repo_path, "remote", "get-url", "origin")
     if result.returncode != 0:
-        return [blocker("remote_missing", clean_error(result))]
+        return {
+            "status": BLOCKED,
+            "actual": None,
+            "expected": expected,
+            "blockers": [blocker("remote_missing", clean_error(result))],
+        }
     actual = result.stdout.strip()
     if remote_matches(actual, expected):
-        return []
-    return [blocker("remote_mismatch", f"origin is {actual}, expected {expected}")]
+        return {
+            "status": OK,
+            "actual": actual,
+            "expected": expected,
+            "blockers": [],
+        }
+    return {
+        "status": BLOCKED,
+        "actual": actual,
+        "expected": expected,
+        "blockers": [
+            blocker("remote_mismatch", f"origin is {actual}, expected {expected}")
+        ],
+    }
+
+
+def empty_worktree_status() -> dict[str, Any]:
+    return {"status": UNKNOWN, "clean": False, "blockers": []}
+
+
+def empty_remote_status(expected: str) -> dict[str, Any]:
+    return {"status": UNKNOWN, "actual": None, "expected": expected, "blockers": []}
 
 
 def is_git_repo(repo_path: Path) -> bool:
     result = git_output(repo_path, "rev-parse", "--is-inside-work-tree")
     return result.returncode == 0 and result.stdout.strip() == "true"
+
+
+def git_top_level(repo_path: Path) -> Path | None:
+    result = git_output(repo_path, "rev-parse", "--show-toplevel")
+    if result.returncode != 0 or not result.stdout.strip():
+        return None
+    return Path(result.stdout.strip()).resolve()
 
 
 def preflight_step(
@@ -239,6 +323,13 @@ def require_existing_branch(state: dict[str, Any], role: str) -> list[dict[str, 
 
 
 def require_current_branch(state: dict[str, Any], role: str) -> list[dict[str, str]]:
+    if state["local_sha"] and not state["remote_sha"]:
+        return [
+            blocker(
+                f"{role}_local_only",
+                f"{role} branch {state['name']} exists locally but not on origin",
+            )
+        ]
     if not state["local_sha"] or not state["remote_sha"]:
         return []
     if state["local_sha"] == state["remote_sha"]:
@@ -341,29 +432,38 @@ def casefold_matches(heads: dict[str, str], branch: str) -> list[str]:
 def remote_matches(actual: str, expected: str) -> bool:
     if normalize_remote(actual) == normalize_remote(expected):
         return True
-    actual_host, actual_parts = remote_identity(actual)
-    expected_host, expected_parts = remote_identity(expected)
-    if actual_host and expected_host and actual_host != expected_host:
-        return False
-    if actual_host and expected_host:
-        return actual_parts == expected_parts
-    return bool(
-        actual_parts and expected_parts and actual_parts[-1] == expected_parts[-1]
-    )
+    actual_host, actual_port, actual_parts = remote_identity(actual)
+    expected_host, expected_port, expected_parts = remote_identity(expected)
+    if actual_host or expected_host:
+        return (
+            bool(actual_host)
+            and bool(expected_host)
+            and actual_host == expected_host
+            and actual_port == expected_port
+            and actual_parts == expected_parts
+        )
+    return bool(actual_parts and expected_parts and actual_parts == expected_parts)
 
 
 def normalize_remote(value: str) -> str:
     return value.removesuffix(".git").rstrip("/")
 
 
-def remote_identity(value: str) -> tuple[str, list[str]]:
+def remote_identity(value: str) -> tuple[str, int | None, list[str]]:
     parsed = urlparse(value)
     if parsed.scheme:
-        return parsed.hostname or "", path_parts(parsed.path)
+        return (parsed.hostname or "").lower(), parsed_port(parsed), path_parts(parsed.path)
     if ":" in value and not value.startswith("/"):
         host, path = value.split(":", 1)
-        return host.split("@")[-1], path_parts(path)
-    return "", path_parts(value)
+        return host.split("@")[-1].lower(), None, path_parts(path)
+    return "", None, path_parts(value)
+
+
+def parsed_port(parsed: Any) -> int | None:
+    try:
+        return parsed.port
+    except ValueError:
+        return None
 
 
 def path_parts(value: str) -> list[str]:
@@ -375,11 +475,15 @@ def repo_result(
     repo_path: Path,
     blockers: list[dict[str, str]],
     checks: list[dict[str, Any]],
+    worktree: dict[str, Any],
+    remote: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "repo": repo,
         "path": str(repo_path),
         "status": BLOCKED if blockers else OK,
+        "worktree": worktree,
+        "remote": remote,
         "blockers": blockers,
         "checks": checks,
     }
@@ -394,9 +498,33 @@ def clean_error(result: subprocess.CompletedProcess[str]) -> str:
 
 
 def git_output(repo_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(repo_path), *args],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    command = ["git", "-C", str(repo_path), *args]
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    env["GCM_INTERACTIVE"] = "Never"
+    timeout = git_timeout_seconds()
+    try:
+        return subprocess.run(
+            command,
+            text=True,
+            capture_output=True,
+            check=False,
+            env=env,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        stdout = exc.stdout if isinstance(exc.stdout, str) else ""
+        stderr = exc.stderr if isinstance(exc.stderr, str) else ""
+        message = stderr or f"git command timed out after {timeout:g}s: {' '.join(command)}"
+        return subprocess.CompletedProcess(command, 124, stdout, message)
+
+
+def git_timeout_seconds() -> float:
+    raw = os.environ.get("QFT_BRANCH_FLOW_GIT_TIMEOUT_SECONDS")
+    if raw is None:
+        return GIT_TIMEOUT_SECONDS
+    try:
+        value = float(raw)
+    except ValueError:
+        return GIT_TIMEOUT_SECONDS
+    return value if value > 0 else GIT_TIMEOUT_SECONDS

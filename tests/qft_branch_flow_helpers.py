@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -11,7 +13,7 @@ SCRIPT = ROOT / "shared/skills/qft-branch-flow/scripts/qft_branch_flow.py"
 
 
 def run_flow(
-    *args: str, input_payload: dict | None = None
+    *args: str, input_payload: dict | None = None, cwd: Path = ROOT
 ) -> subprocess.CompletedProcess[str]:
     input_path = None
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -20,27 +22,39 @@ def run_flow(
             input_path.write_text(
                 json.dumps(input_payload, ensure_ascii=False), encoding="utf-8"
             )
-        command = ["python3", str(SCRIPT), *args]
+        command = [sys.executable, str(SCRIPT), *args]
         if input_path is not None:
             command.extend(["--input", str(input_path)])
+        env = os.environ.copy()
+        registry_override = find_registry_override(cwd)
+        if registry_override is not None:
+            env["QFT_BRANCH_FLOW_PROJECT_REGISTRY"] = str(registry_override)
         return subprocess.run(
             command,
-            cwd=ROOT,
+            cwd=cwd,
+            env=env,
             text=True,
             capture_output=True,
             check=False,
         )
 
 
+def find_registry_override(cwd: Path) -> Path | None:
+    current = cwd.resolve()
+    for candidate in [current, *current.parents]:
+        registry = candidate / "project-registry.json"
+        if registry.exists():
+            return registry
+    return None
+
+
 def run_preflight(
     repo_root: Path, plan: dict, repo_root_arg: str | None = None
 ) -> subprocess.CompletedProcess[str]:
-    return run_flow(
-        "preflight",
-        "--repo-root",
-        repo_root_arg if repo_root_arg is not None else str(repo_root),
-        input_payload=plan,
-    )
+    args = ["preflight"]
+    if repo_root_arg is not None:
+        args.extend(["--repo-root", repo_root_arg])
+    return run_flow(*args, input_payload=plan, cwd=repo_root)
 
 
 def run_git(
@@ -79,7 +93,30 @@ def create_remote_repo(root: Path, repo_name: str = "qft-app") -> tuple[Path, Pa
     commit_file(seed, "README.md", "initial\n")
     run_git(seed, "remote", "add", "origin", str(origin))
     run_git(seed, "push", "-u", "origin", "master")
+    write_project_registry(root, (repo_name, origin))
     return origin, seed
+
+
+def write_project_registry(root: Path, *origins: tuple[str, Path]) -> None:
+    registry_path = (
+        ROOT
+        / "shared"
+        / "skills"
+        / "qft-branch-flow"
+        / "references"
+        / "project-registry.json"
+    )
+    override_path = root / "project-registry.json"
+    source = override_path if override_path.exists() else registry_path
+    data = json.loads(source.read_text(encoding="utf-8"))
+    remotes = {repo: str(origin) for repo, origin in origins}
+    for item in data["projects"]:
+        repo = item["repo"]
+        if repo in remotes:
+            item["remote_url"] = remotes[repo]
+    (root / "project-registry.json").write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def clone_project(root: Path, origin: Path, repo_name: str = "qft-app") -> Path:

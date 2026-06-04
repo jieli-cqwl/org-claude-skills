@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -22,6 +23,11 @@ SCENARIOS = {
     "release-sync-after",
 }
 ACTIONS = {"create_branch", "ensure_branch", "merge"}
+BUSINESS_BRANCH_PATTERN = r"3\.0\.0\.DEV_[A-Z0-9]+_[0-9]+_([0-9]{4})(?:_DELAY)?"
+BUSINESS_BRANCH_PATTERN_MESSAGE = (
+    "business branch must match "
+    "^3.0.0.DEV_<OWNER>_<REQUIREMENT>_<VERSION>[_DELAY]$"
+)
 
 
 class FlowError(Exception):
@@ -38,7 +44,7 @@ def read_json(path: Path) -> Any:
 
 
 def load_projects() -> dict[str, dict[str, str]]:
-    data = read_json(PROJECT_REGISTRY_PATH)
+    data = read_json(project_registry_path())
     projects = data.get("projects")
     if not isinstance(projects, list):
         raise FlowError("project registry must contain projects")
@@ -49,6 +55,13 @@ def load_projects() -> dict[str, dict[str, str]]:
         registry[repo]["repo"] = repo
         registry[repo]["main_branch"] = main_branch
     return registry
+
+
+def project_registry_path() -> Path:
+    override = os.environ.get("QFT_BRANCH_FLOW_PROJECT_REGISTRY")
+    if override:
+        return Path(override)
+    return PROJECT_REGISTRY_PATH
 
 
 def project_identity(item: Any) -> tuple[str, str]:
@@ -186,11 +199,10 @@ def parse_business_branch_pair(
 
 
 def validate_business_branch_version(branch: str, version: str | None) -> None:
-    if version is None:
-        return
-    # Only QFT DEV branch names carry a release date suffix we can compare safely.
-    match = re.fullmatch(r"3\.0\.0\.DEV_[A-Z0-9]+_[0-9]+_([0-9]{4})(?:_DELAY)?", branch)
+    match = re.fullmatch(BUSINESS_BRANCH_PATTERN, branch)
     if match is None:
+        raise FlowError(BUSINESS_BRANCH_PATTERN_MESSAGE)
+    if version is None:
         return
     branch_version = match.group(1)
     if branch_version != version:
