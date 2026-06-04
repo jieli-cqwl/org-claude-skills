@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 
@@ -20,6 +21,14 @@ def _scalar(value: str) -> object:
         return False
     if value in {"null", "~"}:
         return None
+    if value.startswith("[") and value.endswith("]"):
+        inner = value[1:-1].strip()
+        if not inner:
+            return []
+        return [_scalar(item.strip()) for item in inner.split(",")]
+    digits = value[1:] if value.startswith(("+", "-")) else value
+    if digits.isdigit():
+        return int(value)
     return value.strip('"').strip("'")
 
 
@@ -92,20 +101,27 @@ def _parse_mapping(lines: list[tuple[int, str]], index: int, indent: int) -> tup
 def load_yaml(path: Path) -> dict:
     """Load a registry YAML file without requiring PyYAML in installed runtimes."""
 
-    try:
-        import yaml  # type: ignore
+    if os.environ.get("ORG_RUNTIME_YAML_FORCE_FALLBACK") != "1":
+        try:
+            import yaml  # type: ignore
 
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    except ModuleNotFoundError:
-        lines = []
-        for raw_line in path.read_text(encoding="utf-8").splitlines():
-            stripped = _strip_comment(raw_line)
-            if not stripped:
-                continue
-            lines.append((len(raw_line) - len(raw_line.lstrip(" ")), stripped.lstrip()))
-        data, index = _parse_block(lines, 0, 0)
-        if index != len(lines):
-            raise ValueError(f"{path} contains unsupported yaml structure")
+            data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except ModuleNotFoundError:
+            data = None
+        else:
+            if not isinstance(data, dict):
+                raise ValueError(f"{path} 顶层必须是对象")
+            return data
+
+    lines = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        stripped = _strip_comment(raw_line)
+        if not stripped:
+            continue
+        lines.append((len(raw_line) - len(raw_line.lstrip(" ")), stripped.lstrip()))
+    data, index = _parse_block(lines, 0, 0)
+    if index != len(lines):
+        raise ValueError(f"{path} contains unsupported yaml structure")
     if not isinstance(data, dict):
         raise ValueError(f"{path} 顶层必须是对象")
     return data

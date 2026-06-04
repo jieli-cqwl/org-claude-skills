@@ -131,11 +131,14 @@ def main() -> int:
         return emit_failure("context contract validator runtime file missing", is_stop_payload(payload))
 
     try:
+        env = os.environ.copy()
+        env["ORG_RUNTIME_YAML_FORCE_FALLBACK"] = "1"
         proc = subprocess.run(
             [sys.executable, str(VALIDATOR), "--repo-root", str(root)],
             text=True,
             capture_output=True,
             timeout=VALIDATOR_TIMEOUT_SEC,
+            env=env,
         )
     except subprocess.TimeoutExpired:
         return emit_failure("context contract validation timed out", is_stop_payload(payload))

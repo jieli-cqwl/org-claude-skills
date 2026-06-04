@@ -4,7 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
+
+# Context hooks must stay independent of user Python site-packages; runtime_yaml
+# covers the small registry subset this validator reads.
+os.environ.setdefault("ORG_RUNTIME_YAML_FORCE_FALLBACK", "1")
 
 from context_contract_common import (
     ACTIVE_STATUSES,

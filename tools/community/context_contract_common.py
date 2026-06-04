@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
 from typing import NoReturn
 
@@ -35,13 +34,16 @@ WORKLOG_REQUIRED = [
 SUPPORTING_REQUIRED = ["purpose", "serves", "reason_here"]
 
 
-@dataclass
 class ContractFailure(Exception):
-    reason: str
-    path: str
-    expected: str
-    actual: str
-    next_action: str
+    def __init__(
+        self, reason: str, path: str, expected: str, actual: str, next_action: str
+    ) -> None:
+        super().__init__(reason, path, expected, actual, next_action)
+        self.reason = reason
+        self.path = path
+        self.expected = expected
+        self.actual = actual
+        self.next_action = next_action
 
 
 def block(

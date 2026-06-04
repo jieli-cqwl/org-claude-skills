@@ -68,3 +68,85 @@ for artifact in artifacts:
 
 print("[PASS] active doc scope lifecycle cleanup")
 PY
+
+python3 - "$ROOT" <<'PY' || exit 1
+import builtins
+import os
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+sys.path.insert(0, str(root / "tools" / "community"))
+from runtime_yaml import load_yaml
+
+
+def ensure(condition, message):
+    if not condition:
+        raise SystemExit(f"[FAIL] {message}")
+
+
+tmp_root = Path(os.environ.get("TMPDIR") or "/tmp")
+path = tmp_root / f"runtime-yaml-fallback-{os.getpid()}.yaml"
+try:
+    path.write_text(
+        "version: 2\nscope_entries: []\nrequired: [feature_path, mode]\n",
+        encoding="utf-8",
+    )
+
+    real_import = builtins.__import__
+
+    def import_without_yaml(name, *args, **kwargs):
+        if name == "yaml":
+            raise AssertionError("runtime yaml loader must not import PyYAML")
+        return real_import(name, *args, **kwargs)
+
+    builtins.__import__ = import_without_yaml
+    os.environ["ORG_RUNTIME_YAML_FORCE_FALLBACK"] = "1"
+    try:
+        data = load_yaml(path)
+    finally:
+        builtins.__import__ = real_import
+        os.environ.pop("ORG_RUNTIME_YAML_FORCE_FALLBACK", None)
+finally:
+    path.unlink(missing_ok=True)
+
+ensure(data.get("version") == 2, "runtime yaml fallback must parse integer scalars")
+ensure(data.get("scope_entries") == [], "runtime yaml fallback must parse empty inline lists")
+ensure(
+    data.get("required") == ["feature_path", "mode"],
+    "runtime yaml fallback must parse string inline lists",
+)
+print("[PASS] runtime yaml fallback scalar parsing")
+PY
+
+python3 - "$ROOT" <<'PY' || exit 1
+import builtins
+import sys
+
+root = sys.argv[1]
+sys.path.insert(0, f"{root}/tools/community")
+
+real_import = builtins.__import__
+
+
+def ensure(condition, message):
+    if not condition:
+        raise SystemExit(f"[FAIL] {message}")
+
+
+def import_without_dataclasses(name, *args, **kwargs):
+    if name == "dataclasses":
+        raise AssertionError("context contract hook runtime must not import dataclasses")
+    return real_import(name, *args, **kwargs)
+
+
+builtins.__import__ = import_without_dataclasses
+try:
+    import context_contract_common
+finally:
+    builtins.__import__ = real_import
+
+error = context_contract_common.ContractFailure("reason", "path", "expected", "actual", "next")
+ensure(error.reason == "reason", "ContractFailure keeps reason field")
+print("[PASS] context contract hook stdlib dependency boundary")
+PY
