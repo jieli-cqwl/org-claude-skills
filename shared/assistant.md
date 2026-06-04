@@ -18,13 +18,11 @@
 ## 场景契约
 
 - 硬约束来源：`{{RUNTIME_HOME}}/rules/` 下所有规则优先于 reference；执行前必须确保这些规则已加载或已读取。
-- 测试与变更验证：读取 `{{RUNTIME_HOME}}/reference/测试规范.md`，从成功标准推导验证点，按维度和风险面审视。
-- 代码变更：读取 `{{RUNTIME_HOME}}/rules/code-changes.md`，按 Code Changes 判断最小变更、复用、复杂度、错误处理、配置、性能和共享契约。
-- 声称任务完成前：读取 `{{RUNTIME_HOME}}/rules/completion-claims.md`，按目标、验收项、证据、失败出口逐项校验。
-- 设计决策：读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用简单/合适/演化三原则判断设计取舍。
-- 评估变更影响范围：读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md`，先列变更点，系统覆盖影响维度，最后定义验证面。
-- 报错、测试失败、定位原因：读取 `{{RUNTIME_HOME}}/reference/系统调试.md`，按 Observe → Hypothesize → Test → Fix 四阶段定位根因，完成观察前禁止改代码。
-- 前后端联调、全栈交付：读取 `{{RUNTIME_HOME}}/reference/全栈开发.md`，明确前后端协作顺序、依赖与验收标准。
-- 批量处理、缓存、性能优化：读取 `{{RUNTIME_HOME}}/reference/performance-and-efficiency.md`，基于真实瓶颈选择策略并验证效果。
-- 常量、配置、密钥、环境差异或共享值：读取 `{{RUNTIME_HOME}}/reference/constants-and-configuration.md`，先判断拥有方和公共契约边界。
+- 测试与变更验证：先读取 `{{RUNTIME_HOME}}/reference/测试规范.md`，从成功标准推导验证点，按维度和风险面审视。
+- 代码变更：先读取 `{{RUNTIME_HOME}}/rules/code-changes.md`，按 Code Changes 判断最小变更、复用、复杂度、错误处理、配置、性能和共享契约。
+- 声称任务完成前：先读取 `{{RUNTIME_HOME}}/rules/completion-claims.md`，按目标、验收项、证据、失败出口逐项校验。
+- 架构设计决策：先读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用简单/合适/演化三原则判断设计取舍。
+- 评估变更影响范围：先读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md`，先列变更点，系统覆盖影响维度，最后定义验证面。
+- 报错、测试失败、定位原因：先读取 `{{RUNTIME_HOME}}/reference/系统调试.md`，按 Observe → Hypothesize → Test → Fix 四阶段定位根因，完成观察前禁止改代码。
+- 前后端联调、全栈交付：先读取 `{{RUNTIME_HOME}}/reference/全栈开发.md`，明确前后端协作顺序、依赖与验收标准。
 - 命中场景的详细指南不可读时：停止执行并向用户报告，禁止猜测或绕过。
