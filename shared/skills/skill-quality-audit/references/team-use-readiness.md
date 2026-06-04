@@ -2,6 +2,50 @@
 
 Use this reference before issuing or accepting a team-use readiness verdict. It is a final acceptance lens over the scorecard, not an extra scoring dimension.
 
+## Source Boundary
+
+```json readiness_contract
+{
+  "contract_id": "skill-quality-audit.team-use-readiness",
+  "verdict_scope": "repository_custom_team_use_readiness",
+  "official_certification": false,
+  "generic_agent_skills_compliance": false,
+  "target_users": ["team_members"],
+  "target_activity": "audit_existing_skills",
+  "allowed_verdicts": ["fit", "conditional", "unfit", "blocked"],
+  "required_outputs": ["formal_report", "repair_handoff", "validation_evidence"],
+  "source_boundaries": [
+    {
+      "id": "openai_codex_skills_doc",
+      "can_prove": ["codex_skill_authoring_model", "progressive_disclosure", "description_trigger_metadata"],
+      "cannot_prove": ["team_use_readiness", "repository_report_schema", "mandatory_optional_directories"]
+    },
+    {
+      "id": "open_agent_skills_specification",
+      "can_prove": ["portable_skill_package_conventions"],
+      "cannot_prove": ["openai_official_certification", "repository_custom_readiness"]
+    },
+    {
+      "id": "repository_custom_contract",
+      "can_prove": ["report_schema", "empirical_baseline", "runtime_surface", "static_quality_gates"],
+      "cannot_prove": ["generic_agent_skills_compliance", "readiness_for_untested_skill_classes"]
+    }
+  ]
+}
+```
+
+This repository's `team-use readiness` verdict means team members can use `skill-quality-audit` to audit existing Skills and receive a formal `fit`, `conditional`, `unfit`, or `blocked` decision with repair handoff under this repository's custom contract.
+
+It does not represent OpenAI official certification, generic Agent Skills compliance, or readiness for every Skill type outside the tested boundary.
+
+Use source labels precisely:
+
+- `openai_codex_skills_doc`: Codex Skill authoring model, progressive disclosure, and `description` trigger metadata.
+- `open_agent_skills_specification`: portable Skill package conventions.
+- `repository_custom_contract`: this repo's report schema, empirical baseline, runtime surface, and static quality checks.
+
+## Readiness State
+
 Readiness state:
 
 - `contract-hardened`: deterministic report, evidence, and handoff gates exist, but semantic audit capability is not yet proven.

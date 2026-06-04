@@ -1,5 +1,7 @@
 {
   "artifact_type": "skill-quality-audit-empirical-delta-review",
+  "run_id": "2026-06-04-sqa-fresh-baseline-001",
+  "source_boundary": "repository custom team-use readiness",
   "measurement_status": "completed_human_delta_review",
   "reviewed_cases": [
     {

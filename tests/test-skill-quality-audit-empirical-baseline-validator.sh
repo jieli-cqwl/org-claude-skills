@@ -6,6 +6,8 @@ SCRIPT="$ROOT/shared/skills/skill-quality-audit/scripts/validate_empirical_basel
 PLAN="$ROOT/shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/plan.json"
 LIFECYCLE="$ROOT/shared/skills/skill-quality-audit/evals/lifecycle-review.json"
 REPORT_FIXTURE="$ROOT/shared/skills/skill-quality-audit/evals/fixtures/reports/valid-report.json"
+RESEARCH_REPORT="$ROOT/shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/skill-audit-report.json"
+RESEARCH_SUMMARY="$ROOT/shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/audit-summary.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -143,6 +145,40 @@ PY
 
 python3 "$SCRIPT" "$TMP_DIR/plan.json" "$TMP_DIR/lifecycle.json" --require-complete
 
+python3 - "$TMP_DIR/plan.json" "$RESEARCH_REPORT" "$RESEARCH_SUMMARY" "$TMP_DIR/bad-stale-plan.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+plan_path, report_src, summary_src, dst = map(Path, sys.argv[1:])
+plan = json.loads(plan_path.read_text(encoding="utf-8"))
+case = next(item for item in plan["cases"] if item["id"] == "research-artifact-triage-audit")
+summary_ref = Path(case["with_skill"]["summary_ref"])
+summary = json.loads(summary_ref.read_text(encoding="utf-8"))
+bad_dir = summary_ref.parent / "bad-stale"
+bad_dir.mkdir()
+bad_report = bad_dir / "formal-report.json"
+bad_summary = bad_dir / "audit-summary.md"
+bad_summary_ref = bad_dir / "summary.json"
+report = json.loads(report_src.read_text(encoding="utf-8"))
+report["artifact_paths"]["report_json"] = str(bad_report)
+report["artifact_paths"]["summary_markdown"] = str(bad_summary)
+report["findings"][1]["evidence_checks"][3]["expected_snippet"] = "definitely not present in the current fixture line"
+bad_report.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+bad_summary.write_text(summary_src.read_text(encoding="utf-8"), encoding="utf-8")
+summary["formal_report_ref"] = str(bad_report)
+bad_summary_ref.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+case["with_skill"]["summary_ref"] = str(bad_summary_ref)
+dst.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" "$TMP_DIR/bad-stale-plan.json" "$TMP_DIR/lifecycle.json" --require-complete >"$TMP_DIR/bad-stale.out" 2>&1; then
+  fail "stale evidence in with_skill formal report must fail complete baseline"
+fi
+grep -Fq "formal_report_ref failed validate_skill_audit_report.py" "$TMP_DIR/bad-stale.out" \
+  || fail "stale evidence failure should identify formal_report_ref validation"
+grep -Fq "expected_snippet" "$TMP_DIR/bad-stale.out" \
+  || fail "stale evidence failure should identify expected_snippet"
+
 python3 - "$TMP_DIR/plan.json" "$TMP_DIR/bad-plan.json" <<'PY'
 import json
 import sys
@@ -165,6 +201,28 @@ fi
 grep -Fq "validator_status" "$TMP_DIR/bad-validator.out" \
   || fail "bad validator failure should mention validator_status"
 
+python3 - "$TMP_DIR/plan.json" "$TMP_DIR/bad-missing-formal-plan.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+src, dst = map(Path, sys.argv[1:])
+plan = json.loads(src.read_text(encoding="utf-8"))
+summary_ref = Path(plan["cases"][0]["with_skill"]["summary_ref"])
+summary = json.loads(summary_ref.read_text(encoding="utf-8"))
+bad_summary_ref = summary_ref.parent / "bad-missing-formal" / "summary.json"
+bad_summary_ref.parent.mkdir()
+summary.pop("formal_report_ref", None)
+bad_summary_ref.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+plan["cases"][0]["with_skill"]["summary_ref"] = str(bad_summary_ref)
+dst.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" "$TMP_DIR/bad-missing-formal-plan.json" "$TMP_DIR/lifecycle.json" --require-complete >"$TMP_DIR/bad-missing-formal.out" 2>&1; then
+  fail "with_skill summary missing formal_report_ref must fail"
+fi
+grep -Fq "formal_report_ref" "$TMP_DIR/bad-missing-formal.out" \
+  || fail "missing formal report failure should mention formal_report_ref"
+
 python3 - "$TMP_DIR/plan.json" "$TMP_DIR/bad-raw-plan.json" <<'PY'
 import json
 import sys
@@ -186,6 +244,30 @@ if python3 "$SCRIPT" "$TMP_DIR/bad-raw-plan.json" "$TMP_DIR/lifecycle.json" --re
 fi
 grep -Fq "raw_output_ref" "$TMP_DIR/bad-raw.out" \
   || fail "bad raw output failure should mention raw_output_ref"
+
+python3 - "$TMP_DIR/plan.json" "$TMP_DIR/bad-empty-raw-plan.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+src, dst = map(Path, sys.argv[1:])
+plan = json.loads(src.read_text(encoding="utf-8"))
+summary_ref = Path(plan["cases"][0]["without_skill"]["summary_ref"])
+summary = json.loads(summary_ref.read_text(encoding="utf-8"))
+bad_summary_ref = summary_ref.parent / "bad-empty-raw" / "summary.json"
+bad_summary_ref.parent.mkdir()
+empty_raw = bad_summary_ref.parent / "raw-output.md"
+empty_raw.write_text("", encoding="utf-8")
+summary["raw_output_ref"] = str(empty_raw)
+bad_summary_ref.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+plan["cases"][0]["without_skill"]["summary_ref"] = str(bad_summary_ref)
+dst.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" "$TMP_DIR/bad-empty-raw-plan.json" "$TMP_DIR/lifecycle.json" --require-complete >"$TMP_DIR/bad-empty-raw.out" 2>&1; then
+  fail "summary with empty raw_output_ref file must fail"
+fi
+grep -Fq "raw_output_ref" "$TMP_DIR/bad-empty-raw.out" \
+  || fail "empty raw output failure should mention raw_output_ref"
 
 python3 - "$TMP_DIR/plan.json" "$TMP_DIR/bad-formal-plan.json" <<'PY'
 import json
@@ -211,6 +293,46 @@ if python3 "$SCRIPT" "$TMP_DIR/bad-formal-plan.json" "$TMP_DIR/lifecycle.json" -
 fi
 grep -Fq "formal_report_ref" "$TMP_DIR/bad-formal.out" \
   || fail "bad formal report failure should mention formal_report_ref"
+
+python3 - "$TMP_DIR/plan.json" "$TMP_DIR/lifecycle.json" "$TMP_DIR/bad-missing-summary-lifecycle.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+plan_path, lifecycle_path, dst = map(Path, sys.argv[1:])
+plan = json.loads(plan_path.read_text(encoding="utf-8"))
+lifecycle = json.loads(lifecycle_path.read_text(encoding="utf-8"))
+missing = plan["cases"][0]["with_skill"]["summary_ref"]
+lifecycle["evidence_refs"] = [ref for ref in lifecycle["evidence_refs"] if ref != missing]
+dst.write_text(json.dumps(lifecycle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" "$TMP_DIR/plan.json" "$TMP_DIR/bad-missing-summary-lifecycle.json" --require-complete >"$TMP_DIR/bad-missing-summary.out" 2>&1; then
+  fail "summary_ref missing from lifecycle.evidence_refs must fail"
+fi
+grep -Fq "lifecycle.evidence_refs" "$TMP_DIR/bad-missing-summary.out" \
+  || fail "missing summary lifecycle failure should mention lifecycle.evidence_refs"
+
+python3 - "$TMP_DIR/plan.json" "$TMP_DIR/lifecycle.json" "$TMP_DIR/bad-delta-ref-plan.json" "$TMP_DIR/bad-delta-ref-lifecycle.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+plan_path, lifecycle_path, plan_dst, lifecycle_dst = map(Path, sys.argv[1:])
+plan = json.loads(plan_path.read_text(encoding="utf-8"))
+lifecycle = json.loads(lifecycle_path.read_text(encoding="utf-8"))
+delta_ref = Path(plan["delta_review_ref"])
+bad_delta_ref = delta_ref.with_name("bad-delta-ref-review.json")
+bad_delta_ref.write_text(delta_ref.read_text(encoding="utf-8"), encoding="utf-8")
+plan["delta_review_ref"] = str(bad_delta_ref)
+lifecycle["evidence_refs"].append(str(bad_delta_ref))
+plan_dst.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+lifecycle_dst.write_text(json.dumps(lifecycle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$SCRIPT" "$TMP_DIR/bad-delta-ref-plan.json" "$TMP_DIR/bad-delta-ref-lifecycle.json" --require-complete >"$TMP_DIR/bad-delta-ref.out" 2>&1; then
+  fail "plan/lifecycle delta_review_ref mismatch must fail"
+fi
+grep -Fq "human_read_delta_review.delta_review_ref" "$TMP_DIR/bad-delta-ref.out" \
+  || fail "delta ref mismatch failure should mention human_read_delta_review.delta_review_ref"
 
 python3 - "$TMP_DIR/plan.json" "$TMP_DIR/lifecycle.json" "$TMP_DIR/bad-fidelity-plan.json" "$TMP_DIR/bad-fidelity-lifecycle.json" <<'PY'
 import json

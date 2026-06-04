@@ -36,7 +36,7 @@ Verification hint: Register the research completion gate or explicitly retire th
 
 ### RESEARCH-P1-002 P1: Formal report validator accepts reports missing Self-Review and User Confirmation
 
-Evidence: `shared/skills/research/SKILL.md:24`, `shared/skills/research/projections/research-report-template.md:198`, `shared/skills/research/projections/research-report-template.md:208`, `tests/test-research-skill-contract.sh:196`, and `tests/test-research-skill-contract.sh:228`. The independent probe also printed `valid_fixture_has_report_self_review= False` and `valid_fixture_has_user_confirmation_gate= False`.
+Evidence: `shared/skills/research/SKILL.md:24`, `shared/skills/research/projections/research-report-template.md:198`, `shared/skills/research/projections/research-report-template.md:208`, `tests/test-research-skill-contract.sh:179`, and `tests/test-research-skill-contract.sh:211`. The independent probe also printed `valid_fixture_has_report_self_review= False` and `valid_fixture_has_user_confirmation_gate= False`.
 
 Impact: Formal research artifacts can pass the deterministic contract without the self-review and confirmation state that downstream teams rely on before accepting or handing off a judgment.
 

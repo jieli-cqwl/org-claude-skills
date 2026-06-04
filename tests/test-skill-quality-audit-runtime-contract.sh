@@ -92,6 +92,46 @@ from pathlib import Path
 
 evals = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 prompts = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+required_sample_cases = [
+    "positive-formal-audit",
+    "light-scan-non-final",
+    "audit-artifact-triage",
+    "near-miss-should-not-trigger",
+    "without-skill-baseline",
+    "negative-stale-evidence",
+    "negative-missing-handoff",
+    "negative-p0-p1-claim-review",
+    "repair-handoff-replay",
+]
+sample_matrix = evals.get("sample_matrix")
+if not isinstance(sample_matrix, list):
+    raise SystemExit("evals.sample_matrix missing")
+sample_by_id = {item.get("id"): item for item in sample_matrix if isinstance(item, dict)}
+missing_sample_cases = [case_id for case_id in required_sample_cases if case_id not in sample_by_id]
+if missing_sample_cases:
+    raise SystemExit(f"sample_matrix missing cases: {missing_sample_cases}")
+required_fields = {
+    "target_skill_type",
+    "prompt",
+    "expected_anchors",
+    "grader_dimensions",
+    "pass_threshold",
+    "failure_blocking_level",
+    "sample_out_boundary",
+}
+for case_id in required_sample_cases:
+    case = sample_by_id[case_id]
+    missing_fields = sorted(required_fields - set(case))
+    if missing_fields:
+        raise SystemExit(f"sample_matrix {case_id} missing fields: {missing_fields}")
+    if not case["expected_anchors"]:
+        raise SystemExit(f"sample_matrix {case_id} expected_anchors must be non-empty")
+    if not case["grader_dimensions"]:
+        raise SystemExit(f"sample_matrix {case_id} grader_dimensions must be non-empty")
+    if not isinstance(case["pass_threshold"], (int, float)) or not 0 <= case["pass_threshold"] <= 1:
+        raise SystemExit(f"sample_matrix {case_id} pass_threshold must be 0..1")
+    if case["failure_blocking_level"] not in {"P0", "P1", "P2", "P3"}:
+        raise SystemExit(f"sample_matrix {case_id} failure_blocking_level must be a severity")
 default_evals = [item for item in evals["evals"] if item["id"] == "default-formal-audit-artifacts"]
 if not default_evals:
     raise SystemExit("default-formal-audit-artifacts eval missing")
@@ -107,6 +147,10 @@ if "severity labels" not in light_text or "P0/P1/P2/P3" not in light_text:
 prompt_text = " ".join(item["prompt"] for item in prompts["prompts"])
 if "shared/skills/skill-quality-audit/evals/fixtures/artifacts/overview-transcript.md" not in prompt_text:
     raise SystemExit("test prompts must cover transcript triage from the stable overview transcript fixture")
+prompt_ids = {item["id"] for item in prompts["prompts"]}
+for prompt_id in ("near-miss-should-not-trigger", "negative-stale-evidence", "repair-handoff-replay"):
+    if prompt_id not in prompt_ids:
+        raise SystemExit(f"test prompts must include {prompt_id}")
 if "Formal Gate" in prompt_text or "Quick Review" in prompt_text:
     raise SystemExit("test prompts must not expose old mode names")
 PY

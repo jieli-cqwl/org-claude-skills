@@ -67,6 +67,67 @@ dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="
 PY
 expect_reject "title-only-summary" "$TMP_DIR/title-only-summary.json" "summary_markdown"
 
+python3 - "$VALID" "$TMP_DIR" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+src, tmp = Path(sys.argv[1]), Path(sys.argv[2])
+base = json.loads(src.read_text(encoding="utf-8"))
+summaries = {
+    "summary-missing-finding": "\n".join(
+        [
+            "# Skill Audit Summary",
+            "",
+            "Verdict: conditional.",
+            "",
+            "No high-severity finding details are included here.",
+        ]
+    ),
+    "summary-missing-evidence-ref": "\n".join(
+        [
+            "# Skill Audit Summary",
+            "",
+            "Finding F-001 / P1 / Handoff target is incomplete.",
+            "Impact: The editing window may not know which file or test proves repair.",
+            "Repair target: shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md Output Contract",
+            "Verification hint: Run the target skill package quality checker after adding consumer and verification.",
+        ]
+    ),
+    "summary-missing-repair-target": "\n".join(
+        [
+            "# Skill Audit Summary",
+            "",
+            "Finding F-001 / P1 / Handoff target is incomplete.",
+            "Evidence: tests/fixtures/skill-quality-audit/evidence-target.md:2 names a repair output but no consumer.",
+            "Impact: The editing window may not know which file or test proves repair.",
+            "Verification hint: Run the target skill package quality checker after adding consumer and verification.",
+        ]
+    ),
+    "summary-missing-verification-hint": "\n".join(
+        [
+            "# Skill Audit Summary",
+            "",
+            "Finding F-001 / P1 / Handoff target is incomplete.",
+            "Evidence: tests/fixtures/skill-quality-audit/evidence-target.md:2 names a repair output but no consumer.",
+            "Impact: The editing window may not know which file or test proves repair.",
+            "Repair target: shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md Output Contract",
+        ]
+    ),
+}
+for name, body in summaries.items():
+    data = json.loads(json.dumps(base))
+    summary = tmp / f"{name}.md"
+    report = tmp / f"{name}.json"
+    summary.write_text(body + "\n", encoding="utf-8")
+    data["artifact_paths"]["summary_markdown"] = str(summary)
+    report.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_reject "summary-missing-finding" "$TMP_DIR/summary-missing-finding.json" "summary_markdown for P1 finding F-001"
+expect_reject "summary-missing-evidence-ref" "$TMP_DIR/summary-missing-evidence-ref.json" "evidence_checks path:line"
+expect_reject "summary-missing-repair-target" "$TMP_DIR/summary-missing-repair-target.json" "repair_target"
+expect_reject "summary-missing-verification-hint" "$TMP_DIR/summary-missing-verification-hint.json" "verification_hint"
+
 python3 - "$VALID" "$TMP_DIR/nonexistent-scope.json" <<'PY'
 import json
 import sys

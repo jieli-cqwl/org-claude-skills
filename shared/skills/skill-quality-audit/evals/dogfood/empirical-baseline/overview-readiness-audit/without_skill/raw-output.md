@@ -3,7 +3,9 @@
 ## Scope
 
 - Target skill: `shared/skills/overview`
+- Run id: `2026-06-04-sqa-fresh-baseline-001`
 - Run mode: `without_skill`
+- Source boundary: repository custom team-use readiness
 - Constraint honored: did not read or use `shared/skills/skill-quality-audit/SKILL.md`, its `references`, `contracts`, `scripts`, `evals`, `tests`, or validator methodology.
 - Evidence inspected: target `SKILL.md`, target `references/`, target `projections/`, target `scripts/`, target `agents/openai.yaml`, target `test-prompts.json`, plus the shared script helper used by target scripts.
 - Fresh checks run:

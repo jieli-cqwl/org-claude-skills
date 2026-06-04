@@ -9,6 +9,8 @@ Overall readiness: 3/5 PASS. The handoff is repairable because the main defect h
 ## Scope And Method
 
 - Mode: without_skill baseline.
+- Run id: `2026-06-04-sqa-fresh-baseline-001`.
+- Source boundary: repository custom team-use readiness.
 - Target: `shared/skills/research`.
 - Excluded by instruction: any dedicated `shared/skills/skill-quality-audit` audit method, validator, references, contracts, scripts, evals, or tests.
 - Review basis: generic skill authoring judgment, local repo constraints, and target skill artifacts only.

@@ -61,6 +61,53 @@ require(
     "# Team-Use Readiness Acceptance" in readiness,
     "readiness reference must declare its contract title",
 )
+contract_match = re.search(r"```json readiness_contract\n(.*?)\n```", readiness, re.S)
+require(contract_match is not None, "readiness reference must expose json readiness_contract")
+try:
+    readiness_contract = json.loads(contract_match.group(1))
+except json.JSONDecodeError as exc:
+    fail(f"readiness_contract must be valid JSON: {exc}")
+require(
+    readiness_contract.get("contract_id") == "skill-quality-audit.team-use-readiness",
+    "readiness contract id must be stable",
+)
+require(
+    readiness_contract.get("verdict_scope") == "repository_custom_team_use_readiness",
+    "readiness verdict scope must stay repository-custom",
+)
+require(
+    readiness_contract.get("official_certification") is False,
+    "readiness contract must not claim OpenAI official certification",
+)
+require(
+    readiness_contract.get("generic_agent_skills_compliance") is False,
+    "readiness contract must not claim generic Agent Skills compliance",
+)
+require(
+    readiness_contract.get("target_users") == ["team_members"],
+    "readiness contract must target team members",
+)
+require(
+    readiness_contract.get("target_activity") == "audit_existing_skills",
+    "readiness contract must target audits of existing Skills",
+)
+require(
+    readiness_contract.get("allowed_verdicts") == ["fit", "conditional", "unfit", "blocked"],
+    "readiness contract must preserve formal verdict vocabulary",
+)
+require(
+    "repair_handoff" in readiness_contract.get("required_outputs", []),
+    "readiness contract must require repair handoff",
+)
+require(
+    [source.get("id") for source in readiness_contract.get("source_boundaries", [])]
+    == [
+        "openai_codex_skills_doc",
+        "open_agent_skills_specification",
+        "repository_custom_contract",
+    ],
+    "readiness contract must preserve source-boundary layers",
+)
 require(
     "references/team-use-readiness.md" in skill,
     "SKILL.md must route final readiness verdicts through team-use readiness reference",

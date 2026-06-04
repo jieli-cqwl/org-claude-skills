@@ -3,7 +3,9 @@
 ## Scope
 
 - Case: `overview-readiness-audit`
+- Run id: `2026-06-04-sqa-fresh-baseline-001`
 - Run mode: `with_skill`
+- Source boundary: repository custom team-use readiness
 - Target skill: `shared/skills/overview`
 - Audit skill loaded: `shared/skills/skill-quality-audit/SKILL.md`
 - Required references loaded: `audit-dimensions.md`, `team-use-readiness.md`, `instruction-contract.md`, `benchmark-mechanism-alignment.md`, `noise-taxonomy.md`, `runtime-integration.md`, `claim-review-gate.md`

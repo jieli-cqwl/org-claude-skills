@@ -14,6 +14,18 @@
       "prompt": "Review whether shared/skills/skill-quality-audit/evals/fixtures/artifacts/overview-transcript.md is a valid skill-quality-audit result. Classify the artifact first; if it is a transcript, reject it as a report and treat its claims only as leads for a fresh formal audit."
     },
     {
+      "id": "near-miss-should-not-trigger",
+      "prompt": "A user asks for a normal code review of tests/test-skill-quality-audit-runtime-contract.sh, not for a Skill readiness audit. Explain that skill-quality-audit should stay inactive and route to ordinary code review."
+    },
+    {
+      "id": "negative-stale-evidence",
+      "prompt": "Validate a skill-quality-audit JSON report fixture whose P1 evidence_checks expected_snippet no longer appears at the cited path:line. Reject the readiness claim through the validator path."
+    },
+    {
+      "id": "repair-handoff-replay",
+      "prompt": "Given a validator-passing skill-quality-audit report, extract only the repair targets, owner handoff, and verification commands needed by a separate implementation window. Do not replay the audit."
+    },
+    {
       "id": "old-name-cleanup",
       "prompt": "Audit whether a retired Skill name still appears in active runtime, install, gate, test, eval, or downstream consumer paths. Do not modify files."
     },

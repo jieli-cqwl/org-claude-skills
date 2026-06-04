@@ -1,5 +1,7 @@
 {
   "artifact_type": "skill-quality-audit-empirical-run-summary",
+  "run_id": "2026-06-04-sqa-fresh-baseline-001",
+  "source_boundary": "repository custom team-use readiness",
   "case_id": "overview-readiness-audit",
   "run_mode": "with_skill",
   "target_skill": "shared/skills/overview",

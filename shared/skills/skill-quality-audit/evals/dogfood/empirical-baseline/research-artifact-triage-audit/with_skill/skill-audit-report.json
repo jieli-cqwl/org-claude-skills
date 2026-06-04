@@ -204,7 +204,7 @@
       "severity": "P1",
       "title": "Formal report validator accepts reports missing Self-Review and User Confirmation",
       "evidence_level": "E3",
-      "evidence": "shared/skills/research/SKILL.md:24 requires Report Self-Review and user confirmation; shared/skills/research/projections/research-report-template.md:198 defines Report Self-Review and shared/skills/research/projections/research-report-template.md:208 defines User Confirmation Gate; tests/test-research-skill-contract.sh:196 creates the valid decision report fixture and tests/test-research-skill-contract.sh:228 asserts that fixture passes. The independent probe printed valid_fixture_has_report_self_review= False and valid_fixture_has_user_confirmation_gate= False.",
+      "evidence": "shared/skills/research/SKILL.md:24 requires Report Self-Review and user confirmation; shared/skills/research/projections/research-report-template.md:198 defines Report Self-Review and shared/skills/research/projections/research-report-template.md:208 defines User Confirmation Gate; tests/test-research-skill-contract.sh:179 creates the valid decision report fixture and tests/test-research-skill-contract.sh:211 asserts that fixture passes. The independent probe printed valid_fixture_has_report_self_review= False and valid_fixture_has_user_confirmation_gate= False.",
       "evidence_checks": [
         {
           "path": "shared/skills/research/SKILL.md",
@@ -226,13 +226,13 @@
         },
         {
           "path": "tests/test-research-skill-contract.sh",
-          "line": 196,
+          "line": 179,
           "expected_snippet": "cat > \"$FIXTURE_ROOT/docs/research-decision-valid/research-report.md\" <<'EOF'",
           "claim": "The research contract test creates the valid decision report fixture."
         },
         {
           "path": "tests/test-research-skill-contract.sh",
-          "line": 228,
+          "line": 211,
           "expected_snippet": "assert_check_passes \"valid decision report\"",
           "claim": "The research contract test expects that valid fixture to pass."
         }
@@ -244,7 +244,7 @@
           "The current valid fixture omits those sections.",
           "The current contract test still expects the omitted-section fixture to pass."
         ],
-        "refutation_check": "shared/skills/research/scripts/completion_check.sh:92 begins the section-order checks for shared appendix/profile sections, but no checked line in the script requires Report Self-Review or User Confirmation Gate; the valid fixture pass assertion at tests/test-research-skill-contract.sh:228 remains the strongest active refutation check and supports the finding.",
+        "refutation_check": "shared/skills/research/scripts/completion_check.sh:92 begins the section-order checks for shared appendix/profile sections, but no checked line in the script requires Report Self-Review or User Confirmation Gate; the valid fixture pass assertion at tests/test-research-skill-contract.sh:211 remains the strongest active refutation check and supports the finding.",
         "status": "supported"
       },
       "severity_calibration": {

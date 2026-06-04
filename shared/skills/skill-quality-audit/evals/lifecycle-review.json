@@ -1,7 +1,9 @@
 {
   "skill_name": "skill-quality-audit",
   "eval_type": "mixed",
-  "review_date": "2026-05-28",
+  "review_date": "2026-06-04",
+  "run_id": "2026-06-04-sqa-fresh-baseline-001",
+  "source_boundary": "repository custom team-use readiness",
   "decision": "optimize",
   "decision_label": "Team-ready after empirical baseline",
   "evidence_refs": [

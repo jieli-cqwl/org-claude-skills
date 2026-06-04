@@ -19,6 +19,7 @@ TOP_LEVEL_OPTIONAL_FIELDS = {
     "evals",
     "preference_anchors",
     "grader_dimensions",
+    "sample_matrix",
     "metadata",
     "eval_type",
 }
@@ -142,6 +143,16 @@ def validate_eval_file(repo_root: Path, path: Path) -> None:
                 fail(path, f"preference anchor {anchor_id!r} missing non-empty anchor")
     if "grader_dimensions" in data:
         validate_string_list(path, "grader_dimensions", data["grader_dimensions"])
+    if "sample_matrix" in data:
+        sample_matrix = data["sample_matrix"]
+        if not isinstance(sample_matrix, list):
+            fail(path, "sample_matrix must be a list")
+        for index, sample in enumerate(sample_matrix, start=1):
+            if not isinstance(sample, dict):
+                fail(path, f"sample_matrix #{index} must be an object")
+            sample_id = sample.get("id")
+            if not isinstance(sample_id, str) or not sample_id.strip():
+                fail(path, f"sample_matrix #{index} missing non-empty id")
     if "eval_type" in data and (
         not isinstance(data["eval_type"], str) or not data["eval_type"].strip()
     ):

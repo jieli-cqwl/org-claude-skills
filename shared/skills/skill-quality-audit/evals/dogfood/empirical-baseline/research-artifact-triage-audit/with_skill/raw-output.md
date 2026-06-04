@@ -3,7 +3,9 @@
 ## Scope
 
 - Case: `research-artifact-triage-audit`
+- Run id: `2026-06-04-sqa-fresh-baseline-001`
 - Run mode: `with_skill`
+- Source boundary: repository custom team-use readiness
 - Target skill: `shared/skills/research`
 - Audit skill used: `shared/skills/skill-quality-audit/SKILL.md`
 - Output directory: `shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/`
@@ -62,14 +64,14 @@
   - `shared/skills/research/SKILL.md:50-52` excludes latest-status-only, broad deep research/PDF, and GitHub repo adoption states.
   - `shared/skills/research/SKILL.md:79-83` routes GitHub repo radar and deep-research requests away from research.
 - Formal completion requirement:
-  - `shared/skills/research/SKILL.md:23` requires `docs/{feature}/research-report.md`, Report Self-Review, and user confirmation before formal completion.
-  - `shared/skills/research/SKILL.md:85` repeats that formal report closure requires report, self-review, and user confirmation.
-  - `shared/skills/research/SKILL.md:161` requires updating the report and rerunning self-review on requested changes.
+  - `shared/skills/research/SKILL.md:24` requires `docs/{feature}/research-report.md`, Report Self-Review, and user confirmation before formal completion.
+  - `shared/skills/research/SKILL.md:86` repeats that formal report closure requires report, self-review, and user confirmation.
+  - `shared/skills/research/SKILL.md:162` requires updating the report and rerunning self-review on requested changes.
   - `shared/skills/research/projections/research-report-template.md:198-212` includes Report Self-Review and User Confirmation Gate sections.
 - Gate under-validation evidence:
   - `shared/skills/research/scripts/completion_check.sh:92-127` checks shared appendix and profile section order but does not check `Report Self-Review` or `User Confirmation Gate`.
-  - `tests/test-research-skill-contract.sh:196-225` defines a "valid decision report" fixture without Report Self-Review or User Confirmation Gate.
-  - `tests/test-research-skill-contract.sh:227-228` asserts that fixture passes.
+  - `tests/test-research-skill-contract.sh:179-208` defines a "valid decision report" fixture without Report Self-Review or User Confirmation Gate.
+  - `tests/test-research-skill-contract.sh:210-211` asserts that fixture passes.
 - Runtime registration evidence:
   - `shared/skills/research/scripts/completion_check.sh:3` says the trigger is `research skill-local Stop`.
   - `shared/hooks/registry.json:3` defines `skill_completion_gates`.

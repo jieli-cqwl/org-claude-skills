@@ -1,5 +1,7 @@
 {
   "artifact_type": "skill-quality-audit-empirical-run-summary",
+  "run_id": "2026-06-04-sqa-fresh-baseline-001",
+  "source_boundary": "repository custom team-use readiness",
   "case_id": "research-artifact-triage-audit",
   "run_mode": "without_skill",
   "target_skill": "shared/skills/research",

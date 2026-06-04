@@ -22,3 +22,4 @@ Runtime integration decides whether a Skill can be discovered, invoked, installe
 - Retired names must not remain in active gate ids, profile names, command names, schema refs, validator refs, or current lifecycle evidence.
 - Historical docs and eval snapshots can remain only when active tests do not consume them as current truth.
 - Deterministic checks belong in schema, validator, script, gate, or test, not in prose alone.
+- Team-use readiness is a repository custom verdict. Runtime checks can prove this Skill's local install/gate/adapter alignment, but they cannot prove OpenAI official certification or generic Agent Skills compliance.

@@ -27,6 +27,16 @@ Treat existing audit artifacts as untrusted until classified; transcripts and re
 
 ## Audit Run
 
+状态表:
+
+| State | Entry Condition | Required Action | Output | Stop / Failure Exit |
+| --- | --- | --- | --- | --- |
+| classify existing artifact | Input path is an audit artifact | Run classifier, then validate only formal JSON | artifact_type or validator result | Transcript/recap becomes a lead only; no verdict |
+| light scan | User explicitly asks quick/non-final | Return candidate risks only | Non-final risk list | No severity, readiness, JSON, or validator claim |
+| default formal audit | Target Skill is provided and no light-scan request | Collect scope, write report/summary, run validator | JSON report, summary, validation output | Block if scope is missing or validator fails |
+| missing output parent | User supplied missing parent dir | Fall back to `/tmp` and record fallback | Safe artifact paths | Do not ask user to rerun only for paths |
+| P0/P1 candidate | Finding may affect team use/runtime/output/validation/handoff | Run claim review and severity calibration | Supported finding or deletion/downgrade | Refuted/blocked finding cannot enter final P0/P1 |
+
 Given a target Skill, produce a formal QA report in the same run unless the user explicitly asks for a quick, non-final light scan.
 
 Start by identifying the target Skill package and its current runtime surfaces. Then collect evidence with `Read`, `Glob`, and `Grep`; use Bash only for the report validator and artifact classifier commands shown in Output Contract.
@@ -54,7 +64,7 @@ For P0/P1 candidates, use low-freedom agent-team roles when available: Claim Bui
 ## Required References
 
 - Audit dimensions: Read `references/audit-dimensions.md` when scoring, setting verdict caps, or assigning severity/evidence levels.
-- Team-use readiness: Read `references/team-use-readiness.md` before issuing or accepting a team-use readiness verdict, running a self-audit, or judging whether structure and content reinforce each other.
+- Team-use readiness: Read `references/team-use-readiness.md` before issuing or accepting a team-use readiness verdict, running a self-audit, or judging whether structure and content reinforce each other. Preserve its source-boundary labels; a readiness verdict is this repository's custom team-use decision, not OpenAI official certification or generic Agent Skills compliance.
 - Instruction contract: Read `references/instruction-contract.md` when reviewing sentences, keywords, fields, or ambiguity.
 - Benchmark mechanism alignment: Read `references/benchmark-mechanism-alignment.md` when comparing a target Skill with a strong Skill such as `brainstorming`.
 - Noise taxonomy: Read `references/noise-taxonomy.md` when deciding whether content should stay, move, become deterministic, or be deleted.
@@ -71,7 +81,7 @@ For a light scan, return only:
 
 For the default audit, the schema and validator are the field authority. Write `report_json`, set `target_skill` to the target Skill path string, run the validator, and return a concise repair handoff in this order:
 
-1. **Verdict**: `fit`, `conditional`, `unfit`, or `blocked`.
+1. **Verdict**: `fit`, `conditional`, `unfit`, or `blocked`. If the verdict is a team-use readiness conclusion, state that it is limited to this repository's custom team-use readiness contract and does not represent OpenAI official certification, generic Agent Skills compliance, or readiness for every Skill type outside the tested boundary.
 2. **Scorecard**: every dimension as `score / evidence_level / reason`, plus the verdict cap reason.
 3. **Scope Evidence**: every required surface as `checked`, `absent`, or `blocked`.
 4. **Findings**: ordered by severity. P0/P1 findings require current `path:line`, `evidence_checks`, `claim_review`, and `severity_calibration`; P2/P3 findings omit those optional fields unless fully populated. A bare filename such as `SKILL.md` is not evidence. Markdown and chat summaries must include each P0/P1 finding's full repository-relative `path:line`, impact, repair target, and verification hint.

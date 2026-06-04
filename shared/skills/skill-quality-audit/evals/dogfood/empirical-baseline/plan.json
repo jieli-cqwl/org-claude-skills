@@ -1,6 +1,8 @@
 {
   "artifact_type": "skill-quality-audit-empirical-baseline-plan",
   "status": "completed_agent_runs",
+  "run_id": "2026-06-04-sqa-fresh-baseline-001",
+  "source_boundary": "repository custom team-use readiness",
   "readiness_target": "team-ready",
   "minimum_real_skill_reviews": 2,
   "purpose": "Prove whether skill-quality-audit improves real Skill review output before promoting from conditional-team-use to team-ready.",
