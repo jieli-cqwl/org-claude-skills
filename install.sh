@@ -401,8 +401,26 @@ fragment = json.loads(fragment_path.read_text(encoding="utf-8"))
 
 hooks = settings.setdefault("hooks", {})
 
+def command_target(item):
+    hooks_list = item.get("hooks")
+    if not isinstance(hooks_list, list) or len(hooks_list) != 1:
+        return None
+    command = hooks_list[0].get("command") if isinstance(hooks_list[0], dict) else None
+    if not isinstance(command, str) or " " not in command:
+        return None
+    return command.split(" ", 1)[1]
+
 for event, fragment_items in fragment.get("hooks", {}).items():
     existing = hooks.setdefault(event, [])
+    managed_targets = {
+        (item.get("matcher"), command_target(item))
+        for item in fragment_items
+        if command_target(item)
+    }
+    existing = [
+        item for item in existing
+        if (item.get("matcher"), command_target(item)) not in managed_targets
+    ]
     seen = set()
     deduped_existing = []
     for item in existing:

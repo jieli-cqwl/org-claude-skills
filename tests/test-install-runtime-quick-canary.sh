@@ -21,6 +21,31 @@ install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"command": 
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "\"command\": \"$(command -v python3) $home_dir/.codex/hooks/managed/context_contract_validator.py\"" "codex context hook should use installer Python executable"
 install_test_case_pass "runtime-quick-canary: codex install exposes managed runtime entry"
 
+install_test_case_start "runtime-quick-canary: claude install migrates python hook launcher"
+home_dir="$(install_test_new_home runtime-quick-canary-claude-hook-launcher)"
+cat >"$home_dir/.claude/settings.json" <<'JSON'
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $HOME/.claude/hooks/managed/context_contract_validator.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+JSON
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-quick-canary-claude-hook-launcher-install)" --target claude --check quick
+install_test_assert_file_not_contains "$home_dir/.claude/settings.json" "\"command\": \"python3 \$HOME/.claude/hooks/managed/context_contract_validator.py\"" "claude install should remove legacy bare python context hook"
+install_test_assert_file_contains "$home_dir/.claude/settings.json" "\"command\": \"$(command -v python3) \$HOME/.claude/hooks/managed/context_contract_validator.py\"" "claude context hook should use installer Python executable"
+install_test_case_pass "runtime-quick-canary: claude install migrates python hook launcher"
+
 install_test_case_start "runtime-quick-canary: task verify ruff lint is scoped to changed files"
 workspace="$INSTALL_TEST_TMP_ROOT/task-verify-scope-workspace"
 mkdir -p "$workspace/vendor"
