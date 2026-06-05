@@ -108,6 +108,19 @@ require(
     ],
     "readiness contract must preserve source-boundary layers",
 )
+guardrails = readiness_contract.get("evidence_guardrails")
+require(
+    isinstance(guardrails, list),
+    "readiness contract must expose structured evidence guardrails",
+)
+require(
+    "checklist_not_evidence" in guardrails,
+    "readiness contract must structurally prevent checklist-as-proof audits",
+)
+require(
+    "structure_content_coherence" in guardrails,
+    "readiness contract must structurally require structure/content coherence",
+)
 require(
     "references/team-use-readiness.md" in skill,
     "SKILL.md must route final readiness verdicts through team-use readiness reference",
@@ -128,14 +141,6 @@ for capability in capabilities:
     body = section_body(readiness, capability)
     for field in ("Success standard:", "Failure mode:", "Required evidence:"):
         require(field in body, f"{capability} must include {field}")
-
-lower_readiness = readiness.lower()
-for term in ("brainstorming", "checklist", "structure", "content"):
-    require(term in lower_readiness, f"readiness reference must cover {term}")
-require(
-    "checklist is not evidence by itself" in lower_readiness,
-    "readiness reference must prevent checklist-as-proof audits",
-)
 
 lower_instruction = instruction.lower()
 require(

@@ -23,6 +23,17 @@ TOP_LEVEL_OPTIONAL_FIELDS = {
     "metadata",
     "eval_type",
 }
+SAMPLE_MATRIX_REQUIRED_FIELDS = {
+    "id",
+    "target_skill_type",
+    "prompt",
+    "expected_anchors",
+    "grader_dimensions",
+    "pass_threshold",
+    "failure_blocking_level",
+    "sample_out_boundary",
+}
+SAMPLE_MATRIX_SEVERITIES = {"P0", "P1", "P2", "P3"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -153,6 +164,35 @@ def validate_eval_file(repo_root: Path, path: Path) -> None:
             sample_id = sample.get("id")
             if not isinstance(sample_id, str) or not sample_id.strip():
                 fail(path, f"sample_matrix #{index} missing non-empty id")
+            missing = sorted(SAMPLE_MATRIX_REQUIRED_FIELDS - set(sample))
+            if missing:
+                fail(path, f"sample_matrix {sample_id!r} missing fields: {missing}")
+            for field in ("target_skill_type", "prompt", "sample_out_boundary"):
+                value = sample.get(field)
+                if not isinstance(value, str) or not value.strip():
+                    fail(path, f"sample_matrix {sample_id!r} missing non-empty {field}")
+            validate_string_list(
+                path,
+                f"sample_matrix {sample_id!r} expected_anchors",
+                sample.get("expected_anchors"),
+            )
+            validate_string_list(
+                path,
+                f"sample_matrix {sample_id!r} grader_dimensions",
+                sample.get("grader_dimensions"),
+            )
+            threshold = sample.get("pass_threshold")
+            if (
+                isinstance(threshold, bool)
+                or not isinstance(threshold, (int, float))
+                or not 0 <= threshold <= 1
+            ):
+                fail(path, f"sample_matrix {sample_id!r} pass_threshold must be 0..1")
+            if sample.get("failure_blocking_level") not in SAMPLE_MATRIX_SEVERITIES:
+                fail(
+                    path,
+                    f"sample_matrix {sample_id!r} failure_blocking_level must be a severity",
+                )
     if "eval_type" in data and (
         not isinstance(data["eval_type"], str) or not data["eval_type"].strip()
     ):

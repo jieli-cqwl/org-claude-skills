@@ -3214,9 +3214,23 @@ parse_args() {
   esac
 }
 
+validate_python_launcher() {
+  [ -n "$PYTHON_LAUNCHER" ] || fail "未找到 python3，无法安装 Python hooks"
+
+  case "$PYTHON_LAUNCHER" in
+    *[[:space:]]*)
+      fail "Python hook launcher 不允许包含空白字符: $PYTHON_LAUNCHER"
+      ;;
+  esac
+
+  if [ ! -x "$PYTHON_LAUNCHER" ]; then
+    fail "Python hook launcher 不可执行: $PYTHON_LAUNCHER"
+  fi
+}
+
 main() {
   parse_args "$@"
-  [ -n "$PYTHON_LAUNCHER" ] || fail "未找到 python3，无法安装 Python hooks"
+  validate_python_launcher
   assert_prerequisites
 
   if [ "$DO_UNINSTALL" -eq 1 ]; then

@@ -67,8 +67,16 @@ def render_command(
     runtime_home: str, launcher: str, command_rel: str, python_launcher: str
 ) -> str:
     if launcher == "python3":
+        validate_python_launcher(python_launcher)
         launcher = python_launcher
     return f"{launcher} {runtime_home}/{command_rel}"
+
+
+def validate_python_launcher(python_launcher: str) -> None:
+    if not python_launcher.strip():
+        raise ValueError("python launcher must be non-empty")
+    if any(char.isspace() for char in python_launcher):
+        raise ValueError(f"python launcher must not contain whitespace: {python_launcher}")
 
 
 def ordered_unique(items: list[str]) -> list[str]:

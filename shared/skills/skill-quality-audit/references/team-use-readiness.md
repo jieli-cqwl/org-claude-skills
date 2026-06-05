@@ -14,6 +14,7 @@ Use this reference before issuing or accepting a team-use readiness verdict. It 
   "target_activity": "audit_existing_skills",
   "allowed_verdicts": ["fit", "conditional", "unfit", "blocked"],
   "required_outputs": ["formal_report", "repair_handoff", "validation_evidence"],
+  "evidence_guardrails": ["checklist_not_evidence", "structure_content_coherence"],
   "source_boundaries": [
     {
       "id": "openai_codex_skills_doc",

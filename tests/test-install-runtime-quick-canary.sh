@@ -46,6 +46,18 @@ install_test_assert_file_not_contains "$home_dir/.claude/settings.json" "\"comma
 install_test_assert_file_contains "$home_dir/.claude/settings.json" "\"command\": \"$(command -v python3) \$HOME/.claude/hooks/managed/context_contract_validator.py\"" "claude context hook should use installer Python executable"
 install_test_case_pass "runtime-quick-canary: claude install migrates python hook launcher"
 
+install_test_case_start "runtime-quick-canary: rejects invalid python hook launcher"
+home_dir="$(install_test_new_home runtime-quick-canary-invalid-python-launcher)"
+invalid_launcher="$home_dir/missing python3"
+invalid_log="$(install_test_log_path runtime-quick-canary-invalid-python-launcher-install)"
+INSTALL_TEST_CURRENT_LOG="$invalid_log"
+if run_with_fake_openspec "$home_dir" env HOME="$home_dir" ORG_STATE_ROOT="$(install_test_state_root "$home_dir")" ORG_SKIP_CONTRACT_VALIDATION=1 ORG_SKIP_CODEX_HOOK_TRUST_AUDIT=1 ORG_HOOK_PYTHON="$invalid_launcher" \
+  bash "$ROOT/install.sh" --target codex --check quick >"$invalid_log" 2>&1; then
+  install_test_fail "install should reject invalid ORG_HOOK_PYTHON"
+fi
+install_test_assert_file_contains "$invalid_log" "Python hook launcher" "invalid python launcher failure should name the hook launcher"
+install_test_case_pass "runtime-quick-canary: rejects invalid python hook launcher"
+
 install_test_case_start "runtime-quick-canary: task verify ruff lint is scoped to changed files"
 workspace="$INSTALL_TEST_TMP_ROOT/task-verify-scope-workspace"
 mkdir -p "$workspace/vendor"
