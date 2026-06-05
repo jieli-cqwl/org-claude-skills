@@ -28,9 +28,12 @@ grep -Fq 'Write only audit output artifacts' "$SKILL" \
   || fail "skill-quality-audit must restrict Write to audit output artifacts"
 python3 - "$SKILL" <<'PY'
 import sys
+import json
+import re
 from pathlib import Path
 
-lines = Path(sys.argv[1]).read_text(encoding="utf-8").splitlines()
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+lines = text.splitlines()
 h2_labels = [
     line[3:].strip().lower().replace(" ", "").replace("-", "")
     for line in lines
@@ -42,7 +45,20 @@ if not h2_labels or h2_labels[0] != "hardgate":
     raise SystemExit("missing-leading-hardgate")
 if "auditrun" not in h2_labels:
     raise SystemExit("missing-audit-run")
+policy_match = re.search(r"```json artifact_path_policy\n(.*?)\n```", text, re.S)
+if not policy_match:
+    raise SystemExit("missing-artifact-path-policy")
+policy = json.loads(policy_match.group(1))
+if policy.get("default_root") != "docs/tmp":
+    raise SystemExit("default audit artifacts must be discoverable under docs/tmp")
+if policy.get("fallback_root") != "/tmp":
+    raise SystemExit("fallback audit artifact root must remain /tmp")
+if policy.get("report_template") != "skill-quality-audit-<target-slug>-report.json":
+    raise SystemExit("report artifact template drift")
+if policy.get("summary_template") != "skill-quality-audit-<target-slug>-summary.md":
+    raise SystemExit("summary artifact template drift")
 PY
+[ -d "$ROOT/docs/tmp" ] || fail "docs/tmp must exist for default audit artifacts"
 python3 - "$ROOT/shared/skills/skill-quality-audit/evals/evals.json" <<'PY'
 import json
 import sys
@@ -54,6 +70,8 @@ required_anchor_ids = {"SQA-07", "SQA-08", "SQA-09", "SQA-10"}
 missing_anchor_ids = sorted(required_anchor_ids - anchors.keys())
 if missing_anchor_ids:
     raise SystemExit(f"missing anchors: {missing_anchor_ids}")
+if "docs/tmp" not in anchors["SQA-09"] or "fall back to /tmp" not in anchors["SQA-09"]:
+    raise SystemExit("SQA-09 must prefer docs/tmp and keep /tmp fallback")
 default_case = next(
     item for item in evals["evals"] if item["id"] == "default-formal-audit-artifacts"
 )

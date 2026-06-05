@@ -34,14 +34,23 @@ Treat existing audit artifacts as untrusted until classified; transcripts and re
 | classify existing artifact | Input path is an audit artifact | Run classifier, then validate only formal JSON | artifact_type or validator result | Transcript/recap becomes a lead only; no verdict |
 | light scan | User explicitly asks quick/non-final | Return candidate risks only | Non-final risk list | No severity, readiness, JSON, or validator claim |
 | default formal audit | Target Skill is provided and no light-scan request | Collect scope, write report/summary, run validator | JSON report, summary, validation output | Block if scope is missing or validator fails |
-| missing output parent | User supplied missing parent dir | Fall back to `/tmp` and record fallback | Safe artifact paths | Do not ask user to rerun only for paths |
+| missing output parent | `docs/tmp` or user-supplied parent cannot be created or written | Fall back to `/tmp` and record fallback | Safe artifact paths | Do not ask user to rerun only for paths |
 | P0/P1 candidate | Finding may affect team use/runtime/output/validation/handoff | Run claim review and severity calibration | Supported finding or deletion/downgrade | Refuted/blocked finding cannot enter final P0/P1 |
+
+```json artifact_path_policy
+{
+  "default_root": "docs/tmp",
+  "fallback_root": "/tmp",
+  "report_template": "skill-quality-audit-<target-slug>-report.json",
+  "summary_template": "skill-quality-audit-<target-slug>-summary.md"
+}
+```
 
 Given a target Skill, produce a formal QA report in the same run unless the user explicitly asks for a quick, non-final light scan.
 
 Start by identifying the target Skill package and its current runtime surfaces. Then collect evidence with `Read`, `Glob`, and `Grep`; use Bash only for the report validator and artifact classifier commands shown in Output Contract.
 
-For the default audit, choose artifact paths automatically, write the JSON report and Markdown summary, run the validator, and return the verdict with repair handoff. Use `/tmp/skill-quality-audit-<target-slug>-report.json` and `/tmp/skill-quality-audit-<target-slug>-summary.md` unless the user provides paths; if a provided parent directory is missing, fall back to `/tmp` and record the fallback.
+For the default audit, choose artifact paths automatically, write the JSON report and Markdown summary, run the validator, and return the verdict with repair handoff. Use `docs/tmp/skill-quality-audit-<target-slug>-report.json` and `docs/tmp/skill-quality-audit-<target-slug>-summary.md` unless the user provides paths; if `docs/tmp` or a provided parent directory cannot be created or written, fall back to `/tmp` and record the fallback.
 
 For a light scan, return only unranked candidate risks and missing evidence. Stop before severity labels, verdicts, readiness decisions, JSON report creation, or validator claims.
 

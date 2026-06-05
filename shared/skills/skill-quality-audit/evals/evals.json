@@ -36,7 +36,7 @@
     },
     {
       "id": "SQA-09",
-      "anchor": "Default audits choose report artifact paths automatically; missing user-provided parents fall back to /tmp instead of requiring a second user request."
+      "anchor": "Default audits choose report artifact paths automatically under docs/tmp for discoverability; missing or unwritable artifact parents fall back to /tmp instead of requiring a second user request."
     },
     {
       "id": "SQA-10",
