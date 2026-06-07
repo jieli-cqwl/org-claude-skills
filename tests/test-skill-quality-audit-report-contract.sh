@@ -101,7 +101,7 @@ data["artifact_paths"] = {
     "report_json": str(report_path),
     "summary_markdown": str(summary_path),
 }
-data["validation"]["command"] = (
+data["validation"]["report"]["command"] = (
     "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py "
     + str(report_path)
 )
@@ -125,6 +125,9 @@ grep -Fq "artifact_type=transcript" "$TMP_DIR/transcript-kind.out" \
 python3 "$CLASSIFIER" "$VALID" >"$TMP_DIR/formal-kind.out"
 grep -Fq "artifact_type=formal_json" "$TMP_DIR/formal-kind.out" \
   || fail "classifier should identify formal JSON reports"
+python3 "$CLASSIFIER" "$ROOT/tests/fixtures/skill-quality-audit/alignments/valid-alignment.json" >"$TMP_DIR/alignment-kind.out"
+grep -Fq "artifact_type=alignment_json" "$TMP_DIR/alignment-kind.out" \
+  || fail "classifier should identify alignment JSON artifacts"
 
 python3 - "$VALID" "$TMP_DIR/missing-validation.json" <<'PY'
 import json
@@ -157,6 +160,38 @@ if python3 "$VALIDATOR" "$TMP_DIR/not-run-validation.json" >"$TMP_DIR/not-run-va
 fi
 grep -Fq "validation.status" "$TMP_DIR/not-run-validation.out" \
   || fail "not-run validation failure should mention validation.status"
+
+python3 - "$VALID" "$TMP_DIR/missing-alignment-validation.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+src, dst = map(Path, sys.argv[1:])
+data = json.loads(src.read_text(encoding="utf-8"))
+data["validation"].pop("alignment", None)
+dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$VALIDATOR" "$TMP_DIR/missing-alignment-validation.json" >"$TMP_DIR/missing-alignment-validation.out" 2>&1; then
+  fail "formal report without alignment validator evidence must fail"
+fi
+grep -Fq "validation.alignment" "$TMP_DIR/missing-alignment-validation.out" \
+  || fail "missing alignment validator failure should mention validation.alignment"
+
+python3 - "$VALID" "$TMP_DIR/missing-report-validation.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+src, dst = map(Path, sys.argv[1:])
+data = json.loads(src.read_text(encoding="utf-8"))
+data["validation"].pop("report", None)
+dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$VALIDATOR" "$TMP_DIR/missing-report-validation.json" >"$TMP_DIR/missing-report-validation.out" 2>&1; then
+  fail "formal report without report validator evidence must fail"
+fi
+grep -Fq "validation.report" "$TMP_DIR/missing-report-validation.out" \
+  || fail "missing report validator failure should mention validation.report"
 
 if python3 "$VALIDATOR" "$MISSING_REPAIR" >"$TMP_DIR/missing-repair.out" 2>&1; then
   fail "P1 finding without repair_target must fail"

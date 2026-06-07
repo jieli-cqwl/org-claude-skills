@@ -3,7 +3,7 @@
   "prompts": [
     {
       "id": "readiness-review",
-      "prompt": "Audit shared/skills/research for team-use readiness. Do not edit the target Skill; choose report artifact paths automatically, include evidence_checks for every P0/P1 finding, write a Markdown summary with per-finding evidence, impact, repair target, and verification hint, run the report validator, and return a formal verdict in the same run."
+      "prompt": "Audit shared/skills/research for team-use readiness. Do not edit the target Skill; choose alignment, report, and summary artifact paths automatically; validate confirmed alignment before any formal verdict; include capability_baseline_ref, confirmed_target_capability_ids, confirmed_gap_refs, and evidence_checks for every P0/P1 finding; write a Markdown summary with per-finding evidence, impact, repair target, and verification hint; run both validators; and return a formal verdict in the same run only after confirmation."
     },
     {
       "id": "explicit-light-scan",
@@ -16,6 +16,10 @@
     {
       "id": "near-miss-should-not-trigger",
       "prompt": "A user asks for a normal code review of tests/test-skill-quality-audit-runtime-contract.sh, not for a Skill readiness audit. Explain that skill-quality-audit should stay inactive and route to ordinary code review."
+    },
+    {
+      "id": "negative-unconfirmed-formal-verdict",
+      "prompt": "Validate a skill-quality-audit alignment artifact that is still awaiting user confirmation but already includes a readiness verdict or severity finding. Reject it before any formal report validator claim."
     },
     {
       "id": "negative-stale-evidence",

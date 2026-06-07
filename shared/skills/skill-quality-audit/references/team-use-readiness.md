@@ -13,7 +13,7 @@ Use this reference before issuing or accepting a team-use readiness verdict. It 
   "target_users": ["team_members"],
   "target_activity": "audit_existing_skills",
   "allowed_verdicts": ["fit", "conditional", "unfit", "blocked"],
-  "required_outputs": ["formal_report", "repair_handoff", "validation_evidence"],
+    "required_outputs": ["confirmed_alignment", "formal_report", "repair_handoff", "validation_evidence"],
   "evidence_guardrails": ["checklist_not_evidence", "structure_content_coherence"],
   "source_boundaries": [
     {
@@ -51,7 +51,7 @@ Readiness state:
 
 - `contract-hardened`: deterministic report, evidence, and handoff gates exist, but semantic audit capability is not yet proven.
 - `conditional-team-use`: core gates pass, but one or more acceptance capabilities still need broader eval or field evidence.
-- `team-ready`: all five capabilities below are proven by current evidence and the formal report validator passes.
+- `team-ready`: all five capabilities below are proven by current evidence and both the confirmed alignment validator and formal report validator pass.
 
 The `brainstorming` benchmark matters because its structure is a target-directed state machine: each loaded sentence moves the agent toward a clearer goal, blocks a common wrong turn, or defines the next handoff state.
 
@@ -61,7 +61,7 @@ Success standard: The audit names the real user scenario, target Skill consumer,
 
 Failure mode: The report scores a Skill without first proving what problem the Skill is supposed to solve, who consumes the result, or what “ready” means for that team.
 
-Required evidence: Target Skill trigger, expected output, consumer path, and completion standard cited from active files or current user-supplied scope.
+Required evidence: Confirmed alignment artifact, Target Skill trigger, expected output, consumer path, and completion standard cited from active files or current user-supplied scope.
 
 ## Structure-Content Coherence
 

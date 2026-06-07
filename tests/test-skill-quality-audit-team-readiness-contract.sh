@@ -96,6 +96,15 @@ require(
     "readiness contract must preserve formal verdict vocabulary",
 )
 require(
+    "confirmed_alignment" in readiness_contract.get("required_outputs", []),
+    "readiness contract must require confirmed alignment",
+)
+require(
+    "confirmed alignment validator" in readiness
+    and "formal report validator" in readiness,
+    "team-ready state must require both alignment and report validators",
+)
+require(
     "repair_handoff" in readiness_contract.get("required_outputs", []),
     "readiness contract must require repair handoff",
 )

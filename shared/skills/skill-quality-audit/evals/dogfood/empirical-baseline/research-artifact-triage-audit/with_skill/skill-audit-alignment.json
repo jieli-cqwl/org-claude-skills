@@ -1,0 +1,162 @@
+{
+  "artifact_type": "skill-audit-alignment",
+  "stage": "confirmed",
+  "target_skill": "shared/skills/research",
+  "target_capability_claims": [
+    {
+      "target_capability_id": "TGT-001",
+      "label": "Audit target capability confirmed for this formal report fixture",
+      "source": "user_supplied",
+      "confidence": "high",
+      "refs": [
+        "shared/skills/research"
+      ]
+    }
+  ],
+  "current_capability_profile": [
+    {
+      "current_capability_id": "CUR-001",
+      "label": "Current audit evidence profile for the confirmed target",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-RESEARCH-P1-001-1"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EV-RESEARCH-P1-001-1",
+      "type": "path_line",
+      "path": "shared/skills/research/SKILL.md",
+      "line": 24,
+      "expected_snippet": "Do NOT call formal research complete until `docs/{feature}/research-report.md` exists, Report Self-Review passes, and the user confirms the report.",
+      "claim": "The target Skill requires a formal completion gate before completion can be claimed."
+    },
+    {
+      "evidence_id": "EV-RESEARCH-P1-001-2",
+      "type": "path_line",
+      "path": "shared/skills/research/scripts/completion_check.sh",
+      "line": 3,
+      "expected_snippet": "# 触发时机: research skill-local Stop",
+      "claim": "The target script describes itself as the research Stop gate."
+    },
+    {
+      "evidence_id": "EV-RESEARCH-P1-001-3",
+      "type": "path_line",
+      "path": "shared/hooks/registry.json",
+      "line": 3,
+      "expected_snippet": "\"skill_completion_gates\": [",
+      "claim": "The hook registry owns the active skill completion gate list."
+    },
+    {
+      "evidence_id": "EV-RESEARCH-P1-001-4",
+      "type": "path_line",
+      "path": "shared/hooks/registry.json",
+      "line": 289,
+      "expected_snippet": "    }",
+      "claim": "The active skill completion gate list ends after the registered gates and contains no research gate."
+    },
+    {
+      "evidence_id": "EV-RESEARCH-P1-002-1",
+      "type": "path_line",
+      "path": "shared/skills/research/SKILL.md",
+      "line": 24,
+      "expected_snippet": "Do NOT call formal research complete until `docs/{feature}/research-report.md` exists, Report Self-Review passes, and the user confirms the report.",
+      "claim": "The target Skill requires Report Self-Review and user confirmation before formal completion."
+    },
+    {
+      "evidence_id": "EV-RESEARCH-P1-002-2",
+      "type": "path_line",
+      "path": "shared/skills/research/projections/research-report-template.md",
+      "line": 198,
+      "expected_snippet": "## 4. Report Self-Review",
+      "claim": "The active report template contains a Report Self-Review section."
+    },
+    {
+      "evidence_id": "EV-RESEARCH-P1-002-3",
+      "type": "path_line",
+      "path": "shared/skills/research/projections/research-report-template.md",
+      "line": 208,
+      "expected_snippet": "## 5. User Confirmation Gate",
+      "claim": "The active report template contains a User Confirmation Gate section."
+    },
+    {
+      "evidence_id": "EV-RESEARCH-P1-002-4",
+      "type": "path_line",
+      "path": "tests/test-research-skill-contract.sh",
+      "line": 179,
+      "expected_snippet": "cat > \"$FIXTURE_ROOT/docs/research-decision-valid/research-report.md\" <<'EOF'",
+      "claim": "The research contract test creates the valid decision report fixture."
+    },
+    {
+      "evidence_id": "EV-RESEARCH-P1-002-5",
+      "type": "path_line",
+      "path": "tests/test-research-skill-contract.sh",
+      "line": 211,
+      "expected_snippet": "assert_check_passes \"valid decision report\"",
+      "claim": "The research contract test expects that valid fixture to pass."
+    },
+    {
+      "type": "path_line",
+      "path": "shared/skills/research/agents/openai.yaml",
+      "line": 7,
+      "expected_snippet": "codex_execution: subagent_clean",
+      "evidence_id": "EV-GAP-RESEARCH-P2-003-1",
+      "claim": "Current file evidence supports gap GAP-RESEARCH-P2-003."
+    }
+  ],
+  "assumptions_or_unknowns": [],
+  "capability_match_draft": {
+    "gaps": [
+      {
+        "gap_id": "GAP-RESEARCH-P1-001",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-RESEARCH-P1-001-1",
+          "EV-RESEARCH-P1-001-2",
+          "EV-RESEARCH-P1-001-3",
+          "EV-RESEARCH-P1-001-4"
+        ]
+      },
+      {
+        "gap_id": "GAP-RESEARCH-P1-002",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-RESEARCH-P1-002-1",
+          "EV-RESEARCH-P1-002-2",
+          "EV-RESEARCH-P1-002-3",
+          "EV-RESEARCH-P1-002-4",
+          "EV-RESEARCH-P1-002-5"
+        ]
+      },
+      {
+        "gap_id": "GAP-RESEARCH-P2-003",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-GAP-RESEARCH-P2-003-1"
+        ]
+      }
+    ]
+  },
+  "user_confirmation": {
+    "level": "G1",
+    "status": "confirmed",
+    "confirmed_scope_ref": "user_scope:fixture-formal-audit-target",
+    "confirmed_target_capability_ids": [
+      "TGT-001"
+    ],
+    "accepted_assumption_ids": []
+  }
+}

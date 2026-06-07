@@ -54,10 +54,72 @@ for case in plan["cases"]:
             report["target_skill"] = case["target_skill"]
             report["artifact_paths"]["report_json"] = str(formal_report_ref)
             report["artifact_paths"]["summary_markdown"] = str(output_dir / "audit-summary.md")
-            report["validation"]["command"] = (
-                "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py "
-                + str(formal_report_ref)
-            )
+            alignment_ref = output_dir / "skill-audit-alignment.json"
+            alignment = {
+                "artifact_type": "skill-audit-alignment",
+                "stage": "confirmed",
+                "target_skill": case["target_skill"],
+                "target_capability_claims": [
+                    {
+                        "target_capability_id": "TGT-001",
+                        "label": "Empirical fixture target capability",
+                        "source": "user_supplied",
+                        "confidence": "high",
+                        "refs": [case["target_skill"]],
+                    }
+                ],
+                "current_capability_profile": [
+                    {
+                        "current_capability_id": "CUR-001",
+                        "label": "Empirical fixture current capability",
+                        "status": "supported",
+                        "evidence_refs": ["EV-001"],
+                    }
+                ],
+                "evidence": [
+                    {
+                        "evidence_id": "EV-001",
+                        "type": "runtime",
+                        "ref": str(formal_report_ref),
+                        "claim": "Generated empirical formal report fixture for the case target.",
+                    }
+                ],
+                "assumptions_or_unknowns": [],
+                "capability_match_draft": {
+                    "gaps": [
+                        {
+                            "gap_id": "GAP-001",
+                            "target_capability_id": "TGT-001",
+                            "current_capability_ids": ["CUR-001"],
+                            "status": "matched",
+                            "evidence_refs": ["EV-001"],
+                        }
+                    ]
+                },
+                "user_confirmation": {
+                    "level": "G1",
+                    "status": "confirmed",
+                    "confirmed_scope_ref": "user_scope:empirical-baseline-fixture",
+                    "confirmed_target_capability_ids": ["TGT-001"],
+                    "accepted_assumption_ids": [],
+                },
+            }
+            alignment_ref.write_text(json.dumps(alignment, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            report["capability_baseline_ref"] = str(alignment_ref)
+            report["confirmed_target_capability_ids"] = ["TGT-001"]
+            report["validation"] = {
+                "status": "PASS",
+                "alignment": {
+                    "status": "PASS",
+                    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py " + str(alignment_ref),
+                    "output": "[PASS] skill audit alignment valid",
+                },
+                "report": {
+                    "status": "PASS",
+                    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py " + str(formal_report_ref),
+                    "output": "[PASS] skill audit report valid",
+                },
+            }
             (output_dir / "audit-summary.md").write_text(
                 "# Skill Audit Summary\n\nNo P0/P1 findings.\n",
                 encoding="utf-8",
@@ -163,6 +225,10 @@ bad_summary_ref = bad_dir / "summary.json"
 report = json.loads(report_src.read_text(encoding="utf-8"))
 report["artifact_paths"]["report_json"] = str(bad_report)
 report["artifact_paths"]["summary_markdown"] = str(bad_summary)
+report["validation"]["report"]["command"] = (
+    "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py "
+    + str(bad_report)
+)
 report["findings"][1]["evidence_checks"][3]["expected_snippet"] = "definitely not present in the current fixture line"
 bad_report.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 bad_summary.write_text(summary_src.read_text(encoding="utf-8"), encoding="utf-8")

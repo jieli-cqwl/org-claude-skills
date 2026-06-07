@@ -18,7 +18,7 @@ grep -q '^name: skill-quality-audit$' "$SKILL" \
   || fail "skill name must be skill-quality-audit"
 grep -q '^description: "Use when ' "$SKILL" \
   || fail "description must describe trigger conditions"
-grep -q '^allowed-tools: Read, Write, Glob, Grep, Agent, Bash(python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py:\*), Bash(python3 shared/skills/skill-quality-audit/scripts/classify_audit_artifact.py:\*)$' "$SKILL" \
+grep -q '^allowed-tools: Read, Write, Glob, Grep, Agent, Bash(python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py:\*), Bash(python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py:\*), Bash(python3 shared/skills/skill-quality-audit/scripts/classify_audit_artifact.py:\*)$' "$SKILL" \
   || fail "skill-quality-audit must allow audit outputs, agent claim review, and only approved Bash scripts"
 ! grep -Eq '^allowed-tools:.*(^|, )Bash(,|$)' "$SKILL" \
   || fail "skill-quality-audit must not expose unrestricted Bash"
@@ -53,6 +53,8 @@ if policy.get("default_root") != "docs/tmp":
     raise SystemExit("default audit artifacts must be discoverable under docs/tmp")
 if policy.get("fallback_root") != "/tmp":
     raise SystemExit("fallback audit artifact root must remain /tmp")
+if policy.get("alignment_template") != "skill-quality-audit-<target-slug>-alignment.json":
+    raise SystemExit("alignment artifact template drift")
 if policy.get("report_template") != "skill-quality-audit-<target-slug>-report.json":
     raise SystemExit("report artifact template drift")
 if policy.get("summary_template") != "skill-quality-audit-<target-slug>-summary.md":
@@ -116,6 +118,7 @@ required_sample_cases = [
     "audit-artifact-triage",
     "near-miss-should-not-trigger",
     "without-skill-baseline",
+    "negative-unconfirmed-formal-verdict",
     "negative-stale-evidence",
     "negative-missing-handoff",
     "negative-p0-p1-claim-review",

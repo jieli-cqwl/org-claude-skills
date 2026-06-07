@@ -178,7 +178,10 @@
       },
       "impact": "A project path or depth edge case can be interpreted by the shell during fallback scanning instead of being treated as data.",
       "repair_target": "shared/skills/overview/scripts/dir-tree.sh",
-      "verification_hint": "Replace eval with an argv array, validate depth as a positive integer, and test paths containing spaces and shell metacharacters."
+      "verification_hint": "Replace eval with an argv array, validate depth as a positive integer, and test paths containing spaces and shell metacharacters.",
+      "confirmed_gap_refs": [
+        "GAP-OVERVIEW-P1-001"
+      ]
     },
     {
       "id": "OVERVIEW-P2-001",
@@ -188,7 +191,10 @@
       "evidence": "shared/skills/overview/test-prompts.json:5 stores expected behavior as natural-language text.",
       "impact": "Mode confirmation, write refusal, Mermaid checks, and scan failure handling can regress without a deterministic gate.",
       "repair_target": "shared/skills/overview/evals or tests/gate-plan.json",
-      "verification_hint": "Add executable overview evals or focused tests covering mode confirmation, scan failure, write refusal, and Mermaid completion checks."
+      "verification_hint": "Add executable overview evals or focused tests covering mode confirmation, scan failure, write refusal, and Mermaid completion checks.",
+      "confirmed_gap_refs": [
+        "GAP-OVERVIEW-P2-001"
+      ]
     },
     {
       "id": "OVERVIEW-P2-002",
@@ -198,7 +204,10 @@
       "evidence": "shared/skills/overview/SKILL.md:53 includes Sync maintenance text inside the runtime step contract.",
       "impact": "Agents may treat maintainer synchronization work as part of an overview user request.",
       "repair_target": "shared/skills/overview/SKILL.md and overview maintenance docs",
-      "verification_hint": "Move Sync maintenance notes out of runtime steps and keep only Trigger, Read, Expect, Consume, Evidence fields in the execution path."
+      "verification_hint": "Move Sync maintenance notes out of runtime steps and keep only Trigger, Read, Expect, Consume, Evidence fields in the execution path.",
+      "confirmed_gap_refs": [
+        "GAP-OVERVIEW-P2-002"
+      ]
     }
   ],
   "repair_handoff": [
@@ -220,8 +229,16 @@
   ],
   "validation": {
     "status": "PASS",
-    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/overview-audit/skill-audit-report.json",
-    "output": "[PASS] skill audit report valid"
+    "alignment": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py shared/skills/skill-quality-audit/evals/dogfood/overview-audit/skill-audit-alignment.json",
+      "output": "[PASS] skill audit alignment valid"
+    },
+    "report": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/overview-audit/skill-audit-report.json",
+      "output": "[PASS] skill audit report valid"
+    }
   },
   "executed_verification": [
     {
@@ -249,5 +266,9 @@
   "residual_risk": [
     "This report audits overview as of the current worktree and intentionally does not modify shared/skills/overview.",
     "The previous transcript's P0 auto-routing claim is rejected; future overview readiness decisions should use this formal audit pattern rather than transcript review."
+  ],
+  "capability_baseline_ref": "shared/skills/skill-quality-audit/evals/dogfood/overview-audit/skill-audit-alignment.json",
+  "confirmed_target_capability_ids": [
+    "TGT-001"
   ]
 }

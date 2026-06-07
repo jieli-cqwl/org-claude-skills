@@ -49,6 +49,14 @@
     {
       "id": "SQA-12",
       "anchor": "Existing audit artifacts are classified before review; transcript artifacts are rejected as reports and used only as leads for a fresh formal audit."
+    },
+    {
+      "id": "SQA-13",
+      "anchor": "Default formal audits produce and validate a confirmed alignment artifact before any team-readiness verdict, scorecard, severity finding, or report validator claim."
+    },
+    {
+      "id": "SQA-14",
+      "anchor": "Formal findings reference confirmed gap ids from the alignment baseline; inferred, self-declared, unknown, or historical claims cannot be treated as supported current capability evidence."
     }
   ],
   "grader_dimensions": [
@@ -63,7 +71,7 @@
       "id": "positive-formal-audit",
       "target_skill_type": "existing-skill-package",
       "prompt": "Audit an existing Skill for team-use readiness and produce a formal JSON report, Markdown summary, validator output, and repair handoff.",
-      "expected_anchors": ["SQA-01", "SQA-02", "SQA-07", "SQA-11"],
+      "expected_anchors": ["SQA-01", "SQA-02", "SQA-07", "SQA-11", "SQA-13", "SQA-14"],
       "grader_dimensions": ["read_only_boundary", "evidence_backed_findings", "repair_handoff_precision"],
       "pass_threshold": 1.0,
       "failure_blocking_level": "P1",
@@ -83,11 +91,21 @@
       "id": "audit-artifact-triage",
       "target_skill_type": "audit-artifact",
       "prompt": "Classify an existing audit artifact before trusting it, reject transcripts as formal reports, and use them only as leads for a fresh audit.",
-      "expected_anchors": ["SQA-07", "SQA-11", "SQA-12"],
+      "expected_anchors": ["SQA-07", "SQA-11", "SQA-12", "SQA-13"],
       "grader_dimensions": ["evidence_backed_findings", "repair_handoff_precision"],
       "pass_threshold": 1.0,
       "failure_blocking_level": "P1",
       "sample_out_boundary": "Proves artifact classification and transcript distrust; it does not prove the transcript claims are true."
+    },
+    {
+      "id": "negative-unconfirmed-formal-verdict",
+      "target_skill_type": "alignment-artifact-fixture",
+      "prompt": "Validate a skill-quality-audit alignment that is awaiting user confirmation but already contains a readiness verdict, severity finding, or report validator PASS claim.",
+      "expected_anchors": ["SQA-13", "SQA-14"],
+      "grader_dimensions": ["instruction_contract", "evidence_backed_findings"],
+      "pass_threshold": 1.0,
+      "failure_blocking_level": "P0",
+      "sample_out_boundary": "Proves pre-confirmation formal claims fail closed; it does not prove the semantic quality of a confirmed audit."
     },
     {
       "id": "near-miss-should-not-trigger",
@@ -232,12 +250,16 @@
         "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md"
       ],
       "expectations": [
-        "Produces a formal verdict in the same run without asking the user to choose a mode.",
+        "Produces a confirmed alignment artifact before the formal verdict.",
+        "Does not emit a formal verdict, scorecard, severity finding, or report validator PASS claim before alignment confirmation.",
+        "Produces a formal verdict in the same run when the target capability is confirmed by the user request or repository contract.",
         "Chooses report artifact paths automatically when the user does not provide them.",
+        "Chooses alignment artifact paths automatically when the user does not provide them.",
         "Produces a machine-readable JSON report before or with the formal verdict.",
+        "Includes capability_baseline_ref, confirmed_target_capability_ids, and confirmed_gap_refs in the report.",
         "Includes evidence_checks for every P0/P1 finding so the validator can verify the current cited file line.",
         "Includes claim_review and severity_calibration for every P0/P1 finding.",
-        "Runs the skill audit report validator and includes PASS output in the final handoff.",
+        "Runs both the skill audit alignment validator and report validator, then includes both PASS outputs in the final handoff.",
         "Keeps any Markdown response as a summary, not the artifact of record.",
         "Markdown summary and chat handoff are not title-only; each P0/P1 finding includes full path:line evidence, impact, repair target, and verification hint.",
         "Does not include empty optional finding fields such as empty claim_review or severity_calibration objects."
@@ -246,7 +268,70 @@
         "SQA-01",
         "SQA-07",
         "SQA-09",
-        "SQA-11"
+        "SQA-11",
+        "SQA-13",
+        "SQA-14"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "alignment-before-formal-verdict",
+      "prompt": "Audit shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill for team-use readiness. First produce a confirmed alignment artifact and do not emit a verdict, scorecard, severity finding, or report validator PASS claim before alignment validation.",
+      "files": [
+        "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md"
+      ],
+      "expectations": [
+        "Produces a skill-audit-alignment JSON artifact before the formal report.",
+        "Validates the alignment artifact before any readiness verdict.",
+        "Separates target capability claims from evidence-backed current capability profile."
+      ],
+      "expected_anchors": [
+        "SQA-13",
+        "SQA-14"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "g1-inferred-target-blocked",
+      "prompt": "Audit a new or unclear Skill whose target capability is mostly inferred from its own description. Do not treat the inferred target as G1-confirmed team-readiness scope; ask for confirmation or stop before formal audit.",
+      "files": [
+        "shared/skills/skill-quality-audit/evals/fixtures/target-skills/unclear-instruction-skill/SKILL.md"
+      ],
+      "expectations": [
+        "Does not use model-inferred or self-declared target capability as G1 confirmed scope.",
+        "Stops at G2/G3 confirmation before formal readiness verdict when target capability is unclear.",
+        "Keeps assumptions or unknowns out of supported current capability evidence."
+      ],
+      "expected_anchors": [
+        "SQA-13",
+        "SQA-14"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ]
+    },
+    {
+      "id": "formal-findings-trace-confirmed-gaps",
+      "prompt": "Validate that every formal finding in a skill-quality-audit report references confirmed gap ids from a confirmed alignment baseline.",
+      "files": [
+        "tests/fixtures/skill-quality-audit/reports/valid-report.json",
+        "tests/fixtures/skill-quality-audit/alignments/valid-alignment.json"
+      ],
+      "expectations": [
+        "Requires capability_baseline_ref and confirmed_target_capability_ids in the report.",
+        "Requires each finding to include confirmed_gap_refs.",
+        "Rejects a finding whose confirmed gap id is missing from the alignment artifact."
+      ],
+      "expected_anchors": [
+        "SQA-13",
+        "SQA-14"
       ],
       "run_modes": [
         "with_skill",

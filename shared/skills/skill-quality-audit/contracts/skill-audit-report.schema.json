@@ -6,6 +6,8 @@
     "artifact_type",
     "audit_mode",
     "target_skill",
+    "capability_baseline_ref",
+    "confirmed_target_capability_ids",
     "verdict",
     "overall_score",
     "artifact_paths",
@@ -27,6 +29,18 @@
     "target_skill": {
       "type": "string",
       "minLength": 1
+    },
+    "capability_baseline_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "confirmed_target_capability_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
     },
     "verdict": {
       "enum": ["fit", "conditional", "unfit", "blocked"]
@@ -161,7 +175,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "severity", "title", "evidence_level", "evidence", "impact", "repair_target", "verification_hint"],
+        "required": ["id", "severity", "title", "confirmed_gap_refs", "evidence_level", "evidence", "impact", "repair_target", "verification_hint"],
         "additionalProperties": false,
         "properties": {
           "id": {
@@ -174,6 +188,14 @@
           "title": {
             "type": "string",
             "minLength": 1
+          },
+          "confirmed_gap_refs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
           },
           "evidence_level": {
             "enum": ["E0", "E1", "E2", "E3", "E4"]
@@ -287,19 +309,17 @@
     },
     "validation": {
       "type": "object",
-      "required": ["status", "command", "output"],
+      "required": ["status", "alignment", "report"],
       "additionalProperties": false,
       "properties": {
         "status": {
           "const": "PASS"
         },
-        "command": {
-          "type": "string",
-          "minLength": 1
+        "alignment": {
+          "$ref": "#/$defs/validator_evidence"
         },
-        "output": {
-          "type": "string",
-          "minLength": 1
+        "report": {
+          "$ref": "#/$defs/validator_evidence"
         }
       }
     },
@@ -343,6 +363,26 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "validator_evidence": {
+      "type": "object",
+      "required": ["status", "command", "output"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "PASS"
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     }
   }

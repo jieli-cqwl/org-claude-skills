@@ -157,8 +157,16 @@
   ],
   "validation": {
     "status": "PASS",
-    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json",
-    "output": "[PASS] skill audit report valid"
+    "alignment": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-alignment.json",
+      "output": "[PASS] skill audit alignment valid"
+    },
+    "report": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-report.json",
+      "output": "[PASS] skill audit report valid"
+    }
   },
   "executed_verification": [
     {
@@ -193,5 +201,9 @@
   "residual_risk": [
     "This is a formal audit stability result, not a design quality score. Rerun the audit after the target design edits settle.",
     "No target files under shared/skills/design were modified by this audit."
+  ],
+  "capability_baseline_ref": "shared/skills/skill-quality-audit/evals/dogfood/design-audit/skill-audit-alignment.json",
+  "confirmed_target_capability_ids": [
+    "TGT-001"
   ]
 }

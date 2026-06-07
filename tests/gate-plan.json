@@ -2270,6 +2270,18 @@
       "timeout_sec": 90
     },
     {
+      "id": "skill-quality-audit-alignment-contract",
+      "command": [
+        "bash",
+        "tests/test-skill-quality-audit-alignment-contract.sh"
+      ],
+      "area": "skill-quality-audit",
+      "tier": "quick",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
       "id": "skill-quality-audit-report-contract",
       "command": [
         "bash",

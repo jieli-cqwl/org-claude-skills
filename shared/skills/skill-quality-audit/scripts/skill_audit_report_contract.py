@@ -47,6 +47,8 @@ TOP_LEVEL_FIELDS = {
     "artifact_type",
     "audit_mode",
     "target_skill",
+    "capability_baseline_ref",
+    "confirmed_target_capability_ids",
     "verdict",
     "overall_score",
     "verdict_reason",
@@ -66,6 +68,7 @@ FINDING_FIELDS = {
     "id",
     "severity",
     "title",
+    "confirmed_gap_refs",
     "evidence_level",
     "evidence",
     "evidence_checks",
@@ -79,7 +82,8 @@ EVIDENCE_CHECK_FIELDS = {"path", "line", "expected_snippet", "claim"}
 CLAIM_REVIEW_FIELDS = {"required_claims", "refutation_check", "status"}
 SEVERITY_CALIBRATION_FIELDS = {"calibrated_severity", "team_use_impact", "rationale"}
 HANDOFF_FIELDS = {"target", "action", "owner"}
-VALIDATION_FIELDS = {"status", "command", "output"}
+VALIDATION_FIELDS = {"status", "alignment", "report"}
+VALIDATOR_EVIDENCE_FIELDS = {"status", "command", "output"}
 EXECUTED_VERIFICATION_FIELDS = {
     "id",
     "command",
@@ -227,6 +231,15 @@ def validate_findings(report: dict[str, Any]) -> None:
                 isinstance(finding.get(field), str) and finding[field],
                 f"findings[{index}].{field} is required",
             )
+        require(
+            isinstance(finding.get("confirmed_gap_refs"), list)
+            and finding["confirmed_gap_refs"]
+            and all(
+                isinstance(value, str) and value
+                for value in finding["confirmed_gap_refs"]
+            ),
+            f"findings[{index}].confirmed_gap_refs must be non-empty strings",
+        )
         if "claim_review" in finding:
             validate_claim_review(
                 finding["claim_review"], f"findings[{index}].claim_review"

@@ -222,7 +222,7 @@ for term in detail_terms:
 
 required_signals = (
     "modify target Skill files",
-    "validator passes",
+    "validators pass",
     "scope evidence",
     "P0/P1",
     "E4",

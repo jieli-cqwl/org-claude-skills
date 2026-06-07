@@ -22,6 +22,7 @@ from skill_audit_report_contract import (
     VALID_EVIDENCE_LEVELS,
     VALID_VERDICTS,
     VALIDATION_FIELDS,
+    VALIDATOR_EVIDENCE_FIELDS,
     evidence_level_at_least,
     existing_path_refs,
     fail,
@@ -31,6 +32,7 @@ from skill_audit_report_contract import (
     validate_findings,
     validate_summary,
 )
+from skill_audit_report_alignment import validate_capability_baseline
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -60,6 +62,8 @@ def validate_top_level(report: dict[str, Any]) -> None:
         "artifact_type",
         "audit_mode",
         "target_skill",
+        "capability_baseline_ref",
+        "confirmed_target_capability_ids",
         "verdict",
         "overall_score",
         "artifact_paths",
@@ -80,6 +84,18 @@ def validate_top_level(report: dict[str, Any]) -> None:
     require(
         isinstance(report["target_skill"], str) and report["target_skill"].strip(),
         "target_skill must be a non-empty string",
+    )
+    require(
+        isinstance(report["capability_baseline_ref"], str)
+        and report["capability_baseline_ref"].strip(),
+        "capability_baseline_ref must be a non-empty string",
+    )
+    confirmed_ids = report["confirmed_target_capability_ids"]
+    require(
+        isinstance(confirmed_ids, list)
+        and confirmed_ids
+        and all(isinstance(value, str) and value for value in confirmed_ids),
+        "confirmed_target_capability_ids must be non-empty strings",
     )
     require(
         report["verdict"] in VALID_VERDICTS,
@@ -248,27 +264,40 @@ def validate_verdict_rules(report: dict[str, Any]) -> None:
                     break
 
 
+def validate_validator_evidence(validation: dict[str, Any], key: str, script_name: str, artifact_path: str) -> None:
+    item = validation.get(key)
+    label = f"validation.{key}"
+    require(isinstance(item, dict), f"{label} must be an object")
+    require_known_fields(item, VALIDATOR_EVIDENCE_FIELDS, label)
+    require(item.get("status") == "PASS", f"{label}.status must be PASS")
+    command = item.get("command")
+    output = item.get("output")
+    require(
+        isinstance(command, str) and command.strip(), f"{label}.command is required"
+    )
+    require(script_name in command, f"{label}.command must run {script_name}")
+    require(artifact_path in command, f"{label}.command must include {artifact_path}")
+    require(isinstance(output, str) and output.strip(), f"{label}.output is required")
+    require("[PASS]" in output, f"{label}.output must include validator PASS output")
+
+
 def validate_validation(report: dict[str, Any]) -> None:
     validation = report.get("validation")
     require(isinstance(validation, dict), "validation must be an object")
     require_known_fields(validation, VALIDATION_FIELDS, "validation")
     require(validation.get("status") == "PASS", "validation.status must be PASS")
-    command = validation.get("command")
-    output = validation.get("output")
-    require(
-        isinstance(command, str) and command.strip(), "validation.command is required"
+    validate_validator_evidence(
+        validation,
+        "alignment",
+        "validate_skill_audit_alignment.py",
+        report["capability_baseline_ref"],
     )
-    require(
-        "validate_skill_audit_report.py" in command,
-        "validation.command must run validate_skill_audit_report.py",
+    validate_validator_evidence(
+        validation,
+        "report",
+        "validate_skill_audit_report.py",
+        report["artifact_paths"]["report_json"],
     )
-    report_json = report["artifact_paths"]["report_json"]
-    require(
-        report_json in command,
-        "validation.command must include artifact_paths.report_json",
-    )
-    require(isinstance(output, str) and output.strip(), "validation.output is required")
-    require("[PASS]" in output, "validation.output must include validator PASS output")
 
 
 def validate_executed_verification(report: dict[str, Any]) -> None:
@@ -344,6 +373,7 @@ def main(argv: list[str]) -> int:
         return 2
     report = load_json(Path(argv[1]))
     validate_top_level(report)
+    validate_capability_baseline(report)
     validate_artifact_paths(report)
     validate_scope(report)
     validate_dimensions(report)

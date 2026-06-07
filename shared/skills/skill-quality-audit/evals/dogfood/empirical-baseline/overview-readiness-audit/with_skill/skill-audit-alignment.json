@@ -1,0 +1,145 @@
+{
+  "artifact_type": "skill-audit-alignment",
+  "stage": "confirmed",
+  "target_skill": "shared/skills/overview",
+  "target_capability_claims": [
+    {
+      "target_capability_id": "TGT-001",
+      "label": "Audit target capability confirmed for this formal report fixture",
+      "source": "user_supplied",
+      "confidence": "high",
+      "refs": [
+        "shared/skills/overview"
+      ]
+    }
+  ],
+  "current_capability_profile": [
+    {
+      "current_capability_id": "CUR-001",
+      "label": "Current audit evidence profile for the confirmed target",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-OVERVIEW-P1-001-1"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EV-OVERVIEW-P1-001-1",
+      "type": "path_line",
+      "path": "shared/skills/overview/SKILL.md",
+      "line": 52,
+      "expected_snippet": "bash {{SKILLS_HOME}}/overview/scripts/dir-tree.sh <项目路径> 3",
+      "claim": "The overview workflow requires invoking dir-tree.sh with the selected project path."
+    },
+    {
+      "evidence_id": "EV-OVERVIEW-P1-001-2",
+      "type": "path_line",
+      "path": "shared/skills/overview/scripts/dir-tree.sh",
+      "line": 9,
+      "expected_snippet": "PROJECT_DIR=\"${1:-.}\"",
+      "claim": "dir-tree.sh reads the project path from argv."
+    },
+    {
+      "evidence_id": "EV-OVERVIEW-P1-001-3",
+      "type": "path_line",
+      "path": "shared/skills/overview/scripts/dir-tree.sh",
+      "line": 10,
+      "expected_snippet": "DEPTH=\"${2:-3}\"",
+      "claim": "dir-tree.sh reads depth from argv."
+    },
+    {
+      "evidence_id": "EV-OVERVIEW-P1-001-4",
+      "type": "path_line",
+      "path": "shared/skills/overview/scripts/dir-tree.sh",
+      "line": 26,
+      "expected_snippet": "eval find \"$PROJECT_DIR\" -maxdepth \"$DEPTH\" -type d $EXCLUDES",
+      "claim": "The fallback path constructs and executes a shell command with eval."
+    },
+    {
+      "type": "path_line",
+      "path": "shared/skills/overview/test-prompts.json",
+      "line": 5,
+      "expected_snippet": "\"expected\": \"先扫描真实代码和关键配置，说明预扫描信号，要求用户在串行概览和分层 agent team 概览之间确认模式。\"",
+      "evidence_id": "EV-GAP-OVERVIEW-P2-001-1",
+      "claim": "Current file evidence supports gap GAP-OVERVIEW-P2-001."
+    },
+    {
+      "type": "path_line",
+      "path": "shared/skills/overview/agents/openai.yaml",
+      "line": 7,
+      "expected_snippet": "codex_execution: subagent_clean",
+      "evidence_id": "EV-GAP-OVERVIEW-P2-002-1",
+      "claim": "Current file evidence supports gap GAP-OVERVIEW-P2-002."
+    },
+    {
+      "type": "path_line",
+      "path": "shared/skills/overview/SKILL.md",
+      "line": 54,
+      "expected_snippet": "→ Trigger: 扫描脚本成功且需要选择执行模式；Read: `references/mode-selection.md`；Expect: 触发信号、推荐话术、两种模式收益/代价；Consume: 模式选择提示和用户确认；Evidence: 扫描摘要、推荐理由和用户选择；Sync: 更新模式选择模板和治理测试。",
+      "evidence_id": "EV-GAP-OVERVIEW-P3-001-1",
+      "claim": "Current file evidence supports gap GAP-OVERVIEW-P3-001."
+    }
+  ],
+  "assumptions_or_unknowns": [],
+  "capability_match_draft": {
+    "gaps": [
+      {
+        "gap_id": "GAP-OVERVIEW-P1-001",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-OVERVIEW-P1-001-1",
+          "EV-OVERVIEW-P1-001-2",
+          "EV-OVERVIEW-P1-001-3",
+          "EV-OVERVIEW-P1-001-4"
+        ]
+      },
+      {
+        "gap_id": "GAP-OVERVIEW-P2-001",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-GAP-OVERVIEW-P2-001-1"
+        ]
+      },
+      {
+        "gap_id": "GAP-OVERVIEW-P2-002",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-GAP-OVERVIEW-P2-002-1"
+        ]
+      },
+      {
+        "gap_id": "GAP-OVERVIEW-P3-001",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-GAP-OVERVIEW-P3-001-1"
+        ]
+      }
+    ]
+  },
+  "user_confirmation": {
+    "level": "G1",
+    "status": "confirmed",
+    "confirmed_scope_ref": "user_scope:fixture-formal-audit-target",
+    "confirmed_target_capability_ids": [
+      "TGT-001"
+    ],
+    "accepted_assumption_ids": []
+  }
+}

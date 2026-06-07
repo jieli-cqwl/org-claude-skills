@@ -176,7 +176,10 @@
       },
       "impact": "The Skill cannot be executed reliably.",
       "repair_target": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md Workflow",
-      "verification_hint": "Raise Instruction Contract score to at least 5 before using conditional."
+      "verification_hint": "Raise Instruction Contract score to at least 5 before using conditional.",
+      "confirmed_gap_refs": [
+        "GAP-001"
+      ]
     }
   ],
   "repair_handoff": [
@@ -188,9 +191,21 @@
   ],
   "validation": {
     "status": "PASS",
-    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py tests/fixtures/skill-quality-audit/reports/instruction-low-score-invalid-verdict.json",
-    "output": "[PASS] skill audit report valid"
+    "alignment": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py tests/fixtures/skill-quality-audit/alignments/valid-alignment.json",
+      "output": "[PASS] skill audit alignment valid"
+    },
+    "report": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py tests/fixtures/skill-quality-audit/reports/instruction-low-score-invalid-verdict.json",
+      "output": "[PASS] skill audit report valid"
+    }
   },
   "executed_verification": [],
-  "residual_risk": []
+  "residual_risk": [],
+  "capability_baseline_ref": "tests/fixtures/skill-quality-audit/alignments/valid-alignment.json",
+  "confirmed_target_capability_ids": [
+    "TGT-001"
+  ]
 }

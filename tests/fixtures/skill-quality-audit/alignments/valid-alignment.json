@@ -1,0 +1,61 @@
+{
+  "artifact_type": "skill-audit-alignment",
+  "stage": "confirmed",
+  "target_skill": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill",
+  "target_capability_claims": [
+    {
+      "target_capability_id": "TGT-001",
+      "label": "Audit existing Skills for team-use readiness",
+      "source": "repo_contract",
+      "confidence": "high",
+      "refs": [
+        "shared/skills/skill-quality-audit/references/team-use-readiness.md:38"
+      ]
+    }
+  ],
+  "current_capability_profile": [
+    {
+      "current_capability_id": "CUR-001",
+      "label": "Produces validator-backed formal reports",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-001"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EV-001",
+      "type": "path_line",
+      "path": "tests/fixtures/skill-quality-audit/evidence-target.md",
+      "line": 2,
+      "expected_snippet": "Handoff target: separate implementation window owns repair output.",
+      "claim": "Current file evidence exists for the handoff capability gap fixture."
+    }
+  ],
+  "assumptions_or_unknowns": [],
+  "capability_match_draft": {
+    "gaps": [
+      {
+        "gap_id": "GAP-001",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-001"
+        ]
+      }
+    ]
+  },
+  "user_confirmation": {
+    "level": "G1",
+    "status": "confirmed",
+    "confirmed_scope_ref": "repo_contract:skill-quality-audit.team-use-readiness",
+    "confirmed_target_capability_ids": [
+      "TGT-001"
+    ],
+    "accepted_assumption_ids": []
+  }
+}

@@ -26,6 +26,8 @@ def classify(path: Path) -> str:
             return "invalid_json"
         if isinstance(data, dict) and data.get("artifact_type") == "skill-audit-report":
             return "formal_json"
+        if isinstance(data, dict) and data.get("artifact_type") == "skill-audit-alignment":
+            return "alignment_json"
         return "json"
     if re.search(r"(?m)^Verdict:\s*`?(fit|conditional|unfit|blocked)`?", text):
         return "summary_markdown"

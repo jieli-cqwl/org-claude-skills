@@ -197,7 +197,10 @@
       },
       "impact": "A team can believe formal research completion is runtime-gated while installed runtimes do not dispatch the target completion check, allowing incomplete research reports to pass handoff without deterministic enforcement.",
       "repair_target": "shared/hooks/registry.json plus any hook-rendering tests that assert research completion gate registration",
-      "verification_hint": "Register the research completion gate or explicitly retire the script from runtime claims; then run a focused install/runtime or hook-registry test proving research appears in skill_completion_gates and is dispatched."
+      "verification_hint": "Register the research completion gate or explicitly retire the script from runtime claims; then run a focused install/runtime or hook-registry test proving research appears in skill_completion_gates and is dispatched.",
+      "confirmed_gap_refs": [
+        "GAP-RESEARCH-P1-001"
+      ]
     },
     {
       "id": "RESEARCH-P1-002",
@@ -254,7 +257,10 @@
       },
       "impact": "Formal research artifacts can pass the deterministic contract without the self-review and confirmation state that downstream teams rely on before accepting or handing off a judgment.",
       "repair_target": "shared/skills/research/scripts/completion_check.sh and tests/test-research-skill-contract.sh",
-      "verification_hint": "Extend completion_check.sh to require Report Self-Review and User Confirmation Gate evidence for formal reports, update valid/invalid fixtures, then rerun bash tests/test-research-skill-contract.sh and bash tests/run-focused.sh research."
+      "verification_hint": "Extend completion_check.sh to require Report Self-Review and User Confirmation Gate evidence for formal reports, update valid/invalid fixtures, then rerun bash tests/test-research-skill-contract.sh and bash tests/run-focused.sh research.",
+      "confirmed_gap_refs": [
+        "GAP-RESEARCH-P1-002"
+      ]
     },
     {
       "id": "RESEARCH-P2-003",
@@ -264,7 +270,10 @@
       "evidence": "shared/skills/research/agents/openai.yaml:7 sets allow_implicit_invocation: true, while contracts/skill-runtime-surface.json:308-312 marks research as manual because research workflows are broad and potentially high-cost. install.sh:2191-2193 requires manual skills to disable implicit invocation, and tools/skills/apply_skill_runtime_surface.py:169-203 can self-heal runtime copies.",
       "impact": "The source package presents a routing policy that contradicts the active runtime contract. Maintainers or direct adapter consumers can treat research as auto-routable even though the repo's runtime surface says it should be explicit.",
       "repair_target": "shared/skills/research/agents/openai.yaml or the adapter-generation path that owns source OpenAI policy",
-      "verification_hint": "Align the source adapter with the manual runtime surface or document why source adapters are intentionally generated differently; then run the Codex runtime surface tests that check manual implicit-invocation policy."
+      "verification_hint": "Align the source adapter with the manual runtime surface or document why source adapters are intentionally generated differently; then run the Codex runtime surface tests that check manual implicit-invocation policy.",
+      "confirmed_gap_refs": [
+        "GAP-RESEARCH-P2-003"
+      ]
     }
   ],
   "repair_handoff": [
@@ -286,8 +295,16 @@
   ],
   "validation": {
     "status": "PASS",
-    "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/skill-audit-report.json",
-    "output": "[PASS] skill audit report valid"
+    "alignment": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/skill-audit-alignment.json",
+      "output": "[PASS] skill audit alignment valid"
+    },
+    "report": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/skill-audit-report.json",
+      "output": "[PASS] skill audit report valid"
+    }
   },
   "executed_verification": [
     {
@@ -308,5 +325,9 @@
   "residual_risk": [
     "This audit did not modify target files; all repairs require a separate implementation window.",
     "The focused research gates pass despite the P1 findings, so existing green tests should not be used as proof that formal completion is runtime-enforced."
+  ],
+  "capability_baseline_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/research-artifact-triage-audit/with_skill/skill-audit-alignment.json",
+  "confirmed_target_capability_ids": [
+    "TGT-001"
   ]
 }

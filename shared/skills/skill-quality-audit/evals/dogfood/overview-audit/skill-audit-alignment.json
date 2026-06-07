@@ -1,0 +1,99 @@
+{
+  "artifact_type": "skill-audit-alignment",
+  "stage": "confirmed",
+  "target_skill": "shared/skills/overview",
+  "target_capability_claims": [
+    {
+      "target_capability_id": "TGT-001",
+      "label": "Audit target capability confirmed for this formal report fixture",
+      "source": "user_supplied",
+      "confidence": "high",
+      "refs": [
+        "shared/skills/overview"
+      ]
+    }
+  ],
+  "current_capability_profile": [
+    {
+      "current_capability_id": "CUR-001",
+      "label": "Current audit evidence profile for the confirmed target",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-OVERVIEW-P1-001-1"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EV-OVERVIEW-P1-001-1",
+      "type": "path_line",
+      "path": "shared/skills/overview/scripts/dir-tree.sh",
+      "line": 26,
+      "expected_snippet": "eval find \"$PROJECT_DIR\" -maxdepth \"$DEPTH\" -type d $EXCLUDES",
+      "claim": "The fallback path uses eval to build and execute the find command."
+    },
+    {
+      "type": "path_line",
+      "path": "shared/skills/overview/test-prompts.json",
+      "line": 5,
+      "expected_snippet": "\"expected\": \"先扫描真实代码和关键配置，说明预扫描信号，要求用户在串行概览和分层 agent team 概览之间确认模式。\"",
+      "evidence_id": "EV-GAP-OVERVIEW-P2-001-1",
+      "claim": "Current file evidence supports gap GAP-OVERVIEW-P2-001."
+    },
+    {
+      "type": "path_line",
+      "path": "shared/skills/overview/SKILL.md",
+      "line": 53,
+      "expected_snippet": "2. 模式选择共创 — 基于预扫描结果展示 `串行概览（更快）` 与 `分层 agent team 概览（更全面）`，给出推荐理由与代价，AskUserQuestion 等待用户确认。未完成模式选择确认前禁止继续。",
+      "evidence_id": "EV-GAP-OVERVIEW-P2-002-1",
+      "claim": "Current file evidence supports gap GAP-OVERVIEW-P2-002."
+    }
+  ],
+  "assumptions_or_unknowns": [],
+  "capability_match_draft": {
+    "gaps": [
+      {
+        "gap_id": "GAP-OVERVIEW-P1-001",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-OVERVIEW-P1-001-1"
+        ]
+      },
+      {
+        "gap_id": "GAP-OVERVIEW-P2-001",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-GAP-OVERVIEW-P2-001-1"
+        ]
+      },
+      {
+        "gap_id": "GAP-OVERVIEW-P2-002",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001"
+        ],
+        "status": "partial",
+        "evidence_refs": [
+          "EV-GAP-OVERVIEW-P2-002-1"
+        ]
+      }
+    ]
+  },
+  "user_confirmation": {
+    "level": "G1",
+    "status": "confirmed",
+    "confirmed_scope_ref": "user_scope:fixture-formal-audit-target",
+    "confirmed_target_capability_ids": [
+      "TGT-001"
+    ],
+    "accepted_assumption_ids": []
+  }
+}
