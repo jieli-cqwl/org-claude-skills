@@ -47,18 +47,27 @@ def render_summary(result_json: Path) -> str:
     data = json.loads(result_json.read_text(encoding="utf-8"))
     result = data.get("result", {})
     if result.get("status") == "blocked":
-        return "\n".join(
+        lines = [
+            "## Blocked",
+            "",
+            f"- Failed phase: {result.get('failed_phase', '')}",
+            f"- Failed command: {result.get('failed_command', '')}",
+            f"- Preserved worktree: {result.get('worktree_path', '')}",
+        ]
+        if result.get("failed_returncode") is not None:
+            lines.append(f"- Return code: {result.get('failed_returncode')}")
+        if result.get("duration_seconds") is not None:
+            lines.append(f"- Duration seconds: {result.get('duration_seconds')}")
+        if result.get("stdout"):
+            lines.append(f"- Stdout: {result.get('stdout')}")
+        lines.append(f"- Evidence: {result.get('stderr', '')}")
+        lines.extend(
             [
-                "## Blocked",
-                "",
-                f"- Failed phase: {result.get('failed_phase', '')}",
-                f"- Failed command: {result.get('failed_command', '')}",
-                f"- Preserved worktree: {result.get('worktree_path', '')}",
-                f"- Evidence: {result.get('stderr', '')}",
                 "- Next action: inspect the preserved worktree and fix the failing phase before rerunning.",
                 "",
             ]
         )
+        return "\n".join(lines)
 
     sources = data.get("sources", [])
     checked_sources = data.get("checked_sources", sources)

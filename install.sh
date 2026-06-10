@@ -538,7 +538,7 @@ check_codex_hook_trust() {
       return 0
       ;;
     *)
-      fail "Quick Check 失败: Codex hooks trust 审计异常或缺少预期 hook（rc=$audit_rc）"
+      fail "Quick Check 失败: Codex hooks trust 审计异常或缺少预期 hook（rc=${audit_rc}）"
       ;;
   esac
 }
@@ -2829,52 +2829,77 @@ uninstall_target() {
     return 0
   fi
 
-  while IFS= read -r dst; do
+  local manifest_restore_plan pruned_restore_plan backup_only_restore_plan managed_restore_paths
+  manifest_restore_plan=$(mktemp)
+  pruned_restore_plan=$(mktemp)
+  backup_only_restore_plan=$(mktemp)
+  managed_restore_paths=$(mktemp)
+
+  awk -F '\t' '
+    FILENAME == ARGV[1] { backup[$1]=$2; next }
+    { printf "%s\t%s\n", $0, backup[$0] }
+  ' "$backup_manifest" "$manifest" > "$manifest_restore_plan"
+
+  if [ -f "$pruned_manifest" ]; then
+    awk -F '\t' '
+      FILENAME == ARGV[1] { backup[$1]=$2; next }
+      { printf "%s\t%s\n", $0, backup[$0] }
+    ' "$backup_manifest" "$pruned_manifest" > "$pruned_restore_plan"
+  else
+    : > "$pruned_restore_plan"
+  fi
+
+  cp "$manifest" "$managed_restore_paths"
+  if [ -f "$pruned_manifest" ]; then
+    cat "$pruned_manifest" >> "$managed_restore_paths"
+  fi
+  awk -F '\t' '
+    FILENAME == ARGV[1] { managed[$0]=1; next }
+    !($1 in managed) { print }
+  ' "$managed_restore_paths" "$backup_manifest" > "$backup_only_restore_plan"
+
+  local dst_dir
+  while IFS=$'\t' read -r dst backup; do
     [ -n "$dst" ] || continue
+    dst_dir="${dst%/*}"
     if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
       continue
     fi
     if is_runtime_audit_cleanup_path "$name" "$target_dir" "$dst"; then
       rm -rf "$dst"
-      remove_if_empty "$(dirname "$dst")" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
+      remove_if_empty "$dst_dir" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
       continue
     fi
-    local backup
-    backup=$(awk -F '\t' -v key="$dst" '$1==key {print $2; exit}' "$backup_manifest")
     if [ -n "$backup" ] && path_exists_or_symlink "$backup"; then
-      mkdir -p "$(dirname "$dst")"
+      mkdir -p "$dst_dir"
       rm -rf "$dst"
       cp -a "$backup" "$dst"
     else
       rm -f "$dst"
     fi
-    remove_if_empty "$(dirname "$dst")" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
-  done < "$manifest"
+    remove_if_empty "$dst_dir" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
+  done < "$manifest_restore_plan"
 
-  if [ -f "$pruned_manifest" ]; then
-    while IFS= read -r dst; do
-      [ -n "$dst" ] || continue
-      if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
-        continue
-      fi
-      if is_runtime_audit_cleanup_path "$name" "$target_dir" "$dst"; then
-        continue
-      fi
-      local backup
-      backup=$(awk -F '\t' -v key="$dst" '$1==key {print $2; exit}' "$backup_manifest")
-      if [ -n "$backup" ] && path_exists_or_symlink "$backup"; then
-        mkdir -p "$(dirname "$dst")"
-        rm -rf "$dst"
-        cp -a "$backup" "$dst"
-      fi
-    done < "$pruned_manifest"
-  fi
+  while IFS=$'\t' read -r dst backup; do
+    [ -n "$dst" ] || continue
+    dst_dir="${dst%/*}"
+    if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
+      continue
+    fi
+    if is_runtime_audit_cleanup_path "$name" "$target_dir" "$dst"; then
+      continue
+    fi
+    if [ -n "$backup" ] && path_exists_or_symlink "$backup"; then
+      mkdir -p "$dst_dir"
+      rm -rf "$dst"
+      cp -a "$backup" "$dst"
+    fi
+  done < "$pruned_restore_plan"
 
   while IFS=$'\t' read -r dst backup; do
     [ -n "$dst" ] || continue
     [ -n "$backup" ] || continue
-    is_in_manifest "$manifest" "$dst" && continue
-    is_in_manifest "$pruned_manifest" "$dst" && continue
+    dst_dir="${dst%/*}"
     if external_runtime_skill_path "$name" "$target_dir" "$dst"; then
       continue
     fi
@@ -2883,11 +2908,13 @@ uninstall_target() {
     fi
     if path_exists_or_symlink "$backup"; then
       rm -rf "$dst"
-      mkdir -p "$(dirname "$dst")"
+      mkdir -p "$dst_dir"
       cp -a "$backup" "$dst"
-      remove_if_empty "$(dirname "$dst")" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
+      remove_if_empty "$dst_dir" "$(runtime_root_for_path "$name" "$target_dir" "$dst")"
     fi
-  done < "$backup_manifest"
+  done < "$backup_only_restore_plan"
+
+  rm -f "$manifest_restore_plan" "$pruned_restore_plan" "$backup_only_restore_plan" "$managed_restore_paths"
 
   if [ "$name" = "claude" ]; then
     restore_claude_settings_baseline

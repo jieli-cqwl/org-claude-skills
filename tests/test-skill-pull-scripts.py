@@ -131,23 +131,35 @@ class CandidateLookupTests(TempDirTest):
 
 
 class FakeRunner:
-    def __init__(self, fail_contains: str = "") -> None:
+    def __init__(
+        self, fail_contains: str = "", fail_stdout: str = "", fail_stderr: str = ""
+    ) -> None:
         self.commands: list[list[str]] = []
         self.fail_contains = fail_contains
+        self.fail_stdout = fail_stdout
+        self.fail_stderr = fail_stderr
 
     def run(self, cmd: list[str], cwd: Path | None = None):
         self.last_cwd = cwd
         self.commands.append(cmd)
         text = " ".join(cmd)
         returncode = 1 if self.fail_contains and self.fail_contains in text else 0
-        stdout = "abc123\n" if cmd == ["git", "rev-parse", "--short", "HEAD"] else ""
+        if cmd == ["git", "rev-parse", "--short", "HEAD"]:
+            stdout = "abc123\n"
+        elif returncode:
+            stdout = self.fail_stdout
+        else:
+            stdout = ""
+        stderr = self.fail_stderr if returncode and self.fail_stderr else ""
+        if returncode and not stderr:
+            stderr = f"failed: {text}"
         return type(
             "Result",
             (),
             {
                 "returncode": returncode,
                 "stdout": stdout,
-                "stderr": f"failed: {text}" if returncode else "",
+                "stderr": stderr,
             },
         )()
 
@@ -283,6 +295,17 @@ class RunUpdateTests(TempDirTest):
             [["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"]],
         )
 
+    def test_full_check_is_the_only_runtime_smoke_gate(self) -> None:
+        validation_commands = [
+            " ".join(command) for command in self.run_update.VALIDATION_COMMANDS
+        ]
+
+        self.assertNotIn("bash tests/test-install-runtime-smoke.sh", validation_commands)
+        self.assertEqual(
+            self.run_update.FULL_CHECK_COMMAND,
+            ["bash", "install.sh", "--target", "all", "--check", "full"],
+        )
+
     def test_update_flow_runs_install_commit_and_cleanup(self) -> None:
         statuses = [make_anthropic_status(self.lib, summary="v2.0.0")]
         runner = FakeRunner()
@@ -298,10 +321,7 @@ class RunUpdateTests(TempDirTest):
         command_text = [" ".join(command) for command in runner.commands]
         self.assertEqual(result.status, "updated")
         self.assertIn("git worktree add", command_text[0])
-        self.assertLess(
-            command_text.index("bash tests/test-install-runtime-smoke.sh"),
-            command_text.index("bash install.sh --target all --check full"),
-        )
+        self.assertNotIn("bash tests/test-install-runtime-smoke.sh", command_text)
         self.assertLess(
             command_text.index("bash tests/test-community-tools.sh"),
             command_text.index(
@@ -347,6 +367,32 @@ class RunUpdateTests(TempDirTest):
             Path(result.worktree_path) / "community" / "SOURCES.yaml"
         ).read_text(encoding="utf-8")
         self.assertIn("ref: new999", updated_lock)
+
+    def test_failure_result_records_command_evidence(self) -> None:
+        statuses = [make_anthropic_status(self.lib)]
+        runner = FakeRunner(
+            fail_contains="test-community-tools",
+            fail_stdout="stdout details",
+            fail_stderr="stderr details",
+        )
+
+        result = self.run_update.run_update_flow(
+            repo_root=self.repo_root,
+            statuses=statuses,
+            today="2026-04-22",
+            runner=runner,
+            existing_branches=set(),
+        )
+        payload = self.run_update.build_report_payload(result, statuses)
+
+        self.assertEqual(result.status, "blocked")
+        self.assertEqual(result.failed_returncode, 1)
+        self.assertGreaterEqual(result.duration_seconds, 0)
+        self.assertEqual(result.stdout, "stdout details")
+        self.assertEqual(result.stderr, "stderr details")
+        self.assertEqual(payload["result"]["failed_returncode"], 1)
+        self.assertEqual(payload["result"]["stdout"], "stdout details")
+        self.assertIn("duration_seconds", payload["result"])
 
     def test_full_check_failure_uses_full_check_phase(self) -> None:
         statuses = [make_anthropic_status(self.lib)]
@@ -457,6 +503,9 @@ class SummaryTests(TempDirTest):
                         "failed_phase": "validation",
                         "failed_command": "bash tests/test-community-tools.sh",
                         "worktree_path": worktree_path,
+                        "failed_returncode": 7,
+                        "duration_seconds": 12.34,
+                        "stdout": "stdout details",
                         "stderr": "failed validation",
                     }
                 }
@@ -470,6 +519,9 @@ class SummaryTests(TempDirTest):
         self.assertIn("validation", summary)
         self.assertIn("bash tests/test-community-tools.sh", summary)
         self.assertIn(worktree_path, summary)
+        self.assertIn("7", summary)
+        self.assertIn("12.34", summary)
+        self.assertIn("stdout details", summary)
         self.assertIn("failed validation", summary)
 
 

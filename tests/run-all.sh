@@ -76,6 +76,7 @@ run_bash_syntax_checks() {
   done
   python3 -m py_compile "$ROOT/tools/community/check_superpowers_upstream_fidelity.py"
   python3 -m py_compile "$ROOT/tests/test-skill-pull-scripts.py"
+  python3 -m py_compile "$ROOT/tests/test-install-script-contract.py"
   python3 -m py_compile "$ROOT/tools/community/audit_codex_hook_trust.py"
   python3 -m py_compile "$ROOT/tools/community/validate_context_contract.py"
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"
