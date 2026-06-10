@@ -44,6 +44,28 @@ def common_envelope(
     }
 
 
+def test_design_obligation_refs(test_cases: dict[str, Any]) -> list[str]:
+    refs: list[str] = []
+
+    def add(anchor: str) -> None:
+        if anchor:
+            refs.append(artifact_ref("test-cases", test_cases["artifact_id"], "v1", anchor))
+
+    for row in test_cases.get("ac_coverage_matrix", []):
+        if isinstance(row, dict):
+            add(str(row.get("ac_id", "")).strip())
+    for index, row in enumerate(test_cases.get("traceability_matrix", []), start=1):
+        if isinstance(row, dict):
+            add(f"traceability_matrix:{index}")
+    for row in test_cases.get("qa_handoff_contract", []):
+        if isinstance(row, dict) and row.get("requiredness") == "REQUIRED":
+            add(f"qa_handoff_contract:{str(row.get('obligation_id', '')).strip()}")
+    for row in test_cases.get("cross_unit_obligations", []):
+        if isinstance(row, dict):
+            add(f"cross_unit_obligations:{str(row.get('journey_id', '')).strip()}")
+    return list(dict.fromkeys(refs))
+
+
 def upstream_refs(test_design_package: dict[str, Any]) -> dict[str, Any]:
     design_package = test_design_package["design_package"]
     pm_package = design_package["product_manager_package"]
@@ -52,6 +74,11 @@ def upstream_refs(test_design_package: dict[str, Any]) -> dict[str, Any]:
     unit = pm_package["units"][0]
     design = design_package["design"]
     test_cases = test_design_package["test_cases"]
+    obligation_refs = test_design_obligation_refs(test_cases)
+    qa_handoff_ref = next(
+        (ref for ref in obligation_refs if "#qa_handoff_contract:" in ref),
+        artifact_ref("test-cases", test_cases["artifact_id"], "v1", "QA-OB-001"),
+    )
     return {
         "brief": brief,
         "phase_prd": phase_prd,
@@ -78,9 +105,8 @@ def upstream_refs(test_design_package: dict[str, Any]) -> dict[str, Any]:
         "test_boundary_ref": artifact_ref(
             "test-cases", test_cases["artifact_id"], "v1", "TC-003"
         ),
-        "qa_handoff_ref": artifact_ref(
-            "test-cases", test_cases["artifact_id"], "v1", "QA-OB-001"
-        ),
+        "qa_handoff_ref": qa_handoff_ref,
+        "test_design_obligation_refs": obligation_refs,
     }
 
 
@@ -95,7 +121,11 @@ def build_tasks_artifact(test_design_package: dict[str, Any]) -> dict[str, Any]:
         "scope_item_refs": [refs["phase_ref"]],
         "design_refs": [refs["design_decision_ref"], refs["design_interface_ref"]],
         "decision_refs": [refs["design_decision_ref"]],
-        "test_refs": [refs["test_case_ref"], refs["test_negative_ref"]],
+        "test_refs": [
+            refs["test_case_ref"],
+            refs["test_negative_ref"],
+            *refs["test_design_obligation_refs"],
+        ],
         "depends_on": [],
         "shared_files": [],
         "batch": 1,
@@ -121,7 +151,11 @@ def build_tasks_artifact(test_design_package: dict[str, Any]) -> dict[str, Any]:
         "scope_item_refs": [refs["phase_ref"], refs["qa_handoff_ref"]],
         "design_refs": [refs["design_decision_ref"], refs["design_interface_ref"]],
         "decision_refs": [refs["design_decision_ref"]],
-        "test_refs": [refs["test_boundary_ref"], refs["qa_handoff_ref"]],
+        "test_refs": [
+            refs["test_boundary_ref"],
+            refs["qa_handoff_ref"],
+            *refs["test_design_obligation_refs"],
+        ],
         "depends_on": ["T1"],
         "shared_files": [],
         "batch": 2,
@@ -146,7 +180,7 @@ def build_tasks_artifact(test_design_package: dict[str, Any]) -> dict[str, Any]:
         "authoritative_fields": ["$.plan_version", "$.tasks"],
         "goal_source_refs": [refs["brief_ref"], refs["phase_ref"]],
         "constraint_source_refs": [refs["design_decision_ref"]],
-        "obligation_source_refs": [refs["test_case_ref"], refs["qa_handoff_ref"]],
+        "obligation_source_refs": refs["test_design_obligation_refs"],
         "execution_basis_refs": [
             refs["design_decision_ref"],
             refs["test_case_ref"],
@@ -203,7 +237,7 @@ def build_plan_artifact(
             refs["design_decision_ref"],
             refs["design_interface_ref"],
         ],
-        "obligation_source_refs": [refs["test_case_ref"], refs["qa_handoff_ref"]],
+        "obligation_source_refs": refs["test_design_obligation_refs"],
         "execution_basis_refs": [
             refs["design_decision_ref"],
             refs["test_case_ref"],

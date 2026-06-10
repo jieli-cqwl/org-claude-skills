@@ -6,6 +6,40 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=tests/lib/install-test-env.sh
 . "$ROOT/tests/lib/install-test-env.sh"
 
+GROUP="all"
+
+usage() {
+  cat <<'USAGE'
+Usage: bash tests/test-install-runtime-smoke.sh [--group all|shape|cache|drift]
+USAGE
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --group)
+      [ "$#" -ge 2 ] || install_test_fail "--group 缺少参数"
+      GROUP="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      install_test_fail "未知参数: $1"
+      ;;
+  esac
+done
+
+case "$GROUP" in
+  all|shape|cache|drift) ;;
+  *) install_test_fail "未知 install-runtime-smoke group: $GROUP" ;;
+esac
+
+should_run_group() {
+  [ "$GROUP" = "all" ] || [ "$GROUP" = "$1" ]
+}
+
 install_test_init
 
 official_skills=(
@@ -48,6 +82,7 @@ install_test_assert_rendered_shared_tree_matches_runtime() {
   done < <(find "$source_dir" -maxdepth 1 -type f -name '*.md' | sort)
 }
 
+if should_run_group shape; then
 install_test_case_start "runtime-smoke: install and uninstall preserve runtime shape"
 home_dir="$(install_test_new_home runtime-smoke)"
 state_root="$(install_test_state_root "$home_dir")"
@@ -162,7 +197,9 @@ install_test_assert_path_absent "$state_root/claude" "claude state dir should be
 install_test_assert_path_absent "$state_root/codex" "codex state dir should be removed after uninstall"
 
 install_test_case_pass "runtime-smoke: install and uninstall preserve runtime shape"
+fi
 
+if should_run_group cache; then
 install_test_case_start "runtime-smoke: quick check removes generated codex tool cache"
 home_dir="$(install_test_new_home runtime-generated-tool-cache)"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-generated-tool-cache-install)" --target codex --check quick
@@ -172,7 +209,9 @@ cache_log="$(install_test_log_path runtime-generated-tool-cache-check)"
 install_test_run_install_fake_openspec "$home_dir" "$cache_log" --target codex --check quick
 install_test_assert_path_absent "$home_dir/.codex/tools/community/__pycache__" "codex quick check should remove generated tool cache"
 install_test_case_pass "runtime-smoke: quick check removes generated codex tool cache"
+fi
 
+if should_run_group drift; then
 install_test_case_start "runtime-smoke: quick check detects runtime reference drift"
 home_dir="$(install_test_new_home runtime-reference-drift)"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-reference-drift-install)" --target codex --check quick
@@ -183,5 +222,6 @@ if install_test_run_install_fake_openspec_allow_failure "$home_dir" "$drift_log"
 fi
 install_test_assert_file_contains "$drift_log" "与 shared 源不一致" "codex quick check should explain runtime reference drift"
 install_test_case_pass "runtime-smoke: quick check detects runtime reference drift"
+fi
 
 printf '\nInstall runtime smoke tests passed: %d\n' "$INSTALL_TEST_CASE_COUNT"

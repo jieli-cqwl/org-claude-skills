@@ -7,6 +7,7 @@ import argparse
 import re
 import shutil
 import subprocess
+import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Protocol, Sequence
@@ -108,7 +109,6 @@ VALIDATION_COMMANDS = (
     ["python3", "tools/community/check_superpowers_upstream_fidelity.py"],
     ["bash", "tests/test-single-source-layout.sh"],
     ["bash", "tests/test-codex-skill-adapter.sh"],
-    ["bash", "tests/test-install-runtime-smoke.sh"],
 )
 FULL_CHECK_COMMAND = ["bash", "install.sh", "--target", "all", "--check", "full"]
 INSTALL_COMMAND = ["bash", "install.sh", "--target", "all"]
@@ -141,6 +141,9 @@ class UpdateResult:
     worktree_path: str = ""
     failed_phase: str = ""
     failed_command: str = ""
+    failed_returncode: int | None = None
+    duration_seconds: float = 0.0
+    stdout: str = ""
     stderr: str = ""
     commit: str = ""
     validations: tuple[CommandOutcome, ...] = ()
@@ -210,16 +213,23 @@ def _run_or_block(
     branch: str,
     worktree_path: Path,
 ) -> UpdateResult | None:
+    started = time.monotonic()
     result = runner.run(cmd, cwd=cwd)
+    duration_seconds = round(time.monotonic() - started, 3)
     if result.returncode == 0:
         return None
+    stdout = (result.stdout or "").strip()
+    stderr = (result.stderr or "").strip()
     return UpdateResult(
         status="blocked",
         branch=branch,
         worktree_path=str(worktree_path),
         failed_phase=phase,
         failed_command=" ".join(cmd),
-        stderr=(result.stderr or result.stdout or "").strip(),
+        failed_returncode=result.returncode,
+        duration_seconds=duration_seconds,
+        stdout=stdout,
+        stderr=stderr or stdout,
     )
 
 
@@ -324,16 +334,23 @@ def _commit_updates(
             return blocked_result
 
     commit_command = ["git", "rev-parse", "--short", "HEAD"]
+    started = time.monotonic()
     commit_result = runner.run(commit_command, cwd=worktree_path)
+    duration_seconds = round(time.monotonic() - started, 3)
     if commit_result.returncode == 0:
         return commit_result.stdout.strip()
+    stdout = (commit_result.stdout or "").strip()
+    stderr = (commit_result.stderr or "").strip()
     return UpdateResult(
         status="blocked",
         branch=branch,
         worktree_path=str(worktree_path),
         failed_phase="commit",
         failed_command=" ".join(commit_command),
-        stderr=(commit_result.stderr or commit_result.stdout or "").strip(),
+        failed_returncode=commit_result.returncode,
+        duration_seconds=duration_seconds,
+        stdout=stdout,
+        stderr=stderr or stdout,
         validations=tuple(validations),
         install=install,
     )

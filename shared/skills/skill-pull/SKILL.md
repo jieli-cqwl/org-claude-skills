@@ -76,9 +76,10 @@ bash tests/test-community-tools.sh
 python3 tools/community/check_superpowers_upstream_fidelity.py
 bash tests/test-single-source-layout.sh
 bash tests/test-codex-skill-adapter.sh
-bash tests/test-install-runtime-smoke.sh
 bash install.sh --target all --check full
 ```
+
+`bash install.sh --target all --check full` owns the full install-runtime smoke through the full gate plan. Do not run `bash tests/test-install-runtime-smoke.sh` separately in skill-pull; that duplicates the heaviest runtime gate and increases timeout risk without adding coverage.
 
 Only after those pass may skill-pull run:
 
@@ -114,11 +115,11 @@ Report the `bash install.sh --target all` result.
 ## Branch and commit
 Report the update branch and commit hash.
 
-Blocked runs report the failed phase, failed command, preserved worktree path, evidence, and next action.
+Blocked runs report the failed phase, failed command, preserved worktree path, return code, duration, stdout/stderr evidence, and next action.
 
 ## Completion Check
 
 - [ ] Command evidence recorded for candidate check, validation, full-check install gate, final install, and summary.
 - [ ] Successful run reports source updates, upstream changes, runtime exposure changes, validation results, install result, branch, and commit.
-- [ ] Blocked run reports failed phase, failed command, preserved worktree path, evidence, and next action.
+- [ ] Blocked run reports failed phase, failed command, preserved worktree path, return code, duration, stdout/stderr evidence, and next action.
 - [ ] No failed validation or install step was bypassed.

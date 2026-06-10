@@ -222,6 +222,7 @@ install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"PostCompac
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"TaskCompleted"' "Claude-only TaskCompleted should not render into Codex hooks"
 python3 - "$home_dir/.codex/hooks.json" "$home_dir" <<'PY'
 import json
+import shlex
 import sys
 from pathlib import Path
 
@@ -233,11 +234,17 @@ stop_commands = [
     for entry in data["hooks"]["Stop"]
     for hook in entry.get("hooks", [])
 ]
+def managed_script(command):
+    parts = shlex.split(command)
+    if len(parts) < 2 or Path(parts[0]).name not in {"python", "python3"}:
+        return ""
+    return parts[1]
+
 expected_prefix = [
-    f"python3 {home}/.codex/hooks/managed/context_contract_validator.py",
-    f"python3 {home}/.codex/hooks/managed/codex_stop_dispatch.py",
+    f"{home}/.codex/hooks/managed/context_contract_validator.py",
+    f"{home}/.codex/hooks/managed/codex_stop_dispatch.py",
 ]
-if stop_commands[:2] != expected_prefix:
+if [managed_script(command) for command in stop_commands[:2]] != expected_prefix:
     raise SystemExit(f"managed Stop hooks must keep stable leading order, got: {stop_commands}")
 if f"{home}/bin/notify.sh" not in stop_commands:
     raise SystemExit("user Stop hook should still be preserved")
@@ -251,6 +258,7 @@ cat > "$bin_dir/codex" <<'PY'
 #!/usr/bin/env python3
 import json
 import os
+import shutil
 import sys
 
 
@@ -282,11 +290,12 @@ if sys.argv[1:4] != ["app-server", "--enable", "hooks"]:
     raise SystemExit("unexpected fake codex invocation")
 
 home = os.environ["HOME"]
+python = shutil.which("python3") or "python3"
 hooks = [
     hook("preToolUse", "pre_tool_use:0:0", f"bash {home}/.codex/hooks/managed/block_dangerous.sh"),
-    hook("postToolUse", "post_tool_use:0:0", f"python3 {home}/.codex/hooks/managed/context_contract_validator.py"),
-    hook("userPromptSubmit", "user_prompt_submit:0:0", f"python3 {home}/.codex/hooks/managed/codex_user_prompt_submit.py"),
-    hook("stop", "stop:0:0", f"python3 {home}/.codex/hooks/managed/codex_stop_dispatch.py"),
+    hook("postToolUse", "post_tool_use:0:0", f"{python} {home}/.codex/hooks/managed/context_contract_validator.py"),
+    hook("userPromptSubmit", "user_prompt_submit:0:0", f"{python} {home}/.codex/hooks/managed/codex_user_prompt_submit.py"),
+    hook("stop", "stop:0:0", f"{python} {home}/.codex/hooks/managed/codex_stop_dispatch.py"),
 ]
 
 for raw_line in sys.stdin:
@@ -312,6 +321,7 @@ cat > "$bin_dir/codex" <<'PY'
 #!/usr/bin/env python3
 import json
 import os
+import shutil
 import sys
 
 
@@ -343,11 +353,12 @@ if sys.argv[1:4] != ["app-server", "--enable", "hooks"]:
     raise SystemExit("unexpected fake codex invocation")
 
 home = os.environ["HOME"]
+python = shutil.which("python3") or "python3"
 hooks = [
     hook("preToolUse", "pre_tool_use:0:0", f"bash {home}/.codex/hooks/managed/block_dangerous.sh", "trusted"),
-    hook("postToolUse", "post_tool_use:0:0", f"python3 {home}/.codex/hooks/managed/context_contract_validator.py", "trusted"),
-    hook("userPromptSubmit", "user_prompt_submit:0:0", f"python3 {home}/.codex/hooks/managed/codex_user_prompt_submit.py", "trusted"),
-    hook("stop", "stop:0:0", f"python3 {home}/.codex/hooks/managed/codex_stop_dispatch.py", "trusted"),
+    hook("postToolUse", "post_tool_use:0:0", f"{python} {home}/.codex/hooks/managed/context_contract_validator.py", "trusted"),
+    hook("userPromptSubmit", "user_prompt_submit:0:0", f"{python} {home}/.codex/hooks/managed/codex_user_prompt_submit.py", "trusted"),
+    hook("stop", "stop:0:0", f"{python} {home}/.codex/hooks/managed/codex_stop_dispatch.py", "trusted"),
     hook("stop", "stop:1:0", f"{home}/bin/external-notify.sh", "modified"),
 ]
 

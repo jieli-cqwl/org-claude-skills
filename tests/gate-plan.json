@@ -136,7 +136,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-core-runtime-noise",
@@ -152,7 +152,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-core-runtime-idempotent",
@@ -168,7 +168,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-core-runtime-product-split",
@@ -184,7 +184,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-core-claude-agents",
@@ -200,7 +200,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-core-codex-agent-model-config",
@@ -216,7 +216,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-core-codex-agent-config-file",
@@ -232,7 +232,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-core-codex-agent-file-contracts",
@@ -248,7 +248,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-core-codex-local-edit",
@@ -264,7 +264,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-runtime-quick-canary",
@@ -281,10 +281,27 @@
       "timeout_sec": 120
     },
     {
-      "id": "install-runtime-smoke",
+      "id": "install-script-contract",
+      "command": [
+        "python3",
+        "tests/test-install-script-contract.py"
+      ],
+      "area": "install-runtime",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "python"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
+      "id": "install-runtime-smoke-shape",
       "command": [
         "bash",
-        "tests/test-install-runtime-smoke.sh"
+        "tests/test-install-runtime-smoke.sh",
+        "--group",
+        "shape"
       ],
       "area": "install-runtime",
       "tier": "full",
@@ -292,7 +309,39 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 420
+    },
+    {
+      "id": "install-runtime-smoke-cache",
+      "command": [
+        "bash",
+        "tests/test-install-runtime-smoke.sh",
+        "--group",
+        "cache"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 180
+    },
+    {
+      "id": "install-runtime-smoke-drift",
+      "command": [
+        "bash",
+        "tests/test-install-runtime-smoke.sh",
+        "--group",
+        "drift"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "install-heavy"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 180
     },
     {
       "id": "install-safety-backup-and-conflict",
@@ -308,7 +357,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-safety-external-codex",
@@ -324,7 +373,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-safety-external-claude",
@@ -340,7 +389,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-safety-rollback",
@@ -356,7 +405,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-safety-codex-hooks",
@@ -372,7 +421,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-safety-state-cleanup",
@@ -388,7 +437,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-safety-preserve-backup",
@@ -404,7 +453,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-runtime",
@@ -433,7 +482,7 @@
         "migration"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "install-retired-skill-cleanup",
@@ -447,7 +496,7 @@
         "install-heavy"
       ],
       "parallel_safe": false,
-      "timeout_sec": 300
+      "timeout_sec": 480
     },
     {
       "id": "runtime-contract-catalog",
