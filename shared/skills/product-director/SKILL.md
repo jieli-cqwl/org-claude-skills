@@ -23,7 +23,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, TeamCreate
 必须按顺序完成这些事项：
 
 1. **Explore demand context** — 静默信息收集，读取到的信息只作为待验证线索，未经用户确认不得作为已确认基线使用。
-2. **Ask one clarifying question** — 一次只问一个澄清问题，优先补齐会影响用户确认基线的目标、约束或事实。
+2. **Ask one clarifying question** — 一次只问一个澄清问题，优先补齐会影响用户确认基线的目标、约束或事实；方案先行输入必须先呈现问题澄清推荐投影，再只问一个关键事实。
 3. **Propose 2-3 Director baseline options** — 给出 2-3 个可能基线切法、取舍和推荐项；简单场景可压缩成推荐项 + 备选取舍。
 4. **Recommend one baseline** — 先给你的推荐判断和理由，让用户知道你在推动哪条主线。
 5. **Present baseline by sections** — 分段呈现根问题、成功标准、范围、本期不做、风险和 Phase 切片；每段只写 Director WHY 层判断。

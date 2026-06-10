@@ -49,6 +49,19 @@ def registry_entry_for_skill(registry: dict, skill: str) -> dict | None:
     return None
 
 
+def entry_dispatches_on_stop(entry: dict | None) -> bool:
+    if entry is None:
+        return False
+    codex = entry.get("codex")
+    if not isinstance(codex, dict) or not codex.get("supported"):
+        return False
+    event = codex.get("event")
+    if not isinstance(event, str):
+        claude = entry.get("claude")
+        event = claude.get("event") if isinstance(claude, dict) else None
+    return event == "Stop"
+
+
 def timeout_for_entry(entry: dict | None) -> float | None:
     if not entry:
         return None
@@ -226,6 +239,10 @@ def main() -> int:
         print("{}")
         return 0
     if entry is None:
+        state_file_for(session_id).unlink(missing_ok=True)
+        print("{}")
+        return 0
+    if not entry_dispatches_on_stop(entry):
         state_file_for(session_id).unlink(missing_ok=True)
         print("{}")
         return 0

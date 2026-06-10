@@ -941,6 +941,21 @@
       "timeout_sec": 90
     },
     {
+      "id": "overview-skill-contract",
+      "command": [
+        "bash",
+        "tests/test-overview-skill-contract.sh"
+      ],
+      "area": "skill-evals",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "skill-evals"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
       "id": "managed-doc-output-contract",
       "command": [
         "bash",

@@ -38,6 +38,7 @@ SYNTAX_SHELL_FILES=(
   "tests/run-focused.sh"
   "tests/test-run-focused-runner-contract.sh"
   "tests/test-run-all-runner-contract.sh"
+  "tests/test-overview-skill-contract.sh"
   "tests/test-skill-pull-contract.sh"
   "tests/test-superpowers-upstream-fidelity.sh"
   "tests/test-entry-doc-source-contract.sh"

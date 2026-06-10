@@ -9,25 +9,30 @@ source "$(dirname "$0")/../../lib/script-common.sh"
 PROJECT_DIR="${1:-.}"
 DEPTH="${2:-3}"
 [ -d "$PROJECT_DIR" ] || script_error "Directory not found: $PROJECT_DIR"
+[[ "$DEPTH" =~ ^[0-9]+$ ]] && [ "$DEPTH" -gt 0 ] || script_error "Depth must be a positive integer: $DEPTH"
 
 # 构建忽略模式
-IGNORE_PATTERN=$(echo "$IGNORE_DIRS" | tr '|' '|')
+IGNORE_PATTERN="$IGNORE_DIRS"
 
 if command -v tree &>/dev/null; then
     tree "$PROJECT_DIR" -d -L "$DEPTH" --noreport -I "$IGNORE_PATTERN" 2>/dev/null
 else
     # 降级到 find + awk
-    EXCLUDES=""
+    FIND_ARGS=("$PROJECT_DIR" -maxdepth "$DEPTH" -type d)
     IFS='|' read -ra DIRS <<< "$IGNORE_DIRS"
     for d in "${DIRS[@]}"; do
-        EXCLUDES="$EXCLUDES -not -path */${d}/*"
+        FIND_ARGS+=(-not -path "*/${d}" -not -path "*/${d}/*")
     done
 
-    eval find "$PROJECT_DIR" -maxdepth "$DEPTH" -type d $EXCLUDES 2>/dev/null | sort | awk -v base="$PROJECT_DIR" '
+    find "${FIND_ARGS[@]}" 2>/dev/null | sort | awk -v base="$PROJECT_DIR" '
     {
-        sub("^" base "/?", "", $0)
-        if ($0 == "") { print base; next }
-        n = split($0, parts, "/")
+        path = $0
+        if (path == base) { print base; next }
+        prefix = base "/"
+        if (index(path, prefix) == 1) {
+            path = substr(path, length(prefix) + 1)
+        }
+        n = split(path, parts, "/")
         indent = ""
         for (i = 1; i < n; i++) indent = indent "    "
         print indent parts[n] "/"

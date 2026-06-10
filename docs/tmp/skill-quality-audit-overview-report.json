@@ -1,0 +1,216 @@
+{
+  "artifact_type": "skill-audit-report",
+  "audit_mode": "formal",
+  "target_skill": "shared/skills/overview",
+  "capability_baseline_ref": "docs/tmp/skill-quality-audit-overview-alignment.json",
+  "confirmed_target_capability_ids": [
+    "TGT-OVERVIEW-001",
+    "TGT-OVERVIEW-002"
+  ],
+  "verdict": "fit",
+  "overall_score": 8.3,
+  "verdict_reason": "The overview Skill now has a clear real-use contract, manual runtime routing, explicit output artifact, current adapter/runtime consumers, argv-safe scan helper fallback behavior, quick-gate executable coverage, and runtime workflow text that does not assign maintainer Sync work. This verdict is limited to this repository's custom team-use readiness contract.",
+  "artifact_paths": {
+    "report_json": "docs/tmp/skill-quality-audit-overview-report.json",
+    "summary_markdown": "docs/tmp/skill-quality-audit-overview-summary.md"
+  },
+  "scope_evidence": [
+    {
+      "surface": "SKILL.md",
+      "status": "checked",
+      "evidence": "shared/skills/overview/SKILL.md:14 defines the real-code overview goal and completion boundary."
+    },
+    {
+      "surface": "agents/openai.yaml",
+      "status": "checked",
+      "evidence": "shared/skills/overview/agents/openai.yaml:6 defines Codex policy and line 8 disables implicit invocation."
+    },
+    {
+      "surface": "references",
+      "status": "checked",
+      "evidence": "shared/skills/overview/references/mode-selection.md:1 and shared/skills/overview/references/agent-assignments.md:1 define the mode and agent-team reference surfaces."
+    },
+    {
+      "surface": "scripts",
+      "status": "checked",
+      "evidence": "shared/skills/overview/scripts/project-detect.sh:1 and shared/skills/overview/scripts/dir-tree.sh:1 define the active overview scan scripts."
+    },
+    {
+      "surface": "templates",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/templates directory is present; the package uses shared/skills/overview/projections/project-overview-template.md:1 as the projection template."
+    },
+    {
+      "surface": "contracts",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/contracts directory is present."
+    },
+    {
+      "surface": "test prompts",
+      "status": "checked",
+      "evidence": "shared/skills/overview/test-prompts.json:1 defines overview prompt fixtures."
+    },
+    {
+      "surface": "evals",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/evals directory is present."
+    },
+    {
+      "surface": "fixtures",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/fixtures directory is present."
+    },
+    {
+      "surface": "runtime surface",
+      "status": "checked",
+      "evidence": "contracts/skill-runtime-surface.json:255 registers overview as manual first-party runtime surface."
+    },
+    {
+      "surface": "install hooks",
+      "status": "checked",
+      "evidence": "install.sh:3058 checks installed Codex skills against contracts/skill-runtime-surface.json."
+    },
+    {
+      "surface": "gate plan",
+      "status": "checked",
+      "evidence": "tests/gate-plan.json:944 registers the overview-skill-contract quick gate and tests/gate-plan.json:1542 registers the skill-runtime-surface-contract gate."
+    },
+    {
+      "surface": "run-all",
+      "status": "checked",
+      "evidence": "tests/run-all.sh:167 delegates selected validation modes to the gate plan."
+    },
+    {
+      "surface": "focused runner",
+      "status": "checked",
+      "evidence": "tests/run-focused.sh:80 delegates focused profiles to the gate plan."
+    },
+    {
+      "surface": "README",
+      "status": "absent",
+      "evidence": "No shared/skills/overview/README.md file is present; root README.md:41 documents the active skill-quality reference and README.md:42 documents the runtime surface contract."
+    },
+    {
+      "surface": "downstream consumers",
+      "status": "checked",
+      "evidence": "tests/test-codex-skill-adapter.sh:113 asserts overview manual policy and tests/test-skill-runtime-surface-contract.sh:143 asserts overview Codex execution."
+    }
+  ],
+  "dimension_scores": [
+    {
+      "dimension": "Real Use Capability",
+      "score": 8.5,
+      "evidence_level": "E3",
+      "reason": "The Skill defines the user scenario, real-code scan, output artifact, and completion confirmation in shared/skills/overview/SKILL.md, with prompt fixtures and runtime contract consumers."
+    },
+    {
+      "dimension": "Trigger And Routing",
+      "score": 8.5,
+      "evidence_level": "E3",
+      "reason": "Runtime surface and Codex adapter keep overview manual-only and subagent_clean, matching an artifact-writing workflow that should not steal adjacent requests."
+    },
+    {
+      "dimension": "Instruction Contract",
+      "score": 8.0,
+      "evidence_level": "E3",
+      "reason": "The workflow states path handling, scan gates, mode confirmation, output path, proof, and final confirmation; Sync fields remain present for contract shape but explicitly say none for overview execution."
+    },
+    {
+      "dimension": "Workflow Causality",
+      "score": 7.5,
+      "evidence_level": "E3",
+      "reason": "Project scan feeds mode selection, mode selection feeds serial or agent-team scan, those outputs feed docs/项目概览.md, and user confirmation feeds completion."
+    },
+    {
+      "dimension": "Output And Handoff",
+      "score": 7.5,
+      "evidence_level": "E3",
+      "reason": "The output path, template fields, user consumer, and proof checklist are explicit, but no package-level README or executable output contract sharpens handoff beyond SKILL.md."
+    },
+    {
+      "dimension": "Determinism And Validation",
+      "score": 8.0,
+      "evidence_level": "E4",
+      "reason": "Helper scripts and static package checks exist, dir-tree fallback behavior is covered by executable shell tests, and the overview contract test is wired into the quick gate."
+    },
+    {
+      "dimension": "Runtime Integration",
+      "score": 8.0,
+      "evidence_level": "E3",
+      "reason": "Runtime surface, adapter policy, install quick check, and downstream tests align on manual first-party overview routing."
+    },
+    {
+      "dimension": "Evidence And Evals",
+      "score": 7.2,
+      "evidence_level": "E3",
+      "reason": "The package has test-prompts.json and current executable contract coverage for the repaired scan and workflow-noise risks. It still does not add a full target-package agent eval, so the score stays below the strongest evidence tier."
+    },
+    {
+      "dimension": "Noise And Maintainability",
+      "score": 8.0,
+      "evidence_level": "E3",
+      "reason": "Loaded workflow text now keeps runtime consumers explicit and prevents Sync fields from assigning maintainer work during overview execution."
+    }
+  ],
+  "findings": [],
+  "repair_handoff": [],
+  "validation": {
+    "status": "PASS",
+    "alignment": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py docs/tmp/skill-quality-audit-overview-alignment.json",
+      "output": "[PASS] skill audit alignment valid"
+    },
+    "report": {
+      "status": "PASS",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_report.py docs/tmp/skill-quality-audit-overview-report.json",
+      "output": "[PASS] skill audit report valid"
+    }
+  },
+  "executed_verification": [
+    {
+      "id": "alignment-validator",
+      "command": "python3 shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py docs/tmp/skill-quality-audit-overview-alignment.json",
+      "status": "PASS",
+      "output": "[PASS] skill audit alignment valid",
+      "evidence": "docs/tmp/skill-quality-audit-overview-alignment.json"
+    },
+    {
+      "id": "overview-skill-contract",
+      "command": "bash tests/test-overview-skill-contract.sh",
+      "status": "PASS",
+      "output": "[PASS] overview skill contract",
+      "evidence": "tests/test-overview-skill-contract.sh",
+      "supports": [
+        "dimension:Determinism And Validation",
+        "dimension:Evidence And Evals",
+        "dimension:Noise And Maintainability"
+      ]
+    },
+    {
+      "id": "overview-package-static",
+      "command": "python3 tools/skill_quality/check_skill_package_quality.py shared/skills/overview",
+      "status": "PASS",
+      "output": "{\"artifact_type\":\"skill-quality-package-audit\",\"target\":\"shared/skills/overview/SKILL.md\",\"status\":\"static_pass\",\"finding_count\":0,\"findings\":[]}",
+      "evidence": "shared/skills/overview/SKILL.md"
+    },
+    {
+      "id": "overview-gate-plan-list",
+      "command": "bash tests/run-all.sh --quick --list",
+      "status": "PASS",
+      "output": "[12/30] overview-skill-contract area=skill-evals tier=quick tags=canary,skill-evals",
+      "evidence": "tests/gate-plan.json"
+    },
+    {
+      "id": "overview-project-detect-current",
+      "command": "bash shared/skills/overview/scripts/project-detect.sh .",
+      "status": "PASS",
+      "output": "{\"project_type\":\"unknown\",\"language\":\"unknown\",\"framework\":\"unknown\",\"entry_files\":[],\"config_files\":[]}",
+      "evidence": "shared/skills/overview/scripts/project-detect.sh"
+    }
+  ],
+  "residual_risk": [
+    "No full target Skill run generated docs/项目概览.md in this repair window; verification focused on the audited helper/script and runtime contract risks.",
+    "Repository quick gate currently times out at the pre-existing install-runtime-quick-canary step after 120s on this machine, before reaching overview-skill-contract. The same install-runtime canary passes when run directly with more time."
+  ]
+}

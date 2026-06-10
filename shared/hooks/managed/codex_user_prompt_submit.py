@@ -20,10 +20,21 @@ STATE_DIR = Path(
 SKILL_PATTERN = re.compile(r"^[/$]([A-Za-z0-9-]+)(?:\s|$)")
 
 
-def load_codex_support_map() -> dict[str, bool]:
+def entry_dispatches_on_stop(entry: dict) -> bool:
+    codex = entry.get("codex")
+    if not isinstance(codex, dict) or not codex.get("supported"):
+        return False
+    event = codex.get("event")
+    if not isinstance(event, str):
+        claude = entry.get("claude")
+        event = claude.get("event") if isinstance(claude, dict) else None
+    return event == "Stop"
+
+
+def load_codex_stop_support_map() -> dict[str, bool]:
     data = json.loads(REGISTRY_FILE.read_text(encoding="utf-8"))
     return {
-        entry["skill"]: bool(entry.get("codex", {}).get("supported"))
+        entry["skill"]: entry_dispatches_on_stop(entry)
         for entry in data.get("skill_completion_gates", [])
         if isinstance(entry.get("skill"), str)
     }
@@ -47,7 +58,7 @@ def main() -> int:
     skill = match.group(1)
     state_file = state_file_for(session_id)
 
-    support_map = load_codex_support_map()
+    support_map = load_codex_stop_support_map()
     if support_map.get(skill) is not True:
         state_file.unlink(missing_ok=True)
         return 0

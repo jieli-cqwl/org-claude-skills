@@ -17,4 +17,5 @@
 
 ## Grading
 
-1. `tools/eval/graders/product-director-thinking-grader.md` → 输出 `grading-product-director-thinking.json`
+1. `tools/eval/graders/product-director-first-turn-grader.md` → 输出 `grading-product-director-first-turn.json`
+2. `tools/eval/graders/product-director-thinking-grader.md` → 输出 `grading-product-director-thinking.json`

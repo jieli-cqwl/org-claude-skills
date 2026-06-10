@@ -65,12 +65,16 @@ def scalar_value(lines: list[str], key: str) -> str:
     return lines[idx].split(":", 1)[1].strip().strip("'\"")
 
 
+def is_block_scalar_header(value: str) -> bool:
+    return bool(re.fullmatch(r"[|>](?:[1-9][+-]?|[+-][1-9]?|)", value))
+
+
 def description_value(lines: list[str]) -> str:
     idx = key_index(lines, "description")
     if idx is None:
         return ""
     value = lines[idx].split(":", 1)[1].strip()
-    if value in {"|", ">"}:
+    if is_block_scalar_header(value):
         block: list[str] = []
         for line in lines[idx + 1 :]:
             if line.startswith((" ", "\t")) or not line.strip():
@@ -115,7 +119,7 @@ def replace_description(lines: list[str], description: str) -> list[str]:
     new_lines = lines[:idx] + [rendered]
     next_idx = idx + 1
     current_value = lines[idx].split(":", 1)[1].strip()
-    if current_value in {"|", ">"}:
+    if is_block_scalar_header(current_value):
         while next_idx < len(lines):
             line = lines[next_idx]
             if line.startswith((" ", "\t")) or not line.strip():

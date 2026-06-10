@@ -74,6 +74,11 @@ ORG_CODEX_ACTIVE_SKILLS_STATE_DIR="$ACTIVE_STATE" python3 "$PROMPT_TRACKER" <<'J
 JSON
 assert_present '"skill": "review"' "$ACTIVE_STATE/slash-session.json"
 
+ORG_CODEX_ACTIVE_SKILLS_STATE_DIR="$ACTIVE_STATE" python3 "$PROMPT_TRACKER" <<'JSON'
+{"session_id":"director-brainstorm-session","prompt":"/product-director 我想先脑暴一个权限矩阵配置中心"}
+JSON
+assert_path_absent "$ACTIVE_STATE/director-brainstorm-session.json"
+
 mkdir -p "$ACTIVE_STATE"
 cat >"$ACTIVE_STATE/unknown-session.json" <<'JSON'
 {"session_id":"unknown-session","skill":"retired-skill","prompt":"$retired-skill"}
@@ -83,6 +88,32 @@ ORG_CODEX_ACTIVE_SKILLS_STATE_DIR="$ACTIVE_STATE" python3 "$STOP_DISPATCH" <<'JS
 JSON
 assert_present '{}' "$TMP_DIR/stop-dispatch-unknown.out"
 assert_path_absent "$ACTIVE_STATE/unknown-session.json"
+
+NON_STOP_RUNTIME="$TMP_DIR/non-stop-runtime"
+mkdir -p "$NON_STOP_RUNTIME/hooks/managed"
+cp "$STOP_DISPATCH" "$NON_STOP_RUNTIME/hooks/managed/codex_stop_dispatch.py"
+cat >"$NON_STOP_RUNTIME/hooks/registry.json" <<'JSON'
+{
+  "skill_completion_gates": [
+    {
+      "skill": "product-director",
+      "handler_rel": "skills/product-director/scripts/completion_check.sh",
+      "timeout_sec": 5,
+      "codex": {"supported": true},
+      "claude": {"supported": true, "event": "PostToolUse", "matcher": "Edit|Write"}
+    }
+  ]
+}
+JSON
+cat >"$ACTIVE_STATE/director-stale-session.json" <<'JSON'
+{"session_id":"director-stale-session","skill":"product-director","prompt":"/product-director brainstorm only"}
+JSON
+ORG_CODEX_ACTIVE_SKILLS_STATE_DIR="$ACTIVE_STATE" \
+  python3 "$NON_STOP_RUNTIME/hooks/managed/codex_stop_dispatch.py" <<'JSON' >"$TMP_DIR/stop-dispatch-non-stop.out"
+{"session_id":"director-stale-session","hook_event_name":"Stop","cwd":"/tmp"}
+JSON
+assert_present '{}' "$TMP_DIR/stop-dispatch-non-stop.out"
+assert_path_absent "$ACTIVE_STATE/director-stale-session.json"
 
 ESCAPE_RUNTIME="$TMP_DIR/escape-runtime"
 mkdir -p "$ESCAPE_RUNTIME/hooks/managed"

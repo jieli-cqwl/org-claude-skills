@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIRECTOR="$ROOT/shared/skills/product-director/SKILL.md"
 EVALS="$ROOT/shared/skills/product-director/evals/evals.json"
 GRADER="$ROOT/tools/eval/graders/product-director-thinking-grader.md"
+PROBLEM_REF="$ROOT/shared/skills/product-director/references/problem-clarification.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -69,6 +70,24 @@ if edge_count > 10:
 PY
 
 assert_json_ok "$EVALS"
+python3 - "$PROBLEM_REF" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+required = [
+    "## 方案先行第一轮输出",
+    "方案线索",
+    "推荐根问题",
+    "事实状态表",
+    "当前处理方式",
+    "现实代价",
+    "只问一个会改变根问题判断的事实",
+]
+missing = [item for item in required if item not in text]
+if missing:
+    raise SystemExit(f"problem clarification first-turn contract missing: {missing}")
+PY
 python3 - "$EVALS" <<'PY'
 import json
 import sys

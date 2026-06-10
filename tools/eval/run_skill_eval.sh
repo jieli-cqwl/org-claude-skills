@@ -19,6 +19,7 @@ GRADER_FILES=(
     problem-discovery-grader.md
     phase-slicing-quality-grader.md
     process-lightness-grader.md
+    product-director-first-turn-grader.md
     product-director-thinking-grader.md
     product-manager-unit-quality-grader.md
 )

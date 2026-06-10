@@ -297,7 +297,9 @@ EOF_YAML
 cat > "$TMP_DIR/skills/claude-api/SKILL.md" <<'EOF_SKILL'
 ---
 name: claude-api
-description: This official mirror description is intentionally much longer than the Codex runtime budget because the runtime surface contract owns the injected description for manual first-party skills.
+description: |-
+  This official mirror description is intentionally much longer than the Codex runtime budget because the runtime surface contract owns the injected description for manual first-party skills.
+  Stale upstream trigger line that must not survive runtime description replacement.
 ---
 
 # Claude API
@@ -394,6 +396,27 @@ for line in frontmatter.splitlines():
 expected = contract["skills"]["claude-api"]["description"]
 if actual != expected:
     raise SystemExit(f"runtime description mismatch: {actual!r} != {expected!r}")
+PY
+python3 - "$TMP_DIR/skills/claude-api/SKILL.md" <<'PY' \
+  || fail "Codex runtime description replacement must remove chomped block-scalar continuation lines"
+import sys
+from pathlib import Path
+
+skill_text = Path(sys.argv[1]).read_text(encoding="utf-8")
+frontmatter = skill_text.split("---\n", 2)[1]
+lines = frontmatter.splitlines()
+desc_idx = next(
+    (idx for idx, line in enumerate(lines) if line.startswith("description:")),
+    None,
+)
+if desc_idx is None:
+    raise SystemExit("missing description")
+for line in lines[desc_idx + 1 :]:
+    if not line.strip():
+        continue
+    if not line.startswith((" ", "\t")):
+        break
+    raise SystemExit("description continuation line survived replacement")
 PY
 ! grep -Fq 'disable-model-invocation: true' "$TMP_DIR/skills/webapp-testing/SKILL.md" \
   || fail "Codex auto skill should not be marked manual-only"
