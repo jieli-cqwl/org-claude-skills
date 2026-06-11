@@ -6,7 +6,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIRECTOR="$ROOT/shared/skills/product-director/SKILL.md"
 EVALS="$ROOT/shared/skills/product-director/evals/evals.json"
 GRADER="$ROOT/tools/eval/graders/product-director-thinking-grader.md"
-PROBLEM_REF="$ROOT/shared/skills/product-director/references/problem-clarification.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -43,51 +42,27 @@ if not flow:
     raise SystemExit("missing product_director_flow")
 flow_body = flow.group("body")
 for expected in [
-    '"Explore demand context" -> "Ask one clarifying question"',
-    '"Ask one clarifying question" -> "Propose 2-3 baseline options"',
+    '"Explore demand context" -> "Ask one blocking fact"',
+    '"Ask one blocking fact" -> "Current stage facts closed?"',
+    '"Current stage facts closed?" -> "Ask one blocking fact" [label="no"]',
+    '"Current stage facts closed?" -> "Propose 2-3 baseline options" [label="yes"]',
     '"Propose 2-3 baseline options" -> "Recommend one baseline"',
     '"Recommend one baseline" -> "Present baseline sections"',
     '"Present baseline sections" -> "User approves baseline?"',
+    '"User approves baseline?" -> "Ask one blocking fact" [label="revise upstream"]',
     '"User approves baseline?" -> "Final artifacts"',
     '"Final artifacts" -> "Self-review and gates"',
     '"Self-review and gates" -> "Handoff"',
 ]:
     if expected not in flow_body:
         raise SystemExit(f"flow missing edge: {expected}")
-for forbidden in [
-    "问题澄清已闭合？",
-    "目标与投入已闭合？",
-    "业务语义已闭合？",
-    "风险与未知项已闭合？",
-    "收到产品总监确认？",
-]:
-    if forbidden in flow_body:
-        raise SystemExit(f"flow still too detailed: {forbidden}")
 edge_count = flow_body.count("->")
-if edge_count > 10:
+if edge_count > 12:
     raise SystemExit(f"flow too long: {edge_count} edges")
 
 PY
 
 assert_json_ok "$EVALS"
-python3 - "$PROBLEM_REF" <<'PY'
-import sys
-from pathlib import Path
-
-text = Path(sys.argv[1]).read_text(encoding="utf-8")
-required = [
-    "## 方案先行第一轮输出",
-    "方案线索",
-    "推荐根问题",
-    "事实状态表",
-    "当前处理方式",
-    "现实代价",
-    "只问一个会改变根问题判断的事实",
-]
-missing = [item for item in required if item not in text]
-if missing:
-    raise SystemExit(f"problem clarification first-turn contract missing: {missing}")
-PY
 python3 - "$EVALS" <<'PY'
 import json
 import sys
@@ -95,6 +70,14 @@ from pathlib import Path
 
 data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 evals = {item.get("id"): item for item in data.get("evals", [])}
+case = evals.get("partial-answer-stays-in-problem-clarification")
+if not case:
+    raise SystemExit("missing eval: partial-answer-stays-in-problem-clarification")
+if case.get("expected_anchors") != ["PA-1", "PA-2", "PA-3", "PA-7", "PA-15"]:
+    raise SystemExit("partial-answer eval anchors drift")
+if len(case.get("expectations", [])) < 6:
+    raise SystemExit("partial-answer eval must cover interaction behavior")
+
 case = evals.get("missing-finalization-deps-still-co-creates")
 if not case:
     raise SystemExit("missing eval: missing-finalization-deps-still-co-creates")

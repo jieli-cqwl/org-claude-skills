@@ -1,0 +1,83 @@
+{
+  "runs": [
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "stale-evidence-after-fix",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/delivery-owner/stale-evidence-after-fix/with_skill/run-1",
+      "passed": 5,
+      "failed": 0,
+      "total": 5,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "qa-pass-dispatches-commit",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/delivery-owner/qa-pass-dispatches-commit/with_skill/run-1",
+      "passed": 7,
+      "failed": 0,
+      "total": 7,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "qa-pass-without-commit-authorization-pauses",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/delivery-owner/qa-pass-without-commit-authorization-pauses/with_skill/run-1",
+      "passed": 6,
+      "failed": 0,
+      "total": 6,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "delivery-owner",
+      "eval_id": "acceptance-change-invalidates-signoff-evidence",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/delivery-owner/acceptance-change-invalidates-signoff-evidence/with_skill/run-1",
+      "passed": 14,
+      "failed": 0,
+      "total": 14,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 3,
+      "anchor_failed": 0,
+      "anchor_total": 3,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 32,
+    "failed_expectations": 0,
+    "infra_failures": 0,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": []
+}

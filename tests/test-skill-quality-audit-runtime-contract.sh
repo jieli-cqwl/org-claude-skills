@@ -157,8 +157,15 @@ default_evals = [item for item in evals["evals"] if item["id"] == "default-forma
 if not default_evals:
     raise SystemExit("default-formal-audit-artifacts eval missing")
 default_text = " ".join(default_evals[0]["expectations"])
-if "same run" not in default_text or "artifact paths automatically" not in default_text:
-    raise SystemExit("default audit eval must require one-run formal report with automatic paths")
+if (
+    "capability effectiveness standard" not in default_text
+    or "confirmation_evidence" not in default_text
+    or "content_behavior_audit" not in default_text
+    or "per-field evidence_checks" not in default_text
+):
+    raise SystemExit("default audit eval must require co-created capability standard, confirmation evidence, and per-field content behavior audit evidence")
+if "artifact paths automatically" not in default_text:
+    raise SystemExit("default audit eval must keep automatic artifact paths")
 light_evals = [item for item in evals["evals"] if item["id"] == "explicit-light-scan"]
 if not light_evals:
     raise SystemExit("explicit-light-scan eval missing")

@@ -111,6 +111,12 @@
       "reason": "The workflow now routes team-use verdicts through readiness standards and prevents sentence-category findings without behavioral impact."
     },
     {
+      "dimension": "Content Behavior Induction",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Content audit covers instruction hygiene, attention economy, behavior induction, failure-mode coverage, and unproven risk disposition for confirmed target capabilities."
+    },
+    {
       "dimension": "Workflow Causality",
       "score": 8,
       "evidence_level": "E3",
@@ -191,5 +197,56 @@
   "capability_baseline_ref": "shared/skills/skill-quality-audit/evals/dogfood/self-audit/skill-audit-alignment.json",
   "confirmed_target_capability_ids": [
     "TGT-001"
+  ],
+  "content_behavior_audit": [
+    {
+      "target_capability_id": "TGT-001",
+      "instruction_hygiene": "supported",
+      "attention_economy": "supported",
+      "behavior_induction": "supported",
+      "failure_mode_coverage": "supported",
+      "unproven_risk_disposition": "supported",
+      "evidence_refs": [
+        "dimension:Instruction Contract",
+        "dimension:Content Behavior Induction"
+      ],
+      "evidence_checks": [
+        {
+          "field": "instruction_hygiene",
+          "path": "shared/skills/skill-quality-audit/SKILL.md",
+          "line": 21,
+          "expected_snippet": "Do NOT return a team-readiness verdict unless the user-confirmed capability effectiveness standard",
+          "claim": "The hard gate makes formal readiness verdicts conditional on confirmed capability evidence."
+        },
+        {
+          "field": "attention_economy",
+          "path": "shared/skills/skill-quality-audit/SKILL.md",
+          "line": 80,
+          "expected_snippet": "## Required References",
+          "claim": "Reference routing keeps detailed audit criteria out of the main flow until needed."
+        },
+        {
+          "field": "behavior_induction",
+          "path": "shared/skills/skill-quality-audit/SKILL.md",
+          "line": 74,
+          "expected_snippet": "then audit whether the content induces the agent",
+          "claim": "The workflow explicitly directs the auditor to inspect induced behavior, not only prose clarity."
+        },
+        {
+          "field": "failure_mode_coverage",
+          "path": "shared/skills/skill-quality-audit/SKILL.md",
+          "line": 14,
+          "expected_snippet": "maximize discovery of how the Skill can induce an agent to fail",
+          "claim": "The goal requires discovering Skill-induced failure modes in real tasks."
+        },
+        {
+          "field": "unproven_risk_disposition",
+          "path": "shared/skills/skill-quality-audit/SKILL.md",
+          "line": 14,
+          "expected_snippet": "preserve unproven capability as risk",
+          "claim": "The goal requires retaining unproven capability as risk instead of converting it into fit."
+        }
+      ]
+    }
   ]
 }

@@ -21,7 +21,10 @@ allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion, TeamCreate, SendM
 3. TD-HG-3 阻断缺口不得 handoff
    - 任一 typed gap 为 `blocking=true` 时停止交给 `/tech-lead`，报告 evidence refs、owner、required_artifact_ref 和 decision_needed。
    - Why: blocking gap 会让 task、开发自测或 QA 验收建立在不可验证前提上。
-4. TD-HG-4 reviewer FAIL 不得完成
+4. TD-HG-4 模糊 AC 不得伪造成覆盖
+   - 当用户只给出“体验顺滑 / feel smooth / 好用 / 快一点”等缺少可观测结果的 AC 时，不得发明阈值、断言对象或证据；必须输出 `PRODUCT_GAP` 或 `TESTABILITY_GAP`，并列出缺失的 `observable outcome`、`assertion target`、`evidence expectation`、owner、required_artifact_ref、decision_needed 和 `blocking=true`。
+   - Why: 模糊 AC 生成测试用例会把不可验证目标伪装成 coverage green。
+5. TD-HG-5 reviewer FAIL 不得完成
    - 三视角 review 任一视角存在 unresolved `FAIL` 时必须修正或停止报告阻塞。
    - Why: 测试设计需要同时满足测试质量、产品一致性和架构一致性。
 
@@ -41,6 +44,46 @@ bash shared/skills/test-design/scripts/preflight_check.sh --phase-dir "$PHASE_DI
 ```
 
 `$UNIT_ID` 可省略；省略时检查该 Phase 下所有 `UNIT-*.json`。准入失败时报告缺失项、建议上游责任方和可选下一步，结尾明确写“等待用户裁决”；相邻 Skill 只作为可选下一步，是否执行由用户裁决。
+
+如果准入失败的同时，用户输入已经暴露模糊 AC 或不可测试验收口径，阻断回复还必须给出 typed gap：
+
+- `gap_type`: `TESTABILITY_GAP` 或 `PRODUCT_GAP`
+- `missing`: 至少列出 `observable outcome`、`assertion target`、`evidence expectation`
+- `owner`: `product-manager`、`product-director` 或 `user`
+- `required_artifact_ref`: 需要补齐的 `UNIT-*.json#acceptance_criteria`、`phase-prd.json` 或等价上游工件
+- `decision_needed`: 需要上游明确的可观察结果、断言对象、证据口径或阈值
+- `blocking`: `true`
+
+该 typed gap 不替代 canonical JSON 准入；它只说明为什么当前 AC 不能被测试设计消费。
+
+## 说明类请求边界
+
+当用户要求“说明 test-design 如何处理/如何设计/如何合并”，且没有要求写入、冻结或生成最终 `{unit_work_dir}/test-cases.json` 时，不把 preflight 路径不满足当作唯一输出。应先说明实际产物生成仍需要 canonical preflight，然后按方法论回答该场景下应输出的结构、阻断条件和下一步。
+
+说明类回答不得伪装成已冻结产物；但必须展示下游可消费的结构口径。
+
+## Typed Gap 输出契约
+
+任何 typed gap 至少包含：
+
+- `gap_type`
+- `product_refs` 或无法定位 product ref 的原因
+- `design_refs` 或无法定位 design ref 的原因
+- `missing`
+- `owner`
+- `required_artifact_ref`
+- `decision_needed`
+- `blocking`
+
+如果 gap 导致无法形成测试义务，必须明确缺少哪些 `assertion_target` 和 `evidence_expectation`。
+
+## AC 覆盖输出契约
+
+说明 AC 覆盖、边界和排除项时，必须使用这些载体：
+
+- `ac_coverage_matrix`: 逐 AC 列出 `positive`、`negative` 和 `boundary` 覆盖。
+- `test_case_shape`: 每条测试义务至少包含 `product_refs`、`design_refs`、`assertion_target` 和 `evidence_expectation`。
+- `exclusion_guard`: 本期排除项必须转成 guard 或 negative case，证明没有扩大 scope。
 
 ## 流程
 

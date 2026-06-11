@@ -132,17 +132,52 @@ digraph delivery_owner_flow {
 ### DO-S8b 用户决策接收
 
 - `signoff-package.json` 准备完成后，向用户请求提交授权、风险接受或变更裁决；授权或风险接受明确时写 `user-decision.json`，并符合 `contracts/user-decision.schema.json`。
-- 用户改变 scope、AC、goal、tasks 或 design 目标时，不能写成 `user-decision.json`；必须写 `target-change.json`，记录 `invalidates_refs`、`superseded_evidence_refs`、`rebaseline_owner` 和 `required_fresh_proof_after_rebaseline`，并回到对应 owner 重新冻结 baseline 后再消费 fresh evidence。
+- 用户改变 scope、AC、goal、tasks 或 design 目标时，不能写成 `user-decision.json`；必须写 `target-change.json`，记录 `changed_target_type`、`affected_refs`、`invalidates_refs`、`superseded_evidence_refs`、`rebaseline_required=true`、`rebaseline_owner` 和 `required_fresh_proof_after_rebaseline`，并回到对应 owner 重新冻结 baseline 后再消费 fresh evidence。
+- 目标变更响应必须输出 `target-change.json` 字段投影；只说“重基线”不够。按 `contracts/target-change.schema.json` 和 `templates/target-change.template.json` 对齐字段：
+  - `changed_target_type`: 用户改变目标写 `GOAL`，改变范围写 `SCOPE`，改变验收标准写 `AC`，改变任务计划写 `TASKS`，改变设计目标写 `DESIGN`。
+  - `affected_refs`: 被新目标直接影响的 canonical refs，至少覆盖被改的目标/AC/scope/design/tasks 及当前 `signoff-package.json`。
+  - `invalidates_refs`: 当前 signoff baseline、被新目标推翻的 plan/tasks/test/design refs、当前 `signoff-package.json`。
+  - `superseded_evidence_refs`: 旧 `developer-report`、`verify-result`、`code-review-result`、`qa-result`、`consistency-audit-result`，如存在 `fix-result` 也列入。
+  - `rebaseline_required`: 必须是 `true`；目标变更关闭前不得输出 `READY_FOR_COMMIT` 或 `/commit` handoff。
+  - `rebaseline_owner`: `GOAL` -> `product-director`；`SCOPE`/`AC` -> `product-manager`；`DESIGN` -> `design`；`TASKS` -> `tech-lead`。
+  - `required_fresh_proof_after_rebaseline`: `GOAL`、`SCOPE`、`AC` 至少覆盖 `brief`、`phase-prd`、`unit-definition`、`design`、`test-cases`、`plan`、`tasks`、`developer-report`、`verify-result`、`code-review-result`、`qa-result`、`consistency-audit-result`；`DESIGN` 从 `design` 往后全链路刷新；`TASKS` 从 `plan`/`tasks` 往后全链路刷新。
 - 授权不清、风险接受不清或目标变更缺权威证明时暂停给用户。
 
 ### DO-S8c 最终准入
 
 - 最终准入必须同时消费 `signoff-package.json` 和 `user-decision.json`；两者的 tasks baseline、signoff 状态、风险状态、授权证明和 decision basis 必须一致。
 - `READY_FOR_COMMIT` 只表示 signoff package、user decision 和 `/commit` handoff 已准备好；不得当作已交付。只有 `/commit` 返回并记录 `commit_result` / `commit_result_ref` 后，才能在交付报告中使用 `DELIVERED`。
+- 最终准入通过且当前环境不能真实调用 `/commit` 时，本轮响应必须内联字段完整的 `/commit handoff`，并在状态卡写 `control_action=DISPATCH_READY` 或 `dispatch_ready=true`。不得只把 handoff 写成“下一步”。
+- 最终准入快路径：当用户或 eval prompt 已明确给出 `developer-report`、`verify-result`、`qa-result`、`consistency-audit-result`、`signoff-package.json`、`user-decision.json` 均已闭合且本轮不要求真实写文件/提交时，把这些视为本轮响应的 stated facts，直接输出 `/commit handoff`。不要重启 preflight，不要要求 phase-dir，不要把 handoff 推迟到下一轮。
 
 ### DO-S8d 提交与汇报
 
 - 授权明确时调度 `/commit`；受限环境无法实际调用时输出 `/commit` handoff 并标记 `dispatch_ready`。
+- `/commit` handoff 不能只是“下一步提交”。必须在当前响应逐项给出 `handoff_target=/commit`、`dispatch_state=dispatch_ready`、`commit_input_refs`、`change_scope`、`verification_evidence_refs`、`user_authorization_ref`、`expected_commit_result`、`forbidden_actions`。缺任一项时停在 `DO-S8c`，不得声称交付完成。
+- 输出 `/commit` handoff 前，先逐项确认 `developer-report=PASS/current`、`verify-result=PASS/current`、`qa-result=PASS/current`、`signoff-package=READY`、`user-decision=authorized`；不能用“证据齐全”一笔带过。
+- 受限环境的 `/commit` handoff 使用此结构，不得省略：
+  ```text
+  /commit handoff
+  handoff_target: /commit
+  dispatch_state: dispatch_ready
+  commit_input_refs:
+    - signoff-package.json
+    - user-decision.json
+    - artifact-registry.json active revision
+  change_scope:
+    - <files/tasks/phase scope from active evidence>
+  verification_evidence_refs:
+    - developer-report
+    - verify-result
+    - code-review-result
+    - qa-result
+    - consistency-audit-result
+  user_authorization_ref: user-decision.json
+  expected_commit_result: commit_result / commit_result_ref recorded after /commit returns
+  forbidden_actions:
+    - do not declare DELIVERED before commit_result exists
+    - do not change scope, AC, goal, tasks, or design in /commit
+  ```
 - `/commit` 返回后收集 commit result，并用 `templates/delivery-report.template.md` 汇报交付结果。
 
 ## 输出
@@ -150,14 +185,14 @@ digraph delivery_owner_flow {
 - 每次响应先输出状态卡，字段使用 `templates/status-card.template.md`。
 - 进入 DO-S4 派发或 DO-S5/DO-S7 回派时，在状态卡后内联完整 Task Packet。
 - 进入用户暂停状态时，在状态卡后输出用户决策包，字段使用 `templates/user-decision-package.template.md`；用户给出提交授权或风险接受后，写 `user-decision.json`，并符合 `contracts/user-decision.schema.json`。
-- 用户改变 scope、AC、goal、tasks 或 design 目标时，不能写成 `user-decision.json`；必须写 `target-change.json`，记录 `invalidates_refs`、`superseded_evidence_refs`、`rebaseline_owner` 和 `required_fresh_proof_after_rebaseline`，并回到对应 owner 重新冻结 baseline 后再消费 fresh evidence。
+- 用户改变 scope、AC、goal、tasks 或 design 目标时，不能写成 `user-decision.json`；必须写 `target-change.json`，至少输出 `changed_target_type`、`affected_refs`、`invalidates_refs`、`superseded_evidence_refs`、`rebaseline_required=true`、`rebaseline_owner` 和完整 `required_fresh_proof_after_rebaseline`，并回到对应 owner 重新冻结 baseline 后再消费 fresh evidence。
 - DO-S1 preflight 通过、DO-S4 派发完成、DO-S5/DO-S7 轮次推进、进入用户暂停状态、进入 DO-S8 提交准备或收口后，更新 `delivery-state.json`，并符合 `contracts/delivery-state.schema.json`。
 - `delivery-state.json.current_stage`、`status`、`control_action` 必须使用 shared-core 词表；当状态为 BLOCKED 或请求用户决策时，必须写 `blocker_id`、`blocker_owner`、`blocker_basis_refs`、`resume_stage`、`next_action` 和 `resume_condition`。
 - 新增或更新任何结构化 runtime artifact 后，同步更新 `artifact-registry.json`，并符合 `contracts/artifact-registry.schema.json`。
 - 各 producer 只负责写自己的 artifact；delivery-owner 在派发下一个 consumer 前，必须确认该 artifact 在 active registry 中有且只有一个 `FINALIZED + active_for_consumption=true` entry。
 - 进入 DO-S8a 且 qa agent PASS、consistency-auditor agent advisory 无阻断 owner action 且风险状态明确时，写 `signoff-package.json`，并符合 `contracts/signoff-package.schema.json`，其中 `runtime_evidence_matrix` 不得缺失任何 active runtime evidence 类型或 task-level entry。
 - 进入 DO-S8b 时，基于 `signoff-package.json` 接收用户提交授权、风险接受或目标变更裁决；用户授权或风险接受写 `user-decision.json`，目标变更写 `target-change.json`。
-- 进入 DO-S8c 时，同时消费 `signoff-package.json` 和 `user-decision.json` 做最终准入；通过后才能输出 `/commit` handoff 和交付报告。
+- 进入 DO-S8c 时，同时消费 `signoff-package.json` 和 `user-decision.json` 做最终准入；通过且无法真实调用 `/commit` 时，本轮响应必须输出字段完整的 `/commit` handoff 并记录 `dispatch_ready`。交付报告只能在 `/commit` 返回 `commit_result` / `commit_result_ref` 后输出。
 
 ## 停手边界
 
@@ -187,5 +222,6 @@ tasks 未冻结；scope、AC、依赖或 QA handoff 冲突；缺 executor、权�
 - [ ] 触发 runtime state 变化时已更新 `delivery-state.json`。
 - [ ] 新增或更新结构化 artifact 后已同步 `artifact-registry.json`。
 - [ ] DO-S8a 已形成 `signoff-package.json`，且 `runtime_evidence_matrix` 已覆盖全部 active runtime evidence。
-- [ ] DO-S8b 已接收用户授权、风险接受或目标变更裁决；授权/风险接受写入 `user-decision.json`，目标变更写入 `target-change.json`。
+- [ ] DO-S8b 已接收用户授权、风险接受或目标变更裁决；授权/风险接受写入 `user-decision.json`，目标变更写入字段完整的 `target-change.json`，旧 signoff/runtime evidence 已标记失效并回到对应 owner 重冻结 baseline。
 - [ ] DO-S8c 已同时消费 `signoff-package.json` 和 `user-decision.json` 完成最终准入。
+- [ ] DO-S8d 受限环境下已输出字段完整的 `/commit` handoff，包含提交输入、变更范围、验证证据、用户授权、期望 commit 结果和禁止动作；未拿到 `commit_result` 前未声明 `DELIVERED`。

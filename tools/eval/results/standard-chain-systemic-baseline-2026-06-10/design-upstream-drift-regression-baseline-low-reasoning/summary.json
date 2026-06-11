@@ -1,0 +1,73 @@
+{
+  "runs": [
+    {
+      "skill_name": "design",
+      "eval_id": "planted-contract-drift-blocks-handoff",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/design-upstream-drift-regression-baseline-low-reasoning/design/planted-contract-drift-blocks-handoff/with_skill/run-1",
+      "passed": 5,
+      "failed": 0,
+      "total": 5,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 1,
+      "anchor_failed": 2,
+      "anchor_total": 3,
+      "anchor_fidelity": 0.3333,
+      "optimization_findings": [
+        {
+          "issue": "没有明确说明需由“用户或 /product-manager”确认候选范围和验收语义，只写了用户确认安全取舍。",
+          "suggested_change": "补一句：`该变更已超出 design 自主裁量范围，需回退用户或 /product-manager 确认 UNIT 候选范围及对应 AC/验收语义后，才能冻结设计。`"
+        },
+        {
+          "issue": "没有完整列出推荐方案、备选方案、取舍理由。",
+          "suggested_change": "显式列出：`推荐：HttpOnly Cookie；备选：localStorage、sessionStorage；取舍：安全性、跨标签页行为、前端可读性、测试断言变化。`"
+        },
+        {
+          "issue": "未具体化接口边界的输入、输出、错误语义。",
+          "suggested_change": "补充该决策对认证接口/会话续期接口的输入、输出、错误语义影响，例如 Cookie 下发、过期/失效返回、前端是否可读取会话标识等。"
+        }
+      ]
+    },
+    {
+      "skill_name": "design",
+      "eval_id": "upstream-business-change-blocks-architecture-freeze",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/design-upstream-drift-regression-baseline-low-reasoning/design/upstream-business-change-blocks-architecture-freeze/with_skill/run-1",
+      "passed": 6,
+      "failed": 0,
+      "total": 6,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 4,
+      "anchor_failed": 0,
+      "anchor_total": 4,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 11,
+    "failed_expectations": 0,
+    "infra_failures": 0,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": [
+    {
+      "issue": "没有明确说明需由“用户或 /product-manager”确认候选范围和验收语义，只写了用户确认安全取舍。",
+      "suggested_change": "补一句：`该变更已超出 design 自主裁量范围，需回退用户或 /product-manager 确认 UNIT 候选范围及对应 AC/验收语义后，才能冻结设计。`"
+    },
+    {
+      "issue": "没有完整列出推荐方案、备选方案、取舍理由。",
+      "suggested_change": "显式列出：`推荐：HttpOnly Cookie；备选：localStorage、sessionStorage；取舍：安全性、跨标签页行为、前端可读性、测试断言变化。`"
+    },
+    {
+      "issue": "未具体化接口边界的输入、输出、错误语义。",
+      "suggested_change": "补充该决策对认证接口/会话续期接口的输入、输出、错误语义影响，例如 Cookie 下发、过期/失效返回、前端是否可读取会话标识等。"
+    }
+  ]
+}

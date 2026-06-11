@@ -87,6 +87,19 @@ for index, case in enumerate(evals, start=1):
     for expectation in expectations:
         if not isinstance(expectation, str) or not expectation.strip():
             raise SystemExit(f"{path}: eval {case_id!r} contains an empty expectation")
+
+lifecycle_path = path.parent / "lifecycle-review.json"
+if lifecycle_path.exists():
+    review = json.loads(lifecycle_path.read_text(encoding="utf-8"))
+    encoded_preference = review.get("encoded_preference", {})
+    if "anchor_count" in encoded_preference and encoded_preference.get("anchor_count") != len(data.get("preference_anchors", [])):
+        raise SystemExit(f"{lifecycle_path}: {skill_name} anchor_count drift")
+    if "eval_count" in encoded_preference and encoded_preference.get("eval_count") != len(data.get("evals", [])):
+        raise SystemExit(f"{lifecycle_path}: {skill_name} eval_count drift")
+    sample_size = encoded_preference.get("sample_size")
+    eval_count = encoded_preference.get("eval_count")
+    if isinstance(sample_size, (int, float)) and isinstance(eval_count, (int, float)) and sample_size > eval_count:
+        raise SystemExit(f"{lifecycle_path}: {skill_name} sample_size exceeds eval_count")
 PY
 done
 
@@ -233,6 +246,7 @@ required_eval_ids = {
     "qa-fixer-fail-loop-reruns",
     "scope-ac-conflict-escalates",
     "no-increment-follow-up-reroutes",
+    "acceptance-change-invalidates-signoff-evidence",
     "qa-pass-dispatches-commit",
 }
 actual_eval_ids = {case.get("id") for case in data.get("evals", [])}
@@ -330,8 +344,23 @@ field_expectations = {
         "resume_condition",
         "next_action_after_decision",
     ],
+    "acceptance-change-invalidates-signoff-evidence": [
+        "AC 目标变更",
+        "target-change.json",
+        "changed_target_type=AC",
+        "affected_refs",
+        "invalidates_refs",
+        "superseded_evidence_refs",
+        "rebaseline_required=true",
+        "rebaseline_owner=product-manager",
+        "required_fresh_proof_after_rebaseline",
+        "不写 user-decision.json",
+        "不调度 /commit",
+    ],
     "qa-pass-dispatches-commit": [
         "developer agent / verifier agent / qa agent",
+        "signoff-package.json",
+        "user-decision.json",
         "用户提交授权",
         "调度 /commit",
         "不直接提交代码",

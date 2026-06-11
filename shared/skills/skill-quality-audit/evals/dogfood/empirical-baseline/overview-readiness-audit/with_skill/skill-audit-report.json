@@ -4,7 +4,7 @@
   "target_skill": "shared/skills/overview",
   "verdict": "conditional",
   "overall_score": 6.9,
-  "verdict_reason": "overview has a clear project-onboarding scenario and a mostly executable workflow, but one P1 runtime safety issue remains in dir-tree.sh, executable overview behavior gates are weak, and the source OpenAI adapter disagrees with the manual runtime surface before install self-heal. No P0 was found, so this is conditional rather than unfit or blocked.",
+  "verdict_reason": "Conditional because executable readiness gates and runtime/source alignment remain incomplete; the previous dir-tree eval fallback P1 is no longer current evidence.",
   "artifact_paths": {
     "report_json": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/skill-audit-report.json",
     "summary_markdown": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/audit-summary.md"
@@ -111,6 +111,12 @@
       "reason": "Hard gates at shared/skills/overview/SKILL.md:18-22 and step output contracts at shared/skills/overview/SKILL.md:65-70 define objects, outputs, failure states, and proof, though runtime workflow still includes some maintainer sync text."
     },
     {
+      "dimension": "Content Behavior Induction",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Content audit covers instruction hygiene, attention economy, behavior induction, failure-mode coverage, and unproven risk disposition for confirmed target capabilities."
+    },
+    {
       "dimension": "Workflow Causality",
       "score": 8,
       "evidence_level": "E3",
@@ -149,59 +155,6 @@
   ],
   "findings": [
     {
-      "id": "OVERVIEW-P1-001",
-      "severity": "P1",
-      "title": "dir-tree fallback builds a shell command with eval from overview inputs",
-      "evidence_level": "E3",
-      "evidence": "shared/skills/overview/SKILL.md:52 requires running dir-tree.sh with the selected project path; shared/skills/overview/scripts/dir-tree.sh:9 reads PROJECT_DIR from argv, shared/skills/overview/scripts/dir-tree.sh:10 reads DEPTH from argv, and shared/skills/overview/scripts/dir-tree.sh:26 executes eval find with those values and dynamic EXCLUDES in the fallback path.",
-      "evidence_checks": [
-        {
-          "path": "shared/skills/overview/SKILL.md",
-          "line": 52,
-          "expected_snippet": "bash {{SKILLS_HOME}}/overview/scripts/dir-tree.sh <项目路径> 3",
-          "claim": "The overview workflow requires invoking dir-tree.sh with the selected project path."
-        },
-        {
-          "path": "shared/skills/overview/scripts/dir-tree.sh",
-          "line": 9,
-          "expected_snippet": "PROJECT_DIR=\"${1:-.}\"",
-          "claim": "dir-tree.sh reads the project path from argv."
-        },
-        {
-          "path": "shared/skills/overview/scripts/dir-tree.sh",
-          "line": 10,
-          "expected_snippet": "DEPTH=\"${2:-3}\"",
-          "claim": "dir-tree.sh reads depth from argv."
-        },
-        {
-          "path": "shared/skills/overview/scripts/dir-tree.sh",
-          "line": 26,
-          "expected_snippet": "eval find \"$PROJECT_DIR\" -maxdepth \"$DEPTH\" -type d $EXCLUDES",
-          "claim": "The fallback path constructs and executes a shell command with eval."
-        }
-      ],
-      "claim_review": {
-        "required_claims": [
-          "The overview workflow passes user-selected project path input to dir-tree.sh.",
-          "dir-tree.sh builds its fallback find invocation through shell eval using argv-derived values.",
-          "The script does not validate or escape those argv-derived values before eval."
-        ],
-        "refutation_check": "shared/skills/overview/scripts/dir-tree.sh:11 only checks that PROJECT_DIR is a directory; shared/skills/overview/scripts/dir-tree.sh:16 uses tree when available, but the eval fallback at shared/skills/overview/scripts/dir-tree.sh:26 remains active when tree is absent.",
-        "status": "supported"
-      },
-      "severity_calibration": {
-        "calibrated_severity": "P1",
-        "team_use_impact": "A required scan helper can execute unintended shell fragments in fallback environments, affecting safe team use for a skill that accepts a user-supplied project path.",
-        "rationale": "This is not inflated to P0 because the unsafe branch is conditional on tree being unavailable and no exploit payload was executed in this audit; it is still P1 because it affects runtime command safety in a required scan step."
-      },
-      "impact": "A required scan helper can execute unintended shell fragments in fallback environments, affecting safe team use and making the user-supplied project path an unsafe runtime input.",
-      "repair_target": "shared/skills/overview/scripts/dir-tree.sh",
-      "verification_hint": "Replace eval with an argument-array or loop-based find implementation, validate DEPTH as a positive integer, preserve ignore semantics, then test paths containing spaces and shell metacharacters.",
-      "confirmed_gap_refs": [
-        "GAP-OVERVIEW-P1-001"
-      ]
-    },
-    {
       "id": "OVERVIEW-P2-001",
       "severity": "P2",
       "title": "overview behavior is represented by prompt fixtures, not executable readiness gates",
@@ -226,27 +179,9 @@
       "confirmed_gap_refs": [
         "GAP-OVERVIEW-P2-002"
       ]
-    },
-    {
-      "id": "OVERVIEW-P3-001",
-      "severity": "P3",
-      "title": "maintainer sync clauses are mixed into runtime user workflow",
-      "evidence_level": "E2",
-      "evidence": "shared/skills/overview/SKILL.md:54 includes Sync maintenance text inside the mode-selection step; shared/skills/overview/SKILL.md:56 includes Sync maintenance text inside the agent-team step.",
-      "impact": "The executing agent may spend attention on maintainer synchronization work that is not part of the user's overview request.",
-      "repair_target": "shared/skills/overview/SKILL.md and overview maintenance docs/tests",
-      "verification_hint": "Move Sync maintenance clauses out of the runtime workflow or convert them into tests/docs consumed by maintainers, keeping user execution steps focused on trigger, read, expect, consume, evidence, and failure.",
-      "confirmed_gap_refs": [
-        "GAP-OVERVIEW-P3-001"
-      ]
     }
   ],
   "repair_handoff": [
-    {
-      "target": "shared/skills/overview/scripts/dir-tree.sh",
-      "action": "Remove eval-based fallback, validate depth, preserve ignore behavior, and add edge-case tests for paths with spaces and shell metacharacters.",
-      "owner": "overview maintainer"
-    },
     {
       "target": "shared/skills/overview/evals or tests/gate-plan.json",
       "action": "Add executable readiness coverage for scan-before-write, mode confirmation, blocked states, Mermaid proof, key-file refs, and final user confirmation.",
@@ -256,11 +191,6 @@
       "target": "shared/skills/overview/agents/openai.yaml",
       "action": "Align source adapter policy with the manual runtime surface or document/generate the source policy so source and installed runtime cannot drift.",
       "owner": "runtime maintainer"
-    },
-    {
-      "target": "shared/skills/overview/SKILL.md",
-      "action": "Move maintainer Sync clauses out of runtime workflow steps and keep the execution contract focused on user-request outputs and proof.",
-      "owner": "overview maintainer"
     }
   ],
   "validation": {
@@ -329,5 +259,56 @@
   "capability_baseline_ref": "shared/skills/skill-quality-audit/evals/dogfood/empirical-baseline/overview-readiness-audit/with_skill/skill-audit-alignment.json",
   "confirmed_target_capability_ids": [
     "TGT-001"
+  ],
+  "content_behavior_audit": [
+    {
+      "target_capability_id": "TGT-001",
+      "instruction_hygiene": "supported",
+      "attention_economy": "supported",
+      "behavior_induction": "supported",
+      "failure_mode_coverage": "supported",
+      "unproven_risk_disposition": "supported",
+      "evidence_refs": [
+        "dimension:Instruction Contract",
+        "dimension:Content Behavior Induction"
+      ],
+      "evidence_checks": [
+        {
+          "field": "instruction_hygiene",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 13,
+          "expected_snippet": "Stop if the input file is missing.",
+          "claim": "The fixture has an explicit gate for missing input."
+        },
+        {
+          "field": "attention_economy",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 17,
+          "expected_snippet": "Read the input file path from the user request.",
+          "claim": "The fixture workflow starts with a directly consumed input path."
+        },
+        {
+          "field": "behavior_induction",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 18,
+          "expected_snippet": "Verify the file exists with `test -f`.",
+          "claim": "The fixture induces a concrete verification action before output."
+        },
+        {
+          "field": "failure_mode_coverage",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 13,
+          "expected_snippet": "Stop if the input file is missing.",
+          "claim": "The fixture covers the missing-input failure path."
+        },
+        {
+          "field": "unproven_risk_disposition",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 23,
+          "expected_snippet": "Run `bash tests/example.sh` and include the command result as evidence.",
+          "claim": "The fixture requires verification evidence before treating output as complete."
+        }
+      ]
+    }
   ]
 }

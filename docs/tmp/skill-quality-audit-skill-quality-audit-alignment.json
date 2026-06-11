@@ -1,0 +1,258 @@
+{
+  "artifact_type": "skill-audit-alignment",
+  "stage": "confirmed",
+  "target_skill": "shared/skills/skill-quality-audit",
+  "target_capability_claims": [
+    {
+      "target_capability_id": "TGT-001",
+      "label": "Audit existing Skills for real-task capability effectiveness and preserve unproven failure risk before a team-use verdict",
+      "source": "user_supplied",
+      "confidence": "high",
+      "refs": [
+        "chat:2026-06-10-user-confirmed-capability-effectiveness-first-principles-standard",
+        "shared/skills/skill-quality-audit/SKILL.md:12",
+        "shared/skills/skill-quality-audit/references/capability-effectiveness-standard.md:18"
+      ]
+    }
+  ],
+  "current_capability_profile": [
+    {
+      "current_capability_id": "CUR-001",
+      "label": "The Skill now requires a user-confirmed capability effectiveness standard before formal scoring",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-001",
+        "EV-002",
+        "EV-003"
+      ]
+    },
+    {
+      "current_capability_id": "CUR-002",
+      "label": "The Skill now requires content behavior audit coverage before a fit verdict",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-004",
+        "EV-005",
+        "EV-008"
+      ]
+    },
+    {
+      "current_capability_id": "CUR-003",
+      "label": "The runtime surface keeps this auditor manual and audit-output-only",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-009",
+        "EV-010"
+      ]
+    },
+    {
+      "current_capability_id": "CUR-004",
+      "label": "The deterministic alignment validator requires file-line confirmation evidence for confirmed standards",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-006",
+        "EV-007"
+      ]
+    },
+    {
+      "current_capability_id": "CUR-005",
+      "label": "The deterministic report validator requires per-field current evidence checks for supported content behavior claims",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-008",
+        "EV-011",
+        "EV-012"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EV-001",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/SKILL.md",
+      "line": 12,
+      "expected_snippet": "co-creates a capability effectiveness standard with the user",
+      "claim": "The Skill declares user co-creation before judging real-task capability."
+    },
+    {
+      "evidence_id": "EV-002",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/SKILL.md",
+      "line": 21,
+      "expected_snippet": "Do NOT return a team-readiness verdict unless the user-confirmed capability effectiveness standard",
+      "claim": "The hard gate blocks readiness verdicts without a user-confirmed standard."
+    },
+    {
+      "evidence_id": "EV-003",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/references/capability-effectiveness-standard.md",
+      "line": 18,
+      "expected_snippet": "Do not trade instruction quality against capability effectiveness.",
+      "claim": "The capability reference defines the layered judgment expected by the user."
+    },
+    {
+      "evidence_id": "EV-004",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/SKILL.md",
+      "line": 23,
+      "expected_snippet": "`fit` requires `content_behavior_audit` coverage",
+      "claim": "The Skill makes content behavior coverage a fit gate."
+    },
+    {
+      "evidence_id": "EV-005",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/references/capability-effectiveness-standard.md",
+      "line": 31,
+      "expected_snippet": "`user_confirmation.confirmed_scope_ref` must cite the co-created `capability_effectiveness_standard`.",
+      "claim": "The reference names the formal standard confirmation gate."
+    },
+    {
+      "evidence_id": "EV-006",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/scripts/skill_audit_alignment_contract.py",
+      "line": 293,
+      "expected_snippet": "def validate_confirmation_evidence(item: Any, confirmed: bool) -> None:",
+      "claim": "The alignment validator has a dedicated confirmation evidence check."
+    },
+    {
+      "evidence_id": "EV-007",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/scripts/skill_audit_alignment_contract.py",
+      "line": 305,
+      "expected_snippet": "status == \"recorded_user_confirmation\"",
+      "claim": "Confirmed alignments require recorded user confirmation evidence."
+    },
+    {
+      "evidence_id": "EV-008",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/scripts/skill_audit_report_contract.py",
+      "line": 322,
+      "expected_snippet": "validate_content_behavior_evidence_checks(",
+      "claim": "The content behavior validator invokes per-field evidence check validation."
+    },
+    {
+      "evidence_id": "EV-009",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/agents/openai.yaml",
+      "line": 5,
+      "expected_snippet": "allow_implicit_invocation: false",
+      "claim": "The OpenAI adapter disables implicit invocation."
+    },
+    {
+      "evidence_id": "EV-010",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/SKILL.md",
+      "line": 19,
+      "expected_snippet": "Do NOT modify target Skill files, tests, contracts, scripts, runtime entries, or fixtures.",
+      "claim": "The Skill constrains itself to audit outputs rather than target modification."
+    },
+    {
+      "evidence_id": "EV-011",
+      "type": "path_line",
+      "path": "shared/skills/skill-quality-audit/scripts/skill_audit_report_contract.py",
+      "line": 396,
+      "expected_snippet": "def content_behavior_ready_for_fit(report: dict[str, Any]) -> bool:",
+      "claim": "Fit readiness still requires supported statuses after evidence checks are validated."
+    },
+    {
+      "evidence_id": "EV-012",
+      "type": "test",
+      "ref": "tests/test-skill-quality-audit-report-contract.sh",
+      "claim": "Report contract tests cover required content_behavior_audit presence but not per-subfield evidence strength."
+    }
+  ],
+  "assumptions_or_unknowns": [
+    {
+      "assumption_id": "UNK-001",
+      "label": "Historical dogfood self-audit artifacts still claim fit, but the alignment contract treats dogfood audit outputs as historical evidence rather than current capability proof.",
+      "status": "open",
+      "refs": [
+        "shared/skills/skill-quality-audit/evals/dogfood/self-audit/audit-summary.md:3",
+        "shared/skills/skill-quality-audit/scripts/skill_audit_alignment_contract.py:109"
+      ]
+    }
+  ],
+  "capability_match_draft": {
+    "gaps": [
+      {
+        "gap_id": "GAP-001",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-001",
+          "CUR-004"
+        ],
+        "status": "matched",
+        "evidence_refs": [
+          "EV-006",
+          "EV-007"
+        ]
+      },
+      {
+        "gap_id": "GAP-002",
+        "target_capability_id": "TGT-001",
+        "current_capability_ids": [
+          "CUR-002",
+          "CUR-005"
+        ],
+        "status": "matched",
+        "evidence_refs": [
+          "EV-008",
+          "EV-011",
+          "EV-012"
+        ]
+      }
+    ]
+  },
+  "user_confirmation": {
+    "level": "G1",
+    "status": "confirmed",
+    "confirmed_scope_ref": "capability_effectiveness_standard:CES-SQA-SELF-2026-06-10",
+    "confirmed_target_capability_ids": [
+      "TGT-001"
+    ],
+    "accepted_assumption_ids": []
+  },
+  "capability_effectiveness_standard": {
+    "standard_id": "CES-SQA-SELF-2026-06-10",
+    "co_creation_status": "confirmed_with_user",
+    "confirmed_by": "user",
+    "decision_surface_ref": "chat:2026-06-10-user-said-open-work-after-co-created-ability-standard",
+    "target_capability_ids": [
+      "TGT-001"
+    ],
+    "real_task_scenarios": [
+      "A maintainer asks the auditor to judge whether an existing Skill can be used by the team for real work, not merely whether its Markdown is tidy.",
+      "The auditor must review a target Skill, align the real capability standard with the user, inspect content and runtime evidence, and produce a repairable readiness decision."
+    ],
+    "success_criteria": [
+      "The audit finds all supported problems and risks that can make the Skill induce an agent to fail in real tasks.",
+      "The audit distinguishes instruction hygiene, attention economy, behavior induction, and capability effectiveness instead of collapsing them into structure or wording quality.",
+      "The audit asks for or records user-confirmed ability standards before formal scoring and keeps unproven safety as finding or residual risk.",
+      "The audit produces validator-backed alignment, formal report, summary, scope evidence, scorecard, content_behavior_audit, findings, repair targets, and verification hints."
+    ],
+    "failure_modes": [
+      "The auditor treats repo contracts, old reports, self-description, or schema-valid JSON as proof of capability effectiveness.",
+      "The auditor over-focuses on sentence clarity and misses whether the content induces the agent to take the right actions.",
+      "The auditor calls a Skill fit while user confirmation, content behavior evidence, or failure-mode coverage remains unproven.",
+      "The auditor emits risks without concrete file-line evidence, impact, repair target, and verification path."
+    ],
+    "unacceptable_risks": [
+      "A fit verdict can be produced without evidence that the user actually confirmed the ability standard.",
+      "A fit verdict can be produced by marking content behavior statuses supported without per-field evidence that the Skill content induces the required behavior.",
+      "Historical self-audit artifacts can be mistaken for current readiness proof."
+    ],
+    "evidence_requirements": [
+      "P0/P1 findings must cite current path-line evidence, pass claim review, pass severity calibration, and include repair and verification hints.",
+      "Content behavior claims must be traceable to current Skill content, reference routing, validator behavior, tests, or runtime evidence.",
+      "Validator PASS proves schema and contract conformance only; semantic ability claims require direct evidence against the user-confirmed standard."
+    ],
+    "confirmation_evidence": {
+      "status": "recorded_user_confirmation",
+      "ref": "docs/tmp/skill-quality-audit-skill-quality-audit-confirmation.md:3",
+      "path": "docs/tmp/skill-quality-audit-skill-quality-audit-confirmation.md",
+      "line": 3,
+      "expected_snippet": "User confirmation: proceed thoroughly with the confirmed capability effectiveness standard for this repair audit.",
+      "claim": "The repair self-audit has a file-line record of the user-confirmed capability effectiveness standard."
+    }
+  }
+}

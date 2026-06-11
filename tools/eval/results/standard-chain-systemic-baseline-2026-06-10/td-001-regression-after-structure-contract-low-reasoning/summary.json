@@ -1,0 +1,65 @@
+{
+  "runs": [
+    {
+      "skill_name": "test-design",
+      "eval_id": "typed-gap-routes-to-owner",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/td-001-regression-after-structure-contract-low-reasoning/test-design/typed-gap-routes-to-owner/with_skill/run-1",
+      "passed": 5,
+      "failed": 0,
+      "total": 5,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "test-design",
+      "eval_id": "ac-boundary-exclusion-coverage",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/td-001-regression-after-structure-contract-low-reasoning/test-design/ac-boundary-exclusion-coverage/with_skill/run-1",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 3,
+      "anchor_failed": 0,
+      "anchor_total": 3,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "test-design",
+      "eval_id": "vague-ac-blocks-test-design",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/td-001-regression-after-structure-contract-low-reasoning/test-design/vague-ac-blocks-test-design/with_skill/run-1",
+      "passed": 7,
+      "failed": 0,
+      "total": 7,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 16,
+    "failed_expectations": 0,
+    "infra_failures": 0,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": []
+}

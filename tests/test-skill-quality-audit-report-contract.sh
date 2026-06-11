@@ -30,6 +30,40 @@ validator_lines="$(wc -l < "$VALIDATOR" | tr -d ' ')"
 python3 "$VALIDATOR" "$VALID"
 python3 "$VALIDATOR" "$FIT_VALID"
 
+python3 - "$FIT_VALID" "$TMP_DIR/fit-missing-content-behavior-audit.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+src, dst = map(Path, sys.argv[1:])
+data = json.loads(src.read_text(encoding="utf-8"))
+data.pop("content_behavior_audit", None)
+dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$VALIDATOR" "$TMP_DIR/fit-missing-content-behavior-audit.json" >"$TMP_DIR/fit-missing-content-behavior-audit.out" 2>&1; then
+  fail "fit report without content_behavior_audit must fail"
+fi
+grep -Fq "content_behavior_audit" "$TMP_DIR/fit-missing-content-behavior-audit.out" \
+  || fail "missing content_behavior_audit failure should mention content_behavior_audit"
+
+python3 - "$FIT_VALID" "$TMP_DIR/fit-weak-content-behavior-evidence.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+src, dst = map(Path, sys.argv[1:])
+data = json.loads(src.read_text(encoding="utf-8"))
+for item in data["content_behavior_audit"]:
+    item["evidence_refs"] = ["dimension:Content Behavior Induction"]
+    item.pop("evidence_checks", None)
+dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+if python3 "$VALIDATOR" "$TMP_DIR/fit-weak-content-behavior-evidence.json" >"$TMP_DIR/fit-weak-content-behavior-evidence.out" 2>&1; then
+  fail "fit report with supported content_behavior_audit but no per-field evidence_checks must fail"
+fi
+grep -Fq "content_behavior_audit" "$TMP_DIR/fit-weak-content-behavior-evidence.out" \
+  || fail "weak content_behavior_audit failure should mention content_behavior_audit"
+
 python3 - "$VALID" "$TMP_DIR/root-file-line-evidence.json" "$TMP_DIR/root-file-line-evidence.md" <<'PY'
 import json
 import sys

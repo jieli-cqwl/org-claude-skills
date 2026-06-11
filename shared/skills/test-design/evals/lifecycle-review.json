@@ -11,9 +11,10 @@
     "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json",
     "shared/skills/test-design/evals/dogfood/sample-feature-flow/anchor-fidelity.json",
     "tools/eval/results/test-design-combined-20260602-with-skill/summary.json",
-    "tools/eval/results/test-design-combined-20260602-without-skill/summary.json"
+    "tools/eval/results/test-design-combined-20260602-without-skill/summary.json",
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/td-001-regression-after-structure-contract-low-reasoning/summary.json"
   ],
-  "next_action": "Broader 9/9 empirical sample is recorded with positive uplift; run human delta review and retain gate calibration before claiming retain.",
+  "next_action": "Broader 9/9 empirical sample is recorded with positive uplift; a 10th vague-AC eval has targeted regression evidence. Run human delta review and retain gate calibration before claiming retain.",
   "dogfood_flow": {
     "measurement_status": "completed_dogfood_flow",
     "dogfood_ref": "shared/skills/test-design/evals/dogfood/sample-feature-flow/dogfood-result.json",
@@ -46,7 +47,7 @@
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 6,
-    "eval_count": 9,
+    "eval_count": 10,
     "fidelity": 0.8947,
     "sample_size": 9,
     "anchor_passed": 17,

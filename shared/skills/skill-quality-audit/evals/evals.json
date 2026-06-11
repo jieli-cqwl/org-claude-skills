@@ -28,7 +28,7 @@
     },
     {
       "id": "SQA-07",
-      "anchor": "Default audits produce a formal verdict, JSON report, validator PASS output, current-file evidence checks for P0/P1 findings, and a concise summary artifact with per-finding evidence, impact, repair target, and verification hint in one run."
+      "anchor": "Default audits produce a user-confirmed capability effectiveness standard with file-line confirmation_evidence, formal verdict, JSON report, content_behavior_audit with per-field evidence_checks, validator PASS output, current-file evidence checks for P0/P1 findings, and a concise summary artifact with per-finding evidence, impact, repair target, and verification hint."
     },
     {
       "id": "SQA-08",
@@ -52,11 +52,11 @@
     },
     {
       "id": "SQA-13",
-      "anchor": "Default formal audits produce and validate a confirmed alignment artifact before any team-readiness verdict, scorecard, severity finding, or report validator claim."
+      "anchor": "Default formal audits produce and validate a confirmed alignment artifact with a user-confirmed capability_effectiveness_standard and file-line confirmation_evidence before any team-readiness verdict, scorecard, severity finding, or report validator claim."
     },
     {
       "id": "SQA-14",
-      "anchor": "Formal findings reference confirmed gap ids from the alignment baseline; inferred, self-declared, unknown, or historical claims cannot be treated as supported current capability evidence."
+      "anchor": "Formal findings reference confirmed gap ids from the alignment baseline, and fit reports include content_behavior_audit coverage with per-field evidence_checks for every confirmed target; inferred, self-declared, unknown, repo-only, or historical claims cannot be treated as supported capability evidence."
     }
   ],
   "grader_dimensions": [
@@ -252,11 +252,12 @@
       "expectations": [
         "Produces a confirmed alignment artifact before the formal verdict.",
         "Does not emit a formal verdict, scorecard, severity finding, or report validator PASS claim before alignment confirmation.",
-        "Produces a formal verdict in the same run when the target capability is confirmed by the user request or repository contract.",
+        "Stops for user confirmation unless the capability effectiveness standard is co-created and confirmed in the review stage with file-line confirmation_evidence.",
         "Chooses report artifact paths automatically when the user does not provide them.",
         "Chooses alignment artifact paths automatically when the user does not provide them.",
         "Produces a machine-readable JSON report before or with the formal verdict.",
         "Includes capability_baseline_ref, confirmed_target_capability_ids, and confirmed_gap_refs in the report.",
+        "Includes content_behavior_audit with per-field evidence_checks for every confirmed target capability before any fit verdict.",
         "Includes evidence_checks for every P0/P1 finding so the validator can verify the current cited file line.",
         "Includes claim_review and severity_calibration for every P0/P1 finding.",
         "Runs both the skill audit alignment validator and report validator, then includes both PASS outputs in the final handoff.",
@@ -284,9 +285,9 @@
         "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md"
       ],
       "expectations": [
-        "Produces a skill-audit-alignment JSON artifact before the formal report.",
+        "Produces a skill-audit-alignment JSON artifact with capability_effectiveness_standard and confirmation_evidence before the formal report.",
         "Validates the alignment artifact before any readiness verdict.",
-        "Separates target capability claims from evidence-backed current capability profile."
+        "Separates target capability claims, user-confirmed capability effectiveness standard, and evidence-backed current capability profile."
       ],
       "expected_anchors": [
         "SQA-13",

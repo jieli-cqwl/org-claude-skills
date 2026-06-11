@@ -111,6 +111,12 @@
       "reason": "Main workflow is executable, with one handoff gap."
     },
     {
+      "dimension": "Content Behavior Induction",
+      "score": 8,
+      "evidence_level": "E3",
+      "reason": "Content audit covers instruction hygiene, attention economy, behavior induction, failure-mode coverage, and unproven risk disposition for confirmed target capabilities."
+    },
+    {
       "dimension": "Workflow Causality",
       "score": 7,
       "evidence_level": "E3",
@@ -207,5 +213,56 @@
   "capability_baseline_ref": "tests/fixtures/skill-quality-audit/alignments/valid-alignment.json",
   "confirmed_target_capability_ids": [
     "TGT-001"
+  ],
+  "content_behavior_audit": [
+    {
+      "target_capability_id": "TGT-001",
+      "instruction_hygiene": "supported",
+      "attention_economy": "supported",
+      "behavior_induction": "supported",
+      "failure_mode_coverage": "supported",
+      "unproven_risk_disposition": "supported",
+      "evidence_refs": [
+        "dimension:Instruction Contract",
+        "dimension:Content Behavior Induction"
+      ],
+      "evidence_checks": [
+        {
+          "field": "instruction_hygiene",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 13,
+          "expected_snippet": "Stop if the input file is missing.",
+          "claim": "The fixture has an explicit gate for missing input."
+        },
+        {
+          "field": "attention_economy",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 17,
+          "expected_snippet": "Read the input file path from the user request.",
+          "claim": "The fixture workflow starts with a directly consumed input path."
+        },
+        {
+          "field": "behavior_induction",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 18,
+          "expected_snippet": "Verify the file exists with `test -f`.",
+          "claim": "The fixture induces a concrete verification action before output."
+        },
+        {
+          "field": "failure_mode_coverage",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 13,
+          "expected_snippet": "Stop if the input file is missing.",
+          "claim": "The fixture covers the missing-input failure path."
+        },
+        {
+          "field": "unproven_risk_disposition",
+          "path": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill/SKILL.md",
+          "line": 23,
+          "expected_snippet": "Run `bash tests/example.sh` and include the command result as evidence.",
+          "claim": "The fixture requires verification evidence before treating output as complete."
+        }
+      ]
+    }
   ]
 }

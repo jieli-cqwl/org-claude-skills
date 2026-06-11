@@ -1,0 +1,29 @@
+{
+  "runs": [
+    {
+      "skill_name": "product-director",
+      "eval_id": "partial-answer-stays-in-problem-clarification",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-002-partial-answer-after-fact-state-fix-reasoning-low/product-director/partial-answer-stays-in-problem-clarification/with_skill/run-1",
+      "passed": 6,
+      "failed": 0,
+      "total": 6,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 5,
+      "anchor_failed": 0,
+      "anchor_total": 5,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 6,
+    "failed_expectations": 0,
+    "infra_failures": 0,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": []
+}

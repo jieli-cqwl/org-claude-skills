@@ -19,43 +19,11 @@
       "label": "Current audit evidence profile for the confirmed target",
       "status": "supported",
       "evidence_refs": [
-        "EV-OVERVIEW-P1-001-1"
+        "EV-GAP-OVERVIEW-P2-001-1"
       ]
     }
   ],
   "evidence": [
-    {
-      "evidence_id": "EV-OVERVIEW-P1-001-1",
-      "type": "path_line",
-      "path": "shared/skills/overview/SKILL.md",
-      "line": 52,
-      "expected_snippet": "bash {{SKILLS_HOME}}/overview/scripts/dir-tree.sh <项目路径> 3",
-      "claim": "The overview workflow requires invoking dir-tree.sh with the selected project path."
-    },
-    {
-      "evidence_id": "EV-OVERVIEW-P1-001-2",
-      "type": "path_line",
-      "path": "shared/skills/overview/scripts/dir-tree.sh",
-      "line": 9,
-      "expected_snippet": "PROJECT_DIR=\"${1:-.}\"",
-      "claim": "dir-tree.sh reads the project path from argv."
-    },
-    {
-      "evidence_id": "EV-OVERVIEW-P1-001-3",
-      "type": "path_line",
-      "path": "shared/skills/overview/scripts/dir-tree.sh",
-      "line": 10,
-      "expected_snippet": "DEPTH=\"${2:-3}\"",
-      "claim": "dir-tree.sh reads depth from argv."
-    },
-    {
-      "evidence_id": "EV-OVERVIEW-P1-001-4",
-      "type": "path_line",
-      "path": "shared/skills/overview/scripts/dir-tree.sh",
-      "line": 26,
-      "expected_snippet": "eval find \"$PROJECT_DIR\" -maxdepth \"$DEPTH\" -type d $EXCLUDES",
-      "claim": "The fallback path constructs and executes a shell command with eval."
-    },
     {
       "type": "path_line",
       "path": "shared/skills/overview/test-prompts.json",
@@ -71,33 +39,11 @@
       "expected_snippet": "codex_execution: subagent_clean",
       "evidence_id": "EV-GAP-OVERVIEW-P2-002-1",
       "claim": "Current file evidence supports gap GAP-OVERVIEW-P2-002."
-    },
-    {
-      "type": "path_line",
-      "path": "shared/skills/overview/SKILL.md",
-      "line": 54,
-      "expected_snippet": "→ Trigger: 扫描脚本成功且需要选择执行模式；Read: `references/mode-selection.md`；Expect: 触发信号、推荐话术、两种模式收益/代价；Consume: 模式选择提示和用户确认；Evidence: 扫描摘要、推荐理由和用户选择；Sync: 更新模式选择模板和治理测试。",
-      "evidence_id": "EV-GAP-OVERVIEW-P3-001-1",
-      "claim": "Current file evidence supports gap GAP-OVERVIEW-P3-001."
     }
   ],
   "assumptions_or_unknowns": [],
   "capability_match_draft": {
     "gaps": [
-      {
-        "gap_id": "GAP-OVERVIEW-P1-001",
-        "target_capability_id": "TGT-001",
-        "current_capability_ids": [
-          "CUR-001"
-        ],
-        "status": "partial",
-        "evidence_refs": [
-          "EV-OVERVIEW-P1-001-1",
-          "EV-OVERVIEW-P1-001-2",
-          "EV-OVERVIEW-P1-001-3",
-          "EV-OVERVIEW-P1-001-4"
-        ]
-      },
       {
         "gap_id": "GAP-OVERVIEW-P2-001",
         "target_capability_id": "TGT-001",
@@ -119,27 +65,48 @@
         "evidence_refs": [
           "EV-GAP-OVERVIEW-P2-002-1"
         ]
-      },
-      {
-        "gap_id": "GAP-OVERVIEW-P3-001",
-        "target_capability_id": "TGT-001",
-        "current_capability_ids": [
-          "CUR-001"
-        ],
-        "status": "partial",
-        "evidence_refs": [
-          "EV-GAP-OVERVIEW-P3-001-1"
-        ]
       }
     ]
   },
   "user_confirmation": {
     "level": "G1",
     "status": "confirmed",
-    "confirmed_scope_ref": "user_scope:fixture-formal-audit-target",
+    "confirmed_scope_ref": "capability_effectiveness_standard:CES-001",
     "confirmed_target_capability_ids": [
       "TGT-001"
     ],
     "accepted_assumption_ids": []
+  },
+  "capability_effectiveness_standard": {
+    "standard_id": "CES-001",
+    "co_creation_status": "confirmed_with_user",
+    "confirmed_by": "user",
+    "decision_surface_ref": "chat:capability-effectiveness-standard-confirmed",
+    "target_capability_ids": [
+      "TGT-001"
+    ],
+    "real_task_scenarios": [
+      "Audit the target Skill against a user-confirmed real task capability standard."
+    ],
+    "success_criteria": [
+      "The audit identifies capability gaps and risks that would make the Skill fail in real use."
+    ],
+    "failure_modes": [
+      "The audit treats structure, prior reports, or validator success as capability proof."
+    ],
+    "unacceptable_risks": [
+      "A formal verdict is issued before unproven capability risks are retained or resolved."
+    ],
+    "evidence_requirements": [
+      "Decisive claims cite current evidence, content behavior audit coverage, and validator support when applicable."
+    ],
+    "confirmation_evidence": {
+      "status": "recorded_user_confirmation",
+      "ref": "tests/fixtures/skill-quality-audit/evidence-target.md:4",
+      "path": "tests/fixtures/skill-quality-audit/evidence-target.md",
+      "line": 4,
+      "expected_snippet": "User confirmation: capability effectiveness standard confirmed for audit fixture.",
+      "claim": "The confirmed alignment has a file-line confirmation record for this fixture."
+    }
   }
 }

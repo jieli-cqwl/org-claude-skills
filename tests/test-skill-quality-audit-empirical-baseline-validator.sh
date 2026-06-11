@@ -59,6 +59,26 @@ for case in plan["cases"]:
                 "artifact_type": "skill-audit-alignment",
                 "stage": "confirmed",
                 "target_skill": case["target_skill"],
+                "capability_effectiveness_standard": {
+                    "standard_id": "CES-001",
+                    "co_creation_status": "confirmed_with_user",
+                    "confirmed_by": "user",
+                    "decision_surface_ref": "chat:empirical-baseline-capability-standard",
+                    "target_capability_ids": ["TGT-001"],
+                    "real_task_scenarios": ["Validate a generated empirical audit fixture for the case target."],
+                    "success_criteria": ["The generated report validates and preserves the case target boundary."],
+                    "failure_modes": ["The fixture treats generated report structure as proof without a confirmed capability standard."],
+                    "unacceptable_risks": ["A with-skill report is counted as complete without a validator-passing formal report."],
+                    "evidence_requirements": ["The formal report and summary references must validate against current contracts."],
+                    "confirmation_evidence": {
+                        "status": "recorded_user_confirmation",
+                        "ref": "tests/fixtures/skill-quality-audit/evidence-target.md:4",
+                        "path": "tests/fixtures/skill-quality-audit/evidence-target.md",
+                        "line": 4,
+                        "expected_snippet": "User confirmation: capability effectiveness standard confirmed for audit fixture.",
+                        "claim": "The generated empirical alignment has a file-line confirmation record for this fixture.",
+                    },
+                },
                 "target_capability_claims": [
                     {
                         "target_capability_id": "TGT-001",
@@ -99,7 +119,7 @@ for case in plan["cases"]:
                 "user_confirmation": {
                     "level": "G1",
                     "status": "confirmed",
-                    "confirmed_scope_ref": "user_scope:empirical-baseline-fixture",
+                    "confirmed_scope_ref": "capability_effectiveness_standard:CES-001",
                     "confirmed_target_capability_ids": ["TGT-001"],
                     "accepted_assumption_ids": [],
                 },

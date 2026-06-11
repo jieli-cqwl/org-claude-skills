@@ -35,6 +35,15 @@ cat > "$FAKE_CODEX_BIN/codex" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ -n "${STANDARD_CHAIN_FAKE_CODEX_ARG_LOG:-}" ]; then
+  {
+    printf 'CALL\n'
+    for arg in "$@"; do
+      printf '<%s>\n' "$arg"
+    done
+  } >> "$STANDARD_CHAIN_FAKE_CODEX_ARG_LOG"
+fi
+
 output_path=""
 workspace=""
 is_judge=0
@@ -71,6 +80,21 @@ if [ "$is_judge" = "1" ]; then
       "text": "说明 D-S1 只收集线索且不冻结根问题",
       "passed": false,
       "evidence": "synthetic response omitted D-S1 boundary"
+    },
+    {
+      "text": "synthetic mutated third expectation",
+      "passed": true,
+      "evidence": "synthetic response covered input artifacts"
+    },
+    {
+      "text": "synthetic mutated fourth expectation",
+      "passed": true,
+      "evidence": "synthetic response covered gate checks"
+    },
+    {
+      "text": "synthetic mutated fifth expectation",
+      "passed": true,
+      "evidence": "synthetic response did not output draft artifacts"
     }
   ],
   "notes": ["D-S1 边界表达缺失"],
@@ -205,6 +229,28 @@ assert "Expectations:" not in hidden_prompt
 assert "EXPECTATION_SENTINEL_SHOULD_NOT_REACH_EXECUTOR" not in hidden_prompt
 PY
 
+ARG_LOG="$OUT_DIR/reasoning-args.log"
+REASONING_OUT_DIR="$OUT_DIR/reasoning-config"
+STANDARD_CHAIN_FAKE_CODEX_ARG_LOG="$ARG_LOG" PATH="$FAKE_CODEX_BIN:$PATH" python3 "$RUNNER" \
+  --skills product-manager \
+  --eval-ids handoff-validation-first \
+  --runs-per-eval 1 \
+  --run-mode with_skill \
+  --output-dir "$REASONING_OUT_DIR" \
+  --reasoning-effort low \
+  --judge-reasoning-effort low \
+  --allow-failures
+python3 - <<'PY' "$ARG_LOG"
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+if text.count("<-c>") < 2:
+    raise SystemExit("executor and judge should both receive config overrides")
+if text.count('<model_reasoning_effort="low">') < 2:
+    raise SystemExit("executor and judge should both receive low reasoning effort")
+PY
+
 python3 - <<'PY' "$RUN_DIR/eval_metadata.json" "$RUN_DIR/grading.json" "$OUT_DIR/summary.json"
 import json
 import sys
@@ -221,6 +267,8 @@ expectations = grading["expectations"]
 assert expectations, "missing expectations"
 for expectation in expectations:
     assert set(["text", "passed", "evidence"]).issubset(expectation), expectation
+assert expectations[0]["text"] == metadata["assertions"][0], expectations
+assert expectations[1]["text"] == metadata["assertions"][1], expectations
 anchor_results = grading["anchor_results"]
 assert [item["id"] for item in anchor_results] == ["handoff-director-baseline", "director-lock-no-drift"], anchor_results
 assert grading["preference_anchor_summary"] == {
@@ -235,7 +283,7 @@ assert summary["runs"][0]["run_mode"] == "with_skill", summary["runs"][0]
 assert summary["runs"][0]["anchor_total"] == 2, summary["runs"][0]
 assert summary["runs"][0]["anchor_passed"] == 2, summary["runs"][0]
 assert summary["runs"][0]["anchor_fidelity"] == 1.0, summary["runs"][0]
-assert summary["runs"][0]["failed_expectations"] == ["说明 D-S1 只收集线索且不冻结根问题"], summary["runs"][0]
+assert summary["runs"][0]["failed_expectations"] == [metadata["assertions"][1]], summary["runs"][0]
 assert summary["optimization_findings"][0]["issue"] == "D-S1 boundary is too easy to omit"
 PY
 
@@ -375,6 +423,26 @@ if [ "$is_judge" = "1" ]; then
   "expectations": [
     {
       "text": "复述目标、边界和预期产物",
+      "passed": true,
+      "evidence": "synthetic response is complete despite executor timeout"
+    },
+    {
+      "text": "synthetic timeout expectation 2",
+      "passed": true,
+      "evidence": "synthetic response is complete despite executor timeout"
+    },
+    {
+      "text": "synthetic timeout expectation 3",
+      "passed": true,
+      "evidence": "synthetic response is complete despite executor timeout"
+    },
+    {
+      "text": "synthetic timeout expectation 4",
+      "passed": true,
+      "evidence": "synthetic response is complete despite executor timeout"
+    },
+    {
+      "text": "synthetic timeout expectation 5",
       "passed": true,
       "evidence": "synthetic response is complete despite executor timeout"
     }

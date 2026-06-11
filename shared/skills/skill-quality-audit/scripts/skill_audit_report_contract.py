@@ -10,6 +10,7 @@ REQUIRED_DIMENSIONS = (
     "Real Use Capability",
     "Trigger And Routing",
     "Instruction Contract",
+    "Content Behavior Induction",
     "Workflow Causality",
     "Output And Handoff",
     "Determinism And Validation",
@@ -55,6 +56,7 @@ TOP_LEVEL_FIELDS = {
     "artifact_paths",
     "scope_evidence",
     "dimension_scores",
+    "content_behavior_audit",
     "findings",
     "repair_handoff",
     "validation",
@@ -64,6 +66,31 @@ TOP_LEVEL_FIELDS = {
 ARTIFACT_PATH_FIELDS = {"report_json", "summary_markdown"}
 SCOPE_FIELDS = {"surface", "status", "evidence"}
 DIMENSION_FIELDS = {"dimension", "score", "evidence_level", "reason"}
+CONTENT_BEHAVIOR_AUDIT_FIELDS = {
+    "target_capability_id",
+    "instruction_hygiene",
+    "attention_economy",
+    "behavior_induction",
+    "failure_mode_coverage",
+    "unproven_risk_disposition",
+    "evidence_refs",
+    "evidence_checks",
+}
+CONTENT_BEHAVIOR_FIELDS = (
+    "instruction_hygiene",
+    "attention_economy",
+    "behavior_induction",
+    "failure_mode_coverage",
+    "unproven_risk_disposition",
+)
+CONTENT_BEHAVIOR_STATUSES = {"supported", "partial", "missing", "blocked"}
+CONTENT_BEHAVIOR_EVIDENCE_CHECK_FIELDS = {
+    "field",
+    "path",
+    "line",
+    "expected_snippet",
+    "claim",
+}
 FINDING_FIELDS = {
     "id",
     "severity",
@@ -251,6 +278,127 @@ def validate_findings(report: dict[str, Any]) -> None:
             )
         if severity in {"P0", "P1"}:
             validate_high_severity_finding(finding, str(severity), str(level), index)
+
+
+def validate_content_behavior_audit(report: dict[str, Any]) -> None:
+    items = report.get("content_behavior_audit")
+    require(
+        isinstance(items, list) and items,
+        "content_behavior_audit must be a non-empty array",
+    )
+    confirmed = set(report.get("confirmed_target_capability_ids", []))
+    seen: set[str] = set()
+    for index, item in enumerate(items):
+        require(
+            isinstance(item, dict),
+            f"content_behavior_audit[{index}] must be an object",
+        )
+        require_known_fields(
+            item, CONTENT_BEHAVIOR_AUDIT_FIELDS, f"content_behavior_audit[{index}]"
+        )
+        target_id = item.get("target_capability_id")
+        require(
+            isinstance(target_id, str) and target_id,
+            f"content_behavior_audit[{index}].target_capability_id is required",
+        )
+        require(
+            target_id in confirmed,
+            f"content_behavior_audit[{index}] target_capability_id must be report-confirmed",
+        )
+        require(target_id not in seen, f"duplicate content_behavior_audit target: {target_id}")
+        seen.add(str(target_id))
+        for field in CONTENT_BEHAVIOR_FIELDS:
+            require(
+                item.get(field) in CONTENT_BEHAVIOR_STATUSES,
+                f"content_behavior_audit[{index}].{field} is invalid",
+            )
+        evidence_refs = item.get("evidence_refs")
+        require(
+            isinstance(evidence_refs, list)
+            and evidence_refs
+            and all(isinstance(value, str) and value for value in evidence_refs),
+            f"content_behavior_audit[{index}].evidence_refs must be non-empty strings",
+        )
+        validate_content_behavior_evidence_checks(
+            item, f"content_behavior_audit[{index}]"
+        )
+    missing = sorted(confirmed - seen)
+    require(
+        not missing,
+        "content_behavior_audit must cover confirmed target capabilities: "
+        + ", ".join(missing),
+    )
+
+
+def validate_content_behavior_evidence_checks(
+    item: dict[str, Any], label: str
+) -> None:
+    checks = item.get("evidence_checks")
+    require(
+        isinstance(checks, list) and checks,
+        f"{label}.evidence_checks must be a non-empty array",
+    )
+    checked_fields: set[str] = set()
+    for index, check in enumerate(checks):
+        require(
+            isinstance(check, dict), f"{label}.evidence_checks[{index}] must be an object"
+        )
+        require_known_fields(
+            check,
+            CONTENT_BEHAVIOR_EVIDENCE_CHECK_FIELDS,
+            f"{label}.evidence_checks[{index}]",
+        )
+        field = check.get("field")
+        require(
+            field in CONTENT_BEHAVIOR_FIELDS,
+            f"{label}.evidence_checks[{index}].field is invalid",
+        )
+        path = check.get("path")
+        line = check.get("line")
+        snippet = check.get("expected_snippet")
+        claim = check.get("claim")
+        require(
+            isinstance(path, str) and path.strip(),
+            f"{label}.evidence_checks[{index}].path is required",
+        )
+        require(
+            isinstance(line, int) and line > 0,
+            f"{label}.evidence_checks[{index}].line must be a positive integer",
+        )
+        require(
+            isinstance(snippet, str) and snippet.strip(),
+            f"{label}.evidence_checks[{index}].expected_snippet is required",
+        )
+        require(
+            "\n" not in snippet,
+            f"{label}.evidence_checks[{index}].expected_snippet must be single-line",
+        )
+        require(
+            isinstance(claim, str) and claim.strip(),
+            f"{label}.evidence_checks[{index}].claim is required",
+        )
+        line_text = read_line(path, line)
+        require(
+            snippet in line_text,
+            f"{label}.evidence_checks[{index}] expected_snippet not found at {path}:{line}",
+        )
+        checked_fields.add(str(field))
+    supported_fields = {
+        field for field in CONTENT_BEHAVIOR_FIELDS if item.get(field) == "supported"
+    }
+    missing = sorted(supported_fields - checked_fields)
+    require(
+        not missing,
+        f"{label}.evidence_checks must cover supported fields: " + ", ".join(missing),
+    )
+
+
+def content_behavior_ready_for_fit(report: dict[str, Any]) -> bool:
+    for item in report.get("content_behavior_audit", []):
+        for field in CONTENT_BEHAVIOR_FIELDS:
+            if item.get(field) != "supported":
+                return False
+    return True
 
 
 def resolve_report_artifact(path_text: str) -> Path:

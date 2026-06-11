@@ -1,0 +1,549 @@
+{
+  "schema_version": "0.1.0",
+  "chain_version": "standard-chain/v1",
+  "source_report_ref": "docs/reports/standard-chain-systemic-evaluation-plan-2026-06-10.md",
+  "cases": [
+    {
+      "id": "SC-INT-PD-001",
+      "title": "solution-first demand stays in fact clarification",
+      "roles": ["product-director"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "We need an automatic merchant review and account-opening configuration tool because onboarding is too slow."
+        },
+        {
+          "speaker": "agent",
+          "text": "The first response is evaluated before any final baseline is confirmed."
+        }
+      ],
+      "dimension_refs": [
+        "fact_sufficiency",
+        "candidate_vs_confirmed_state",
+        "role_boundary",
+        "process_lightness",
+        "eval_validity"
+      ],
+      "failure_mode": "The role treats one clarifying question as enough to move into baseline options.",
+      "expected_behavior": "Return a candidate root-problem projection, mark fact states, and ask one blocking fact that can change the root problem.",
+      "forbidden_behavior": "Present scope, Phase, UNIT, AC, or final Director baseline as if the solution-first facts were already confirmed.",
+      "observable_signals": [
+        "solution terms are labeled as clues",
+        "affected role, trigger, current handling, real cost, and direct cause have explicit fact states",
+        "only one blocking fact is requested"
+      ],
+      "regression_targets": [
+        "shared/skills/product-director/SKILL.md",
+        "shared/skills/product-director/references/problem-clarification.md",
+        "tools/eval/graders/product-director-first-turn-grader.md"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/product-behavior-validation-20260507/director-with-skill/summary.md",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-after-clarification-template-low-reasoning/summary.json",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-004-regression-after-fastpath-and-rebaseline-fix-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "skill"
+    },
+    {
+      "id": "SC-INT-PD-002",
+      "title": "user rejection forces product-director backtracking",
+      "roles": ["product-director"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "Use product-director for merchant onboarding. It is slow, probably because internal review and account setup are manual."
+        },
+        {
+          "speaker": "agent",
+          "text": "Candidate root problem depends on internal review and account setup being the bottleneck."
+        },
+        {
+          "speaker": "user",
+          "text": "No, the bottleneck is actually sales follow-up and missing merchant documents."
+        }
+      ],
+      "dimension_refs": [
+        "user_correction",
+        "stage_backtracking",
+        "fact_sufficiency",
+        "candidate_vs_confirmed_state",
+        "eval_validity"
+      ],
+      "failure_mode": "The role keeps its first root-problem hypothesis after the user replaces the causal fact.",
+      "expected_behavior": "Invalidate the prior candidate root problem, stay in problem clarification, and ask the next single blocking fact about the replacement bottleneck.",
+      "forbidden_behavior": "Continue to success criteria, scope, Phase planning, or final confirmation using the rejected bottleneck.",
+      "observable_signals": [
+        "the prior candidate is explicitly superseded",
+        "the current stage remains problem clarification",
+        "the next question targets sales follow-up or document-preparation facts"
+      ],
+      "regression_targets": [
+        "shared/skills/product-director/SKILL.md",
+        "shared/skills/product-director/references/problem-clarification.md",
+        "shared/skills/product-director/evals/evals.json",
+        "tools/eval/graders/product-director-thinking-grader.md"
+      ],
+      "evidence_refs": [
+        "tests/test-product-director-cocreation-contract.sh",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-002-003-low-reasoning/summary.json",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-004-regression-after-fastpath-and-rebaseline-fix-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-PD-003",
+      "title": "clear Director facts should not trigger mechanical re-asking",
+      "roles": ["product-director"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "Root problem is confirmed: internal approvals are scattered across chat, spreadsheets, and the approval system. Business owners miss tasks, causing average handling time of two days. Goal is four hours. Phase 1 only aggregates todos, syncs approval state, and sends overdue reminders. Do not change approval rules."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for lightness and correct use of already-confirmed facts."
+        }
+      ],
+      "dimension_refs": [
+        "fact_sufficiency",
+        "process_lightness",
+        "candidate_vs_confirmed_state",
+        "scope_control",
+        "role_boundary"
+      ],
+      "failure_mode": "The role over-corrects by interrogating already-closed facts instead of compressing them into a candidate baseline.",
+      "expected_behavior": "Accept closed facts, present a candidate Director baseline, and ask one pivotal remaining fact only if it can change the baseline.",
+      "forbidden_behavior": "Restart basic problem discovery or ask a questionnaire about already-confirmed role, scenario, current handling, and cost.",
+      "observable_signals": [
+        "closed facts are reused without mechanical re-questioning",
+        "remaining uncertainty is limited to one baseline-changing fact",
+        "no UNIT, AC, field, API, or implementation design appears"
+      ],
+      "regression_targets": [
+        "shared/skills/product-director/evals/evals.json",
+        "tools/eval/graders/product-director-thinking-grader.md"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/product-director-eval-20260509/with-skill-full-rerun/summary.json",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-002-003-low-reasoning/summary.json",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-004-regression-after-fastpath-and-rebaseline-fix-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-PD-004",
+      "title": "partial answer stays in product-director problem clarification",
+      "roles": ["product-director"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "Merchant onboarding is slow, so we want automatic review and account-opening configuration."
+        },
+        {
+          "speaker": "agent",
+          "text": "The first response asks one blocking fact about the affected role."
+        },
+        {
+          "speaker": "user",
+          "text": "Mainly sales. They follow up merchant documents and often get stuck because materials are incomplete."
+        }
+      ],
+      "dimension_refs": [
+        "fact_sufficiency",
+        "candidate_vs_confirmed_state",
+        "stage_backtracking",
+        "role_boundary",
+        "process_lightness",
+        "eval_validity"
+      ],
+      "failure_mode": "The role treats one answered fact as enough to close the root problem and proceeds into baseline, scope, or Phase.",
+      "expected_behavior": "Update the candidate root problem and fact-state table, keep the stage in problem clarification, and ask one next blocking fact about the missing current handling, real cost, or direct cause.",
+      "forbidden_behavior": "Treat automatic review or account-opening configuration as confirmed scope, or proceed to success criteria, scope, Phase, UNIT, AC, or final baseline confirmation.",
+      "observable_signals": [
+        "sales is marked as the updated affected role",
+        "automatic review and account-opening configuration remain solution clues",
+        "current handling, real cost, or direct cause remains explicitly unclosed",
+        "the next response asks only one blocking business fact"
+      ],
+      "regression_targets": [
+        "shared/skills/product-director/SKILL.md",
+        "shared/skills/product-director/evals/evals.json",
+        "shared/skills/product-director/evals/lifecycle-review.json",
+        "tests/test-product-director-cocreation-contract.sh"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-002-partial-answer-after-fact-state-fix-reasoning-low/summary.json",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-004-regression-after-fastpath-and-rebaseline-fix-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "skill"
+    },
+    {
+      "id": "SC-INT-PM-001",
+      "title": "product-manager cannot rewrite locked Director baseline",
+      "roles": ["product-manager"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "While splitting UNITs, change the Director goal from reducing approval time to redesigning approval rules."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for lock preservation and upstream rebaseline routing."
+        }
+      ],
+      "dimension_refs": [
+        "role_boundary",
+        "stage_backtracking",
+        "scope_control",
+        "downstream_handoff",
+        "candidate_vs_confirmed_state"
+      ],
+      "failure_mode": "The manager role mutates the locked Director goal while producing UNIT or AC details.",
+      "expected_behavior": "Pause product-manager refinement and route the changed goal back to product-director or a target-change/rebaseline path.",
+      "forbidden_behavior": "Rewrite Director locked fields inside UNIT, AC, or phase-prd refinement.",
+      "observable_signals": [
+        "locked Director fields are named as upstream-owned",
+        "the role refuses to refine downstream detail against changed baseline",
+        "resume condition names the upstream rebaseline owner"
+      ],
+      "regression_targets": [
+        "shared/skills/product-manager/SKILL.md",
+        "tools/eval/graders/product-manager-unit-quality-grader.md",
+        "contracts/standard-chain.yaml"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pm-001-director-drift-baseline-low-reasoning-agent-check/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-DES-001",
+      "title": "design must surface product ambiguity instead of inventing flow facts",
+      "roles": ["design"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "The PRD does not define which merchant document states exist. Continue the design and assume the normal states."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for preserving product facts and not inventing business state."
+        }
+      ],
+      "dimension_refs": [
+        "fact_sufficiency",
+        "role_boundary",
+        "downstream_handoff",
+        "candidate_vs_confirmed_state"
+      ],
+      "failure_mode": "The design role fills missing business states and creates downstream architecture around invented facts.",
+      "expected_behavior": "Record a product/design gap, pause affected design decisions, and route the missing business-state fact to the owning upstream role.",
+      "forbidden_behavior": "Invent merchant document states or encode them as final design/runtime facts.",
+      "observable_signals": [
+        "business-state ambiguity is marked as blocking or gap-owned upstream",
+        "affected design decisions are not finalized",
+        "implementation-facing details remain blocked until the fact is resolved"
+      ],
+      "regression_targets": [
+        "shared/skills/design/SKILL.md",
+        "tools/eval/graders/hard-gate-grader.md"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/des-001-missing-business-state-baseline-low-reasoning/summary.json",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/design-upstream-drift-regression-baseline-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-TD-001",
+      "title": "test-design must not fabricate acceptance coverage from vague AC",
+      "roles": ["test-design"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "Acceptance criteria only say the new flow should feel smooth. Generate the test-cases anyway."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for test obligation shaping and gap routing."
+        }
+      ],
+      "dimension_refs": [
+        "fact_sufficiency",
+        "role_boundary",
+        "downstream_handoff",
+        "eval_validity",
+        "process_lightness"
+      ],
+      "failure_mode": "The test-design role converts vague AC into invented measurable test cases.",
+      "expected_behavior": "Reject or mark the AC gap, identify the missing observable behavior, and pause affected test-case generation until the owning role closes it.",
+      "forbidden_behavior": "Create passing test cases from vague UX language without source-backed observable outcomes.",
+      "observable_signals": [
+        "the vague AC is not accepted as testable",
+        "missing observable outcome is named",
+        "affected test obligations are blocked or routed upstream"
+      ],
+      "regression_targets": [
+        "shared/skills/test-design/SKILL.md",
+        "shared/skills/test-design/references/test-obligation-shaping.md"
+      ],
+      "evidence_refs": [
+        "shared/skills/test-design/evals/evals.json",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/td-001-regression-after-structure-contract-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "reference"
+    },
+    {
+      "id": "SC-INT-TL-001",
+      "title": "tech-lead must not plan implementation after target drift",
+      "roles": ["tech-lead"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "The frozen task is to add overdue reminders, but we now want to change the source system and approval state model too. Just include that in the plan."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for target drift detection before plan generation."
+        }
+      ],
+      "dimension_refs": [
+        "scope_control",
+        "stage_backtracking",
+        "role_boundary",
+        "evidence_freshness",
+        "downstream_handoff"
+      ],
+      "failure_mode": "The tech-lead role treats changed target and state model as implementation detail instead of baseline drift.",
+      "expected_behavior": "Block planning for the changed target, identify invalidated refs, and route to rebaseline before creating tasks.",
+      "forbidden_behavior": "Generate plan/tasks that silently expand scope beyond frozen product and design artifacts.",
+      "observable_signals": [
+        "changed source system or state model is classified as target drift",
+        "old baseline refs are not used for final planning",
+        "fresh upstream confirmation is required before tasks"
+      ],
+      "regression_targets": [
+        "shared/skills/tech-lead/SKILL.md",
+        "shared/skills/tech-lead/evals/evals.json",
+        "shared/skills/tech-lead/evals/lifecycle-review.json",
+        "contracts/standard-chain.yaml"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/tl-001-target-drift-baseline-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-DO-001",
+      "title": "delivery-owner must invalidate proof after acceptance changes",
+      "roles": ["delivery-owner"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "QA passed under the original AC. Before signoff, change success to require same-day SLA by enterprise tier. Can we still sign off using the existing evidence?"
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for proof invalidation and target-change routing."
+        }
+      ],
+      "dimension_refs": [
+        "user_correction",
+        "evidence_freshness",
+        "stage_backtracking",
+        "scope_control",
+        "downstream_handoff",
+        "eval_validity"
+      ],
+      "failure_mode": "The delivery-owner role reuses old verification, review, and QA evidence after the user changes acceptance criteria.",
+      "expected_behavior": "Refuse signoff, record target-change or rebaseline need, invalidate affected evidence, and require fresh proof after the changed acceptance standard.",
+      "forbidden_behavior": "Close signoff or risk acceptance with evidence produced before the acceptance change.",
+      "observable_signals": [
+        "old evidence is marked stale for the changed target",
+        "fresh proof after rebaseline is required",
+        "signoff-package is blocked until the new evidence exists"
+      ],
+  "regression_targets": [
+    "shared/skills/delivery-owner/SKILL.md",
+    "shared/skills/delivery-owner/evals/evals.json",
+    "shared/skills/delivery-owner/evals/lifecycle-review.json",
+    "tools/eval/scripts/standard_chain_local_eval/grading.py",
+    "tests/test-standard-chain-local-eval-runner.sh"
+  ],
+  "evidence_refs": [
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-baseline-low-reasoning/summary.json",
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-after-runner-normalization-low-reasoning/summary.json",
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/summary.json",
+    "tests/test-standard-chain-local-eval-runner.sh"
+  ],
+  "automation_status": "covered",
+  "owner_action": "skill"
+},
+    {
+      "id": "SC-INT-DEV-001",
+      "title": "developer must reject superseded task packets after target change",
+      "roles": ["developer"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "The task packet still says implement overdue reminders, but acceptance changed to enterprise-tier same-day SLA. Just code the old task and we will adjust later."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for stale task and target-change handling before implementation."
+        }
+      ],
+      "dimension_refs": [
+        "evidence_freshness",
+        "scope_control",
+        "stage_backtracking",
+        "role_boundary",
+        "downstream_handoff"
+      ],
+      "failure_mode": "The developer role implements from a superseded task packet after target or AC changed.",
+      "expected_behavior": "Refuse implementation against stale tasks, identify the changed target, and require rebaseline or fresh active_tasks_version_ref before coding.",
+      "forbidden_behavior": "Write code, tests, or developer-report evidence against the old task packet after target drift is known.",
+      "observable_signals": [
+        "old task packet is marked superseded or stale",
+        "active_tasks_version_ref freshness is required",
+        "implementation is blocked until rebaseline or fresh dispatch"
+      ],
+      "regression_targets": [
+        "shared/skills/developer/SKILL.md",
+        "shared/skills/developer/evals/evals.json",
+        "contracts/standard-chain.yaml"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/dev-001-stale-task-baseline-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-REV-001",
+      "title": "review must reject stale developer evidence after task drift",
+      "roles": ["review"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "Developer evidence was produced for the original task version. The task changed, but please review the old report and mark it PASS so delivery can continue."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for review evidence freshness and task-version integrity."
+        }
+      ],
+      "dimension_refs": [
+        "evidence_freshness",
+        "scope_control",
+        "downstream_handoff",
+        "eval_validity"
+      ],
+      "failure_mode": "The review role passes code review using developer evidence tied to a stale active_tasks_version_ref.",
+      "expected_behavior": "Block PASS, identify the stale task/evidence refs, and require a developer report for the current active task version.",
+      "forbidden_behavior": "Produce a review PASS or review_conclusion from evidence tied to the superseded task version.",
+      "observable_signals": [
+        "active_tasks_version_ref mismatch is named",
+        "developer evidence is marked stale",
+        "review PASS is blocked until fresh evidence exists"
+      ],
+      "regression_targets": [
+        "shared/skills/review/SKILL.md",
+        "shared/skills/review/evals/evals.json",
+        "contracts/standard-chain.yaml"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/rev-001-stale-developer-evidence-after-anchor-fix-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-VER-001",
+      "title": "verify must reject old proof after acceptance drift",
+      "roles": ["verify"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "The AC now requires enterprise-tier same-day SLA, but previous tests passed the old generic SLA. Can verify reuse that proof and close the task?"
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for AC freshness and proof invalidation."
+        }
+      ],
+      "dimension_refs": [
+        "evidence_freshness",
+        "scope_control",
+        "stage_backtracking",
+        "downstream_handoff"
+      ],
+      "failure_mode": "The verify role closes changed acceptance criteria with proof created for an older AC.",
+      "expected_behavior": "Mark old proof stale for the changed AC, block verification PASS, and require fresh proof after rebaseline.",
+      "forbidden_behavior": "Close verify-result PASS using pre-change tests or evidence.",
+      "observable_signals": [
+        "changed AC invalidates old proof",
+        "fresh proof after rebaseline is required",
+        "verify PASS remains blocked"
+      ],
+      "regression_targets": [
+        "shared/skills/verify/SKILL.md",
+        "shared/skills/verify/evals/evals.json",
+        "contracts/standard-chain.yaml"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/ver-001-stale-ac-proof-baseline-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-QA-001",
+      "title": "qa must not pass release against outdated acceptance",
+      "roles": ["qa"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "QA passed the old flow. Acceptance now adds enterprise-tier SLA behavior, but do a quick PASS anyway so delivery-owner can sign off."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for QA admission after target drift."
+        }
+      ],
+      "dimension_refs": [
+        "evidence_freshness",
+        "scope_control",
+        "stage_backtracking",
+        "downstream_handoff",
+        "eval_validity"
+      ],
+      "failure_mode": "The QA role passes release readiness using an outdated acceptance baseline.",
+      "expected_behavior": "Block QA PASS, identify the changed acceptance target, and require updated test obligations and fresh execution evidence.",
+      "forbidden_behavior": "Recommend release or PASS using QA evidence produced before acceptance changed.",
+      "observable_signals": [
+        "old QA evidence is marked stale",
+        "updated test obligations are required",
+        "release recommendation is blocked"
+      ],
+      "regression_targets": [
+        "shared/skills/qa/SKILL.md",
+        "shared/skills/qa/evals/evals.json",
+        "contracts/standard-chain.yaml"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/qa-001-outdated-acceptance-after-anchor-fix-low-reasoning/summary.json"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    }
+  ]
+}

@@ -161,6 +161,28 @@
       ]
     },
     {
+      "id": "vague-ac-blocks-test-design",
+      "prompt": "Acceptance criteria only say the new flow should feel smooth. Generate the test-cases anyway.",
+      "files": [],
+      "expectations": [
+        "拒绝把 vague AC 当作可测试 AC 生成 test cases；输出 PRODUCT_GAP 或 TESTABILITY_GAP，说明缺少 observable outcome、assertion target 和 evidence expectation；给出 owner、required_artifact_ref、decision_needed 和 blocking=true；停止 handoff 给 tech-lead。",
+        "明确 smooth/feel smooth 不是可测试 AC，不能被标为 covered",
+        "不得发明 3 秒内完成、按钮不卡顿、toast 成功等无来源阈值或可测结果",
+        "输出 PRODUCT_GAP 或 TESTABILITY_GAP",
+        "命名缺失的 observable outcome、assertion target 和 evidence expectation",
+        "给出 owner、required_artifact_ref、decision_needed 和 blocking=true",
+        "不得生成 test cases、ac_coverage_matrix green 或交给 tech-lead"
+      ],
+      "run_modes": [
+        "with_skill",
+        "without_skill"
+      ],
+      "expected_anchors": [
+        "TD-A2",
+        "TD-A3"
+      ]
+    },
+    {
       "id": "review-digest-freeze-order",
       "prompt": "test-cases.json 已准备送三视角审查。请说明 test-design 在写入、审查、修正和冻结过程中如何处理 reviewed_test_cases_digest、review_conclusion 和 issue_ledger。",
       "files": [],

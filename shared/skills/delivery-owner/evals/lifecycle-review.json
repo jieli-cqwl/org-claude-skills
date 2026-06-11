@@ -23,7 +23,11 @@
     "tools/eval/results/delivery-owner-behavior-20260430-dispatch-blind-rerun2/summary.json",
     "tools/eval/results/delivery-owner-behavior-20260430-findings-closed-rerun1/summary.json",
     "tools/eval/results/delivery-owner-behavior-20260430-status-boundary-rerun1/summary.json",
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-baseline-low-reasoning/summary.json",
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-after-runner-normalization-low-reasoning/summary.json",
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/summary.json",
     "tools/eval/scripts/standard_chain_local_eval/workspace.py",
+    "tools/eval/scripts/standard_chain_local_eval/grading.py",
     "shared/skills/skill-quality-audit/references/audit-dimensions.md",
     "shared/skills/skill-quality-audit/references/benchmark-mechanism-alignment.md"
   ],
@@ -49,6 +53,7 @@
       "QA/fixer FAIL return plus verifier/QA rerun loop",
       "QA/Fix loop up to 10 rounds",
       "freshness judgement after fix",
+      "target-change invalidates signoff evidence after scope/AC/goal/tasks/design changes",
       "minimal behavior replay for verifier fail, QA fail, and no-progress pause",
       "resume checkpoints for verifier rerun and QA rerun after follow-up work",
       "user decision boundary package",
@@ -74,8 +79,8 @@
   },
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "anchor_count": 14,
-    "eval_count": 18,
+    "anchor_count": 15,
+    "eval_count": 19,
     "sample_size": 3,
     "sample_eval_ids": [
       "low-context-verify-gap-routing",
@@ -175,17 +180,54 @@
     "measurement_status": "targeted_behavior_regression_recorded",
     "eval_ids": [
       "missing-tech-lead-plan-blocks",
-      "low-context-stalled-followup-pause"
+      "low-context-stalled-followup-pause",
+      "acceptance-change-invalidates-signoff-evidence",
+      "qa-pass-dispatches-commit",
+      "qa-pass-without-commit-authorization-pauses",
+      "stale-evidence-after-fix"
     ],
-    "expectations_passed": 14,
+    "expectations_passed": 46,
     "expectations_failed": 0,
-    "anchor_passed": 4,
-    "anchor_total": 4,
+    "anchor_passed": 13,
+    "anchor_total": 13,
     "optimization_findings": 0,
     "evidence_refs": [
-      "tools/eval/results/delivery-owner-behavior-20260430-status-boundary-rerun1/summary.json"
+      "tools/eval/results/delivery-owner-behavior-20260430-status-boundary-rerun1/summary.json",
+      "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-after-runner-normalization-low-reasoning/summary.json",
+      "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/summary.json"
     ],
-    "note": "Recorded after aligning status-card states with PAUSED_FOR_USER_DECISION and tightening NEEDS_BASELINE/NEEDS_INPUT wording."
+    "note": "Recorded after aligning status-card states with PAUSED_FOR_USER_DECISION, tightening NEEDS_BASELINE/NEEDS_INPUT wording, adding the DO-S8b target-change field contract for AC changes after signoff-package preparation, repairing the final-ready commit dispatch eval to require signoff-package + user-decision, and adding an inline /commit handoff contract."
+  },
+  "target_change_rebaseline_regression": {
+    "measurement_status": "targeted_behavior_regression_recorded",
+    "eval_ids": [
+      "acceptance-change-invalidates-signoff-evidence"
+    ],
+    "red_evidence_ref": "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-baseline-low-reasoning/summary.json",
+    "green_evidence_ref": "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-after-runner-normalization-low-reasoning/summary.json",
+    "expectations_passed": 14,
+    "expectations_failed": 0,
+    "anchor_passed": 3,
+    "anchor_total": 3,
+    "optimization_findings": 0,
+    "note": "Baseline low-reasoning run blocked commit but omitted field-level target-change requirements. The skill now requires changed_target_type, affected_refs, invalidates_refs, superseded_evidence_refs, rebaseline_required=true, rebaseline_owner, and full required_fresh_proof_after_rebaseline before any fresh signoff can be consumed."
+  },
+  "target_change_and_commit_regression": {
+    "measurement_status": "targeted_behavior_regression_recorded",
+    "eval_ids": [
+      "stale-evidence-after-fix",
+      "qa-pass-dispatches-commit",
+      "qa-pass-without-commit-authorization-pauses",
+      "acceptance-change-invalidates-signoff-evidence"
+    ],
+    "summary_ref": "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/summary.json",
+    "expectations_passed": 32,
+    "expectations_failed": 0,
+    "anchor_passed": 9,
+    "anchor_total": 9,
+    "infra_failures": 0,
+    "optimization_findings": 0,
+    "note": "Final low-reasoning hidden regression proving target-change invalidation, stale evidence after fix, no-authorization pause, and final-ready /commit handoff can coexist."
   },
   "targeted_contract_refinements": {
     "measurement_status": "contract_refinements_recorded",

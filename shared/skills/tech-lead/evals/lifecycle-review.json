@@ -7,14 +7,23 @@
   "evidence_refs": [
     "shared/skills/tech-lead/SKILL.md",
     "shared/skills/tech-lead/evals/evals.json",
-    "shared/skills/skill-quality-audit/references/audit-dimensions.md"
+    "shared/skills/skill-quality-audit/references/audit-dimensions.md",
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/tl-001-target-drift-baseline-low-reasoning/summary.json"
   ],
   "next_action": "Run refreshed implementation-planning evals and runtime contract tests before promoting the rewrite.",
   "encoded_preference": {
-    "measurement_status": "anchors_rewritten_needs_fidelity_run",
-    "anchor_count": 7,
-    "eval_count": 3,
-    "fidelity": null,
-    "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
+    "measurement_status": "targeted_interaction_regression_recorded",
+    "anchor_count": 9,
+    "eval_count": 5,
+    "fidelity": 1,
+    "sample_eval_ids": [
+      "target-drift-blocks-planning"
+    ],
+    "anchor_passed": 3,
+    "anchor_total": 3,
+    "summary_refs": [
+      "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/tl-001-target-drift-baseline-low-reasoning/summary.json"
+    ],
+    "next_run": "Run the full tech-lead eval set and runtime contract tests before retain/retire."
   }
 }

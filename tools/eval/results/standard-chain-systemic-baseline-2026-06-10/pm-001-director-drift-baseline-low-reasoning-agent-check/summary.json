@@ -1,0 +1,47 @@
+{
+  "runs": [
+    {
+      "skill_name": "product-manager",
+      "eval_id": "director-lock-drift-blocking",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pm-001-director-drift-baseline-low-reasoning-agent-check/product-manager/director-lock-drift-blocking/with_skill/run-1",
+      "passed": 6,
+      "failed": 0,
+      "total": 6,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 2,
+      "anchor_failed": 0,
+      "anchor_total": 2,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    },
+    {
+      "skill_name": "product-manager",
+      "eval_id": "director-lock-drift-after-handoff",
+      "run_mode": "with_skill",
+      "run_dir": "/Users/lijieli/org-claude-skills/tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pm-001-director-drift-baseline-low-reasoning-agent-check/product-manager/director-lock-drift-after-handoff/with_skill/run-1",
+      "passed": 3,
+      "failed": 0,
+      "total": 3,
+      "pass_rate": 1.0,
+      "status": "graded",
+      "graded": true,
+      "failed_expectations": [],
+      "anchor_passed": 3,
+      "anchor_failed": 0,
+      "anchor_total": 3,
+      "anchor_fidelity": 1.0,
+      "optimization_findings": []
+    }
+  ],
+  "summary": {
+    "total_expectations": 9,
+    "failed_expectations": 0,
+    "infra_failures": 0,
+    "pass_rate": 1.0
+  },
+  "optimization_findings": []
+}

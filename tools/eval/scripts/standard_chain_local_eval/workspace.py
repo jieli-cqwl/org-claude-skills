@@ -212,6 +212,7 @@ def run_executor(
     run_mode = str(getattr(args, "run_mode"))
     timeout_sec = int(getattr(args, "timeout_sec"))
     model = getattr(args, "model")
+    reasoning_effort = getattr(args, "reasoning_effort", None)
     response_path = run_dir / "outputs" / "response.md"
     response_path.parent.mkdir(parents=True, exist_ok=True)
     command = [
@@ -234,6 +235,8 @@ def run_executor(
             include_expectations=not bool(getattr(args, "hide_expectations", False)),
         ),
     ]
+    if reasoning_effort:
+        command[2:2] = ["-c", f'model_reasoning_effort="{reasoning_effort}"']
     if model:
         command[2:2] = ["--model", model]
     started_at = time.time()

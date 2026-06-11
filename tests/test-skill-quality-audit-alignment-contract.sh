@@ -26,6 +26,26 @@ cat >"$TMP_DIR/valid-alignment.json" <<'JSON'
   "artifact_type": "skill-audit-alignment",
   "stage": "confirmed",
   "target_skill": "shared/skills/skill-quality-audit/evals/fixtures/target-skills/good-skill",
+  "capability_effectiveness_standard": {
+    "standard_id": "CES-001",
+    "co_creation_status": "confirmed_with_user",
+    "confirmed_by": "user",
+    "decision_surface_ref": "chat:capability-effectiveness-standard-confirmed",
+    "target_capability_ids": ["TGT-001"],
+    "real_task_scenarios": ["Audit an existing Skill against a user-confirmed team-use capability standard."],
+    "success_criteria": ["Find risks that would make the Skill fail real team-use audit tasks."],
+    "failure_modes": ["The audit treats repo contract or report structure as proof of capability effectiveness."],
+    "unacceptable_risks": ["A formal verdict is issued before the user-confirmed ability standard exists."],
+    "evidence_requirements": ["Current file evidence and validator evidence must support each decisive claim."],
+    "confirmation_evidence": {
+      "status": "recorded_user_confirmation",
+      "ref": "tests/fixtures/skill-quality-audit/evidence-target.md:4",
+      "path": "tests/fixtures/skill-quality-audit/evidence-target.md",
+      "line": 4,
+      "expected_snippet": "User confirmation: capability effectiveness standard confirmed for audit fixture.",
+      "claim": "The confirmed alignment has a file-line confirmation record for this fixture."
+    }
+  },
   "target_capability_claims": [
     {
       "target_capability_id": "TGT-001",
@@ -68,7 +88,7 @@ cat >"$TMP_DIR/valid-alignment.json" <<'JSON'
   "user_confirmation": {
     "level": "G1",
     "status": "confirmed",
-    "confirmed_scope_ref": "repo_contract:skill-quality-audit.team-use-readiness",
+    "confirmed_scope_ref": "capability_effectiveness_standard:CES-001",
     "confirmed_target_capability_ids": ["TGT-001"],
     "accepted_assumption_ids": []
   }
@@ -87,6 +107,30 @@ expect_reject_alignment() {
   grep -Fq "$expected" "$out" \
     || fail "$name failure should mention: $expected"
 }
+
+python3 - "$TMP_DIR/valid-alignment.json" "$TMP_DIR/missing-effectiveness-standard.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+src, dst = map(Path, sys.argv[1:])
+data = json.loads(src.read_text(encoding="utf-8"))
+data.pop("capability_effectiveness_standard", None)
+dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_reject_alignment "missing-effectiveness-standard" "capability_effectiveness_standard"
+
+python3 - "$TMP_DIR/valid-alignment.json" "$TMP_DIR/missing-confirmation-evidence.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+src, dst = map(Path, sys.argv[1:])
+data = json.loads(src.read_text(encoding="utf-8"))
+data["capability_effectiveness_standard"].pop("confirmation_evidence", None)
+dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_reject_alignment "missing-confirmation-evidence" "confirmation_evidence"
 
 python3 - "$TMP_DIR/valid-alignment.json" "$TMP_DIR/pre-confirmation-verdict.json" <<'PY'
 import json
@@ -158,6 +202,7 @@ data["target_capability_claims"].append({
     "confidence": "high",
     "refs": ["shared/skills/skill-quality-audit/references/team-use-readiness.md:43"],
 })
+data["capability_effectiveness_standard"]["target_capability_ids"].append("TGT-002")
 data["user_confirmation"]["confirmed_target_capability_ids"].append("TGT-002")
 dst.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY

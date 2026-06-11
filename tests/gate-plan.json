@@ -1932,6 +1932,21 @@
       "timeout_sec": 300
     },
     {
+      "id": "standard-chain-interaction-eval",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-interaction-eval.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "full",
+      "tags": [
+        "full-only",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
+    },
+    {
       "id": "standard-chain-skill-evals",
       "command": [
         "bash",

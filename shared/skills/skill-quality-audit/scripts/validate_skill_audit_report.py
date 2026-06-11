@@ -23,6 +23,7 @@ from skill_audit_report_contract import (
     VALID_VERDICTS,
     VALIDATION_FIELDS,
     VALIDATOR_EVIDENCE_FIELDS,
+    content_behavior_ready_for_fit,
     evidence_level_at_least,
     existing_path_refs,
     fail,
@@ -30,10 +31,10 @@ from skill_audit_report_contract import (
     require,
     require_known_fields,
     validate_findings,
+    validate_content_behavior_audit,
     validate_summary,
 )
 from skill_audit_report_alignment import validate_capability_baseline
-
 
 def load_json(path: Path) -> dict[str, Any]:
     try:
@@ -44,7 +45,6 @@ def load_json(path: Path) -> dict[str, Any]:
         fail(f"{path}: report must be a JSON object")
     return data
 
-
 def score_for(report: dict[str, Any], dimension: str) -> float:
     for item in report.get("dimension_scores", []):
         if item.get("dimension") == dimension:
@@ -54,7 +54,6 @@ def score_for(report: dict[str, Any], dimension: str) -> float:
             )
             return float(score)
     fail(f"missing dimension score: {dimension}")
-
 
 def validate_top_level(report: dict[str, Any]) -> None:
     require_known_fields(report, TOP_LEVEL_FIELDS, "report")
@@ -69,6 +68,7 @@ def validate_top_level(report: dict[str, Any]) -> None:
         "artifact_paths",
         "scope_evidence",
         "dimension_scores",
+        "content_behavior_audit",
         "findings",
         "repair_handoff",
         "validation",
@@ -110,7 +110,6 @@ def validate_top_level(report: dict[str, Any]) -> None:
         "overall_score must be between 0 and 10",
     )
 
-
 def validate_artifact_paths(report: dict[str, Any]) -> None:
     paths = report.get("artifact_paths")
     require(isinstance(paths, dict), "artifact_paths must be an object")
@@ -125,7 +124,6 @@ def validate_artifact_paths(report: dict[str, Any]) -> None:
             has_pathish_ref(value),
             f"artifact_paths.{field} must name an audit artifact path",
         )
-
 
 def validate_scope(report: dict[str, Any]) -> None:
     scope = report.get("scope_evidence")
@@ -219,6 +217,7 @@ def validate_verdict_rules(report: dict[str, Any]) -> None:
     instruction = score_for(report, "Instruction Contract")
     runtime = score_for(report, "Runtime Integration")
     evidence = score_for(report, "Evidence And Evals")
+    content_behavior = score_for(report, "Content Behavior Induction")
     if "P0" in severities:
         require(
             verdict in {"blocked", "unfit"},
@@ -247,11 +246,20 @@ def validate_verdict_rules(report: dict[str, Any]) -> None:
         require(runtime >= 7, "fit verdict requires Runtime Integration >= 7")
         require(evidence >= 7, "fit verdict requires Evidence And Evals >= 7")
         require(
+            content_behavior >= 7,
+            "fit verdict requires Content Behavior Induction >= 7",
+        )
+        require(
+            content_behavior_ready_for_fit(report),
+            "fit verdict requires supported content_behavior_audit for every confirmed target",
+        )
+        require(
             float(report["overall_score"]) >= 8,
             "fit verdict requires overall_score >= 8",
         )
         for dimension in (
             "Instruction Contract",
+            "Content Behavior Induction",
             "Runtime Integration",
             "Evidence And Evals",
         ):
@@ -377,6 +385,7 @@ def main(argv: list[str]) -> int:
     validate_artifact_paths(report)
     validate_scope(report)
     validate_dimensions(report)
+    validate_content_behavior_audit(report)
     validate_findings(report)
     validate_summary(report)
     validate_verdict_rules(report)

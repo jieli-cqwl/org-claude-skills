@@ -12,6 +12,7 @@ ALIGNMENT_TOP_LEVEL_FIELDS = {
     "artifact_type",
     "stage",
     "target_skill",
+    "capability_effectiveness_standard",
     "target_capability_claims",
     "current_capability_profile",
     "evidence",
@@ -71,6 +72,40 @@ FORBIDDEN_PRE_CONFIRMATION_FIELDS = {
 }
 TARGET_SOURCES = {"user_supplied", "repo_contract", "declared_claim", "inferred"}
 TARGET_CONFIDENCE = {"high", "medium", "low"}
+CAPABILITY_EFFECTIVENESS_STANDARD_FIELDS = {
+    "standard_id",
+    "co_creation_status",
+    "confirmed_by",
+    "decision_surface_ref",
+    "target_capability_ids",
+    "real_task_scenarios",
+    "success_criteria",
+    "failure_modes",
+    "unacceptable_risks",
+    "evidence_requirements",
+    "confirmation_evidence",
+}
+CONFIRMATION_EVIDENCE_FIELDS = {
+    "status",
+    "ref",
+    "path",
+    "line",
+    "expected_snippet",
+    "claim",
+}
+CONFIRMATION_EVIDENCE_STATUSES = {
+    "pending_user_confirmation",
+    "recorded_user_confirmation",
+    "blocked",
+}
+REPO_ONLY_CONFIRMATION_PREFIXES = (
+    "repo_contract:",
+    "target_skill:",
+    "declared_claim:",
+    "inferred:",
+    "self_description:",
+)
+CO_CREATION_STATUSES = {"pending_user_confirmation", "confirmed_with_user", "blocked"}
 CURRENT_STATUSES = {"supported", "absent", "blocked"}
 EVIDENCE_TYPES = {
     "path_line",
@@ -182,6 +217,121 @@ def validate_target_capabilities(alignment: dict[str, Any]) -> dict[str, str]:
         require_string_list(item.get("refs"), f"{capability_id}.refs")
         sources[str(capability_id)] = str(source)
     return sources
+
+
+def validate_capability_effectiveness_standard(
+    alignment: dict[str, Any], target_ids: set[str]
+) -> dict[str, Any]:
+    standard = alignment.get("capability_effectiveness_standard")
+    require(
+        isinstance(standard, dict),
+        "capability_effectiveness_standard must be an object",
+    )
+    require_known_fields(
+        standard,
+        CAPABILITY_EFFECTIVENESS_STANDARD_FIELDS,
+        "capability_effectiveness_standard",
+    )
+    standard_id = standard.get("standard_id")
+    require_non_empty_string(
+        standard_id, "capability_effectiveness_standard.standard_id"
+    )
+    status = standard.get("co_creation_status")
+    require(
+        status in CO_CREATION_STATUSES,
+        "capability_effectiveness_standard.co_creation_status is invalid",
+    )
+    require_non_empty_string(
+        standard.get("confirmed_by"),
+        "capability_effectiveness_standard.confirmed_by",
+    )
+    decision_ref = standard.get("decision_surface_ref")
+    require_non_empty_string(
+        decision_ref,
+        "capability_effectiveness_standard.decision_surface_ref",
+    )
+    target_refs = standard.get("target_capability_ids")
+    require_string_list(
+        target_refs,
+        "capability_effectiveness_standard.target_capability_ids",
+    )
+    unknown_targets = sorted(set(target_refs) - target_ids)
+    require(
+        not unknown_targets,
+        "capability_effectiveness_standard has unknown target_capability_ids: "
+        + ", ".join(unknown_targets),
+    )
+    for field in (
+        "real_task_scenarios",
+        "success_criteria",
+        "failure_modes",
+        "unacceptable_risks",
+        "evidence_requirements",
+    ):
+        require_string_list(
+            standard.get(field), f"capability_effectiveness_standard.{field}"
+        )
+    validate_confirmation_evidence(
+        standard.get("confirmation_evidence"), alignment["stage"] == "confirmed"
+    )
+    if alignment["stage"] == "confirmed":
+        require(
+            status == "confirmed_with_user",
+            "confirmed alignment requires capability_effectiveness_standard.co_creation_status confirmed_with_user",
+        )
+        require(
+            standard.get("confirmed_by") == "user",
+            "confirmed alignment requires capability_effectiveness_standard.confirmed_by user",
+        )
+        require(
+            not str(decision_ref).startswith("repo_contract:"),
+            "capability_effectiveness_standard.decision_surface_ref must cite user co-creation, not repo_contract",
+        )
+    return standard
+
+
+def validate_confirmation_evidence(item: Any, confirmed: bool) -> None:
+    label = "capability_effectiveness_standard.confirmation_evidence"
+    require(isinstance(item, dict), f"{label} must be an object")
+    require_known_fields(item, CONFIRMATION_EVIDENCE_FIELDS, label)
+    status = item.get("status")
+    require(status in CONFIRMATION_EVIDENCE_STATUSES, f"{label}.status is invalid")
+    ref = item.get("ref")
+    require_non_empty_string(ref, f"{label}.ref")
+    require_non_empty_string(item.get("claim"), f"{label}.claim")
+    if not confirmed:
+        return
+    require(
+        status == "recorded_user_confirmation",
+        "confirmed alignment requires confirmation_evidence.status recorded_user_confirmation",
+    )
+    require(
+        not str(ref).startswith(REPO_ONLY_CONFIRMATION_PREFIXES),
+        "confirmed alignment confirmation_evidence.ref must cite user confirmation evidence, not repo-only sources",
+    )
+    path = item.get("path")
+    line = item.get("line")
+    snippet = item.get("expected_snippet")
+    require_non_empty_string(path, f"{label}.path")
+    require(
+        isinstance(line, int) and line > 0,
+        f"{label}.line must be a positive integer",
+    )
+    require_non_empty_string(snippet, f"{label}.expected_snippet")
+    require("\n" not in str(snippet), f"{label}.expected_snippet must be single-line")
+    require(
+        f"{path}:{line}" in str(ref),
+        f"{label}.ref must cite the confirmation path:line",
+    )
+    require(
+        not is_historical_audit_evidence({"type": "path_line", "path": str(path)}),
+        f"{label}.path cannot rely on historical audit evidence",
+    )
+    line_text = read_line(str(path), int(line))
+    require(
+        str(snippet) in line_text,
+        f"{label}.expected_snippet not found at {path}:{line}",
+    )
 
 
 def is_historical_audit_evidence(evidence: dict[str, Any]) -> bool:
@@ -376,6 +526,7 @@ def validate_gaps(
 def validate_confirmation(
     alignment: dict[str, Any],
     target_sources: dict[str, str],
+    standard: dict[str, Any],
     assumption_ids: set[str],
     gaps: dict[str, dict[str, Any]],
 ) -> None:
@@ -414,6 +565,18 @@ def validate_confirmation(
     if alignment["stage"] == "confirmed":
         require(status == "confirmed", "confirmed alignment requires user_confirmation.status confirmed")
         require(level != "G3", "G3 cannot be confirmed for formal audit")
+        standard_ref = f"capability_effectiveness_standard:{standard['standard_id']}"
+        require(
+            confirmation.get("confirmed_scope_ref") == standard_ref,
+            "confirmed alignment requires user_confirmation.confirmed_scope_ref to cite capability_effectiveness_standard",
+        )
+        standard_target_ids = set(standard["target_capability_ids"])
+        missing_standard_targets = sorted(set(confirmed_ids) - standard_target_ids)
+        require(
+            not missing_standard_targets,
+            "confirmed target capabilities require capability_effectiveness_standard coverage: "
+            + ", ".join(missing_standard_targets),
+        )
         gap_target_ids = {
             gap["target_capability_id"] for gap in gaps.values() if isinstance(gap, dict)
         }
@@ -444,8 +607,11 @@ def validate_confirmation(
 def validate_alignment(alignment: dict[str, Any]) -> None:
     validate_top_level(alignment)
     target_sources = validate_target_capabilities(alignment)
+    standard = validate_capability_effectiveness_standard(
+        alignment, set(target_sources)
+    )
     evidence_by_id = validate_evidence(alignment)
     current_ids = validate_current_capabilities(alignment, evidence_by_id)
     assumption_ids = validate_assumptions(alignment)
     gaps = validate_gaps(alignment, set(target_sources), current_ids, evidence_by_id)
-    validate_confirmation(alignment, target_sources, assumption_ids, gaps)
+    validate_confirmation(alignment, target_sources, standard, assumption_ids, gaps)

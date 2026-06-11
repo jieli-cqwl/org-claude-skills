@@ -206,6 +206,18 @@ def main() -> None:
     parser.add_argument("--timeout-sec", type=int, default=240)
     parser.add_argument("--model", default=None)
     parser.add_argument("--judge-model", default=None)
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=["low", "medium", "high", "xhigh"],
+        default=None,
+        help="Codex model_reasoning_effort override for executor runs.",
+    )
+    parser.add_argument(
+        "--judge-reasoning-effort",
+        choices=["low", "medium", "high", "xhigh"],
+        default=None,
+        help="Codex model_reasoning_effort override for judge runs.",
+    )
     parser.add_argument("--run-mode", choices=sorted(RUN_MODES), default="with_skill")
     parser.add_argument("--allow-failures", action="store_true")
     parser.add_argument("--keep-workspaces", action="store_true")

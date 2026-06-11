@@ -52,10 +52,42 @@
   "user_confirmation": {
     "level": "G1",
     "status": "confirmed",
-    "confirmed_scope_ref": "user_scope:fixture-formal-audit-target",
+    "confirmed_scope_ref": "capability_effectiveness_standard:CES-001",
     "confirmed_target_capability_ids": [
       "TGT-001"
     ],
     "accepted_assumption_ids": []
+  },
+  "capability_effectiveness_standard": {
+    "standard_id": "CES-001",
+    "co_creation_status": "confirmed_with_user",
+    "confirmed_by": "user",
+    "decision_surface_ref": "chat:capability-effectiveness-standard-confirmed",
+    "target_capability_ids": [
+      "TGT-001"
+    ],
+    "real_task_scenarios": [
+      "Audit the target Skill against a user-confirmed real task capability standard."
+    ],
+    "success_criteria": [
+      "The audit identifies capability gaps and risks that would make the Skill fail in real use."
+    ],
+    "failure_modes": [
+      "The audit treats structure, prior reports, or validator success as capability proof."
+    ],
+    "unacceptable_risks": [
+      "A formal verdict is issued before unproven capability risks are retained or resolved."
+    ],
+    "evidence_requirements": [
+      "Decisive claims cite current evidence, content behavior audit coverage, and validator support when applicable."
+    ],
+    "confirmation_evidence": {
+      "status": "recorded_user_confirmation",
+      "ref": "tests/fixtures/skill-quality-audit/evidence-target.md:4",
+      "path": "tests/fixtures/skill-quality-audit/evidence-target.md",
+      "line": 4,
+      "expected_snippet": "User confirmation: capability effectiveness standard confirmed for audit fixture.",
+      "claim": "The confirmed alignment has a file-line confirmation record for this fixture."
+    }
   }
 }

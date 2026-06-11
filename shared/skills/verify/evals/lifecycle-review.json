@@ -25,8 +25,8 @@
   },
   "encoded_preference": {
     "measurement_status": "anchors_defined_needs_fidelity_run",
-    "anchor_count": 6,
-    "eval_count": 3,
+    "anchor_count": 7,
+    "eval_count": 4,
     "fidelity": null,
     "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
   }

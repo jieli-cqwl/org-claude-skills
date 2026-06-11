@@ -19,6 +19,7 @@
       "real_dependency_evidence",
       "journey_coverage",
       "obligation_result_trace",
+      "evidence_freshness",
       "risk_reporting",
       "qa_result_contract"
     ],
@@ -26,8 +27,8 @@
   },
   "encoded_preference": {
     "measurement_status": "anchors_defined_needs_fidelity_run",
-    "anchor_count": 6,
-    "eval_count": 3,
+    "anchor_count": 9,
+    "eval_count": 9,
     "fidelity": null,
     "next_run": "Grade expected_anchors across all eval outputs before retain/retire."
   }

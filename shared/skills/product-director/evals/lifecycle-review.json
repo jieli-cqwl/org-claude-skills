@@ -13,7 +13,7 @@
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 14,
-    "eval_count": 13,
+    "eval_count": 14,
     "fidelity": 1,
     "next_run": "Run a broader effectiveness eval sample including technical-demand-framed-before-solution, PA-14, and PA-16 before retain or retire.",
     "sample_size": 5,

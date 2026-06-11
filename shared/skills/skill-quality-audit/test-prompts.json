@@ -3,7 +3,7 @@
   "prompts": [
     {
       "id": "readiness-review",
-      "prompt": "Audit shared/skills/research for team-use readiness. Do not edit the target Skill; choose alignment, report, and summary artifact paths automatically; validate confirmed alignment before any formal verdict; include capability_baseline_ref, confirmed_target_capability_ids, confirmed_gap_refs, and evidence_checks for every P0/P1 finding; write a Markdown summary with per-finding evidence, impact, repair target, and verification hint; run both validators; and return a formal verdict in the same run only after confirmation."
+      "prompt": "Audit shared/skills/research for team-use readiness. Do not edit the target Skill; first co-create and confirm the capability effectiveness standard with file-line confirmation_evidence; choose alignment, report, and summary artifact paths automatically; validate confirmed alignment before any formal verdict; include capability_baseline_ref, confirmed_target_capability_ids, content_behavior_audit with per-field evidence_checks, confirmed_gap_refs, and evidence_checks for every P0/P1 finding; write a Markdown summary with per-finding evidence, impact, repair target, and verification hint; run both validators; and return a formal verdict only after capability-standard confirmation."
     },
     {
       "id": "explicit-light-scan",

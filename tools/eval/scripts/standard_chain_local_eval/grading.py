@@ -139,6 +139,38 @@ def normalize_anchor_results(case: dict, judged: dict) -> list[dict]:
     return normalized
 
 
+def normalize_expectation_results(case: dict, judged: dict) -> list[dict]:
+    """Return expectation results aligned to immutable eval-source text."""
+
+    expected_texts = case.get("expectations", [])
+    if not isinstance(expected_texts, list):
+        raise ValueError(f"{case['id']}: expectations must be a list")
+    raw_results = judged.get("expectations", [])
+    if not isinstance(raw_results, list):
+        raise ValueError(f"{case['id']}: judge expectations must be a list")
+
+    normalized = []
+    for index, expected_text in enumerate(expected_texts):
+        raw = raw_results[index] if index < len(raw_results) else None
+        if isinstance(raw, dict):
+            normalized.append(
+                {
+                    "text": str(expected_text),
+                    "passed": bool(raw.get("passed")),
+                    "evidence": str(raw.get("evidence", "")),
+                }
+            )
+            continue
+        normalized.append(
+            {
+                "text": str(expected_text),
+                "passed": False,
+                "evidence": "grader did not return evidence for this expectation",
+            }
+        )
+    return normalized
+
+
 def summarize_anchor_results(anchor_results: list[dict]) -> dict:
     """Summarize encoded-preference anchor fidelity for one graded run."""
 
@@ -160,6 +192,7 @@ def run_judge(
 
     timeout_sec = int(getattr(args, "timeout_sec"))
     model = getattr(args, "judge_model")
+    reasoning_effort = getattr(args, "judge_reasoning_effort", None)
     with tempfile.TemporaryDirectory(
         prefix="standard-chain-local-eval-judge-"
     ) as temp_dir:
@@ -181,6 +214,8 @@ def run_judge(
             str(schema_path),
             build_judge_prompt(skill_name, case, response_text),
         ]
+        if reasoning_effort:
+            command[2:2] = ["-c", f'model_reasoning_effort="{reasoning_effort}"']
         if model:
             command[2:2] = ["--model", model]
         completed = run_command(command, temp_path, timeout_sec)
@@ -192,7 +227,7 @@ def run_judge(
             f"{skill_name}/{case['id']}: judge exited {completed.returncode}"
         )
     judged = json.loads(completed.stdout)
-    expectations = judged["expectations"]
+    expectations = normalize_expectation_results(case, judged)
     anchor_results = normalize_anchor_results(case, judged)
     anchor_summary = summarize_anchor_results(anchor_results)
     passed = sum(1 for item in expectations if item["passed"])
