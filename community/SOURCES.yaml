@@ -77,8 +77,8 @@ sources:
     ref: 7ceb9e9ff55fb023de7d525b21accedb25e6668e
     captured_at: 2026-05-12
     scope:
-      - community/skills-sh/skills/bb-browser
-      - community/skills-sh/codex/skills/bb-browser
+      - community/open-skills/skills/bb-browser
+      - community/open-skills/codex/skills/bb-browser
     notes:
       - Vendor upstream `skills/bb-browser` as `bb-browser`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
@@ -88,7 +88,7 @@ sources:
     ref: bd3d06056596d345dd7fdff3d961d2f6a8e60ea2
     captured_at: 2026-05-27
     scope:
-      - community/skills-sh/skills/code-to-prd
+      - community/open-skills/skills/code-to-prd
     notes:
       - Vendor upstream `product-team/code-to-prd/skills/code-to-prd` as `code-to-prd`，正文保持 upstream 原文。
       - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会扫描代码库并可写出 PRD/analysis 产物。
@@ -99,7 +99,7 @@ sources:
     ref: 0288510dd61ff6ef7c2003834082ab8f2387e80e
     captured_at: 2026-05-27
     scope:
-      - community/skills-sh/skills/to-prd
+      - community/open-skills/skills/to-prd
     notes:
       - Vendor upstream `skills/engineering/to-prd` as `to-prd`，正文保持 upstream 原文。
       - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用，避免和本地产品链路冲突。
@@ -109,17 +109,28 @@ sources:
     ref: 0cdbad4dbebb98926a3fb4985d69a57d0b83313a
     captured_at: 2026-05-27
     scope:
-      - community/skills-sh/skills/prd
+      - community/open-skills/skills/prd
     notes:
       - Vendor upstream `skills/prd` as `prd`，正文保持 upstream 原文。
       - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用，避免抢占 `product-director` / `product-manager`。
+      - Upstream root LICENSE declares MIT.
+  skills_sh_github_prompt_optimizer:
+    repo: https://github.com/github/awesome-copilot
+    ref: a1fc7f1a5799eefa984a4e46e672f34be1ce63f1
+    captured_at: 2026-06-11
+    scope:
+      - community/open-skills/skills/prompt-optimizer
+    notes:
+      - Vendor upstream `skills/prompt-optimizer` as `prompt-optimizer`，正文保持 upstream 原文。
+      - 运行时由 `install.sh` 注入 manual-only 可见性，必须手动触发；用于把粗糙日常输入改写成可复制到新窗口执行的提示词。
+      - 不生成 Codex source adapter；Codex runtime 由 runtime surface 工具生成 manual policy。
       - Upstream root LICENSE declares MIT.
   skills_sh_graphify:
     repo: https://github.com/safishamsi/graphify
     ref: 43bf3c237117e94c77e52df32107f707d532d5dc
     captured_at: 2026-05-27
     scope:
-      - community/skills-sh/skills/graphify
+      - community/open-skills/skills/graphify
     notes:
       - Vendor upstream `graphify/skill-codex.md` as `graphify/SKILL.md`，正文保持 upstream 原文并复制 root LICENSE。
       - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会扫描目录、写入 `graphify-out/` 并可调用/安装 Python `graphifyy`。
@@ -129,7 +140,7 @@ sources:
     ref: a3afd455b3ad37c0e71c05fa9407c4ec377226e3
     captured_at: 2026-05-27
     scope:
-      - community/skills-sh/skills/architecture
+      - community/open-skills/skills/architecture
     notes:
       - Vendor upstream `architecture` as `architecture`，正文保持 upstream 原文。
       - 运行时由 `install.sh` 注入 manual-only 可见性，必须手动触发。
@@ -140,7 +151,7 @@ sources:
     ref: 3027f20f3181758385a1bb8c022d4041dfb4de84
     captured_at: 2026-05-25
     scope:
-      - community/skills-sh/skills/mermaid-diagrams
+      - community/open-skills/skills/mermaid-diagrams
     notes:
       - Vendor upstream `skills/mermaid-diagrams` as `mermaid-diagrams`，正文保持 upstream 原文。
       - 运行时由 `install.sh` 注入 manual-only 可见性，必须手动触发。
@@ -151,7 +162,7 @@ sources:
     ref: e1c0ff7c02393da810ed3fb1810a02f9cb1a7abe
     captured_at: 2026-05-27
     scope:
-      - community/skills-sh/skills/baoyu-markdown-to-html
+      - community/open-skills/skills/baoyu-markdown-to-html
     notes:
       - Vendor upstream `skills/baoyu-markdown-to-html` as `baoyu-markdown-to-html`，正文保持 upstream 原文。
       - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用；该 skill 会调用 bun/npx 脚本，使用时只处理可信本地 Markdown。
@@ -161,8 +172,8 @@ sources:
     ref: 91f3d394db8419c20d67ebe22a96cf8fee0a404b
     captured_at: 2026-05-12
     scope:
-      - community/skills-sh/skills/humanizer-zh
-      - community/skills-sh/codex/skills/humanizer-zh
+      - community/open-skills/skills/humanizer-zh
+      - community/open-skills/codex/skills/humanizer-zh
     notes:
       - Vendor upstream root as `humanizer-zh`，正文保持 upstream 原文。
       - 用户原始名称 `Kubanizer zh` 未精确命中；本来源按已查证的 `humanizer-zh` 收录。
@@ -173,8 +184,8 @@ sources:
     ref: eea5cb28ba79ab8b078a1eaa44ce9ec44f75dbf8
     captured_at: 2026-05-12
     scope:
-      - community/skills-sh/skills/notebooklm
-      - community/skills-sh/codex/skills/notebooklm
+      - community/open-skills/skills/notebooklm
+      - community/open-skills/codex/skills/notebooklm
     notes:
       - Vendor upstream root as `notebooklm`，正文保持 upstream 原文。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
@@ -184,7 +195,7 @@ sources:
     ref: 577a1c59b48edbe3eeea37f168461923adfbda5e
     captured_at: 2026-05-27
     scope:
-      - community/skills-sh/skills/planning-with-files
+      - community/open-skills/skills/planning-with-files
     notes:
       - Vendor upstream `skills/planning-with-files` as `planning-with-files`，正文保持 upstream 原文。
       - 运行时由 `install.sh` 注入 manual-only 可见性，必须手动触发；不生成 Codex adapter，避免抢占 `standard-chain` 计划与交付链路。
@@ -194,44 +205,8 @@ sources:
     ref: e55b839c0f44a451978db68d514746c02e9fd685
     captured_at: 2026-05-12
     scope:
-      - community/skills-sh/skills/self-improving-agent
+      - community/open-skills/skills/self-improving-agent
     notes:
       - Vendor upstream `skills/self-improving-agent` as `self-improving-agent`，正文保持 upstream 原文。
       - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用。
       - 不生成 Codex `agents/openai.yaml`，避免 hook 型自进化能力自动触发。
-  persona_colleague_skill:
-    repo: https://github.com/titanwings/colleague-skill
-    ref: bc3db7c521b2ba3d84c19cddaff7a86742f47195
-    captured_at: 2026-05-27
-    scope:
-      - community/persona/skills/colleague-skill
-    notes:
-      - Vendor `titanwings/colleague-skill` 作为 persona 手动 skill 来源。
-      - Upstream `SKILL.md` 缺少开头 `---`，同步脚本仅补齐 frontmatter 起始分隔符以便运行时注入 manual-only 可见性。
-  persona_nuwa_skill:
-    repo: https://github.com/alchaincyf/nuwa-skill
-    ref: 8dff046ea9e5a37265c8bfa284d36dffe8e0581f
-    captured_at: 2026-05-27
-    scope:
-      - community/persona/skills/nuwa-skill
-    notes:
-      - Vendor `alchaincyf/nuwa-skill` 作为 persona 手动 skill 来源。
-      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用。
-  persona_yourself_skill:
-    repo: https://github.com/notdog1998/yourself-skill
-    ref: 9deb1a87b1231fec85cadf2ef690fa49fef519ca
-    captured_at: 2026-04-24
-    scope:
-      - community/persona/skills/yourself-skill
-    notes:
-      - Vendor `notdog1998/yourself-skill` 作为 persona 手动 skill 来源。
-      - 运行时由 `install.sh` 注入 `disable-model-invocation: true`，只能手动调用。
-  persona_midas_skill:
-    repo: https://github.com/hermesnest/midas-skill
-    ref: 9cc977735287f99c2b30e19f4a9f6296920af193
-    captured_at: 2026-04-24
-    scope:
-      - community/persona/skills/midas-skill
-    notes:
-      - Vendor `hermesnest/midas-skill` 作为 persona 手动 skill 来源。
-      - 旧 owner `realteamprinz` 当前跳转到 `hermesnest`，本锁文件使用跳转后的当前仓库。

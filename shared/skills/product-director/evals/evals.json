@@ -239,6 +239,99 @@
       "expected_anchors": [
         "PA-16"
       ]
+    },
+    {
+      "id": "success-gap-stays-in-success-stage",
+      "prompt": "用 product-director 收客服自动回复 Phase 1。根问题已经确认：夜间客服无人值守，客户重复追问订单状态，人工次日补处理导致投诉。目标是减少夜间重复追问，但当前成功标准只有「上线后看效果」。",
+      "files": [],
+      "expectations": [
+        "判定根问题已闭合，不回到问题澄清投影；停在目标、成功标准与投入边界阶段。",
+        "把「上线后看效果」改写为待补齐的可观察成功信号草案。",
+        "要求补齐当前基线、目标值或方向、观测窗口、数据来源和失败信号中的关键缺口。",
+        "只提出一个会改变成功标准判断的阻塞事实问题。",
+        "不得输出范围、本期不做、Phase、UNIT、AC、字段、页面或实现方案。"
+      ],
+      "expected_anchors": [
+        "PA-10",
+        "PA-15"
+      ]
+    },
+    {
+      "id": "closed-facts-missing-nongoals-still-recommends",
+      "prompt": "我们已经确认：内部审批事项分散在群消息、表格和审批系统里，业务负责人漏看待办，过去 30 天审批系统和群待办人工台账显示平均处理 2 天。目标是在上线后连续 14 天内，把审批事项从进入待处理到负责人完成处理的平均时长降到 4 小时；数据来源用审批系统状态日志和待办聚合日志，失败信号是平均处理时长仍超过 8 小时或逾期审批数没有下降。Phase 1 只做待办聚合、审批状态同步和逾期提醒。请用 product-director 收基线，但我还没想清楚本期明确不做什么。",
+      "files": [],
+      "expectations": [
+        "接受根问题、目标和首期范围已经足以进入阶段事实闭合规则，不回到问题澄清投影。",
+        "给出 Director 推荐基线，覆盖根问题判断、成功标准、首期范围、Phase 1 交付切片和推荐理由。",
+        "把本期不做标为唯一剩余基线边界缺口或给出推荐排除项待确认。",
+        "只提出一个围绕本期不做边界的业务事实问题。",
+        "不得输出输入线索表、五维问题澄清事实状态表、UNIT、AC、字段、接口或页面设计。"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-7",
+        "PA-8"
+      ]
+    },
+    {
+      "id": "target-metrics-gap-blocks-direct-recommendation",
+      "prompt": "我们已经确认：内部审批事项分散在群消息、表格和审批系统里，业务负责人漏看待办，平均处理 2 天。目标是把平均处理时长降到 4 小时。Phase 1 只做待办聚合、审批状态同步和逾期提醒。请用 product-director 收基线。",
+      "files": [],
+      "expectations": [
+        "判定根问题和首期范围已有足够事实，不回到问题澄清投影。",
+        "识别成功标准仍未闭合，停在目标、成功标准与投入边界阶段，而不是进入阶段事实闭合规则的 Director 推荐基线。",
+        "指出当前缺少观测窗口、数据来源和失败信号中的关键缺口，并给出待确认的可观察成功信号草案。",
+        "只提出一个会改变成功标准判断的阻塞事实问题。",
+        "不得输出 Director 推荐基线、范围、本期不做、Phase 交付切片、UNIT、AC、字段、接口或页面设计。"
+      ],
+      "expected_anchors": [
+        "PA-1",
+        "PA-10",
+        "PA-15"
+      ]
+    },
+    {
+      "id": "fully-closed-facts-asks-confirmation",
+      "prompt": "根问题确认：审批待办分散导致业务负责人漏处理，过去 30 天审批系统和群待办人工台账显示平均 2 天。目标确认：上线后连续 14 天内，审批事项从进入待处理到负责人完成处理的平均时长降到 4 小时；数据来源用审批系统状态日志和待办聚合日志，失败信号是平均处理时长仍超过 8 小时或逾期审批数没有下降。Phase 1 确认：待办聚合、审批状态同步、逾期提醒。本期不做确认：不改审批规则、不做权限重构、不做全量报表。请用 product-director 给我最终推荐基线。",
+      "files": [],
+      "expectations": [
+        "直接走阶段事实闭合规则，给出 Director 推荐基线和待用户确认后冻结的说明。",
+        "不机械重问已确认的根问题、目标、范围或本期不做。",
+        "不强制造一个新的业务问题；如果没有会改变基线的事实缺口，应该请求用户用 `产品总监确认` 明确确认。",
+        "不得输出问题澄清投影、输入线索、事实状态表、UNIT、AC、字段、接口或页面设计。"
+      ],
+      "expected_anchors": [
+        "PA-8",
+        "PA-19"
+      ]
+    },
+    {
+      "id": "finalization-env-blocks-not-user-confirmation",
+      "prompt": "product-director baseline 已经共创完成，我已经回复「产品总监确认」。现在 finalization 时发现 hook 或 schema 缺失。请继续处理。",
+      "files": [],
+      "expectations": [
+        "识别用户确认已经完成，不继续要求用户重复确认基线。",
+        "将 hook、schema、runtime 或 contract 缺失判定为环境阻塞。",
+        "停止最终写入或完成声明，并报告 BLOCKED 状态、缺失依赖和恢复条件。",
+        "区分环境阻塞与 Director 产物内容失败；不得把环境缺失当作普通内容修正或用户确认缺口。"
+      ],
+      "expected_anchors": [
+        "PA-17"
+      ]
+    },
+    {
+      "id": "director-handoff-pm-only",
+      "prompt": "product-director 的 brief.json 和 phase-prd.json 都已经通过 gates。现在请交给下游继续执行。",
+      "files": [],
+      "expectations": [
+        "说明 Director canonical 输出的直接 handoff 目标是 product-manager。",
+        "说明 tech-lead、design、test-design 只能在 product-manager 细化出 required artifacts 后作为后续消费者参与。",
+        "不得把 product-director 输出直接交给 tech-lead 规划实现。",
+        "不得输出 UNIT、AC、design、plan 或 tasks。"
+      ],
+      "expected_anchors": [
+        "PA-18"
+      ]
     }
   ],
   "eval_type": "encoded_preference",
@@ -311,6 +404,21 @@
     {
       "id": "PA-16",
       "anchor": "Director Finalization 写入或更新 brief.json 和 phase-prd.json 且 gate 通过后，继续执行 render_projection.py，生成 views/product-director.projection.md 和 views/product-director.projection-manifest.json；Markdown 只服务用户阅读，不进入下游控制流",
+      "weight": 1
+    },
+    {
+      "id": "PA-17",
+      "anchor": "用户已明确回复 `产品总监确认` 后，finalization 阶段发现 schema、hook、runtime 或 contract 缺失时，必须判定为环境阻塞并报告 BLOCKED；不得要求用户重复确认，不得声明完成，不得把环境缺失当作 Director 内容修正。",
+      "weight": 1
+    },
+    {
+      "id": "PA-18",
+      "anchor": "Director canonical 输出通过 gates 后，直接 handoff 目标只能是 product-manager；tech-lead、design、test-design 只能在 product-manager 细化 required artifacts 后作为后续消费者参与，不得直接承接 product-director 输出做实现规划。",
+      "weight": 1
+    },
+    {
+      "id": "PA-19",
+      "anchor": "当根问题、可观察成功标准、首期范围和本期不做均已明确时，product-director 必须走轻量阶段事实闭合规则：不输出问题澄清投影、输入线索或事实状态表，不强制造新业务问题；给出 Director 推荐基线并请求用户用 `产品总监确认` 明确冻结。",
       "weight": 1
     }
   ]

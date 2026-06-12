@@ -74,6 +74,16 @@ class CandidateLookupTests(TempDirTest):
         self.assertIn(
             "skills_sh_softaworks_mermaid_diagrams", self.lib.MANAGED_SOURCE_NAMES
         )
+        self.assertIn(
+            "skills_sh_github_prompt_optimizer", self.lib.MANAGED_SOURCE_NAMES
+        )
+        for retired in (
+            "persona_colleague_skill",
+            "persona_nuwa_skill",
+            "persona_yourself_skill",
+            "persona_midas_skill",
+        ):
+            self.assertNotIn(retired, self.lib.MANAGED_SOURCE_NAMES)
 
     def test_real_source_lock_has_all_managed_sources(self) -> None:
         locks = self.lib.load_source_locks(ROOT / "community/SOURCES.yaml")
@@ -198,6 +208,10 @@ class RunUpdateTests(TempDirTest):
             self.run_update.SYNC_COMMANDS["skills_sh_bb_browser"],
             ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
         )
+        self.assertEqual(
+            self.run_update.SYNC_COMMANDS["skills_sh_github_prompt_optimizer"],
+            ["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"],
+        )
 
     def test_no_update_does_not_leave_worktree_or_branch(self) -> None:
         statuses = [make_anthropic_status(self.lib, status="current")]
@@ -238,31 +252,6 @@ class RunUpdateTests(TempDirTest):
         ):
             self.assertNotIn(marker, command_text)
 
-    def test_persona_sources_share_one_sync_command(self) -> None:
-        statuses = [
-            self.lib.SourceStatus(
-                name="persona_colleague_skill",
-                status="update",
-                current_ref="ggg777",
-                candidate_ref="new777",
-                candidate_source="default_branch",
-            ),
-            self.lib.SourceStatus(
-                name="persona_nuwa_skill",
-                status="update",
-                current_ref="hhh888",
-                candidate_ref="new888",
-                candidate_source="default_branch",
-            ),
-        ]
-
-        commands = self.run_update._sync_commands_for(statuses)
-
-        self.assertEqual(
-            commands,
-            [["python3", "tools/community/sync_persona_skills_from_upstream.py"]],
-        )
-
     def test_skills_sh_sources_share_one_sync_command(self) -> None:
         statuses = [
             self.lib.SourceStatus(
@@ -284,6 +273,13 @@ class RunUpdateTests(TempDirTest):
                 status="update",
                 current_ref="ooo555",
                 candidate_ref="new555",
+                candidate_source="default_branch",
+            ),
+            self.lib.SourceStatus(
+                name="skills_sh_github_prompt_optimizer",
+                status="update",
+                current_ref="yyy444",
+                candidate_ref="new444",
                 candidate_source="default_branch",
             ),
         ]

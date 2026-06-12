@@ -54,6 +54,10 @@ SYNC_COMMANDS = {
         "python3",
         "tools/community/sync_skills_sh_skills_from_upstream.py",
     ],
+    "skills_sh_github_prompt_optimizer": [
+        "python3",
+        "tools/community/sync_skills_sh_skills_from_upstream.py",
+    ],
     "skills_sh_graphify": [
         "python3",
         "tools/community/sync_skills_sh_skills_from_upstream.py",
@@ -85,22 +89,6 @@ SYNC_COMMANDS = {
     "skills_sh_softaworks_mermaid_diagrams": [
         "python3",
         "tools/community/sync_skills_sh_skills_from_upstream.py",
-    ],
-    "persona_colleague_skill": [
-        "python3",
-        "tools/community/sync_persona_skills_from_upstream.py",
-    ],
-    "persona_nuwa_skill": [
-        "python3",
-        "tools/community/sync_persona_skills_from_upstream.py",
-    ],
-    "persona_yourself_skill": [
-        "python3",
-        "tools/community/sync_persona_skills_from_upstream.py",
-    ],
-    "persona_midas_skill": [
-        "python3",
-        "tools/community/sync_persona_skills_from_upstream.py",
     ],
 }
 VALIDATION_COMMANDS = (

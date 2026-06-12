@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync selected skills.sh community skills into community/skills-sh.
+"""Sync selected skills.sh community skills into community/open-skills.
 
 This script vendors only the repo slices declared in community/SOURCES.yaml.
 It keeps upstream skill content unchanged and generates local Codex metadata
@@ -19,9 +19,9 @@ from typing import NoReturn
 
 ROOT = Path(__file__).resolve().parents[2]
 LOCK_FILE = ROOT / "community" / "SOURCES.yaml"
-SKILLS_SH_ROOT = ROOT / "community" / "skills-sh"
-DEST_SKILLS = SKILLS_SH_ROOT / "skills"
-DEST_CODEX_SKILLS = SKILLS_SH_ROOT / "codex" / "skills"
+OPEN_SKILLS_ROOT = ROOT / "community" / "open-skills"
+DEST_SKILLS = OPEN_SKILLS_ROOT / "skills"
+DEST_CODEX_SKILLS = OPEN_SKILLS_ROOT / "codex" / "skills"
 
 SKILL_SOURCES = {
     "architecture": {
@@ -79,6 +79,17 @@ SKILL_SOURCES = {
         "short_description": "Manual Product Requirements Document drafting guidance",
         "default_prompt": "Use $prd to manually draft or review a product requirements document.",
         "local_arg": "prd_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": True,
+    },
+    "prompt-optimizer": {
+        "source_name": "skills_sh_github_prompt_optimizer",
+        "repo_dir_name": "awesome-copilot-prompt-optimizer",
+        "relative_path": Path("skills") / "prompt-optimizer",
+        "display_name": "Prompt Optimizer",
+        "short_description": "Manual prompt rewriting for clearer copy-paste LLM instructions",
+        "default_prompt": "Use $prompt-optimizer to manually rewrite a rough request into a clearer prompt.",
+        "local_arg": "prompt_optimizer_source_dir",
         "codex_adapter": False,
         "copy_root_license": True,
     },
@@ -279,7 +290,7 @@ def sync_skill(repo_root: Path, skill_name: str) -> None:
 def main() -> None:
     """Sync selected skills from local checkouts or locked upstream refs."""
     parser = argparse.ArgumentParser(
-        description="Sync selected skills.sh community skills into community/skills-sh."
+        description="Sync selected skills.sh community skills into community/open-skills."
     )
     for skill_name, meta in SKILL_SOURCES.items():
         parser.add_argument(

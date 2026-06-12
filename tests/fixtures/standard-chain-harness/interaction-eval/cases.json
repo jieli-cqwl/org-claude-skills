@@ -42,6 +42,9 @@
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-after-clarification-template-low-reasoning/summary.json",
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-004-regression-after-fastpath-and-rebaseline-fix-low-reasoning/summary.json"
       ],
+      "evidence_eval_ids": [
+        "director-baseline-no-prd"
+      ],
       "automation_status": "covered",
       "owner_action": "skill"
     },
@@ -89,6 +92,9 @@
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-002-003-low-reasoning/summary.json",
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-004-regression-after-fastpath-and-rebaseline-fix-low-reasoning/summary.json"
       ],
+      "evidence_eval_ids": [
+        "upstream-fact-replacement-backtracks"
+      ],
       "automation_status": "covered",
       "owner_action": "test"
     },
@@ -129,6 +135,9 @@
         "tools/eval/results/product-director-eval-20260509/with-skill-full-rerun/summary.json",
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-002-003-low-reasoning/summary.json",
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-004-regression-after-fastpath-and-rebaseline-fix-low-reasoning/summary.json"
+      ],
+      "evidence_eval_ids": [
+        "clear-goal-default-judgment"
       ],
       "automation_status": "covered",
       "owner_action": "test"
@@ -178,6 +187,9 @@
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-002-partial-answer-after-fact-state-fix-reasoning-low/summary.json",
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-004-regression-after-fastpath-and-rebaseline-fix-low-reasoning/summary.json"
       ],
+      "evidence_eval_ids": [
+        "partial-answer-stays-in-problem-clarification"
+      ],
       "automation_status": "covered",
       "owner_action": "skill"
     },
@@ -218,6 +230,10 @@
       "evidence_refs": [
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pm-001-director-drift-baseline-low-reasoning-agent-check/summary.json"
       ],
+      "evidence_eval_ids": [
+        "director-lock-drift-blocking",
+        "director-lock-drift-after-handoff"
+      ],
       "automation_status": "covered",
       "owner_action": "test"
     },
@@ -256,6 +272,9 @@
       "evidence_refs": [
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/des-001-missing-business-state-baseline-low-reasoning/summary.json",
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/design-upstream-drift-regression-baseline-low-reasoning/summary.json"
+      ],
+      "evidence_eval_ids": [
+        "missing-business-state-blocks-design"
       ],
       "automation_status": "covered",
       "owner_action": "test"
@@ -296,6 +315,9 @@
       "evidence_refs": [
         "shared/skills/test-design/evals/evals.json",
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/td-001-regression-after-structure-contract-low-reasoning/summary.json"
+      ],
+      "evidence_eval_ids": [
+        "vague-ac-blocks-test-design"
       ],
       "automation_status": "covered",
       "owner_action": "reference"
@@ -338,6 +360,9 @@
       "evidence_refs": [
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/tl-001-target-drift-baseline-low-reasoning/summary.json"
       ],
+      "evidence_eval_ids": [
+        "target-drift-blocks-planning"
+      ],
       "automation_status": "covered",
       "owner_action": "test"
     },
@@ -378,13 +403,16 @@
     "tools/eval/scripts/standard_chain_local_eval/grading.py",
     "tests/test-standard-chain-local-eval-runner.sh"
   ],
-  "evidence_refs": [
-    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-baseline-low-reasoning/summary.json",
-    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-after-runner-normalization-low-reasoning/summary.json",
-    "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/summary.json",
-    "tests/test-standard-chain-local-eval-runner.sh"
-  ],
-  "automation_status": "covered",
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-baseline-low-reasoning/summary.json",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-001-acceptance-change-after-runner-normalization-low-reasoning/summary.json",
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/do-final-target-change-and-commit-regression-low-reasoning/summary.json",
+        "tests/test-standard-chain-local-eval-runner.sh"
+      ],
+      "evidence_eval_ids": [
+        "acceptance-change-invalidates-signoff-evidence"
+      ],
+      "automation_status": "covered",
   "owner_action": "skill"
 },
     {
@@ -423,6 +451,9 @@
       ],
       "evidence_refs": [
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/dev-001-stale-task-baseline-low-reasoning/summary.json"
+      ],
+      "evidence_eval_ids": [
+        "stale-task-packet-blocks-implementation"
       ],
       "automation_status": "covered",
       "owner_action": "test"
@@ -463,6 +494,9 @@
       "evidence_refs": [
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/rev-001-stale-developer-evidence-after-anchor-fix-low-reasoning/summary.json"
       ],
+      "evidence_eval_ids": [
+        "stale-developer-evidence-blocks-review-pass"
+      ],
       "automation_status": "covered",
       "owner_action": "test"
     },
@@ -501,6 +535,9 @@
       ],
       "evidence_refs": [
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/ver-001-stale-ac-proof-baseline-low-reasoning/summary.json"
+      ],
+      "evidence_eval_ids": [
+        "stale-ac-proof-blocks-verify-pass"
       ],
       "automation_status": "covered",
       "owner_action": "test"
@@ -541,6 +578,93 @@
       ],
       "evidence_refs": [
         "tools/eval/results/standard-chain-systemic-baseline-2026-06-10/qa-001-outdated-acceptance-after-anchor-fix-low-reasoning/summary.json"
+      ],
+      "evidence_eval_ids": [
+        "outdated-acceptance-blocks-qa-pass"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-PD-005",
+      "title": "target-stage gap stays in target stage",
+      "roles": ["product-director"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "Root problem is confirmed, but success is only described as上线后看效果."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for stage ownership and not falling back to problem clarification."
+        }
+      ],
+      "dimension_refs": [
+        "fact_sufficiency",
+        "stage_backtracking",
+        "role_boundary",
+        "process_lightness"
+      ],
+      "failure_mode": "The role sends a target-stage gap back into problem clarification projection.",
+      "expected_behavior": "Stay in target/success/investment boundary, draft observable success signal, and ask one target-stage blocking fact.",
+      "forbidden_behavior": "Restart root-problem discovery or emit problem-clarification projection when root problem is already closed.",
+      "observable_signals": [
+        "root problem remains accepted",
+        "success criteria gap is owned by target-stage projection",
+        "only one target-stage fact is requested"
+      ],
+      "regression_targets": [
+        "shared/skills/product-director/SKILL.md",
+        "shared/skills/product-director/references/success-investment-boundary.md",
+        "shared/skills/product-director/evals/evals.json"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-11/pd-hardening-6-cases-closed-facts-direct-recommendation-low-reasoning/summary.json"
+      ],
+      "evidence_eval_ids": [
+        "success-gap-stays-in-success-stage",
+        "target-metrics-gap-blocks-direct-recommendation"
+      ],
+      "automation_status": "covered",
+      "owner_action": "test"
+    },
+    {
+      "id": "SC-INT-PD-006",
+      "title": "clear facts use lightweight direct recommendation",
+      "roles": ["product-director"],
+      "interaction_turns": [
+        {
+          "speaker": "user",
+          "text": "Root problem, target, Phase 1 scope, and non-goals are all confirmed. Give the final Director recommendation."
+        },
+        {
+          "speaker": "agent",
+          "text": "The response is evaluated for lightness and natural confirmation."
+        }
+      ],
+      "dimension_refs": [
+        "fact_sufficiency",
+        "process_lightness",
+        "candidate_vs_confirmed_state",
+        "role_boundary"
+      ],
+      "failure_mode": "The role produces a heavy clarification template or invents a new question despite closed facts.",
+      "expected_behavior": "Give a concise Director recommendation and ask for explicit `产品总监确认` if no baseline-changing fact remains.",
+      "forbidden_behavior": "Emit input clues, full fact-state table, or a forced new business question.",
+      "observable_signals": [
+        "no problem-clarification table is emitted",
+        "confirmation path is clear",
+        "no UNIT, AC, field, API, or implementation detail appears"
+      ],
+      "regression_targets": [
+        "shared/skills/product-director/SKILL.md",
+        "shared/skills/product-director/evals/evals.json"
+      ],
+      "evidence_refs": [
+        "tools/eval/results/standard-chain-systemic-baseline-2026-06-11/pd-hardening-6-cases-closed-facts-direct-recommendation-low-reasoning/summary.json"
+      ],
+      "evidence_eval_ids": [
+        "fully-closed-facts-asks-confirmation"
       ],
       "automation_status": "covered",
       "owner_action": "test"

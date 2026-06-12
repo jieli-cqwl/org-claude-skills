@@ -63,7 +63,6 @@ import tools.community.sync_alchaincyf_skills_from_upstream as alchaincyf
 import tools.community.sync_nextlevelbuilder_skills_from_upstream as nextlevelbuilder
 import tools.community.sync_panniantong_skills_from_upstream as panniantong
 import tools.community.sync_skills_sh_skills_from_upstream as skills_sh
-import tools.community.sync_persona_skills_from_upstream as persona
 
 assert len(canonical.OFFICIAL_SUPERPOWERS_SKILLS) == 14
 assert callable(vercel.main)
@@ -71,41 +70,21 @@ assert callable(alchaincyf.main)
 assert callable(nextlevelbuilder.main)
 assert callable(panniantong.main)
 assert callable(skills_sh.main)
-assert callable(persona.main)
 assert "planning-with-files" in skills_sh.SKILL_SOURCES
 assert skills_sh.SKILL_SOURCES["planning-with-files"]["codex_adapter"] is False
 assert "architecture" in skills_sh.SKILL_SOURCES
 assert skills_sh.SKILL_SOURCES["architecture"]["codex_adapter"] is False
 assert "mermaid-diagrams" in skills_sh.SKILL_SOURCES
 assert skills_sh.SKILL_SOURCES["mermaid-diagrams"]["codex_adapter"] is False
+assert "prompt-optimizer" in skills_sh.SKILL_SOURCES
+assert skills_sh.SKILL_SOURCES["prompt-optimizer"]["codex_adapter"] is False
+assert skills_sh.DEST_SKILLS.as_posix().endswith("community/open-skills/skills")
+assert skills_sh.DEST_CODEX_SKILLS.as_posix().endswith("community/open-skills/codex/skills")
 locks = skills_sh.load_lock()
 assert "skills_sh_markdown_viewer_architecture" in locks
 assert "skills_sh_othmanadi_planning_with_files" in locks
 assert "skills_sh_softaworks_mermaid_diagrams" in locks
-PY
-
-python3 - <<'PY' >/dev/null || fail "persona colleague sync 应规范化 Codex skill root"
-import tempfile
-from pathlib import Path
-
-import tools.community.sync_persona_skills_from_upstream as persona
-
-with tempfile.TemporaryDirectory() as td:
-    root = Path(td) / "colleague-skill"
-    tools = root / "tools"
-    tools.mkdir(parents=True)
-    (root / "README.md").write_text("Codex: ~/.codex/skills/dot-skill\n", encoding="utf-8")
-    (tools / "install_codex_skill.py").write_text(
-        'default=str(Path.home() / ".codex" / "skills" / "dot-skill")\n',
-        encoding="utf-8",
-    )
-
-    persona.normalize_synced_skills(root)
-
-    assert "~/.codex/skills" not in (root / "README.md").read_text(encoding="utf-8")
-    assert "~/.agents/skills/dot-skill" in (root / "README.md").read_text(encoding="utf-8")
-    assert 'Path.home() / ".codex" / "skills"' not in (tools / "install_codex_skill.py").read_text(encoding="utf-8")
-    assert 'Path.home() / ".agents" / "skills"' in (tools / "install_codex_skill.py").read_text(encoding="utf-8")
+assert "skills_sh_github_prompt_optimizer" in locks
 PY
 
 python3 - <<'PY' >/dev/null || fail "Superpowers clone 应 checkout SOURCES.yaml 锁定 ref"
@@ -241,19 +220,19 @@ source_lock = root / "community/SOURCES.yaml"
 text = source_lock.read_text(encoding="utf-8")
 locks = lib.load_source_locks(source_lock)
 status = lib.SourceStatus(
-    name="persona_nuwa_skill",
+    name="skills_sh_github_prompt_optimizer",
     status="update",
-    current_ref=locks["persona_nuwa_skill"].ref,
-    candidate_ref="new-persona-ref",
+    current_ref=locks["skills_sh_github_prompt_optimizer"].ref,
+    candidate_ref="new-prompt-optimizer-ref",
     candidate_source="fixture",
 )
 updated = run_update.update_lock_text(text, [status], "2026-05-08")
-assert "persona_nuwa_skill:" in updated
-assert "ref: new-persona-ref" in updated
+assert "skills_sh_github_prompt_optimizer:" in updated
+assert "ref: new-prompt-optimizer-ref" in updated
 assert "captured_at: 2026-05-08" in updated
-assert "community/persona/skills/nuwa-skill" in updated
-assert "运行时由 `install.sh` 注入 `disable-model-invocation: true`" in updated
-assert "persona_yourself_skill:" in updated
+assert "community/open-skills/skills/prompt-optimizer" in updated
+assert "运行时由 `install.sh` 注入 manual-only 可见性" in updated
+assert "skills_sh_github_prd:" in updated
 PY
 
 python3 - <<'PY' >/dev/null || fail "sync_superpowers 应只复制官方 14 个 skills 并清理旧目录"

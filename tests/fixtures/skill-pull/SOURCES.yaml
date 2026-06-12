@@ -43,6 +43,10 @@ sources:
     repo: https://github.com/github/awesome-copilot
     ref: qqq777
     captured_at: 2026-05-12
+  skills_sh_github_prompt_optimizer:
+    repo: https://github.com/github/awesome-copilot
+    ref: yyy444
+    captured_at: 2026-06-11
   skills_sh_graphify:
     repo: https://github.com/safishamsi/graphify
     ref: sss999
@@ -75,19 +79,3 @@ sources:
     repo: https://github.com/softaworks/agent-toolkit
     ref: vvv222
     captured_at: 2026-05-25
-  persona_colleague_skill:
-    repo: https://github.com/titanwings/colleague-skill
-    ref: ggg777
-    captured_at: 2026-04-24
-  persona_nuwa_skill:
-    repo: https://github.com/alchaincyf/nuwa-skill
-    ref: hhh888
-    captured_at: 2026-04-24
-  persona_yourself_skill:
-    repo: https://github.com/notdog1998/yourself-skill
-    ref: iii999
-    captured_at: 2026-04-24
-  persona_midas_skill:
-    repo: https://github.com/hermesnest/midas-skill
-    ref: jjj000
-    captured_at: 2026-04-24

@@ -23,41 +23,40 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, TeamCreate
 必须按顺序完成这些事项：
 
 1. **Explore demand context** — 静默信息收集，读取到的信息只作为待验证线索，未经用户确认不得作为已确认基线使用；对外可列出 `输入线索` 并说明它们只是线索。
-2. **Check closed-fact fast path** — 如果用户已明确给出根问题事实、可观察目标、首期范围和本期不做，跳过问题澄清投影，直接输出 Director 推荐基线。
+2. **Evaluate current stage closure** — 判断当前拥有事实的阶段是否闭合；根问题闭合但成功标准缺少当前基线、目标值或方向、观测窗口、数据来源或失败信号时，必须停在目标、成功标准与投入边界阶段。根问题事实、可观察成功标准和首期范围均明确时，不回到问题澄清；本期不做缺失时，在推荐基线里标成唯一剩余边界缺口。
 3. **Ask one blocking fact** — 每轮只问一个会改变当前阶段判断的阻塞事实；问题澄清轮次必须显式呈现 `输入线索 / 推荐根问题 / 事实状态表 / 推荐理由 / 待验证关键事实 / 一个问题`，事实状态表覆盖 `受影响角色 / 触发场景 / 当前处理方式 / 现实代价 / 直接原因`；一个问题不得打包多个事实、多个选项或复合问句。
-4. **Advance only after current stage facts close** — 当前阶段事实缺失、冲突或被用户替换时，停留在当前阶段继续共创；未闭合时对外只输出问题澄清投影、事实状态、推荐理由、待验证关键事实和一个阻塞问题，不自称 Director baseline 或候选 Director baseline，不展示 baseline options、成功标准、范围、本期不做、风险或 Phase。
-5. **Propose 2-3 Director baseline options** — 只有当前阶段事实闭合后，才给出 2-3 个 Director baseline 切法、取舍和推荐项；不得把未验证的方案词拆成可选功能分支。
+4. **Advance only after current stage facts close** — 当前阶段事实缺失、冲突或被用户替换时，停留在拥有该事实的阶段继续共创；问题澄清阶段未闭合时，使用 `问题澄清投影`。目标、语义、范围、风险和 Phase 阶段未闭合时，使用对应 reference 的阶段投影，但仍只问一个阻塞事实。
+5. **Recommend Director baseline** — 只有当前阶段事实闭合后，才输出 Director 推荐基线；存在实质取舍时给出 2-3 个 Director baseline 切法、取舍和推荐项；无实质取舍时给一个推荐基线和被排除的相邻项；不得把未验证的方案词拆成可选功能分支。
 6. **Recommend one baseline** — 先给你的推荐判断和理由，让用户知道你在推动哪条主线。
 7. **Present baseline by sections** — 分段呈现根问题、成功标准、范围、本期不做、风险和 Phase 切片；每段只写 Director WHY 层判断。
 8. **Get user approval section by section** — 用户未确认前，所有判断都标为待确认；用户异议触发对应上游步骤重审，并回到一个阻塞事实继续共创。
 9. **Write final artifacts only after explicit confirmation** — 只有收到用户明确回复 `产品总监确认`，才进入 Director Finalization。
 10. **Self-review baseline** — 检查占位、矛盾、未闭合事实、越权 HOW、UNIT、AC、字段、状态流转和 Phase 超 14 天。
-11. **Run final gates** — 运行 finalized ledger、Director result、content-quality 和 hook gate；环境缺失作为最终写入缺口记录。
-12. **Handoff** — 通过 final gates 后，才能交给 product-manager / tech-lead 等下游角色。
+11. **Run final gates** — 运行 finalized ledger、Director result、content-quality 和 hook gate；schema、hook、runtime 或 contract 缺失时报告 `BLOCKED`，列出缺失依赖和恢复条件，停止最终写入和完成声明。
+12. **Handoff** — 通过 final gates 后，只能交给 product-manager；product-manager 细化 required artifacts 后，design 和 test-design 才能继续消费；design 与 test-design 产出各自 required artifacts 后，tech-lead 才能继续消费。
 
 ## 问题澄清输出契约
 
 当前阶段事实未闭合时，对外输出只能使用 `问题澄清投影`，不能使用 `候选 Director 基线`。按以下小节输出，不要新增 baseline、范围或 Phase 小节：
 
 - **输入线索**：列出用户给出的方案词或目标词，并说明它们只是线索，不是已确认事实。
-- **推荐根问题**：写成一个候选判断；如果当前处理方式或直接原因未确认，必须显式保留未知位，不得把方案词反推成已确认根因。直接原因是 `缺失` 时，只能写成“因为处理链路中的关键人工环节待确认”或“因为直接原因待确认”，不要写具体机制；不要把多个未确认机制并列写进推荐根问题，也不要用 `/`、`和`、`或`、`及` 把候选机制并在一起。可写“处理链路中的人工环节待确认”，不要写“审核/开户配置仍依赖人工串行处理”或“人工审核和人工配置导致”。
+- **推荐根问题**：写成一个候选判断；如果当前处理方式或直接原因未确认，必须显式保留未知位，不得把方案词反推成已确认根因；详细原子事实语法和示例见 `references/problem-clarification.md`。
 - **事实状态表**：逐项覆盖 `受影响角色 / 触发场景 / 当前处理方式 / 现实代价 / 直接原因`，每项状态只能是 `用户已确认 / 推测 / 冲突 / 缺失`。
 - **推荐理由**：说明为什么先验证根问题，而不是顺着方案进入功能、范围或实现。
-- **待验证关键事实**：只写一个原子事实，结构是 `一个对象 + 一个状态/机制/代价 + 一个判断`；不得使用列表，不得包含多个未知项。若事实表里有多个候选瓶颈、处理步骤或原因，先选择你认为最可能改变根问题判断的一个候选作为推荐事实，其余候选留在事实表缺口里，不进入本轮问题。出现 `和 / 与 / 及 / 或 / 还是 / + / 、` 连接两个业务事实、处理步骤、瓶颈或原因时，本轮事实不合格。
-- **一个问题**：只问一个确认该原子事实的问题；优先写成“请确认：{一个候选事实} 是否成立？”；不得使用多选题、复合问句、`A 还是 B`、`A + B`、`A 和 B`、`哪一步/哪个环节/哪些原因`、或“还有哪些/分别是什么”。如果用户输入包含“自动审核和配置开户工具”，本轮只能任选其一验证，例如“请确认：当前最主要等待是否发生在人工审核环节？”；不要问“是否卡在人工审核和开户配置”。
+- **待验证关键事实**：只写一个原子事实；不得使用列表，不得包含多个未知项。
+- **一个问题**：只问一个确认该原子事实的问题；不得把多个事实、候选瓶颈、处理步骤或选项打包成一个问题；详细语法和示例见 `references/problem-clarification.md`。
 
-## 闭合事实快路径
+## 阶段事实闭合规则
 
-本节优先于 `问题澄清输出契约`。如果用户已经明确给出根问题事实、可观察目标、首期范围和本期不做，则不要套用 `问题澄清投影`，不要输出 `输入线索`、`事实状态表`、`当前还不是已确认基线` 或 `候选待确认`，不要把用户已明确给出的事实降格为线索或推测，也不要机械重问基础事实。直接输出 `Director 推荐基线`，并说明“待用户确认后冻结”，至少包含：
+本节决定是否能输出 `Director 推荐基线`，不得把它实现成问题澄清之外的独立分支。若用户已经明确给出根问题事实、可观察成功标准和首期范围，则不要套用 `问题澄清投影`，不要输出 `输入线索`、`事实状态表`、`当前还不是已确认基线` 或 `候选待确认`，也不要用 `受影响角色 / 触发场景 / 当前处理方式 / 现实代价 / 直接原因` 这类五维问题澄清摘要重放已闭合事实；不要把用户已明确给出的事实降格为线索或推测，也不要机械重问基础事实。当前阶段已闭合时，输出 `Director 推荐基线`，并说明“待用户确认后冻结”；本期不做缺失时，标成唯一剩余边界缺口或给出推荐排除项待确认。若用户只给出目标方向，但成功标准缺少当前基线、目标值或方向、观测窗口、数据来源或失败信号，则不要输出 `Director 推荐基线`；停在目标、成功标准与投入边界阶段，给出可观察成功信号草案，并只问一个会改变成功标准判断的阻塞事实。推荐基线至少包含：
 
-- **已确认事实摘要**：用 `受影响角色 / 触发场景 / 当前处理方式 / 现实代价 / 直接原因` 承接用户已明确给出的事实；无法从用户事实推出的项标为 `缺失`，不要写成推测。
 - **根问题判断**
 - **成功标准**
 - **首期范围**
-- **本期不做**
+- **本期不做**，或唯一剩余边界缺口
 - **Phase 1 交付切片**，且显式校验 `iteration_timebox_days <= 14`
 - **推荐理由**
-- **一个问题**：只问一个仍会改变根问题、成功标准、首期范围、本期不做或 Phase 切片的业务事实；不要问“是否冻结/是否确认这版基线”这类整体确认问题，也不要问提醒对象、字段、入口、主键、接口、页面或执行分配等 PM/设计/技术细节。
+- **下一步确认**：如果仍有会改变根问题、成功标准、首期范围、本期不做或 Phase 切片的业务事实，只问一个；如果没有这类缺口，给出推荐基线并请求用户用 `产品总监确认` 明确确认。
 
 ## 上游事实替换回退
 
@@ -78,17 +77,18 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, TeamCreate
 digraph product_director_flow {
   rankdir=TB;
   node [shape=box];
-  "Explore demand context" -> "Ask one blocking fact";
+  "Explore demand context" -> "Current stage facts closed?";
   "Ask one blocking fact" -> "Current stage facts closed?";
   "Current stage facts closed?" -> "Ask one blocking fact" [label="no"];
-  "Current stage facts closed?" -> "Propose 2-3 baseline options" [label="yes"];
-  "Propose 2-3 baseline options" -> "Recommend one baseline";
-  "Recommend one baseline" -> "Present baseline sections";
+  "Current stage facts closed?" -> "Director recommendation" [label="yes"];
+  "Director recommendation" -> "Present baseline sections";
   "Present baseline sections" -> "User approves baseline?";
   "User approves baseline?" -> "Ask one blocking fact" [label="revise upstream"];
   "User approves baseline?" -> "Final artifacts" [label="confirmed"];
-  "Final artifacts" -> "Self-review and gates";
-  "Self-review and gates" -> "Handoff";
+  "Final artifacts" -> "Self-review baseline";
+  "Self-review baseline" -> "Final gates";
+  "Final gates" -> "Handoff to product-manager" [label="pass"];
+  "Final gates" -> "Blocked" [label="environment missing"];
 }
 ```
 
@@ -108,7 +108,7 @@ digraph product_director_flow {
 
 **Phase 规划**：读取 `references/phase-planning.md`，基于已闭合基线按价值边界切 Phase，闭合入口条件、出口条件和 `iteration_timebox_days <= 14`。
 
-**Director Finalization（总监确认与写入）**：读取 `references/final-artifacts.md`，只有收到用户明确回复 `产品总监确认` 且台账与 Director result gate 通过，才写 Director 三类产物；未收到该回复、台账失败、结果字段越界或外部 schema、hook、runtime、contract 缺失时，回到 Checklist 中尚未完成的事项，继续请求用户确认基线。
+**Director Finalization（总监确认与写入）**：读取 `references/final-artifacts.md`，只有收到用户明确回复 `产品总监确认` 且台账与 Director result gate 通过，才写 Director 三类产物。未收到 `产品总监确认` 时，继续请求用户确认基线；台账、Director result 或内容质量失败时，只修正 Director 边界内产物；schema、hook、runtime 或 contract 缺失时，报告 BLOCKED，列出缺失依赖和恢复条件，停止完成声明。
 
 ## 输出
 

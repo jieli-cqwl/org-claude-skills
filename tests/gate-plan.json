@@ -267,10 +267,44 @@
       "timeout_sec": 480
     },
     {
-      "id": "install-runtime-quick-canary",
+      "id": "install-runtime-quick-canary-codex-install",
       "command": [
         "bash",
-        "tests/test-install-runtime-quick-canary.sh"
+        "tests/test-install-runtime-quick-canary.sh",
+        "--group",
+        "codex-install"
+      ],
+      "area": "install-runtime",
+      "tier": "quick",
+      "tags": [
+        "canary"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 120
+    },
+    {
+      "id": "install-runtime-quick-canary-claude-hook-launcher",
+      "command": [
+        "bash",
+        "tests/test-install-runtime-quick-canary.sh",
+        "--group",
+        "claude-hook-launcher"
+      ],
+      "area": "install-runtime",
+      "tier": "quick",
+      "tags": [
+        "canary"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 120
+    },
+    {
+      "id": "install-runtime-quick-canary-hook-checks",
+      "command": [
+        "bash",
+        "tests/test-install-runtime-quick-canary.sh",
+        "--group",
+        "hook-checks"
       ],
       "area": "install-runtime",
       "tier": "quick",

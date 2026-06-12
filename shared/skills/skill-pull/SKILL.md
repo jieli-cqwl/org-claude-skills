@@ -1,7 +1,7 @@
 ---
 name: skill-pull
 user-invocable: true
-description: "外部 Skill 拉取与安装编排。Use when 检查或更新 Anthropic/Vercel/Superpowers/persona 来源、adapter-bearing 来源的 Codex adapters 或运行时安装结果。"
+description: "外部 Skill 拉取与安装编排。Use when 检查或更新 Anthropic/Vercel/Superpowers/skills.sh 来源、adapter-bearing 来源的 Codex adapters 或运行时安装结果。"
 disable-model-invocation: true
 ---
 
@@ -36,6 +36,7 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 - `skills_sh_baoyu_markdown_to_html`
 - `skills_sh_bb_browser`
 - `skills_sh_github_prd`
+- `skills_sh_github_prompt_optimizer`
 - `skills_sh_graphify`
 - `skills_sh_humanizer_zh`
 - `skills_sh_mattpocock_to_prd`
@@ -43,10 +44,6 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 - `skills_sh_othmanadi_planning_with_files`
 - `skills_sh_self_improving_agent`
 - `skills_sh_softaworks_mermaid_diagrams`
-- `persona_colleague_skill`
-- `persona_nuwa_skill`
-- `persona_yourself_skill`
-- `persona_midas_skill`
 
 ## Workflow
 

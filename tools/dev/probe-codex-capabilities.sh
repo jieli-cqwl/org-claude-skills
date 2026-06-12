@@ -140,10 +140,6 @@ codex_default_surface_offenders() {
     web-artifacts-builder
     xlsx
     agent-browser
-    colleague-skill
-    nuwa-skill
-    yourself-skill
-    midas-skill
   )
   local skill adapter
 

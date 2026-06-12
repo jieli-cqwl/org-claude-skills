@@ -229,8 +229,7 @@ for root_dir in [
     "community/alchaincyf/skills",
     "community/nextlevelbuilder/skills",
     "community/panniantong/skills",
-    "community/skills-sh/skills",
-    "community/persona/skills",
+    "community/open-skills/skills",
     "claude/skills",
 ]:
     base = root / root_dir

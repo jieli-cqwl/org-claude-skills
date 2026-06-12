@@ -29,6 +29,7 @@ EXPECTED_REPOS = {
     "skills_sh_baoyu_markdown_to_html": "https://github.com/JimLiu/baoyu-skills",
     "skills_sh_bb_browser": "https://github.com/epiral/bb-browser",
     "skills_sh_github_prd": "https://github.com/github/awesome-copilot",
+    "skills_sh_github_prompt_optimizer": "https://github.com/github/awesome-copilot",
     "skills_sh_graphify": "https://github.com/safishamsi/graphify",
     "skills_sh_markdown_viewer_architecture": "https://github.com/markdown-viewer/skills",
     "skills_sh_softaworks_mermaid_diagrams": "https://github.com/softaworks/agent-toolkit",
@@ -37,10 +38,6 @@ EXPECTED_REPOS = {
     "skills_sh_notebooklm": "https://github.com/PleasePrompto/notebooklm-skill",
     "skills_sh_othmanadi_planning_with_files": "https://github.com/OthmanAdi/planning-with-files",
     "skills_sh_self_improving_agent": "https://github.com/zhaono1/agent-playbook",
-    "persona_colleague_skill": "https://github.com/titanwings/colleague-skill",
-    "persona_nuwa_skill": "https://github.com/alchaincyf/nuwa-skill",
-    "persona_yourself_skill": "https://github.com/notdog1998/yourself-skill",
-    "persona_midas_skill": "https://github.com/hermesnest/midas-skill",
 }
 
 

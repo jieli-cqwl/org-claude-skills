@@ -28,4 +28,8 @@
 - Director result gate：
   `printf '{"cwd":"%s","session_id":"manual","transcript_path":"/dev/null","tool_input":{"file_path":"docs/{feature}/brief.json"}}\n' "$PWD" | "$PWD/shared/skills/product-director/scripts/completion_check.sh"`
 
-任一验证失败时，只修正 Director 边界内产物；schema、hook、runtime 或 contract 缺失属于环境阻塞，停止报告。
+任一验证失败时，先分类处理：
+
+- 未收到用户明确回复 `产品总监确认`：停止写入，继续请求用户确认基线。
+- 台账、Director result 或内容质量失败：只修正 Director 边界内产物。
+- schema、hook、runtime 或 contract 缺失：报告 `BLOCKED`，列出缺失依赖和恢复条件，停止最终写入和完成声明。

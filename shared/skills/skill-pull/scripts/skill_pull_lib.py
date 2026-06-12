@@ -34,6 +34,7 @@ MANAGED_SOURCE_NAMES = (
     "skills_sh_baoyu_markdown_to_html",
     "skills_sh_bb_browser",
     "skills_sh_github_prd",
+    "skills_sh_github_prompt_optimizer",
     "skills_sh_graphify",
     "skills_sh_markdown_viewer_architecture",
     "skills_sh_humanizer_zh",
@@ -42,10 +43,6 @@ MANAGED_SOURCE_NAMES = (
     "skills_sh_othmanadi_planning_with_files",
     "skills_sh_self_improving_agent",
     "skills_sh_softaworks_mermaid_diagrams",
-    "persona_colleague_skill",
-    "persona_nuwa_skill",
-    "persona_yourself_skill",
-    "persona_midas_skill",
 )
 SOURCE_BLOCK_RE = re.compile(
     r"^  (?P<name>[A-Za-z0-9_]+):\n(?P<body>(?:^    .*(?:\n|$)|^      .*(?:\n|$))*)",

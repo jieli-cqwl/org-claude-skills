@@ -122,9 +122,8 @@ assert_prerequisites() {
   [ -d "$COMMUNITY_SOURCE/nextlevelbuilder/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/nextlevelbuilder/codex/skills"
   [ -d "$COMMUNITY_SOURCE/panniantong/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/panniantong/skills"
   [ -d "$COMMUNITY_SOURCE/panniantong/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/panniantong/codex/skills"
-  [ -d "$COMMUNITY_SOURCE/skills-sh/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/skills-sh/skills"
-  [ -d "$COMMUNITY_SOURCE/skills-sh/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/skills-sh/codex/skills"
-  [ -d "$COMMUNITY_SOURCE/persona/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/persona/skills"
+  [ -d "$COMMUNITY_SOURCE/open-skills/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/open-skills/skills"
+  [ -d "$COMMUNITY_SOURCE/open-skills/codex/skills" ] || fail "缺少目录: $COMMUNITY_SOURCE/open-skills/codex/skills"
   [ -f "$COMMUNITY_SOURCE/SOURCES.yaml" ] || fail "缺少文件: $COMMUNITY_SOURCE/SOURCES.yaml"
   [ -f "$SKILL_RUNTIME_SURFACE_CONTRACT" ] || fail "缺少 Skill runtime surface 合同: contracts/skill-runtime-surface.json"
   [ -x "$SKILL_RUNTIME_SURFACE_TOOL" ] || fail "缺少可执行 Skill runtime surface 工具: tools/skills/apply_skill_runtime_surface.py"
@@ -134,7 +133,6 @@ assert_prerequisites() {
   [ -f "$REPO_ROOT/tools/community/sync_nextlevelbuilder_skills_from_upstream.py" ] || fail "缺少 NextLevelBuilder sync 脚本: tools/community/sync_nextlevelbuilder_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_panniantong_skills_from_upstream.py" ] || fail "缺少 Panniantong sync 脚本: tools/community/sync_panniantong_skills_from_upstream.py"
   [ -f "$REPO_ROOT/tools/community/sync_skills_sh_skills_from_upstream.py" ] || fail "缺少 skills.sh sync 脚本: tools/community/sync_skills_sh_skills_from_upstream.py"
-  [ -f "$REPO_ROOT/tools/community/sync_persona_skills_from_upstream.py" ] || fail "缺少 Persona sync 脚本: tools/community/sync_persona_skills_from_upstream.py"
   [ -f "$HOOK_REGISTRY" ] || fail "缺少 hook registry: $HOOK_REGISTRY"
   [ -f "$HOOK_RENDERER" ] || fail "缺少 hook renderer: $HOOK_RENDERER"
   [ -f "$CODEX_RUNTIME_MANAGER" ] || fail "缺少 Codex runtime manager: $CODEX_RUNTIME_MANAGER"
@@ -761,6 +759,7 @@ community_skills_sh_selected() {
     "humanizer-zh" \
     "notebooklm" \
     "planning-with-files" \
+    "prompt-optimizer" \
     "prd" \
     "to-prd" \
     "self-improving-agent"
@@ -771,14 +770,6 @@ community_skills_sh_adapter_selected() {
     "bb-browser" \
     "humanizer-zh" \
     "notebooklm"
-}
-
-community_persona_selected() {
-  printf '%s\n' \
-    "colleague-skill" \
-    "nuwa-skill" \
-    "yourself-skill" \
-    "midas-skill"
 }
 
 community_anthropic_override_skills() {
@@ -902,28 +893,12 @@ copy_selected_skills_sh_skills() {
   mkdir -p "$dst"
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
-    src="$COMMUNITY_SOURCE/skills-sh/skills/$skill"
+    src="$COMMUNITY_SOURCE/open-skills/skills/$skill"
     [ -d "$src" ] || fail "缺少 skills.sh skill 源目录: $src"
 
     rm -rf "${dst:?}/$skill"
     cp -R "$src" "$dst/$skill"
   done < <(community_skills_sh_selected)
-}
-
-# Copy the vendored persona/distillation skill trees into the runtime staging area.
-copy_selected_persona_skills() {
-  local dst="$1"
-  local skill src
-
-  mkdir -p "$dst"
-  while IFS= read -r skill; do
-    [ -n "$skill" ] || continue
-    src="$COMMUNITY_SOURCE/persona/skills/$skill"
-    [ -d "$src" ] || fail "缺少 Persona skill 源目录: $src"
-
-    rm -rf "${dst:?}/$skill"
-    cp -R "$src" "$dst/$skill"
-  done < <(community_persona_selected)
 }
 
 overlay_codex_anthropic_skill_adapters() {
@@ -1009,7 +984,7 @@ overlay_codex_panniantong_skill_adapters() {
 # Overlay generated Codex auto-skill metadata for vendored skills.sh skills.
 overlay_codex_skills_sh_skill_adapters() {
   local skills_dir="$1"
-  local adapter_root="$COMMUNITY_SOURCE/skills-sh/codex/skills"
+  local adapter_root="$COMMUNITY_SOURCE/open-skills/codex/skills"
   local skill
 
   [ -d "$adapter_root" ] || return 0
@@ -1132,7 +1107,6 @@ build_staging_claude() {
   copy_selected_nextlevelbuilder_skills "$staging/skills"
   copy_selected_panniantong_skills "$staging/skills"
   copy_selected_skills_sh_skills "$staging/skills"
-  copy_selected_persona_skills "$staging/skills"
   if [ -d "$CLAUDE_SOURCE/skills" ]; then
     copy_tree_contents "$CLAUDE_SOURCE/skills" "$staging/skills"
   fi
@@ -1175,7 +1149,6 @@ build_staging_codex() {
   copy_selected_nextlevelbuilder_skills "$staging/skills"
   copy_selected_panniantong_skills "$staging/skills"
   copy_selected_skills_sh_skills "$staging/skills"
-  copy_selected_persona_skills "$staging/skills"
   prune_internal_skill_roots "$staging/skills"
   overlay_codex_anthropic_skill_adapters "$staging/skills"
   overlay_codex_vercel_skill_adapters "$staging/skills"

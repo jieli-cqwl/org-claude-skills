@@ -42,22 +42,30 @@ if not flow:
     raise SystemExit("missing product_director_flow")
 flow_body = flow.group("body")
 for expected in [
-    '"Explore demand context" -> "Ask one blocking fact"',
+    '"Explore demand context" -> "Current stage facts closed?"',
     '"Ask one blocking fact" -> "Current stage facts closed?"',
     '"Current stage facts closed?" -> "Ask one blocking fact" [label="no"]',
-    '"Current stage facts closed?" -> "Propose 2-3 baseline options" [label="yes"]',
-    '"Propose 2-3 baseline options" -> "Recommend one baseline"',
-    '"Recommend one baseline" -> "Present baseline sections"',
+    '"Current stage facts closed?" -> "Director recommendation" [label="yes"]',
+    '"Director recommendation" -> "Present baseline sections"',
     '"Present baseline sections" -> "User approves baseline?"',
     '"User approves baseline?" -> "Ask one blocking fact" [label="revise upstream"]',
-    '"User approves baseline?" -> "Final artifacts"',
-    '"Final artifacts" -> "Self-review and gates"',
-    '"Self-review and gates" -> "Handoff"',
+    '"User approves baseline?" -> "Final artifacts" [label="confirmed"]',
+    '"Final artifacts" -> "Self-review baseline"',
+    '"Self-review baseline" -> "Final gates"',
+    '"Final gates" -> "Handoff to product-manager" [label="pass"]',
+    '"Final gates" -> "Blocked" [label="environment missing"]',
 ]:
     if expected not in flow_body:
         raise SystemExit(f"flow missing edge: {expected}")
+for forbidden in [
+    "Check closed-fact fast path",
+    "fast path",
+    "快路径",
+]:
+    if forbidden in flow_body:
+        raise SystemExit(f"flow must not contain separate closed-facts branch: {forbidden}")
 edge_count = flow_body.count("->")
-if edge_count > 12:
+if edge_count > 13:
     raise SystemExit(f"flow too long: {edge_count} edges")
 
 PY
@@ -70,6 +78,24 @@ from pathlib import Path
 
 data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 evals = {item.get("id"): item for item in data.get("evals", [])}
+required_eval_ids = {
+    "success-gap-stays-in-success-stage",
+    "target-metrics-gap-blocks-direct-recommendation",
+    "closed-facts-missing-nongoals-still-recommends",
+    "fully-closed-facts-asks-confirmation",
+    "finalization-env-blocks-not-user-confirmation",
+    "director-handoff-pm-only",
+}
+missing = sorted(required_eval_ids - set(evals))
+if missing:
+    raise SystemExit(f"missing product-director hardening evals: {missing}")
+for case_id in sorted(required_eval_ids):
+    case = evals[case_id]
+    if not case.get("expectations"):
+        raise SystemExit(f"{case_id} must include expectations")
+    if not case.get("expected_anchors"):
+        raise SystemExit(f"{case_id} must include expected anchors")
+
 case = evals.get("partial-answer-stays-in-problem-clarification")
 if not case:
     raise SystemExit("missing eval: partial-answer-stays-in-problem-clarification")
@@ -96,6 +122,10 @@ for phrase in [
         raise SystemExit(f"eval missing phrase: {phrase}")
 
 anchors = {item.get("id"): item.get("anchor", "") for item in data.get("preference_anchors", [])}
+all_text = json.dumps(data, ensure_ascii=False)
+for forbidden in ["fast path", "fast-path", "快路径", "closed-fact fast path"]:
+    if forbidden in all_text:
+        raise SystemExit(f"product-director evals must not preserve direct-path terminology: {forbidden}")
 pa15 = anchors.get("PA-15", "")
 for phrase in [
     "完成 Director baseline 共创",

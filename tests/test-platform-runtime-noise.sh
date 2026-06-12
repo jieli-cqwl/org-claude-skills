@@ -287,14 +287,7 @@ if rg -n '\{\{SKILLS_HOME\}\}|\$HOME/\.codex/skills' \
   fail "runtime first-party skill docs should not keep unresolved skill-root placeholders or legacy Codex skill paths"
 fi
 
-if rg -n -F '.codex/skills' "$ROOT/community/persona/skills/colleague-skill" >/tmp/org_platform_noise_colleague_codex_root.out 2>&1; then
-  cat /tmp/org_platform_noise_colleague_codex_root.out >&2
-  fail "vendored dot-skill should not document or default to legacy Codex skill root"
-fi
-if rg -n -F 'Path.home() / ".codex" / "skills"' "$ROOT/community/persona/skills/colleague-skill/tools" >/tmp/org_platform_noise_colleague_codex_default.out 2>&1; then
-  cat /tmp/org_platform_noise_colleague_codex_default.out >&2
-  fail "vendored dot-skill tools should default Codex installs to ~/.agents/skills"
-fi
+test ! -d "$ROOT/community/persona" || fail "retired persona source tree should not remain in runtime sources"
 
 if rg -n \
   --glob '!**/evals/**' \

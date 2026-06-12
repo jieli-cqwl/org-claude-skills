@@ -77,6 +77,8 @@ The executable case registry lives at
 | `SC-INT-PD-002` | product-director | User rejects the first hypothesis but the role does not backtrack. |
 | `SC-INT-PD-003` | product-director | Clear facts are mechanically re-asked instead of compressed into a candidate baseline. |
 | `SC-INT-PD-004` | product-director | A single partial answer is treated as enough to close problem clarification. |
+| `SC-INT-PD-005` | product-director | Target-stage success-standard gaps fall back to root-problem clarification. |
+| `SC-INT-PD-006` | product-director | Fully closed facts trigger heavy clarification instead of a lightweight confirmation path. |
 | `SC-INT-PM-001` | product-manager | PM mutates locked Director baseline while refining UNIT or AC. |
 | `SC-INT-DES-001` | design | Design invents missing product flow or state facts. |
 | `SC-INT-TD-001` | test-design | Test-design fabricates coverage from vague acceptance criteria. |
@@ -182,7 +184,7 @@ Local evidence from the first execution slice:
   shows `7/7` expectations and `4/4` preference anchors passing with hidden
   expectations under explicit low reasoning.
 - The `SC-INT-PD-001` fix initially regressed `SC-INT-PD-003` by applying the
-  problem-clarification template to already-closed facts. A `闭合事实快路径`
+  problem-clarification template to already-closed facts. A `阶段事实闭合规则`
   was added so clear root problem, goal, first-slice scope, and non-goals are
   accepted as confirmed Director facts instead of being downgraded to input
   clues. The `clear-goal-default-judgment` eval was sharpened to reject that
@@ -275,7 +277,7 @@ Local evidence from the first execution slice:
   `tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-root-problem-atomic-red-check-low-reasoning/summary.json`.
   The `product-director` skill now requires atomic facts, forbids candidate
   mechanism bundling in the recommended root problem, gives closed facts a
-  fast-path priority over problem clarification, and requires explicit
+  direct-recommendation priority over problem clarification, and requires explicit
   target/success/investment/business-semantics invalidation after upstream
   fact replacement. Fresh regression evidence:
   `tools/eval/results/standard-chain-systemic-baseline-2026-06-10/pd-001-004-regression-after-fastpath-and-rebaseline-fix-low-reasoning/summary.json`
@@ -345,15 +347,36 @@ blocking, `delivery-owner` target-change rebaseline handling, `tech-lead`
 target-drift blocking, and current evidence coverage for `product-manager` and
 `design`, stale-task admission for `developer`, and stale developer evidence
 blocking for `review`, stale proof blocking for `verify`, and outdated
-acceptance blocking for `qa`. It proves the 13 current interaction cases are
-covered only at this interaction-eval slice; it does not prove every possible
+acceptance blocking for `qa`. It proves the 15 currently covered interaction
+cases only at this interaction-eval slice; it does not prove every possible
 standard-chain behavior or every cross-role failure mode is closed.
+
+## 2026-06-11 Product-director hardening
+
+Two additional `product-director` interaction cases are now covered:
+
+- `SC-INT-PD-005`: target-stage success-standard gaps must stay in the
+  target/success/investment-boundary stage instead of falling back to problem
+  clarification projection.
+- `SC-INT-PD-006`: fully closed Director facts must use a lightweight direct recommendation
+  and ask for explicit `产品总监确认` when no baseline-changing fact remains.
+
+Evidence:
+`tools/eval/results/standard-chain-systemic-baseline-2026-06-11/pd-hardening-6-cases-closed-facts-direct-recommendation-low-reasoning/summary.json`
+shows `27/27` expectations passing, `0` infra failures, `1.0` pass rate, and
+all expected preference anchors passing. The interaction fixture now binds
+covered cases to concrete `runs[].eval_id` values instead of accepting any
+unrelated all-green summary as evidence. A fresh regression subset after the
+review fix at
+`tools/eval/results/standard-chain-systemic-baseline-2026-06-11/pd-hardening-regression-after-review-fix-low-reasoning/summary.json`
+shows `32/32` expectations passing with `0` infra failures and all anchors
+passing.
 
 ## First execution loop
 
 1. Run `bash tests/test-standard-chain-interaction-eval.sh`.
-2. For each planned case, run a current-output baseline with the relevant role
-   skill or local eval runner.
+2. For new cases, require current passing `summary.json` evidence before
+   changing `automation_status` to `covered`.
 3. Grade current behavior against the interaction dimensions.
 4. Cluster failures by causal mechanism, not by role name.
 5. Pick one mechanism to optimize.

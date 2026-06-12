@@ -12,15 +12,20 @@
   "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
-    "anchor_count": 14,
-    "eval_count": 14,
+    "anchor_count": 17,
+    "anchor_count_basis": "distinct preference_anchors definitions in evals.json",
+    "eval_count": 20,
     "fidelity": 1,
-    "next_run": "Run a broader effectiveness eval sample including technical-demand-framed-before-solution, PA-14, and PA-16 before retain or retire.",
+    "next_run": "Run a broader effectiveness eval sample including technical-demand-framed-before-solution, PA-14, PA-16, PA-17, PA-18, and PA-19 before retain or retire.",
     "sample_size": 5,
     "anchor_passed": 13,
     "anchor_total": 13,
     "summary_refs": [
       "tools/eval/results/product-director-eval-20260509/with-skill-full-rerun/summary.json"
+    ],
+    "hardening_summary_refs": [
+      "tools/eval/results/standard-chain-systemic-baseline-2026-06-11/pd-hardening-6-cases-closed-facts-direct-recommendation-low-reasoning/summary.json",
+      "tools/eval/results/standard-chain-systemic-baseline-2026-06-11/pd-hardening-regression-after-review-fix-low-reasoning/summary.json"
     ]
   },
   "pilot_empirical": {
