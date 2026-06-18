@@ -168,6 +168,17 @@ sources:
       - 用户原始名称 `Kubanizer zh` 未精确命中；本来源按已查证的 `humanizer-zh` 收录。
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
       - Upstream root LICENSE declares MIT.
+  skills_sh_kepano_obsidian_skills:
+    repo: https://github.com/kepano/obsidian-skills
+    ref: c4728b3e751e089592812becea7ffc5bec0dbcd6
+    captured_at: 2026-06-07
+    scope:
+      - community/skills-sh/skills/obsidian-cli
+      - community/skills-sh/skills/obsidian-markdown
+    notes:
+      - Vendor upstream `skills/obsidian-cli` and `skills/obsidian-markdown` as skills.sh community skills，正文保持 upstream 原文。
+      - Obsidian CLI skill 可读写 Obsidian vault 并支持 plugin/theme 调试，运行面先按 manual-only 处理。
+      - Upstream root LICENSE declares MIT.
   skills_sh_notebooklm:
     repo: https://github.com/PleasePrompto/notebooklm-skill
     ref: eea5cb28ba79ab8b078a1eaa44ce9ec44f75dbf8

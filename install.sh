@@ -760,6 +760,8 @@ community_skills_sh_selected() {
     "mermaid-diagrams" \
     "humanizer-zh" \
     "notebooklm" \
+    "obsidian-cli" \
+    "obsidian-markdown" \
     "planning-with-files" \
     "prd" \
     "to-prd" \
@@ -2438,6 +2440,10 @@ runtime_target_complete() {
     [ -f "$target_dir/skills/bb-browser/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/humanizer-zh/SKILL.md" ] || return 1
     [ -f "$target_dir/skills/notebooklm/SKILL.md" ] || return 1
+    [ -f "$target_dir/skills/obsidian-cli/SKILL.md" ] || return 1
+    grep -Fq 'disable-model-invocation: true' "$target_dir/skills/obsidian-cli/SKILL.md" || return 1
+    [ -f "$target_dir/skills/obsidian-markdown/SKILL.md" ] || return 1
+    grep -Fq 'disable-model-invocation: true' "$target_dir/skills/obsidian-markdown/SKILL.md" || return 1
     [ -f "$target_dir/skills/self-improving-agent/SKILL.md" ] || return 1
     grep -Fq 'disable-model-invocation: true' "$target_dir/skills/self-improving-agent/SKILL.md" || return 1
     [ ! -e "$target_dir/skills/skill-auditor" ] || return 1
@@ -2514,6 +2520,10 @@ runtime_target_complete() {
     [ -f "$codex_skills_dir/humanizer-zh/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/notebooklm/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/notebooklm/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/obsidian-cli/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/obsidian-cli/agents/openai.yaml" ] || return 1
+    [ -f "$codex_skills_dir/obsidian-markdown/SKILL.md" ] || return 1
+    [ -f "$codex_skills_dir/obsidian-markdown/agents/openai.yaml" ] || return 1
     [ -f "$codex_skills_dir/self-improving-agent/SKILL.md" ] || return 1
     grep -Fq 'disable-model-invocation: true' "$codex_skills_dir/self-improving-agent/SKILL.md" || return 1
     [ -f "$codex_skills_dir/cli-updater/SKILL.md" ] || return 1
@@ -3011,6 +3021,10 @@ quick_check() {
     [ -f "$CLAUDE_DIR/skills/deep-research/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/deep-research/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/architecture/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/architecture/SKILL.md 不存在"
     [ -f "$CLAUDE_DIR/skills/mermaid-diagrams/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/mermaid-diagrams/SKILL.md 不存在"
+    [ -f "$CLAUDE_DIR/skills/obsidian-cli/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/obsidian-cli/SKILL.md 不存在"
+    grep -Fq 'disable-model-invocation: true' "$CLAUDE_DIR/skills/obsidian-cli/SKILL.md" || fail "Quick Check 失败: ~/.claude/skills/obsidian-cli/SKILL.md 未禁用模型自动调用"
+    [ -f "$CLAUDE_DIR/skills/obsidian-markdown/SKILL.md" ] || fail "Quick Check 失败: ~/.claude/skills/obsidian-markdown/SKILL.md 不存在"
+    grep -Fq 'disable-model-invocation: true' "$CLAUDE_DIR/skills/obsidian-markdown/SKILL.md" || fail "Quick Check 失败: ~/.claude/skills/obsidian-markdown/SKILL.md 未禁用模型自动调用"
     [ ! -e "$CLAUDE_DIR/skills/skill-auditor" ] || fail "Quick Check 失败: ~/.claude/skills/skill-auditor 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/skill-refiner" ] || fail "Quick Check 失败: ~/.claude/skills/skill-refiner 不应存在"
     [ ! -e "$CLAUDE_DIR/skills/new-skills" ] || fail "Quick Check 失败: ~/.claude/skills/new-skills 不应存在"
@@ -3084,6 +3098,10 @@ quick_check() {
     [ -f "$codex_skills_dir/mermaid-diagrams/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/mermaid-diagrams/SKILL.md 不存在"
     [ -f "$codex_skills_dir/mermaid-diagrams/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/mermaid-diagrams/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/notebooklm/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/notebooklm/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/obsidian-cli/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/obsidian-cli/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/obsidian-cli/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/obsidian-cli/agents/openai.yaml 不存在"
+    [ -f "$codex_skills_dir/obsidian-markdown/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/obsidian-markdown/SKILL.md 不存在"
+    [ -f "$codex_skills_dir/obsidian-markdown/agents/openai.yaml" ] || fail "Quick Check 失败: ~/.agents/skills/obsidian-markdown/agents/openai.yaml 不存在"
     [ -f "$codex_skills_dir/self-improving-agent/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/self-improving-agent/SKILL.md 不存在"
     [ -f "$codex_skills_dir/cli-updater/SKILL.md" ] || fail "Quick Check 失败: ~/.agents/skills/cli-updater/SKILL.md 不存在"
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"

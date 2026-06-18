@@ -103,6 +103,8 @@ manual_policy graphify || fail "graphify should install with implicit invocation
 manual_policy humanizer-zh || fail "humanizer-zh should install with implicit invocation disabled"
 manual_policy mermaid-diagrams || fail "mermaid-diagrams should install with implicit invocation disabled"
 manual_policy notebooklm || fail "notebooklm should install with implicit invocation disabled"
+manual_policy obsidian-cli || fail "obsidian-cli should install with implicit invocation disabled"
+manual_policy obsidian-markdown || fail "obsidian-markdown should install with implicit invocation disabled"
 manual_policy planning-with-files || fail "planning-with-files should install with implicit invocation disabled"
 manual_policy prd || fail "prd should install with implicit invocation disabled"
 manual_policy to-prd || fail "to-prd should install with implicit invocation disabled"

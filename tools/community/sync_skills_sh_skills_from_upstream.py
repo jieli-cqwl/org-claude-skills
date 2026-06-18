@@ -127,6 +127,28 @@ SKILL_SOURCES = {
         "codex_adapter": True,
         "copy_root_license": False,
     },
+    "obsidian-cli": {
+        "source_name": "skills_sh_kepano_obsidian_skills",
+        "repo_dir_name": "kepano-obsidian-skills",
+        "relative_path": Path("skills") / "obsidian-cli",
+        "display_name": "Obsidian CLI",
+        "short_description": "Manual Obsidian vault operations through the Obsidian CLI",
+        "default_prompt": "Use $obsidian-cli to manually read, create, search, or manage Obsidian vault notes.",
+        "local_arg": "obsidian_cli_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": True,
+    },
+    "obsidian-markdown": {
+        "source_name": "skills_sh_kepano_obsidian_skills",
+        "repo_dir_name": "kepano-obsidian-skills",
+        "relative_path": Path("skills") / "obsidian-markdown",
+        "display_name": "Obsidian Markdown",
+        "short_description": "Manual Obsidian-flavored Markdown authoring",
+        "default_prompt": "Use $obsidian-markdown to manually write Obsidian notes with wikilinks, callouts, embeds, and properties.",
+        "local_arg": "obsidian_markdown_source_dir",
+        "codex_adapter": False,
+        "copy_root_license": True,
+    },
     "notebooklm": {
         "source_name": "skills_sh_notebooklm",
         "repo_dir_name": "notebooklm-skill",
@@ -296,18 +318,22 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory() as tmp:
         temp_root = Path(tmp)
+        cloned_repos: dict[tuple[str, str, str], Path] = {}
         for skill_name, meta in sorted(SKILL_SOURCES.items()):
             local_dir = getattr(args, meta["local_arg"])
             if local_dir:
                 repo_root = Path(local_dir).resolve()
             else:
                 lock = locks[meta["source_name"]]
-                repo_root = clone_upstream(
-                    lock["repo"],
-                    lock["ref"],
-                    temp_root,
-                    meta["repo_dir_name"],
-                )
+                checkout_key = (lock["repo"], lock["ref"], meta["repo_dir_name"])
+                if checkout_key not in cloned_repos:
+                    cloned_repos[checkout_key] = clone_upstream(
+                        lock["repo"],
+                        lock["ref"],
+                        temp_root,
+                        meta["repo_dir_name"],
+                    )
+                repo_root = cloned_repos[checkout_key]
             sync_skill(repo_root, skill_name)
 
 

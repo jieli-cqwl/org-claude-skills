@@ -252,6 +252,16 @@
       "owner": "community",
       "reason": "NotebookLM browser workflows require explicit user intent."
     },
+    "obsidian-cli": {
+      "mode": "manual",
+      "owner": "community",
+      "reason": "Obsidian CLI can read and mutate local vault content and run Obsidian developer commands, so it requires explicit invocation."
+    },
+    "obsidian-markdown": {
+      "mode": "manual",
+      "owner": "community",
+      "reason": "Obsidian Markdown authoring is specialized and should be invoked explicitly for vault-note work."
+    },
     "overview": {
       "mode": "manual",
       "owner": "first-party",

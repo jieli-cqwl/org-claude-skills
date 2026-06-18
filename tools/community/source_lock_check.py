@@ -33,6 +33,7 @@ EXPECTED_REPOS = {
     "skills_sh_markdown_viewer_architecture": "https://github.com/markdown-viewer/skills",
     "skills_sh_softaworks_mermaid_diagrams": "https://github.com/softaworks/agent-toolkit",
     "skills_sh_humanizer_zh": "https://github.com/op7418/Humanizer-zh",
+    "skills_sh_kepano_obsidian_skills": "https://github.com/kepano/obsidian-skills",
     "skills_sh_mattpocock_to_prd": "https://github.com/mattpocock/skills",
     "skills_sh_notebooklm": "https://github.com/PleasePrompto/notebooklm-skill",
     "skills_sh_othmanadi_planning_with_files": "https://github.com/OthmanAdi/planning-with-files",
