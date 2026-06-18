@@ -116,6 +116,7 @@ PY
 assert_overview_formal_path_is_agent_team_only() {
   python3 - "$OVERVIEW_DIR" <<'PY'
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -134,19 +135,48 @@ for path in checked_files:
             raise SystemExit(f"{path.relative_to(overview_dir.parent.parent.parent)} must not contain formal overview fallback term: {forbidden}")
 
 skill_text = (overview_dir / "SKILL.md").read_text(encoding="utf-8")
-required_skill_snippet = "分层 agent team 是唯一正式 /overview 执行方式"
-if required_skill_snippet not in skill_text:
-    raise SystemExit(f"overview SKILL.md must state: {required_skill_snippet}")
+frontmatter = skill_text.split("---", 2)[1]
+if "disable-model-invocation: true" not in frontmatter:
+    raise SystemExit("overview SKILL.md frontmatter must disable direct model invocation")
+allowed_tools = next(
+    (
+        line.split(":", 1)[1]
+        for line in frontmatter.splitlines()
+        if line.startswith("allowed-tools:")
+    ),
+    "",
+)
+for tool in ("Agent", "AskUserQuestion"):
+    if tool not in allowed_tools:
+        raise SystemExit(f"overview SKILL.md allowed-tools must include {tool}")
 
-mode_text = (overview_dir / "references" / "mode-selection.md").read_text(encoding="utf-8")
-required_mode_snippet = "不提供替代执行模式"
-if required_mode_snippet not in mode_text:
-    raise SystemExit(f"overview mode-selection reference must state: {required_mode_snippet}")
+step_matches = list(re.finditer(r"(?m)^(\d+)\. .+$", skill_text))
+steps = {}
+for index, match in enumerate(step_matches):
+    end = step_matches[index + 1].start() if index + 1 < len(step_matches) else len(skill_text)
+    steps[int(match.group(1))] = skill_text[match.start():end]
+if "AskUserQuestion" not in steps.get(2, ""):
+    raise SystemExit("overview step 2 must require AskUserQuestion before execution")
+if "references/mode-selection.md" not in steps.get(2, ""):
+    raise SystemExit("overview step 2 must bind mode-selection reference")
+if "agent team" not in steps.get(3, ""):
+    raise SystemExit("overview step 3 must execute through agent team")
+
+mode_lines = (
+    overview_dir / "references" / "mode-selection.md"
+).read_text(encoding="utf-8").splitlines()
+choices = [
+    line.split("`", 2)[1]
+    for line in mode_lines
+    if line.startswith("- `") and "`：" in line
+]
+if choices != ["确认执行 agent team", "暂停执行"]:
+    raise SystemExit(f"overview mode-selection choices must only expose agent team confirmation or pause: {choices}")
 
 prompts = json.loads((overview_dir / "test-prompts.json").read_text(encoding="utf-8"))
 for item in prompts:
     expected = item.get("expected", "")
-    if "分层 agent team" not in expected:
+    if "agent team" not in expected:
         raise SystemExit(f"overview test prompt {item.get('id')} must expect agent-team execution")
 PY
 }

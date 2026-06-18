@@ -118,7 +118,7 @@
       "prompt": "测试质量、产品、架构三位 reviewer 都给出了独立结论。请说明 test-design 如何合并审查结论。",
       "files": [],
       "expectations": [
-        "先说明 test-design owner 必须完成自检并用 review_digest.py 计算 reviewed_test_cases_digest；三视角 reviewer 只读审同一个 digest 绑定的测试设计产物。你复核三视角 findings，按 3 视角×max10轮收敛；首轮全 PASS 仍做 R2/CONFIRMATION；任一 FAIL 系统修正后只重提 FAIL 视角；记录最终裁决、修正依据和未承接风险，写入 review_conclusion.reviewed_test_cases_digest、reviewer_verdicts[]、convergence_evidence[] 和 issue_ledger。",
+        "先说明 test-design owner 必须生成 review payload、自检通过，并用 review_digest.py 计算 reviewed_test_cases_digest 绑定已生成 review payload；三视角 reviewer 只读审同一个 digest 绑定的测试设计产物。你复核三视角 findings，按 3 视角×max10轮收敛；首轮全 PASS 仍做 R2/CONFIRMATION；任一 FAIL 系统修正后只重提 FAIL 视角；记录最终裁决、修正依据和未承接风险，写入 review_conclusion.reviewed_test_cases_digest、reviewer_verdicts[]、convergence_evidence[] 和 issue_ledger。",
         "要求 owner 自检通过后再送审",
         "要求计算并记录 reviewed_test_cases_digest",
         "要求 reviewer 审同一 digest 绑定的测试设计产物",
@@ -187,7 +187,7 @@
       "prompt": "test-cases.json 已准备送三视角审查。请说明 test-design 在写入、审查、修正和冻结过程中如何处理 reviewed_test_cases_digest、review_conclusion 和 issue_ledger。",
       "files": [],
       "expectations": [
-        "owner self-check 通过后先生成不含 review_conclusion 和 issue_ledger 的 pre-review digest",
+        "先生成不含 review_conclusion 和 issue_ledger 的 review payload，owner self-check 通过后再计算 pre-review digest",
         "三视角 reviewer 只读同一个 digest 绑定的测试设计产物，最终记录 reviewed_test_cases_digest",
         "修正后只重提 FAIL 视角，WARN 写入 issue_ledger，首轮全 PASS 仍做 R2/CONFIRMATION",
         "冻结前确保 final artifact、review evidence 和 digest 对齐"
@@ -243,7 +243,7 @@
     },
     {
       "id": "TD-A5",
-      "anchor": "owner 自检通过后计算 reviewed_test_cases_digest；三视角 reviewer 以只读方式并行审查同一 digest 绑定的测试设计产物；你按 3 视角×max10轮裁决、修正、确认和收敛"
+      "anchor": "生成 review payload 并经 owner 自检通过后计算 reviewed_test_cases_digest；三视角 reviewer 以只读方式并行审查同一 digest 绑定的测试设计产物；你按 3 视角×max10轮裁决、修正、确认和收敛"
     },
     {
       "id": "TD-A6",

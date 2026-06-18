@@ -7,9 +7,10 @@
   "evidence_refs": [
     "shared/skills/product-director/SKILL.md",
     "shared/skills/product-director/evals/evals.json",
-    "shared/skills/skill-quality-audit/references/audit-dimensions.md"
+    "shared/skills/skill-quality-audit/references/audit-dimensions.md",
+    "shared/skills/product-director/evals/dogfood/team-pilot-readiness.json"
   ],
-  "next_action": "Run empirical effectiveness evals before promoting any optimize decision to retain or retire.",
+  "next_action": "Review 5 real complex-demand transcripts against team-pilot readiness before promoting product-director to default complex-demand entry.",
   "encoded_preference": {
     "measurement_status": "pilot_empirical_sample_recorded",
     "anchor_count": 17,
@@ -51,5 +52,13 @@
       "anchor_fidelity": 0.8462
     },
     "decision_boundary": "Pilot evidence updates metrics only; formal decision remains optimize."
+  },
+  "team_pilot_readiness": {
+    "status": "team_pilot_ready",
+    "readiness_ref": "shared/skills/product-director/evals/dogfood/team-pilot-readiness.json",
+    "default_scope": "complex_demand_intake_only",
+    "required_real_transcripts_before_promotion": 5,
+    "full_production_default": false,
+    "decision_boundary": "Team pilot is allowed for complex standard-chain intake; promotion requires transcript review with no in-scope blockers."
   }
 }

@@ -819,6 +819,22 @@
       "timeout_sec": 180
     },
     {
+      "id": "product-director-team-pilot-contract",
+      "command": [
+        "bash",
+        "tests/test-product-director-team-pilot-contract.sh"
+      ],
+      "area": "product",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "product",
+        "team-pilot"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
       "id": "product-director-real-demand-smoke",
       "command": [
         "bash",
@@ -1061,6 +1077,18 @@
       "tags": [],
       "parallel_safe": true,
       "timeout_sec": 300
+    },
+    {
+      "id": "test-design-review-flow-contract",
+      "command": [
+        "bash",
+        "tests/test-test-design-review-flow-contract.sh"
+      ],
+      "area": "design",
+      "tier": "full",
+      "tags": [],
+      "parallel_safe": true,
+      "timeout_sec": 60
     },
     {
       "id": "design-minimal-field-contract",

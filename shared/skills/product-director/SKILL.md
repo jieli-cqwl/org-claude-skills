@@ -35,16 +35,39 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, TeamCreate
 11. **Run final gates** — 运行 finalized ledger、Director result、content-quality 和 hook gate；schema、hook、runtime 或 contract 缺失时报告 `BLOCKED`，列出缺失依赖和恢复条件，停止最终写入和完成声明。
 12. **Handoff** — 通过 final gates 后，只能交给 product-manager；product-manager 细化 required artifacts 后，design 和 test-design 才能继续消费；design 与 test-design 产出各自 required artifacts 后，tech-lead 才能继续消费。
 
+## 流程
+
+```dot
+digraph product_director_flow {
+  rankdir=TB;
+  node [shape=box];
+  "Explore demand context" -> "Current stage facts closed?";
+  "Ask one blocking fact" -> "Current stage facts closed?";
+  "Current stage facts closed?" -> "Ask one blocking fact" [label="no"];
+  "Current stage facts closed?" -> "Director recommendation" [label="yes"];
+  "Director recommendation" -> "Present baseline sections";
+  "Present baseline sections" -> "User approves baseline?";
+  "User approves baseline?" -> "Ask one blocking fact" [label="revise upstream"];
+  "User approves baseline?" -> "Final artifacts" [label="confirmed"];
+  "Final artifacts" -> "Self-review baseline";
+  "Self-review baseline" -> "Final gates";
+  "Final gates" -> "Handoff to product-manager" [label="pass"];
+  "Final gates" -> "Blocked" [label="environment missing"];
+}
+```
+
 ## 问题澄清输出契约
 
 当前阶段事实未闭合时，对外输出只能使用 `问题澄清投影`，不能使用 `候选 Director 基线`。按以下小节输出，不要新增 baseline、范围或 Phase 小节：
 
 - **输入线索**：列出用户给出的方案词或目标词，并说明它们只是线索，不是已确认事实。
-- **推荐根问题**：写成一个候选判断；如果当前处理方式或直接原因未确认，必须显式保留未知位，不得把方案词反推成已确认根因；详细原子事实语法和示例见 `references/problem-clarification.md`。
+- **推荐根问题**：写成一个候选判断；如果当前处理方式或直接原因未确认，必须显式保留未知位，不得把方案词反推成已确认根因；按需读取 `references/problem-clarification.md` 用于检查原子事实语法和示例。
 - **事实状态表**：逐项覆盖 `受影响角色 / 触发场景 / 当前处理方式 / 现实代价 / 直接原因`，每项状态只能是 `用户已确认 / 推测 / 冲突 / 缺失`。
 - **推荐理由**：说明为什么先验证根问题，而不是顺着方案进入功能、范围或实现。
 - **待验证关键事实**：只写一个原子事实；不得使用列表，不得包含多个未知项。
-- **一个问题**：只问一个确认该原子事实的问题；不得把多个事实、候选瓶颈、处理步骤或选项打包成一个问题；详细语法和示例见 `references/problem-clarification.md`。
+- **一个问题**：只问一个确认该原子事实的问题；不得把多个事实、候选瓶颈、处理步骤或选项打包成一个问题；按需读取 `references/problem-clarification.md` 用于检查提问语法和示例。
+
+输出格式是 Markdown 对话投影，消费者是当前用户；该投影只用于闭合当前阶段事实，不写入文件，不作为下游 canonical artifact。
 
 ## 阶段事实闭合规则
 
@@ -71,48 +94,27 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, TeamCreate
 
 对外输出要说明：旧结论不是被局部补丁修正，而是因上游事实替换而失效；必须输出 `待重审清单`，逐项点名 `根问题判断 / 目标、成功标准与投入边界 / 业务语义收口 / 范围、本期不做和可行性约束 / 风险与未知项 / Phase 切片`；下一轮只问一个会重新闭合上游判断的业务事实。
 
-## 流程
-
-```dot
-digraph product_director_flow {
-  rankdir=TB;
-  node [shape=box];
-  "Explore demand context" -> "Current stage facts closed?";
-  "Ask one blocking fact" -> "Current stage facts closed?";
-  "Current stage facts closed?" -> "Ask one blocking fact" [label="no"];
-  "Current stage facts closed?" -> "Director recommendation" [label="yes"];
-  "Director recommendation" -> "Present baseline sections";
-  "Present baseline sections" -> "User approves baseline?";
-  "User approves baseline?" -> "Ask one blocking fact" [label="revise upstream"];
-  "User approves baseline?" -> "Final artifacts" [label="confirmed"];
-  "Final artifacts" -> "Self-review baseline";
-  "Self-review baseline" -> "Final gates";
-  "Final gates" -> "Handoff to product-manager" [label="pass"];
-  "Final gates" -> "Blocked" [label="environment missing"];
-}
-```
-
 ## The Process
 
 **静默信息收集**：静默获取对你主导共创有用的信息（包括不限于项目文档、源码、github等），如果需要可以召集 agent teams 并行采集，形成候选线索。
 
-**问题澄清**：读取 `references/problem-clarification.md`，剥离方案名、技术词、对标诉求和抽象评价，闭合根问题和用户画像。
+**问题澄清**：读取 `references/problem-clarification.md` 用于剥离方案名、技术词、对标诉求和抽象评价，闭合根问题和用户画像。
 
-**目标、成功标准与投入边界**：读取 `references/success-investment-boundary.md`，把模糊目标改写为可观察成功信号，并闭合投入边界。
+**目标、成功标准与投入边界**：读取 `references/success-investment-boundary.md` 用于把模糊目标改写为可观察成功信号，并闭合投入边界。
 
-**业务语义收口**：读取 `references/business-semantics.md`，对齐会影响范围、风险、Phase 或后续细化口径的术语、业务对象、当前流程和目标流程。
+**业务语义收口**：读取 `references/business-semantics.md` 用于对齐会影响范围、风险、Phase 或后续细化口径的术语、业务对象、当前流程和目标流程。
 
-**范围、本期不做、可行性约束与决策理由**：读取 `references/scope-constraints.md`，从核心、增强和未来切分候选范围，闭合核心范围、本期不做、约束和决策理由。
+**范围、本期不做、可行性约束与决策理由**：读取 `references/scope-constraints.md` 用于从核心、增强和未来切分候选范围，闭合核心范围、本期不做、约束和决策理由。
 
-**风险与未知项**：读取 `references/risks-unknowns.md`，区分基线推翻风险、Phase 拆法风险和记录备注，闭合风险分层、影响对象和处理动作。
+**风险与未知项**：读取 `references/risks-unknowns.md` 用于区分基线推翻风险、Phase 拆法风险和记录备注，闭合风险分层、影响对象和处理动作。
 
-**Phase 规划**：读取 `references/phase-planning.md`，基于已闭合基线按价值边界切 Phase，闭合入口条件、出口条件和 `iteration_timebox_days <= 14`。
+**Phase 规划**：读取 `references/phase-planning.md` 用于基于已闭合基线按价值边界切 Phase，闭合入口条件、出口条件和 `iteration_timebox_days <= 14`。
 
-**Director Finalization（总监确认与写入）**：读取 `references/final-artifacts.md`，只有收到用户明确回复 `产品总监确认` 且台账与 Director result gate 通过，才写 Director 三类产物。未收到 `产品总监确认` 时，继续请求用户确认基线；台账、Director result 或内容质量失败时，只修正 Director 边界内产物；schema、hook、runtime 或 contract 缺失时，报告 BLOCKED，列出缺失依赖和恢复条件，停止完成声明。
+**Director Finalization（总监确认与写入）**：读取 `references/final-artifacts.md` 用于写入 Director 三类产物；只有收到用户明确回复 `产品总监确认` 且台账与 Director result gate 通过，才写 Director 三类产物。未收到 `产品总监确认` 时，继续请求用户确认基线；台账、Director result 或内容质量失败时，只修正 Director 边界内产物；schema、hook、runtime 或 contract 缺失时，报告 BLOCKED，列出缺失依赖和恢复条件，停止完成声明。
 
 ## 输出
 
-- 所有基线事实闭合且收到用户明确回复 `产品总监确认` 后，按 `references/final-artifacts.md` 写入或更新 `product-director-ledger.json`、`brief.json` 和每个 `phase-{N}/phase-prd.json`；`product-director-ledger.json` 只用于 Director finalization 前的确认检查点与漂移恢复，下游只消费 canonical JSON；交付前必须通过 finalized ledger、Director result、content-quality 和 hook gate。
+- 所有基线事实闭合且收到用户明确回复 `产品总监确认` 后，读取 `references/final-artifacts.md` 用于按模板写入或更新 `product-director-ledger.json`、`brief.json` 和每个 `phase-{N}/phase-prd.json`；`product-director-ledger.json` 只用于 Director finalization 前的确认检查点与漂移恢复，下游只消费 canonical JSON；交付前必须通过 finalized ledger、Director result、content-quality 和 hook gate。
 - 执行：`python3 shared/skills/product-director/scripts/render_projection.py --feature-dir "docs/{feature}"`
 
 ## 完成校验

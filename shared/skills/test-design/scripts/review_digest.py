@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compute or verify the test-design owner self-checked payload digest."""
+"""Compute or verify the test-design pre-review payload digest."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ def assert_no_post_review_fields(payload: dict, source: Path) -> None:
     present = sorted(field for field in POST_REVIEW_FIELDS if field in payload)
     if present:
         raise ValueError(
-            f"{source} must be the owner self-checked review payload before post-review fields: {present}"
+            f"{source} must be the pre-review payload before post-review fields: {present}"
         )
 
 

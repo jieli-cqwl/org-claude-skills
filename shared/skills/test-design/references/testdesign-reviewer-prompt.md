@@ -6,7 +6,7 @@
 
 ## 输入
 
-- 当前 UNIT 的 `test-cases.json`
+- 当前 UNIT 的已生成 review payload
 - 送审方提供的 `reviewed_test_cases_digest`
 - Phase `design.json`
 - `brief.json`

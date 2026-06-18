@@ -1,0 +1,100 @@
+{
+  "artifact_type": "product-director-team-pilot-readiness",
+  "schema_version": "0.1.0",
+  "skill_under_test": "shared/skills/product-director",
+  "deployment_status": "team_pilot_ready",
+  "default_scope": "complex_demand_intake_only",
+  "not_daily_default": true,
+  "full_production_default": false,
+  "standard_chain_role": "director_baseline_entry_for_complex_demands",
+  "decision_summary": "Use product-director in team dogfood for complex standard-chain intake. Do not promote it to a daily/default skill or full production default until real transcript review closes the promotion gate.",
+  "next_action": "review_5_real_complex_demand_transcripts_before_promotion",
+  "promotion_gate": {
+    "required_real_transcripts": 5,
+    "sample_type": "real_complex_demand_transcripts",
+    "review_unit": "one complete intake transcript from first user request through Director recommendation or blocked handoff",
+    "required_outcome": "no_in_scope_blockers_across_all_review_dimensions",
+    "promotion_target": "default_complex_demand_entry",
+    "promotion_not_allowed_for": [
+      "daily_default_skill",
+      "simple_request_handler",
+      "full_standard_chain_replacement"
+    ]
+  },
+  "review_dimensions": [
+    {
+      "id": "no_interrogation",
+      "pass_condition": "The transcript asks one decision-changing blocking fact per turn and explains why that fact matters.",
+      "blocker_signal": "The transcript bundles multiple questions, asks survey-style options, or makes the user do the director's synthesis work.",
+      "evidence_required": "Quote the turn where only one blocking fact was requested and the recommendation context around it."
+    },
+    {
+      "id": "no_pretend_closure",
+      "pass_condition": "Unknown, inferred, and user-confirmed facts are separated before any Director recommendation.",
+      "blocker_signal": "The skill treats a solution word, vague goal, or inferred cause as a confirmed baseline fact.",
+      "evidence_required": "Record the fact-state distinction used before recommendation."
+    },
+    {
+      "id": "no_stage_jump",
+      "pass_condition": "The skill stays in the current stage until that stage's facts are closed, then advances to recommendation or the next stage.",
+      "blocker_signal": "The skill jumps from partial problem context directly into scope, implementation, PM detail, or final artifacts.",
+      "evidence_required": "Map the transcript turn to the active stage and the specific closed or missing fact."
+    },
+    {
+      "id": "success_standard_closure",
+      "pass_condition": "A recommendation is blocked when the success standard lacks current baseline, target direction or value, observation window, data source, or failure signal.",
+      "blocker_signal": "The skill outputs a Director recommendation while success criteria remain motivational or unmeasurable.",
+      "evidence_required": "Show the success-standard fields that were closed or the single missing field that blocked recommendation."
+    },
+    {
+      "id": "director_why_only",
+      "pass_condition": "The output stays at Director WHY and boundary level before handoff.",
+      "blocker_signal": "The transcript contains PM detail design, UX design, implementation HOW, task breakdown, UNIT, or AC before handoff.",
+      "evidence_required": "Point to the recommendation sections and confirm they contain root problem, success standard, scope boundary, risk, and phase slice only."
+    },
+    {
+      "id": "explicit_confirmation_before_finalization",
+      "pass_condition": "Final artifacts are not written and baseline is not frozen before the user replies with `产品总监确认`.",
+      "blocker_signal": "The skill claims a finalized baseline, writes final artifacts, or hands off as confirmed without explicit confirmation.",
+      "evidence_required": "Record the explicit confirmation turn or the blocked state when confirmation was absent."
+    },
+    {
+      "id": "handoff_to_product_manager_only",
+      "pass_condition": "After Director final gates pass, the only downstream handoff target is product-manager.",
+      "blocker_signal": "The skill routes directly to design, test-design, tech-lead, developer, or delivery-owner.",
+      "evidence_required": "Quote the handoff target and final-gate evidence."
+    },
+    {
+      "id": "simple_request_reroute",
+      "pass_condition": "Simple daily questions and direct implementation requests are not treated as product-director work.",
+      "blocker_signal": "The skill forces the full Director baseline process on a simple question, trivial edit, or direct implementation task.",
+      "evidence_required": "Record the reroute decision and the reason the request did not need complex-demand intake."
+    }
+  ],
+  "out_of_scope": [
+    "simple_daily_questions",
+    "direct_implementation_requests",
+    "product_manager_detail_design_before_director_confirmation",
+    "ux_or_technical_solution_design",
+    "full_standard_chain_readiness_claim"
+  ],
+  "evidence_refs": [
+    "shared/skills/product-director/SKILL.md",
+    "shared/skills/product-director/evals/evals.json",
+    "tests/test-product-director-cocreation-contract.sh",
+    "tests/test-standard-chain-interaction-eval.sh",
+    "tests/test-standard-chain-skill-evals.sh",
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-11/pd-hardening-6-cases-closed-facts-direct-recommendation-low-reasoning/summary.json",
+    "tools/eval/results/standard-chain-systemic-baseline-2026-06-11/pd-hardening-regression-after-review-fix-low-reasoning/summary.json"
+  ],
+  "residual_risks": [
+    {
+      "risk": "Existing evals prove scripted behavior and regression coverage, not live team adoption quality.",
+      "mitigation": "Review 5 real complex-demand transcripts before promoting beyond team pilot."
+    },
+    {
+      "risk": "The current artifact compares fit for standard-chain complex intake, not broad superiority over gstack or superpowers.",
+      "mitigation": "Keep the claim scoped to team complex-demand intake unless a separate blind comparison is run."
+    }
+  ]
+}
