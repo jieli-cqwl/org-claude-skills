@@ -113,9 +113,48 @@ for line in workflow.splitlines():
 PY
 }
 
+assert_overview_formal_path_is_agent_team_only() {
+  python3 - "$OVERVIEW_DIR" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+overview_dir = Path(sys.argv[1])
+checked_files = [
+    overview_dir / "SKILL.md",
+    overview_dir / "references" / "mode-selection.md",
+    overview_dir / "references" / "agent-assignments.md",
+    overview_dir / "test-prompts.json",
+]
+
+for path in checked_files:
+    text = path.read_text(encoding="utf-8")
+    for forbidden in ("串行", "轻量"):
+        if forbidden in text:
+            raise SystemExit(f"{path.relative_to(overview_dir.parent.parent.parent)} must not contain formal overview fallback term: {forbidden}")
+
+skill_text = (overview_dir / "SKILL.md").read_text(encoding="utf-8")
+required_skill_snippet = "分层 agent team 是唯一正式 /overview 执行方式"
+if required_skill_snippet not in skill_text:
+    raise SystemExit(f"overview SKILL.md must state: {required_skill_snippet}")
+
+mode_text = (overview_dir / "references" / "mode-selection.md").read_text(encoding="utf-8")
+required_mode_snippet = "不提供替代执行模式"
+if required_mode_snippet not in mode_text:
+    raise SystemExit(f"overview mode-selection reference must state: {required_mode_snippet}")
+
+prompts = json.loads((overview_dir / "test-prompts.json").read_text(encoding="utf-8"))
+for item in prompts:
+    expected = item.get("expected", "")
+    if "分层 agent team" not in expected:
+        raise SystemExit(f"overview test prompt {item.get('id')} must expect agent-team execution")
+PY
+}
+
 assert_dir_tree_fallback_handles_globs_and_spaces
 assert_dir_tree_rejects_invalid_depth
 assert_project_detect_typescript_vite
 assert_overview_runtime_steps_exclude_maintenance_sync
+assert_overview_formal_path_is_agent_team_only
 
 printf '[PASS] overview skill contract\n'
