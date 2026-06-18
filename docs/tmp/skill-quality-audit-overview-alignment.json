@@ -2,44 +2,114 @@
   "artifact_type": "skill-audit-alignment",
   "stage": "confirmed",
   "target_skill": "shared/skills/overview",
+  "capability_effectiveness_standard": {
+    "standard_id": "CES-OVERVIEW-AGENT-TEAM-001",
+    "co_creation_status": "confirmed_with_user",
+    "confirmed_by": "user",
+    "decision_surface_ref": "chat:user-rejected-serial-lightweight-overview",
+    "target_capability_ids": [
+      "TGT-OVERVIEW-TEAM-001",
+      "TGT-OVERVIEW-RUNTIME-002"
+    ],
+    "real_task_scenarios": [
+      "User invokes overview to understand a real repository well enough for onboarding, architecture orientation, and deciding which files to inspect first.",
+      "The full overview demand requires agent-team collaboration because lightweight or serial scanning does not satisfy the quality bar."
+    ],
+    "success_criteria": [
+      "The formal overview path uses an agent team with bounded roles, evidence boundaries, conflict handling, gap marking, and main-agent synthesis.",
+      "Serial or lightweight scanning is not presented as a valid way to complete the overview Skill.",
+      "The output writes `docs/项目概览.md` with product view, Mermaid architecture, module responsibilities, key files, onboarding path, tech stack, structure tree, evidence, and final user confirmation.",
+      "Completion evidence includes successful scan commands, agent-team result synthesis, key file refs, written document path, Mermaid check, and user confirmation or synced feedback."
+    ],
+    "failure_modes": [
+      "The Skill asks the user to choose a serial overview path and treats that path as a valid completion path.",
+      "Mode-selection prose recommends a non-agent-team overview path for fast-start requests.",
+      "The agent writes a plausible overview from shallow scanning without agent-team evidence, conflict adjudication, or missing-scope marking.",
+      "The Skill claims completion before `docs/项目概览.md` is written and confirmed."
+    ],
+    "unacceptable_risks": [
+      "A full overview request can be downgraded to non-agent-team execution and still be treated as successful.",
+      "Agent-team collaboration exists only as an optional branch, not the formal capability path.",
+      "Output quality depends on a single agent's shallow interpretation where multiple bounded evidence passes are required."
+    ],
+    "evidence_requirements": [
+      "Current file-line evidence for the Skill body, agent-team reference, execution-confirmation reference, runtime surface, adapter, scripts, prompts, and gates.",
+      "Formal findings must cite confirmed gaps tied to the user-confirmed agent-team-only capability standard.",
+      "P0/P1 findings require current path-line evidence, direct refutation checks, severity calibration, impact, repair target, and verification hint.",
+      "Validator PASS output is required for both alignment and formal report before any readiness verdict."
+    ],
+    "confirmation_evidence": {
+      "status": "recorded_user_confirmation",
+      "ref": "docs/tmp/skill-quality-audit-overview-summary.md:3",
+      "path": "docs/tmp/skill-quality-audit-overview-summary.md",
+      "line": 3,
+      "expected_snippet": "Confirmation: user confirmed agent team as the only valid full overview mode; serial/lightweight overview does not satisfy the real request.",
+      "claim": "The user-confirmed standard rejects serial/lightweight overview as a valid full overview capability."
+    }
+  },
   "target_capability_claims": [
     {
-      "target_capability_id": "TGT-OVERVIEW-001",
-      "label": "Generate a repository onboarding overview from real code scanning, mode confirmation, documented module/key-file evidence, docs/项目概览.md output, and final user confirmation.",
-      "source": "repo_contract",
+      "target_capability_id": "TGT-OVERVIEW-TEAM-001",
+      "label": "Full overview must be produced through agent-team collaboration, not serial/lightweight execution.",
+      "source": "user_supplied",
       "confidence": "high",
       "refs": [
-        "shared/skills/overview/SKILL.md:14",
-        "shared/skills/overview/SKILL.md:50",
-        "shared/skills/overview/test-prompts.json:4"
+        "docs/tmp/skill-quality-audit-overview-summary.md:3"
       ]
     },
     {
-      "target_capability_id": "TGT-OVERVIEW-002",
-      "label": "Route overview as a manual first-party project-overview Skill with Codex subagent_clean execution and no implicit invocation.",
+      "target_capability_id": "TGT-OVERVIEW-RUNTIME-002",
+      "label": "Overview remains a manual first-party artifact-writing Skill with Codex subagent_clean execution and no implicit invocation.",
       "source": "repo_contract",
       "confidence": "high",
       "refs": [
-        "contracts/skill-runtime-surface.json:255",
-        "shared/skills/overview/agents/openai.yaml:6",
-        "tests/test-skill-runtime-surface-contract.sh:143"
+        "contracts/skill-runtime-surface.json:232",
+        "shared/skills/overview/agents/openai.yaml:6"
       ]
     }
   ],
   "current_capability_profile": [
     {
       "current_capability_id": "CUR-OVERVIEW-001",
-      "label": "Current Skill body defines a real-code scan, mode confirmation, overview document write, and user confirmation workflow.",
+      "label": "Current Skill body defines real-code scanning, docs/项目概览.md output, and final user confirmation.",
       "status": "supported",
       "evidence_refs": [
         "EV-SKILL-GOAL",
-        "EV-SKILL-FLOW",
+        "EV-SKILL-SCAN",
         "EV-SKILL-OUTPUT",
         "EV-SKILL-CONFIRMATION"
       ]
     },
     {
       "current_capability_id": "CUR-OVERVIEW-002",
+      "label": "Current Skill body states agent team is the only formal /overview execution path and blocks completion without user confirmation.",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-SKILL-AGENT-TEAM-ONLY",
+        "EV-SKILL-BLOCK-NO-CONFIRM"
+      ]
+    },
+    {
+      "current_capability_id": "CUR-OVERVIEW-003",
+      "label": "Current execution-confirmation reference provides no alternative execution mode and blocks document generation when paused.",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-MODE-NO-ALTERNATIVE",
+        "EV-MODE-STOP-CONDITION"
+      ]
+    },
+    {
+      "current_capability_id": "CUR-OVERVIEW-004",
+      "label": "Current agent-team reference defines bounded Explore agent roles, conflict handling, gap marking, and failure handling without silent downgrade.",
+      "status": "supported",
+      "evidence_refs": [
+        "EV-AGENT-ROLES",
+        "EV-AGENT-SUMMARY",
+        "EV-AGENT-NO-DOWNGRADE"
+      ]
+    },
+    {
+      "current_capability_id": "CUR-OVERVIEW-005",
       "label": "Current runtime and adapter evidence keep overview manual-only with Codex subagent_clean execution.",
       "status": "supported",
       "evidence_refs": [
@@ -49,33 +119,14 @@
       ]
     },
     {
-      "current_capability_id": "CUR-OVERVIEW-003",
-      "label": "Current helper scripts exist, dir-tree validates depth, and the no-tree fallback builds find arguments without eval.",
+      "current_capability_id": "CUR-OVERVIEW-006",
+      "label": "Current executable tests reject serial/lightweight fallback terms and require agent-team expectations in prompt fixtures.",
       "status": "supported",
       "evidence_refs": [
-        "EV-DIR-TREE-FALLBACK",
-        "EV-DIR-TREE-DEPTH",
-        "EV-DIR-TREE-ARGV",
-        "EV-DIR-TREE-EXEC-PASS"
-      ]
-    },
-    {
-      "current_capability_id": "CUR-OVERVIEW-004",
-      "label": "Current package has prompt fixtures plus executable quick-gate coverage for overview script behavior and runtime workflow noise.",
-      "status": "supported",
-      "evidence_refs": [
-        "EV-TEST-PROMPTS",
-        "EV-OVERVIEW-CONTRACT-TEST",
-        "EV-GATE-OVERVIEW-CONTRACT"
-      ]
-    },
-    {
-      "current_capability_id": "CUR-OVERVIEW-005",
-      "label": "Current runtime workflow keeps Sync fields present for the progressive-loading contract while assigning no maintainer work during overview execution.",
-      "status": "supported",
-      "evidence_refs": [
-        "EV-SKILL-SYNC-MODE",
-        "EV-SKILL-SYNC-AGENTS"
+        "EV-CONTRACT-FORBIDDEN-TERMS",
+        "EV-CONTRACT-REQUIRED-SNIPPET",
+        "EV-CONTRACT-PROMPTS",
+        "EV-OVERVIEW-CONTRACT-PASS"
       ]
     }
   ],
@@ -89,7 +140,7 @@
       "claim": "The active Skill contract defines real-code project overview generation as the target outcome."
     },
     {
-      "evidence_id": "EV-SKILL-FLOW",
+      "evidence_id": "EV-SKILL-SCAN",
       "type": "path_line",
       "path": "shared/skills/overview/SKILL.md",
       "line": 52,
@@ -113,10 +164,66 @@
       "claim": "The workflow uses user confirmation or synced feedback as the completion gate consumer."
     },
     {
+      "evidence_id": "EV-SKILL-AGENT-TEAM-ONLY",
+      "type": "path_line",
+      "path": "shared/skills/overview/SKILL.md",
+      "line": 84,
+      "expected_snippet": "分层 agent team 是唯一正式 /overview 执行方式。",
+      "claim": "The active Skill states agent team is the only formal /overview execution path."
+    },
+    {
+      "evidence_id": "EV-SKILL-BLOCK-NO-CONFIRM",
+      "type": "path_line",
+      "path": "shared/skills/overview/SKILL.md",
+      "line": 86,
+      "expected_snippet": "用户不确认 agent team 执行时，保持 blocked；不得生成 `docs/项目概览.md`",
+      "claim": "The active Skill blocks document generation and completion without agent-team confirmation."
+    },
+    {
+      "evidence_id": "EV-MODE-NO-ALTERNATIVE",
+      "type": "path_line",
+      "path": "shared/skills/overview/references/mode-selection.md",
+      "line": 9,
+      "expected_snippet": "不提供替代执行模式。分层 agent team 是唯一正式 /overview 执行方式。",
+      "claim": "The execution-confirmation reference rejects alternative formal execution modes."
+    },
+    {
+      "evidence_id": "EV-MODE-STOP-CONDITION",
+      "type": "path_line",
+      "path": "shared/skills/overview/references/mode-selection.md",
+      "line": 30,
+      "expected_snippet": "不得生成 `docs/项目概览.md`，不得声称 /overview 完成",
+      "claim": "The execution-confirmation reference blocks output and completion when the user pauses."
+    },
+    {
+      "evidence_id": "EV-AGENT-ROLES",
+      "type": "path_line",
+      "path": "shared/skills/overview/references/agent-assignments.md",
+      "line": 12,
+      "expected_snippet": "| Agent | 任务 | 输入边界 | 返回格式 |",
+      "claim": "The agent-team reference defines role/task/input/output structure."
+    },
+    {
+      "evidence_id": "EV-AGENT-SUMMARY",
+      "type": "path_line",
+      "path": "shared/skills/overview/references/agent-assignments.md",
+      "line": 23,
+      "expected_snippet": "## 主代理汇总协议",
+      "claim": "The agent-team reference defines main-agent synthesis responsibilities."
+    },
+    {
+      "evidence_id": "EV-AGENT-NO-DOWNGRADE",
+      "type": "path_line",
+      "path": "shared/skills/overview/references/agent-assignments.md",
+      "line": 29,
+      "expected_snippet": "不允许静默降级执行",
+      "claim": "The agent-team reference blocks silent downgrade."
+    },
+    {
       "evidence_id": "EV-RUNTIME-SURFACE",
       "type": "path_line",
       "path": "contracts/skill-runtime-surface.json",
-      "line": 255,
+      "line": 232,
       "expected_snippet": "\"overview\": {",
       "claim": "The runtime surface contract has an active overview entry."
     },
@@ -137,139 +244,88 @@
       "claim": "The Codex adapter test consumes overview as manual-only."
     },
     {
-      "evidence_id": "EV-DIR-TREE-FALLBACK",
+      "evidence_id": "EV-CONTRACT-FORBIDDEN-TERMS",
       "type": "path_line",
-      "path": "shared/skills/overview/scripts/dir-tree.sh",
-      "line": 17,
-      "expected_snippet": "if command -v tree &>/dev/null; then",
-      "claim": "The dir-tree helper has a fallback branch when tree is unavailable."
+      "path": "tests/test-overview-skill-contract.sh",
+      "line": 132,
+      "expected_snippet": "for forbidden in (\"串行\", \"轻量\"):",
+      "claim": "The overview contract test rejects forbidden fallback terms in overview runtime surfaces."
     },
     {
-      "evidence_id": "EV-DIR-TREE-DEPTH",
+      "evidence_id": "EV-CONTRACT-REQUIRED-SNIPPET",
       "type": "path_line",
-      "path": "shared/skills/overview/scripts/dir-tree.sh",
-      "line": 12,
-      "expected_snippet": "Depth must be a positive integer",
-      "claim": "The dir-tree helper rejects invalid depth before invoking tree or find."
+      "path": "tests/test-overview-skill-contract.sh",
+      "line": 137,
+      "expected_snippet": "required_skill_snippet = \"分层 agent team 是唯一正式 /overview 执行方式\"",
+      "claim": "The overview contract test requires the agent-team-only Skill statement."
     },
     {
-      "evidence_id": "EV-DIR-TREE-ARGV",
+      "evidence_id": "EV-CONTRACT-PROMPTS",
       "type": "path_line",
-      "path": "shared/skills/overview/scripts/dir-tree.sh",
-      "line": 21,
-      "expected_snippet": "FIND_ARGS=(\"$PROJECT_DIR\" -maxdepth \"$DEPTH\" -type d)",
-      "claim": "The fallback branch constructs find arguments as argv entries instead of eval-built command text."
+      "path": "tests/test-overview-skill-contract.sh",
+      "line": 149,
+      "expected_snippet": "if \"分层 agent team\" not in expected:",
+      "claim": "The overview contract test requires every prompt fixture to expect agent-team execution."
     },
     {
-      "evidence_id": "EV-DIR-TREE-EXEC-PASS",
+      "evidence_id": "EV-OVERVIEW-CONTRACT-PASS",
       "type": "command",
       "ref": "bash tests/test-overview-skill-contract.sh",
-      "claim": "Current executable coverage shows the dir-tree fallback handles paths with spaces, glob-prone cwd contents, and invalid depth."
+      "claim": "The current overview contract shell test passes for helper-script behavior, runtime Sync noise, and agent-team-only contract enforcement."
     },
     {
-      "evidence_id": "EV-TEST-PROMPTS",
-      "type": "path_line",
-      "path": "shared/skills/overview/test-prompts.json",
-      "line": 5,
-      "expected_snippet": "先扫描真实代码和关键配置",
-      "claim": "Overview behavior is represented in natural-language prompt fixtures."
-    },
-    {
-      "evidence_id": "EV-OVERVIEW-CONTRACT-TEST",
-      "type": "test",
-      "ref": "tests/test-overview-skill-contract.sh",
-      "claim": "The overview package has executable coverage for dir-tree fallback behavior, invalid depth handling, project-detect TypeScript/Vite detection, and runtime Sync noise."
-    },
-    {
-      "evidence_id": "EV-GATE-OVERVIEW-CONTRACT",
-      "type": "path_line",
-      "path": "tests/gate-plan.json",
-      "line": 944,
-      "expected_snippet": "\"id\": \"overview-skill-contract\",",
-      "claim": "The overview executable contract is registered in the quick gate plan."
-    },
-    {
-      "evidence_id": "EV-SCOPE-NO-EVALS",
+      "evidence_id": "EV-CODEX-ADAPTER-PASS",
       "type": "command",
-      "ref": "find shared/skills/overview -maxdepth 2 -type d -name evals produced no directory",
-      "claim": "The target package has no overview evals directory."
-    },
-    {
-      "evidence_id": "EV-SCOPE-NO-FIXTURES",
-      "type": "command",
-      "ref": "find shared/skills/overview -maxdepth 2 -type d -name fixtures produced no directory",
-      "claim": "The target package has no overview fixtures directory."
-    },
-    {
-      "evidence_id": "EV-SKILL-SYNC-MODE",
-      "type": "path_line",
-      "path": "shared/skills/overview/SKILL.md",
-      "line": 54,
-      "expected_snippet": "Sync: none for overview execution.",
-      "claim": "The runtime mode-selection step does not assign maintainer synchronization work."
-    },
-    {
-      "evidence_id": "EV-SKILL-SYNC-AGENTS",
-      "type": "path_line",
-      "path": "shared/skills/overview/SKILL.md",
-      "line": 56,
-      "expected_snippet": "Sync: none for overview execution.",
-      "claim": "The runtime agent-team step does not assign maintainer synchronization work."
+      "ref": "bash tests/test-codex-skill-adapter.sh",
+      "claim": "The current Codex adapter shell test passes for overview manual policy and subagent_clean execution."
     }
   ],
-  "assumptions_or_unknowns": [],
+  "assumptions_or_unknowns": [
+    {
+      "assumption_id": "UNK-OVERVIEW-001",
+      "label": "No full target Skill run was executed to generate docs/项目概览.md during this repair window; the audit evaluates current Skill content and repository mechanisms.",
+      "status": "open",
+      "refs": []
+    }
+  ],
   "capability_match_draft": {
     "gaps": [
       {
-        "gap_id": "GAP-OVERVIEW-P1-001",
-        "target_capability_id": "TGT-OVERVIEW-001",
+        "gap_id": "GAP-OVERVIEW-TEAM-001",
+        "target_capability_id": "TGT-OVERVIEW-TEAM-001",
         "current_capability_ids": [
-          "CUR-OVERVIEW-003"
+          "CUR-OVERVIEW-002",
+          "CUR-OVERVIEW-003",
+          "CUR-OVERVIEW-004",
+          "CUR-OVERVIEW-006"
         ],
         "status": "matched",
         "evidence_refs": [
-          "EV-DIR-TREE-FALLBACK",
-          "EV-DIR-TREE-DEPTH",
-          "EV-DIR-TREE-ARGV",
-          "EV-DIR-TREE-EXEC-PASS"
+          "EV-SKILL-AGENT-TEAM-ONLY",
+          "EV-SKILL-BLOCK-NO-CONFIRM",
+          "EV-MODE-NO-ALTERNATIVE",
+          "EV-MODE-STOP-CONDITION",
+          "EV-AGENT-ROLES",
+          "EV-AGENT-SUMMARY",
+          "EV-AGENT-NO-DOWNGRADE",
+          "EV-CONTRACT-FORBIDDEN-TERMS",
+          "EV-CONTRACT-REQUIRED-SNIPPET",
+          "EV-CONTRACT-PROMPTS",
+          "EV-OVERVIEW-CONTRACT-PASS"
         ]
       },
       {
-        "gap_id": "GAP-OVERVIEW-P2-001",
-        "target_capability_id": "TGT-OVERVIEW-001",
-        "current_capability_ids": [
-          "CUR-OVERVIEW-004"
-        ],
-        "status": "matched",
-        "evidence_refs": [
-          "EV-TEST-PROMPTS",
-          "EV-OVERVIEW-CONTRACT-TEST",
-          "EV-GATE-OVERVIEW-CONTRACT"
-        ]
-      },
-      {
-        "gap_id": "GAP-OVERVIEW-P2-002",
-        "target_capability_id": "TGT-OVERVIEW-001",
+        "gap_id": "GAP-OVERVIEW-RUNTIME-001",
+        "target_capability_id": "TGT-OVERVIEW-RUNTIME-002",
         "current_capability_ids": [
           "CUR-OVERVIEW-005"
         ],
         "status": "matched",
         "evidence_refs": [
-          "EV-SKILL-SYNC-MODE",
-          "EV-SKILL-SYNC-AGENTS"
-        ]
-      },
-      {
-        "gap_id": "GAP-OVERVIEW-ROUTING-MATCHED",
-        "target_capability_id": "TGT-OVERVIEW-002",
-        "current_capability_ids": [
-          "CUR-OVERVIEW-002"
-        ],
-        "status": "matched",
-        "evidence_refs": [
           "EV-RUNTIME-SURFACE",
           "EV-OPENAI-ADAPTER",
-          "EV-CODEX-ADAPTER-TEST"
+          "EV-CODEX-ADAPTER-TEST",
+          "EV-CODEX-ADAPTER-PASS"
         ]
       }
     ]
@@ -277,10 +333,10 @@
   "user_confirmation": {
     "level": "G1",
     "status": "confirmed",
-    "confirmed_scope_ref": "repo_contract:shared/skills/overview plus user_request:overview skill",
+    "confirmed_scope_ref": "capability_effectiveness_standard:CES-OVERVIEW-AGENT-TEAM-001",
     "confirmed_target_capability_ids": [
-      "TGT-OVERVIEW-001",
-      "TGT-OVERVIEW-002"
+      "TGT-OVERVIEW-TEAM-001",
+      "TGT-OVERVIEW-RUNTIME-002"
     ],
     "accepted_assumption_ids": []
   }
