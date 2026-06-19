@@ -121,6 +121,130 @@ assert "skills_sh_softaworks_mermaid_diagrams" in locks
 assert "skills_sh_github_prompt_optimizer" in locks
 PY
 
+python3 - <<'PY' >/dev/null || fail "locked upstream clone helper 应稳定 fetch 锁定 commit"
+import tempfile
+from pathlib import Path
+
+import tools.community.git_upstream as git_upstream
+
+calls = []
+
+def fake_run(cmd, **kwargs):
+    calls.append(cmd)
+    if "clone" in cmd:
+        Path(cmd[-1]).mkdir(parents=True, exist_ok=True)
+    return type(
+        "Result",
+        (),
+        {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+        },
+    )()
+
+with tempfile.TemporaryDirectory() as td:
+    checkout = git_upstream.clone_locked_ref(
+        "https://example.invalid/repo.git",
+        "locked-commit",
+        Path(td),
+        "repo",
+        runner=fake_run,
+    )
+
+assert checkout == Path(td) / "repo"
+assert any("clone" in cmd and "--no-checkout" in cmd for cmd in calls)
+assert not any("--filter=blob:none" in cmd for cmd in calls)
+assert any("cat-file" in cmd and "locked-commit^{commit}" in cmd for cmd in calls)
+assert any(cmd[-3:] == ["checkout", "--detach", "locked-commit"] for cmd in calls)
+assert not any("fetch" in cmd for cmd in calls)
+assert all("http.lowSpeedLimit=1" in cmd and "http.lowSpeedTime=20" in cmd for cmd in calls)
+PY
+
+python3 - <<'PY' >/dev/null || fail "locked upstream clone helper 本地缺失 ref 时应只 fetch 锁定 ref"
+import tempfile
+from pathlib import Path
+
+import tools.community.git_upstream as git_upstream
+
+calls = []
+
+def fake_run(cmd, **kwargs):
+    calls.append(cmd)
+    if "clone" in cmd:
+        Path(cmd[-1]).mkdir(parents=True, exist_ok=True)
+    returncode = 1 if "cat-file" in cmd and len([call for call in calls if "cat-file" in call]) == 1 else 0
+    return type(
+        "Result",
+        (),
+        {
+            "returncode": returncode,
+            "stdout": "",
+            "stderr": "missing ref" if returncode else "",
+        },
+    )()
+
+with tempfile.TemporaryDirectory() as td:
+    git_upstream.clone_locked_ref(
+        "https://example.invalid/repo.git",
+        "locked-commit",
+        Path(td),
+        "repo",
+        runner=fake_run,
+    )
+
+fetches = [cmd for cmd in calls if "fetch" in cmd]
+assert len(fetches) == 1
+assert fetches[0][-2:] == ["origin", "locked-commit"]
+assert "--tags" not in fetches[0]
+PY
+
+python3 - <<'PY' >/dev/null || fail "locked upstream clone helper 失败时应保留 git stderr"
+import tempfile
+from pathlib import Path
+
+import tools.community.git_upstream as git_upstream
+
+def fake_run(cmd, **kwargs):
+    if "clone" in cmd:
+        Path(cmd[-1]).mkdir(parents=True, exist_ok=True)
+    if "cat-file" in cmd:
+        return type(
+            "Result",
+            (),
+            {
+                "returncode": 1,
+                "stdout": "",
+                "stderr": "missing ref",
+            },
+        )()
+    return type(
+        "Result",
+        (),
+        {
+            "returncode": 128 if "fetch" in cmd else 0,
+            "stdout": "",
+            "stderr": "fatal: network failed",
+        },
+    )()
+
+with tempfile.TemporaryDirectory() as td:
+    try:
+        git_upstream.clone_locked_ref(
+            "https://example.invalid/repo.git",
+            "locked-commit",
+            Path(td),
+            "repo",
+            runner=fake_run,
+        )
+    except RuntimeError as exc:
+        message = str(exc)
+        assert "git fetch upstream ref failed" in message
+        assert "fatal: network failed" in message
+    else:
+        raise AssertionError("expected clone_locked_ref to fail")
+PY
+
 python3 - <<'PY' >/dev/null || fail "Superpowers clone 应 checkout SOURCES.yaml 锁定 ref"
 import tempfile
 from pathlib import Path
@@ -145,11 +269,17 @@ with tempfile.TemporaryDirectory() as td:
     (community / "SOURCES.yaml").write_text(sample, encoding="utf-8")
 
     calls = []
+    cat_file_calls = [0]
 
     def fake_run(cmd, cwd=None):
         calls.append((cmd, cwd))
-        if cmd[:2] == ["git", "clone"]:
+        if "clone" in cmd:
             Path(cmd[-1]).mkdir(parents=True, exist_ok=True)
+            return ""
+        if "cat-file" in cmd:
+            cat_file_calls[0] += 1
+            if cat_file_calls[0] == 1:
+                raise RuntimeError("missing ref")
             return ""
         if cmd[-2:] == ["rev-parse", "HEAD"]:
             return "resolved-locked-commit\n"
@@ -167,9 +297,9 @@ with tempfile.TemporaryDirectory() as td:
 
     assert checkout == root / "tmp" / "superpowers"
     assert commit == "resolved-locked-commit"
-    assert ["git", "clone", "--no-checkout", "https://example.invalid/locked-superpowers.git", str(checkout)] in [call[0] for call in calls]
-    assert ["git", "-C", str(checkout), "fetch", "--depth", "1", "origin", "locked-superpowers-ref"] in [call[0] for call in calls]
-    assert ["git", "-C", str(checkout), "checkout", "--detach", "FETCH_HEAD"] in [call[0] for call in calls]
+    assert any("clone" in call[0] and "--no-checkout" in call[0] for call in calls)
+    assert any("fetch" in call[0] and call[0][-2:] == ["origin", "locked-superpowers-ref"] for call in calls)
+    assert any(call[0][-3:] == ["checkout", "--detach", "locked-superpowers-ref"] for call in calls)
 PY
 
 python3 - <<'PY' >/dev/null || fail "update_sources_yaml 应收敛到纯 skills scope"

@@ -2,6 +2,7 @@
 from __future__ import annotations
 import importlib.util
 import json
+import time
 import subprocess
 import sys
 import tempfile
@@ -148,19 +149,19 @@ class CandidateLookupTests(TempDirTest):
             captured_at="2026-06-18",
         )
         original_latest_release = self.lib._latest_release
-        original_git_ls_remote = self.lib._git_ls_remote
+        original_release_tag_ref = self.lib._release_tag_ref
         try:
             self.lib._latest_release = lambda repo: {"tag_name": "v0.28.0"}
 
-            def timeout(_repo: str, _ref: str) -> str:
+            def timeout(_repo: str, _tag: str) -> str:
                 raise subprocess.TimeoutExpired(["git", "ls-remote"], 30)
 
-            self.lib._git_ls_remote = timeout
+            self.lib._release_tag_ref = timeout
 
             candidate = self.lib.lookup_candidate(lock)
         finally:
             self.lib._latest_release = original_latest_release
-            self.lib._git_ls_remote = original_git_ls_remote
+            self.lib._release_tag_ref = original_release_tag_ref
 
         self.assertEqual(candidate.name, "vercel_agent_browser")
         self.assertEqual(candidate.source, "error")
@@ -196,6 +197,147 @@ class CandidateLookupTests(TempDirTest):
         self.assertEqual(ref, "abc123")
         self.assertEqual(len(calls), 2)
         self.assertTrue(all(timeout == 90 for _cmd, timeout in calls))
+
+    def test_release_tag_ref_prefers_peeled_commit_from_single_lookup(self) -> None:
+        calls = []
+        original_run_command = self.lib.run_command
+        try:
+            def fake_run_command(cmd, *, cwd=None, timeout=30):
+                calls.append(cmd)
+                return type(
+                    "Result",
+                    (),
+                    {
+                        "returncode": 0,
+                        "stdout": (
+                            "tag-object\trefs/tags/v6.0.3\n"
+                            "commit-ref\trefs/tags/v6.0.3^{}\n"
+                        ),
+                        "stderr": "",
+                    },
+                )()
+
+            self.lib.run_command = fake_run_command
+
+            ref = self.lib._release_tag_ref(
+                "https://github.com/obra/superpowers", "v6.0.3"
+            )
+        finally:
+            self.lib.run_command = original_run_command
+
+        self.assertEqual(ref, "commit-ref")
+        self.assertEqual(len(calls), 1)
+
+    def test_default_branch_candidate_resolves_name_and_commit_from_one_lookup(self) -> None:
+        calls = []
+        original_run_command = self.lib.run_command
+        try:
+            def fake_run_command(cmd, *, cwd=None, timeout=30):
+                calls.append(cmd)
+                return type(
+                    "Result",
+                    (),
+                    {
+                        "returncode": 0,
+                        "stdout": (
+                            "ref: refs/heads/main\tHEAD\n"
+                            "main-commit\tHEAD\n"
+                        ),
+                        "stderr": "",
+                    },
+                )()
+
+            self.lib.run_command = fake_run_command
+
+            branch, ref = self.lib._default_branch_candidate(
+                "https://github.com/anthropics/skills"
+            )
+        finally:
+            self.lib.run_command = original_run_command
+
+        self.assertEqual(branch, "refs/heads/main")
+        self.assertEqual(ref, "main-commit")
+        self.assertEqual(len(calls), 1)
+
+    def test_lookup_candidates_reuses_one_upstream_lookup_per_repo(self) -> None:
+        locks = {
+            "skills_sh_github_prd": self.lib.SourceLock(
+                name="skills_sh_github_prd",
+                repo="https://github.com/github/awesome-copilot",
+                ref="old-prd",
+                captured_at="2026-06-18",
+            ),
+            "skills_sh_github_prompt_optimizer": self.lib.SourceLock(
+                name="skills_sh_github_prompt_optimizer",
+                repo="https://github.com/github/awesome-copilot",
+                ref="old-prompt",
+                captured_at="2026-06-18",
+            ),
+        }
+        original_latest_release = self.lib._latest_release
+        original_default_branch_candidate = self.lib._default_branch_candidate
+        try:
+            self.lib._latest_release = lambda repo: None
+
+            default_branch_calls = []
+
+            def fake_default_branch_candidate(repo: str) -> tuple[str, str]:
+                default_branch_calls.append(repo)
+                return "refs/heads/main", "new-shared-ref"
+
+            self.lib._default_branch_candidate = fake_default_branch_candidate
+
+            candidates = self.lib.lookup_candidates(locks)
+        finally:
+            self.lib._latest_release = original_latest_release
+            self.lib._default_branch_candidate = original_default_branch_candidate
+
+        self.assertEqual(default_branch_calls, ["https://github.com/github/awesome-copilot"])
+        self.assertEqual(candidates["skills_sh_github_prd"].name, "skills_sh_github_prd")
+        self.assertEqual(
+            candidates["skills_sh_github_prompt_optimizer"].name,
+            "skills_sh_github_prompt_optimizer",
+        )
+        self.assertEqual(candidates["skills_sh_github_prd"].ref, "new-shared-ref")
+        self.assertEqual(
+            candidates["skills_sh_github_prompt_optimizer"].ref, "new-shared-ref"
+        )
+
+    def test_lookup_candidates_queries_distinct_repos_in_parallel(self) -> None:
+        locks = {
+            "anthropic_skills": self.lib.SourceLock(
+                name="anthropic_skills",
+                repo="https://github.com/anthropics/skills",
+                ref="old-a",
+                captured_at="2026-06-18",
+            ),
+            "superpowers": self.lib.SourceLock(
+                name="superpowers",
+                repo="https://github.com/obra/superpowers",
+                ref="old-b",
+                captured_at="2026-06-18",
+            ),
+        }
+        original_lookup_candidate = self.lib.lookup_candidate
+        try:
+            def slow_lookup_candidate(lock):
+                time.sleep(0.2)
+                return self.lib.CandidateRef(
+                    name=lock.name,
+                    ref=f"new-{lock.name}",
+                    source="fixture",
+                )
+
+            self.lib.lookup_candidate = slow_lookup_candidate
+            started = time.monotonic()
+            candidates = self.lib.lookup_candidates(locks)
+            elapsed = time.monotonic() - started
+        finally:
+            self.lib.lookup_candidate = original_lookup_candidate
+
+        self.assertLess(elapsed, 0.35)
+        self.assertEqual(candidates["anthropic_skills"].ref, "new-anthropic_skills")
+        self.assertEqual(candidates["superpowers"].ref, "new-superpowers")
 
 
 class FakeRunner:

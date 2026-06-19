@@ -13,6 +13,7 @@ import argparse
 import json
 import re
 import subprocess
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -24,6 +25,9 @@ from typing import Any, Sequence
 DEFAULT_TIMEOUT_SECONDS = 30
 UPSTREAM_LOOKUP_TIMEOUT_SECONDS = 90
 UPSTREAM_LOOKUP_RETRIES = 1
+UPSTREAM_LOOKUP_MAX_WORKERS = 8
+GIT_HTTP_LOW_SPEED_LIMIT = 1
+GIT_HTTP_LOW_SPEED_TIME_SECONDS = 20
 MANAGED_SOURCE_NAMES = (
     "anthropic_skills",
     "superpowers",
@@ -205,9 +209,22 @@ def _run_upstream_lookup_command(cmd: Sequence[str]) -> subprocess.CompletedProc
     raise last_timeout
 
 
+def _git_lookup_command(args: Sequence[str]) -> list[str]:
+    return [
+        "git",
+        "-c",
+        f"http.lowSpeedLimit={GIT_HTTP_LOW_SPEED_LIMIT}",
+        "-c",
+        f"http.lowSpeedTime={GIT_HTTP_LOW_SPEED_TIME_SECONDS}",
+        *args,
+    ]
+
+
 def _git_ls_remote(repo: str, ref: str) -> str:
     """Resolve a remote ref to a commit hash using git."""
-    result = _run_upstream_lookup_command(["git", "ls-remote", repo, ref])
+    result = _run_upstream_lookup_command(
+        _git_lookup_command(["ls-remote", repo, ref])
+    )
     if result.returncode != 0:
         raise RuntimeError(
             result.stderr.strip() or result.stdout.strip() or "git ls-remote failed"
@@ -218,10 +235,39 @@ def _git_ls_remote(repo: str, ref: str) -> str:
     return first.split()[0]
 
 
-def _default_branch_ref(repo: str) -> str:
-    """Resolve the upstream default branch ref."""
+def _release_tag_ref(repo: str, tag: str) -> str:
+    """Resolve a release tag to the target commit hash."""
     result = _run_upstream_lookup_command(
-        ["git", "ls-remote", "--symref", repo, "HEAD"]
+        _git_lookup_command(
+            ["ls-remote", repo, f"refs/tags/{tag}^{{}}", f"refs/tags/{tag}"]
+        )
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            result.stderr.strip()
+            or result.stdout.strip()
+            or "release tag lookup failed"
+        )
+    peeled = ""
+    direct = ""
+    for line in result.stdout.splitlines():
+        parts = line.split()
+        if len(parts) < 2:
+            continue
+        if parts[1] == f"refs/tags/{tag}^{{}}":
+            peeled = parts[0]
+        elif parts[1] == f"refs/tags/{tag}":
+            direct = parts[0]
+    ref = peeled or direct
+    if not ref:
+        raise RuntimeError(f"remote release tag not found: {tag}")
+    return ref
+
+
+def _default_branch_candidate(repo: str) -> tuple[str, str]:
+    """Resolve the upstream default branch name and HEAD commit in one call."""
+    result = _run_upstream_lookup_command(
+        _git_lookup_command(["ls-remote", "--symref", repo, "HEAD"])
     )
     if result.returncode != 0:
         raise RuntimeError(
@@ -229,10 +275,20 @@ def _default_branch_ref(repo: str) -> str:
             or result.stdout.strip()
             or "default branch lookup failed"
         )
+    default_ref = ""
+    head_ref = ""
     for line in result.stdout.splitlines():
         if line.startswith("ref: "):
-            return line.split()[1]
-    raise RuntimeError("default branch symref missing")
+            default_ref = line.split()[1]
+            continue
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] == "HEAD":
+            head_ref = parts[0]
+    if not default_ref:
+        raise RuntimeError("default branch symref missing")
+    if not head_ref:
+        raise RuntimeError("default branch HEAD ref missing")
+    return default_ref, head_ref
 
 
 def _latest_release(repo: str) -> dict[str, Any] | None:
@@ -284,18 +340,46 @@ def lookup_candidate(lock: SourceLock) -> CandidateRef:
         release = _latest_release(lock.repo)
         if release and release.get("tag_name"):
             tag = str(release["tag_name"])
-            try:
-                ref = _git_ls_remote(lock.repo, f"refs/tags/{tag}^{{}}")
-            except RuntimeError:
-                ref = _git_ls_remote(lock.repo, f"refs/tags/{tag}")
+            ref = _release_tag_ref(lock.repo, tag)
             return CandidateRef(name=lock.name, ref=ref, source="release", summary=tag)
-        default_ref = _default_branch_ref(lock.repo)
-        ref = _git_ls_remote(lock.repo, default_ref)
+        default_ref, ref = _default_branch_candidate(lock.repo)
         return CandidateRef(
             name=lock.name, ref=ref, source="default_branch", summary=default_ref
         )
     except (RuntimeError, subprocess.TimeoutExpired) as exc:
         return CandidateRef(name=lock.name, ref="", source="error", blocker=str(exc))
+
+
+def lookup_candidates(locks: dict[str, SourceLock]) -> dict[str, CandidateRef]:
+    """Find latest stable candidates, reusing one upstream lookup per repo."""
+    repo_to_lock: dict[str, SourceLock] = {}
+    for lock in locks.values():
+        repo_to_lock.setdefault(lock.repo, lock)
+
+    by_repo: dict[str, CandidateRef] = {}
+    max_workers = min(UPSTREAM_LOOKUP_MAX_WORKERS, len(repo_to_lock)) or 1
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_repo = {
+            executor.submit(lookup_candidate, lock): repo
+            for repo, lock in repo_to_lock.items()
+        }
+        for future in as_completed(future_to_repo):
+            repo = future_to_repo[future]
+            by_repo[repo] = future.result()
+
+    candidates: dict[str, CandidateRef] = {}
+    for name, lock in locks.items():
+        candidate = by_repo.get(lock.repo)
+        if candidate is None:
+            raise RuntimeError(f"candidate lookup missing for repo: {lock.repo}")
+        candidates[name] = CandidateRef(
+            name=lock.name,
+            ref=candidate.ref,
+            source=candidate.source,
+            summary=candidate.summary,
+            blocker=candidate.blocker,
+        )
+    return candidates
 
 
 def load_candidate_fixture(path: Path) -> dict[str, CandidateRef]:

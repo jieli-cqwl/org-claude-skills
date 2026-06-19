@@ -8,6 +8,11 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
+try:
+    from git_upstream import clone_locked_ref, rev_parse_head  # type: ignore
+except ModuleNotFoundError:
+    from tools.community.git_upstream import clone_locked_ref, rev_parse_head
+
 
 ROOT = Path(__file__).resolve().parents[2]
 COMMUNITY = ROOT / "community"
@@ -77,12 +82,19 @@ def clone_superpowers_from_lock(workdir: Path) -> tuple[Path, str]:
     """Clone Superpowers and checkout the ref locked in community/SOURCES.yaml."""
     repo = extract_source_lock_field("superpowers", "repo")
     ref = extract_source_lock_ref("superpowers")
-    checkout = workdir / "superpowers"
-    run(["git", "clone", "--no-checkout", repo, str(checkout)])
-    run(["git", "-C", str(checkout), "fetch", "--depth", "1", "origin", ref])
-    run(["git", "-C", str(checkout), "checkout", "--detach", "FETCH_HEAD"])
-    commit = run(["git", "-C", str(checkout), "rev-parse", "HEAD"]).strip()
+    checkout = clone_locked_ref(repo, ref, workdir, "superpowers", runner=_run_compat)
+    commit = rev_parse_head(checkout, runner=_run_compat)
     return checkout, commit
+
+
+def _run_compat(cmd: list[str], **_kwargs):
+    class Result:
+        def __init__(self, stdout: str) -> None:
+            self.returncode = 0
+            self.stdout = stdout
+            self.stderr = ""
+
+    return Result(run(cmd))
 
 
 def _validate_official_skill_set(skills_root: Path) -> list[str]:

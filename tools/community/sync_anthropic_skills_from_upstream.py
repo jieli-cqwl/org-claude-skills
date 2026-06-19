@@ -3,11 +3,15 @@ from __future__ import annotations
 
 import argparse
 import shutil
-import subprocess
 import tempfile
 from pathlib import Path
 
 import yaml
+
+try:
+    from git_upstream import clone_locked_ref  # type: ignore
+except ModuleNotFoundError:
+    from tools.community.git_upstream import clone_locked_ref
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -91,26 +95,7 @@ def load_lock() -> dict:
 
 
 def clone_upstream(repo: str, ref: str, workdir: Path) -> Path:
-    checkout = workdir / "anthropic-skills"
-    subprocess.run(
-        ["git", "clone", "--depth", "1", repo, str(checkout)],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    subprocess.run(
-        ["git", "-C", str(checkout), "fetch", "--depth", "1", "origin", ref],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    subprocess.run(
-        ["git", "-C", str(checkout), "checkout", ref],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    return checkout
+    return clone_locked_ref(repo, ref, workdir, "anthropic-skills")
 
 
 def sync_tree(src: Path, dst: Path) -> None:

@@ -10,7 +10,7 @@ from skill_pull_lib import (
     classify_candidates,
     load_candidate_fixture,
     load_source_locks,
-    lookup_candidate,
+    lookup_candidates,
     managed_locks,
     statuses_to_json,
     write_json,
@@ -31,7 +31,7 @@ def main() -> None:
     if args.candidate_fixture:
         candidates = load_candidate_fixture(Path(args.candidate_fixture))
     else:
-        candidates = {name: lookup_candidate(lock) for name, lock in managed_locks(locks).items()}
+        candidates = lookup_candidates(managed_locks(locks))
 
     statuses = classify_candidates(locks, candidates)
     write_json(

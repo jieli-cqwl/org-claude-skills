@@ -11,9 +11,13 @@ from __future__ import annotations
 import argparse
 import re
 import shutil
-import subprocess
 import tempfile
 from pathlib import Path
+
+try:
+    from git_upstream import clone_locked_ref  # type: ignore
+except ModuleNotFoundError:
+    from tools.community.git_upstream import clone_locked_ref
 from typing import NoReturn
 
 
@@ -210,26 +214,7 @@ def load_lock() -> dict[str, dict[str, str]]:
 
 def clone_upstream(repo: str, ref: str, workdir: Path, checkout_name: str) -> Path:
     """Clone and checkout a locked upstream ref into a temporary workdir."""
-    checkout = workdir / checkout_name
-    subprocess.run(
-        ["git", "clone", "--depth", "1", repo, str(checkout)],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    subprocess.run(
-        ["git", "-C", str(checkout), "fetch", "--depth", "1", "origin", ref],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    subprocess.run(
-        ["git", "-C", str(checkout), "checkout", ref],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    return checkout
+    return clone_locked_ref(repo, ref, workdir, checkout_name)
 
 
 def sync_tree(src: Path, dst: Path) -> None:
