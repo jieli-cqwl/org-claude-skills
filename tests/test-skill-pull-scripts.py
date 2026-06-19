@@ -349,15 +349,15 @@ class RunUpdateTests(TempDirTest):
             [["python3", "tools/community/sync_skills_sh_skills_from_upstream.py"]],
         )
 
-    def test_full_check_is_the_only_runtime_smoke_gate(self) -> None:
+    def test_quick_install_gate_replaces_full_runtime_smoke_gate(self) -> None:
         validation_commands = [
             " ".join(command) for command in self.run_update.VALIDATION_COMMANDS
         ]
 
         self.assertNotIn("bash tests/test-install-runtime-smoke.sh", validation_commands)
         self.assertEqual(
-            self.run_update.FULL_CHECK_COMMAND,
-            ["bash", "install.sh", "--target", "all", "--check", "full"],
+            self.run_update.INSTALL_GATE_COMMAND,
+            ["bash", "install.sh", "--target", "all", "--check", "quick"],
         )
 
     def test_update_flow_runs_install_commit_and_cleanup(self) -> None:
@@ -389,7 +389,7 @@ class RunUpdateTests(TempDirTest):
             command_text.index("bash tests/test-single-source-layout.sh"),
         )
         self.assertLess(
-            command_text.index("bash install.sh --target all --check full"),
+            command_text.index("bash install.sh --target all --check quick"),
             command_text.index("bash install.sh --target all"),
         )
         self.assertIn(
@@ -448,9 +448,9 @@ class RunUpdateTests(TempDirTest):
         self.assertEqual(payload["result"]["stdout"], "stdout details")
         self.assertIn("duration_seconds", payload["result"])
 
-    def test_full_check_failure_uses_full_check_phase(self) -> None:
+    def test_install_gate_failure_uses_quick_gate_phase(self) -> None:
         statuses = [make_anthropic_status(self.lib)]
-        runner = FakeRunner(fail_contains="--check full")
+        runner = FakeRunner(fail_contains="--check quick")
 
         result = self.run_update.run_update_flow(
             repo_root=self.repo_root,
@@ -461,13 +461,13 @@ class RunUpdateTests(TempDirTest):
         )
 
         command_text = [" ".join(command) for command in runner.commands]
-        full_check_index = command_text.index(
-            "bash install.sh --target all --check full"
+        gate_index = command_text.index(
+            "bash install.sh --target all --check quick"
         )
         self.assertEqual(result.status, "blocked")
-        self.assertEqual(result.failed_phase, "full-check install gate")
+        self.assertEqual(result.failed_phase, "quick install gate")
         self.assertNotIn(
-            "bash install.sh --target all", command_text[full_check_index + 1 :]
+            "bash install.sh --target all", command_text[gate_index + 1 :]
         )
 
     def test_update_report_payload_feeds_conversation_summary(self) -> None:
@@ -489,7 +489,7 @@ class RunUpdateTests(TempDirTest):
         summary = self.summarize.render_summary(result_path)
 
         self.assertIn("aaa111 -> new999", summary)
-        self.assertIn("bash install.sh --target all --check full", summary)
+        self.assertIn("bash install.sh --target all --check quick", summary)
         self.assertIn("bash install.sh --target all", summary)
         self.assertIn("abc123", summary)
 

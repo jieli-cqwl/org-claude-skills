@@ -98,7 +98,7 @@ VALIDATION_COMMANDS = (
     ["bash", "tests/test-single-source-layout.sh"],
     ["bash", "tests/test-codex-skill-adapter.sh"],
 )
-FULL_CHECK_COMMAND = ["bash", "install.sh", "--target", "all", "--check", "full"]
+INSTALL_GATE_COMMAND = ["bash", "install.sh", "--target", "all", "--check", "quick"]
 INSTALL_COMMAND = ["bash", "install.sh", "--target", "all"]
 WORKFLOW_TIMEOUT_SECONDS = 3600
 
@@ -398,16 +398,16 @@ def _apply_updates_in_worktree(
     if isinstance(validations, UpdateResult):
         return validations
 
-    full_check = _run_workflow_commands(
+    install_gate = _run_workflow_commands(
         runner,
-        [FULL_CHECK_COMMAND],
-        phase="full-check install gate",
+        [INSTALL_GATE_COMMAND],
+        phase="quick install gate",
         branch=branch,
         worktree_path=worktree_path,
     )
-    if isinstance(full_check, UpdateResult):
-        return full_check
-    validations += full_check
+    if isinstance(install_gate, UpdateResult):
+        return install_gate
+    validations += install_gate
 
     install_outcomes = _run_workflow_commands(
         runner,

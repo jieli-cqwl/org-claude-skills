@@ -14,7 +14,7 @@ Use this skill for the daily automated update flow that keeps external runtime s
 - Stop when `community/SOURCES.yaml` is missing or fails source-lock validation.
 - Stop when an upstream candidate is blocked, ambiguous, or lacks a stable ref.
 - Stop after any validation or install failure; preserve the generated worktree and branch for diagnosis.
-- Do not run the final install command until every validation command and full-check install gate passes.
+- Do not run the final install command until every validation command and the quick install gate passes.
 - Do not delete failed worktrees, logs, or generated diffs before reporting the blocker.
 
 ## Goal
@@ -55,8 +55,8 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 | 2. Update worktree | Candidate list | Run `scripts/run_update.py` | `.worktrees/` worktree, update branch, changed source lock | validations | Worktree exists and source lock changed only for accepted candidates | Preserve worktree and branch | branch path and diff |
 | 3. Source sync | Update worktree | Execute source-specific sync scripts | Vendored content and adapter-bearing source outputs | validations and install | Generated files match source lock | Preserve generated files and logs | git diff and sync logs |
 | 4. Validation | Updated worktree | Run required validation commands | Validation result set | install gate | Every command passes | Stop before install | command outputs |
-| 5. Full-check install gate | Validated worktree | Run `bash install.sh --target all --check full` | Full check result | final install gate | check command passes | Stop before final install | command output |
-| 6. Final install and commit | Passed full-check gate | Run `bash install.sh --target all`, commit branch | Installed runtime, branch, commit | user | install and commit both pass | Preserve worktree/branch and report blocker | install output and commit hash |
+| 5. Quick install gate | Validated worktree | Run `bash install.sh --target all --check quick` | Quick install result | final install gate | check command passes | Stop before final install | command output |
+| 6. Final install and commit | Passed quick install gate | Run `bash install.sh --target all`, commit branch | Installed runtime, branch, commit | user | install and commit both pass | Preserve worktree/branch and report blocker | install output and commit hash |
 | 7. Report | Branch, commit, validations | Run `scripts/summarize_changes.py` | Conversation report | user | report includes source updates, validation, install, branch | Report failed phase and next action | report sections |
 
 ## Worktree Policy
@@ -73,10 +73,10 @@ bash tests/test-community-tools.sh
 python3 tools/community/check_superpowers_upstream_fidelity.py
 bash tests/test-single-source-layout.sh
 bash tests/test-codex-skill-adapter.sh
-bash install.sh --target all --check full
+bash install.sh --target all --check quick
 ```
 
-`bash install.sh --target all --check full` owns the full install-runtime smoke through the full gate plan. Do not run `bash tests/test-install-runtime-smoke.sh` separately in skill-pull; that duplicates the heaviest runtime gate and increases timeout risk without adding coverage.
+`bash install.sh --target all --check quick` proves the real Claude and Codex runtime exposure without running the full repository regression suite. Do not run `bash tests/test-install-runtime-smoke.sh` or the full gate plan separately in daily skill-pull; the source-specific validation commands above cover the external-source risks, and the quick install gate keeps runtime exposure fast enough to run every update.
 
 Only after those pass may skill-pull run:
 
@@ -116,7 +116,7 @@ Blocked runs report the failed phase, failed command, preserved worktree path, r
 
 ## Completion Check
 
-- [ ] Command evidence recorded for candidate check, validation, full-check install gate, final install, and summary.
+- [ ] Command evidence recorded for candidate check, validation, quick install gate, final install, and summary.
 - [ ] Successful run reports source updates, upstream changes, runtime exposure changes, validation results, install result, branch, and commit.
 - [ ] Blocked run reports failed phase, failed command, preserved worktree path, return code, duration, stdout/stderr evidence, and next action.
 - [ ] No failed validation or install step was bypassed.
