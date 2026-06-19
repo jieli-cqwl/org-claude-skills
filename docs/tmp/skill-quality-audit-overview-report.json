@@ -170,7 +170,7 @@
         "shared/skills/overview/SKILL.md:84",
         "shared/skills/overview/SKILL.md:86",
         "shared/skills/overview/references/mode-selection.md:9",
-        "tests/test-overview-skill-contract.sh:132"
+        "tests/test-overview-skill-contract.sh:133"
       ],
       "evidence_checks": [
         {
@@ -204,7 +204,7 @@
         {
           "field": "unproven_risk_disposition",
           "path": "tests/test-overview-skill-contract.sh",
-          "line": 132,
+          "line": 133,
           "expected_snippet": "for forbidden in (\"串行\", \"轻量\"):",
           "claim": "The regression test preserves non-agent-team fallback as prohibited risk rather than accepted capability."
         }

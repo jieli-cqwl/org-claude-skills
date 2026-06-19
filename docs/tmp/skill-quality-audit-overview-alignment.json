@@ -247,7 +247,7 @@
       "evidence_id": "EV-CONTRACT-FORBIDDEN-TERMS",
       "type": "path_line",
       "path": "tests/test-overview-skill-contract.sh",
-      "line": 132,
+      "line": 133,
       "expected_snippet": "for forbidden in (\"串行\", \"轻量\"):",
       "claim": "The overview contract test rejects forbidden fallback terms in overview runtime surfaces."
     },
@@ -255,16 +255,16 @@
       "evidence_id": "EV-CONTRACT-REQUIRED-SNIPPET",
       "type": "path_line",
       "path": "tests/test-overview-skill-contract.sh",
-      "line": 137,
-      "expected_snippet": "required_skill_snippet = \"分层 agent team 是唯一正式 /overview 执行方式\"",
-      "claim": "The overview contract test requires the agent-team-only Skill statement."
+      "line": 162,
+      "expected_snippet": "if \"agent team\" not in steps.get(3, \"\"):",
+      "claim": "The overview contract test requires the formal execution step to use agent team."
     },
     {
       "evidence_id": "EV-CONTRACT-PROMPTS",
       "type": "path_line",
       "path": "tests/test-overview-skill-contract.sh",
-      "line": 149,
-      "expected_snippet": "if \"分层 agent team\" not in expected:",
+      "line": 179,
+      "expected_snippet": "if \"agent team\" not in expected:",
       "claim": "The overview contract test requires every prompt fixture to expect agent-team execution."
     },
     {
