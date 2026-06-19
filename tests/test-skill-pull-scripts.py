@@ -167,6 +167,36 @@ class CandidateLookupTests(TempDirTest):
         self.assertEqual(candidate.ref, "")
         self.assertIn("timed out", candidate.blocker)
 
+    def test_git_ls_remote_retries_once_after_timeout(self) -> None:
+        calls = []
+        original_run_command = self.lib.run_command
+        try:
+            def fake_run_command(cmd, *, cwd=None, timeout=30):
+                calls.append((cmd, timeout))
+                if len(calls) == 1:
+                    raise subprocess.TimeoutExpired(cmd, timeout)
+                return type(
+                    "Result",
+                    (),
+                    {
+                        "returncode": 0,
+                        "stdout": "abc123\trefs/tags/v1.0.0\n",
+                        "stderr": "",
+                    },
+                )()
+
+            self.lib.run_command = fake_run_command
+
+            ref = self.lib._git_ls_remote(
+                "https://github.com/example/project", "refs/tags/v1.0.0"
+            )
+        finally:
+            self.lib.run_command = original_run_command
+
+        self.assertEqual(ref, "abc123")
+        self.assertEqual(len(calls), 2)
+        self.assertTrue(all(timeout == 90 for _cmd, timeout in calls))
+
 
 class FakeRunner:
     def __init__(

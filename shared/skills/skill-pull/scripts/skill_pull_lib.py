@@ -22,6 +22,8 @@ from typing import Any, Sequence
 
 
 DEFAULT_TIMEOUT_SECONDS = 30
+UPSTREAM_LOOKUP_TIMEOUT_SECONDS = 90
+UPSTREAM_LOOKUP_RETRIES = 1
 MANAGED_SOURCE_NAMES = (
     "anthropic_skills",
     "superpowers",
@@ -187,9 +189,25 @@ def run_command(
     )
 
 
+def _run_upstream_lookup_command(cmd: Sequence[str]) -> subprocess.CompletedProcess[str]:
+    last_timeout: subprocess.TimeoutExpired | None = None
+    for attempt in range(UPSTREAM_LOOKUP_RETRIES + 1):
+        try:
+            return run_command(
+                cmd,
+                timeout=UPSTREAM_LOOKUP_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired as exc:
+            last_timeout = exc
+            if attempt == UPSTREAM_LOOKUP_RETRIES:
+                raise
+    assert last_timeout is not None
+    raise last_timeout
+
+
 def _git_ls_remote(repo: str, ref: str) -> str:
     """Resolve a remote ref to a commit hash using git."""
-    result = run_command(["git", "ls-remote", repo, ref])
+    result = _run_upstream_lookup_command(["git", "ls-remote", repo, ref])
     if result.returncode != 0:
         raise RuntimeError(
             result.stderr.strip() or result.stdout.strip() or "git ls-remote failed"
@@ -202,7 +220,9 @@ def _git_ls_remote(repo: str, ref: str) -> str:
 
 def _default_branch_ref(repo: str) -> str:
     """Resolve the upstream default branch ref."""
-    result = run_command(["git", "ls-remote", "--symref", repo, "HEAD"])
+    result = _run_upstream_lookup_command(
+        ["git", "ls-remote", "--symref", repo, "HEAD"]
+    )
     if result.returncode != 0:
         raise RuntimeError(
             result.stderr.strip()
@@ -234,17 +254,25 @@ def _latest_release(repo: str) -> dict[str, Any] | None:
     request = urllib.request.Request(
         url, headers={"Accept": "application/vnd.github+json"}
     )
-    try:
-        with urllib.request.urlopen(
-            request, timeout=DEFAULT_TIMEOUT_SECONDS
-        ) as response:  # nosec B310
-            payload = json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            return None
-        raise RuntimeError(f"GitHub release lookup failed: HTTP {exc.code}") from exc
-    except urllib.error.URLError as exc:
-        raise RuntimeError(f"GitHub release lookup failed: {exc.reason}") from exc
+    last_error: BaseException | None = None
+    for attempt in range(UPSTREAM_LOOKUP_RETRIES + 1):
+        try:
+            with urllib.request.urlopen(
+                request, timeout=UPSTREAM_LOOKUP_TIMEOUT_SECONDS
+            ) as response:  # nosec B310
+                payload = json.loads(response.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                return None
+            raise RuntimeError(f"GitHub release lookup failed: HTTP {exc.code}") from exc
+        except (TimeoutError, urllib.error.URLError) as exc:
+            last_error = exc
+            if attempt == UPSTREAM_LOOKUP_RETRIES:
+                reason = getattr(exc, "reason", exc)
+                raise RuntimeError(f"GitHub release lookup failed: {reason}") from exc
+    else:
+        raise RuntimeError(f"GitHub release lookup failed: {last_error}")
     if payload.get("prerelease"):
         return None
     return payload
