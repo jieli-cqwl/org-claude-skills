@@ -16,24 +16,58 @@ fail() {
 
 python3 "$ROOT/tools/community/source_lock_check.py" >/dev/null || fail "当前 SOURCES 锁文件不应失败"
 
-cp "$ROOT/community/SOURCES.yaml" "$TMP_DIR/sources-bad.yaml"
-python3 - "$TMP_DIR/sources-bad.yaml" <<'PY'
+cp "$ROOT/community/SOURCES.yaml" "$TMP_DIR/sources-superpowers-new-ref.yaml"
+python3 - "$TMP_DIR/sources-superpowers-new-ref.yaml" <<'PY'
+import re
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
-path.write_text(
-    text.replace(
-        "ref: f2cbfbefebbfef77321e4c9abc9e949826bea9d7",
-        "ref: 0000000000000000000000000000000000000000",
-    ),
-    encoding="utf-8",
+block = re.compile(
+    r"(^  superpowers:\n(?P<body>(?:^    .*(?:\n|$)|^      .*(?:\n|$))*))",
+    flags=re.MULTILINE,
 )
+
+def replace_ref(match: re.Match[str]) -> str:
+    return re.sub(
+        r"^    ref: .*$",
+        "    ref: 896224c4b1879920ab573417e68fd51d2ccc9072",
+        match.group(0),
+        flags=re.MULTILINE,
+    )
+
+path.write_text(block.sub(replace_ref, text, count=1), encoding="utf-8")
+PY
+python3 "$ROOT/tools/community/source_lock_check.py" "$TMP_DIR/sources-superpowers-new-ref.yaml" >/dev/null \
+  || fail "Superpowers 新的合法 commit ref 不应因不是旧锁定 hash 被拒绝"
+
+cp "$ROOT/community/SOURCES.yaml" "$TMP_DIR/sources-bad.yaml"
+python3 - "$TMP_DIR/sources-bad.yaml" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+block = re.compile(
+    r"(^  superpowers:\n(?P<body>(?:^    .*(?:\n|$)|^      .*(?:\n|$))*))",
+    flags=re.MULTILINE,
+)
+
+def replace_ref(match: re.Match[str]) -> str:
+    return re.sub(
+        r"^    ref: .*$",
+        "    ref: 0000000000000000000000000000000000000000",
+        match.group(0),
+        flags=re.MULTILINE,
+    )
+
+path.write_text(block.sub(replace_ref, text, count=1), encoding="utf-8")
 PY
 if python3 "$ROOT/tools/community/source_lock_check.py" "$TMP_DIR/sources-bad.yaml" >/tmp/org_bad_source_lock.out 2>&1; then
   cat /tmp/org_bad_source_lock.out >&2
-  fail "Superpowers 锁定 ref 漂移时应失败"
+  fail "Superpowers ref 为全零 commit 时应失败"
 fi
 
 cp "$ROOT/community/SOURCES.yaml" "$TMP_DIR/sources-invalid-yaml.yaml"

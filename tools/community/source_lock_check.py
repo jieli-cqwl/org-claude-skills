@@ -103,9 +103,12 @@ def validate_superpowers_lock(text: str) -> None:
     block = extract_source_block(text, "superpowers")
     require_pattern(
         block,
-        r"^    ref: f2cbfbefebbfef77321e4c9abc9e949826bea9d7$",
-        "Superpowers ref 必须锁定到已确认官方 HEAD",
+        r"^    ref: [0-9a-f]{40}$",
+        "Superpowers ref 必须锁定到 resolved upstream commit",
     )
+    ref = re.search(r"^    ref: (?P<value>[0-9a-f]{40})$", block, flags=re.MULTILINE)
+    if ref and ref.group("value") == "0" * 40:
+        fail("Superpowers ref 不能是全零 commit")
     require_pattern(
         block,
         r"^    scope:\s*$\n^      - community/superpowers/skills$",
