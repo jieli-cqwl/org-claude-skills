@@ -164,6 +164,7 @@ def apply_frontmatter(
             lines, "disable-model-invocation", "true", after_key="user-invocable"
         )
     elif mode == "auto":
+        lines = remove_scalar(lines, "hidden")
         lines = remove_scalar(lines, "disable-model-invocation")
     updated = "---\n" + "\n".join(lines).rstrip() + "\n---\n\n" + body
     if updated != text:

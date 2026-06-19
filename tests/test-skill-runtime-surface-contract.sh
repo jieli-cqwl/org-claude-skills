@@ -244,6 +244,11 @@ for skill_file in source_skill_files:
         raise SystemExit(f"{skill_file}: missing from runtime surface contract")
     if skill_file.parent.name in source_dirs and skill_name != source_dirs[skill_file.parent.name]:
         raise SystemExit(f"{skill_file}: source_dir maps to {source_dirs[skill_file.parent.name]}, got {skill_name}")
+    entry = skills.get(skill_name) or skills.get(skill_file.parent.name)
+    if entry and entry.get("mode") == "auto":
+        frontmatter = text.split("---\n", 2)[1]
+        if re.search(r"^hidden:\s*true\s*$", frontmatter, re.MULTILINE):
+            raise SystemExit(f"{skill_file}: auto skill source must not declare hidden=true")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
 retired_refs = [
@@ -258,6 +263,7 @@ if "contracts/skill-runtime-surface.json" not in readme:
 PY
 
 mkdir -p \
+  "$TMP_DIR/skills/agent-browser/agents" \
   "$TMP_DIR/skills/docx/agents" \
   "$TMP_DIR/skills/cli-updater/agents" \
   "$TMP_DIR/skills/claude-api/agents" \
@@ -265,6 +271,21 @@ mkdir -p \
   "$TMP_DIR/skills/research/agents" \
   "$TMP_DIR/skills/scan/agents" \
   "$TMP_DIR/skills/webapp-testing/agents"
+cat > "$TMP_DIR/skills/agent-browser/SKILL.md" <<'EOF_SKILL'
+---
+name: agent-browser
+description: Browser automation CLI for AI agents.
+hidden: true
+---
+
+# Agent Browser
+EOF_SKILL
+cat > "$TMP_DIR/skills/agent-browser/agents/openai.yaml" <<'EOF_YAML'
+interface:
+  display_name: "Agent Browser"
+policy:
+  allow_implicit_invocation: false
+EOF_YAML
 cat > "$TMP_DIR/skills/docx/SKILL.md" <<'EOF_SKILL'
 ---
 name: docx
@@ -368,6 +389,10 @@ python3 "$APPLY_TOOL" \
   --runtime codex \
   --audit-json "$TMP_DIR/audit.json"
 
+! grep -Fq 'hidden: true' "$TMP_DIR/skills/agent-browser/SKILL.md" \
+  || fail "Codex auto skill should not remain hidden"
+grep -Fq 'allow_implicit_invocation: true' "$TMP_DIR/skills/agent-browser/agents/openai.yaml" \
+  || fail "Codex auto skill should self-heal stale implicit invocation policy"
 grep -Fq 'disable-model-invocation: true' "$TMP_DIR/skills/docx/SKILL.md" \
   || fail "Codex manual-only SKILL.md should keep cross-runtime manual marker"
 grep -Fq 'allow_implicit_invocation: false' "$TMP_DIR/skills/docx/agents/openai.yaml" \
@@ -446,7 +471,7 @@ from pathlib import Path
 audit = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 if audit.get("runtime") != "codex":
     raise SystemExit("audit runtime mismatch")
-if audit.get("auto_count") != 1 or audit.get("manual_count") != 6:
+if audit.get("auto_count") != 2 or audit.get("manual_count") != 6:
     raise SystemExit(f"unexpected audit counts: {audit}")
 PY
 
