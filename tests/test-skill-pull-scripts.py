@@ -2,6 +2,7 @@
 from __future__ import annotations
 import importlib.util
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -138,6 +139,33 @@ class CandidateLookupTests(TempDirTest):
 
         self.assertEqual(by_name["superpowers"].status, "blocked")
         self.assertEqual(by_name["superpowers"].blocker, "release lookup failed")
+
+    def test_lookup_candidate_reports_git_timeout_as_blocker(self) -> None:
+        lock = self.lib.SourceLock(
+            name="vercel_agent_browser",
+            repo="https://github.com/vercel-labs/agent-browser",
+            ref="old-ref",
+            captured_at="2026-06-18",
+        )
+        original_latest_release = self.lib._latest_release
+        original_git_ls_remote = self.lib._git_ls_remote
+        try:
+            self.lib._latest_release = lambda repo: {"tag_name": "v0.28.0"}
+
+            def timeout(_repo: str, _ref: str) -> str:
+                raise subprocess.TimeoutExpired(["git", "ls-remote"], 30)
+
+            self.lib._git_ls_remote = timeout
+
+            candidate = self.lib.lookup_candidate(lock)
+        finally:
+            self.lib._latest_release = original_latest_release
+            self.lib._git_ls_remote = original_git_ls_remote
+
+        self.assertEqual(candidate.name, "vercel_agent_browser")
+        self.assertEqual(candidate.source, "error")
+        self.assertEqual(candidate.ref, "")
+        self.assertIn("timed out", candidate.blocker)
 
 
 class FakeRunner:

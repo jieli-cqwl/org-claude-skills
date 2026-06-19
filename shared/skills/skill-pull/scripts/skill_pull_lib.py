@@ -266,7 +266,7 @@ def lookup_candidate(lock: SourceLock) -> CandidateRef:
         return CandidateRef(
             name=lock.name, ref=ref, source="default_branch", summary=default_ref
         )
-    except RuntimeError as exc:
+    except (RuntimeError, subprocess.TimeoutExpired) as exc:
         return CandidateRef(name=lock.name, ref="", source="error", blocker=str(exc))
 
 
