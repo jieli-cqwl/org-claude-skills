@@ -1,10 +1,10 @@
 # Task Plan: Standard-chain Review Design Guardrail
 
 ## Goal
-Define an evidence-based review system that can decide whether the current standard-chain flow and its key skills are ready for controlled dogfood, and can identify the minimum blocker set that prevents or limits that dogfood readiness.
+Build an evidence-first research process that discovers what makes an agent Skill effective from authoritative sources, strong examples, failure evidence, and adversarial review, before deriving any evaluation dimensions for this repository's Skills.
 
 ## Current Phase
-Phase 5
+Phase 7
 
 ## Phases
 
@@ -36,14 +36,28 @@ Phase 5
 - [x] Re-read plan and findings before drafting.
 - [ ] Present the full review design draft for user approval, centered on controlled dogfood readiness.
 - [ ] Wait for user approval before writing formal design doc.
+- **Status:** blocked by scope correction
+
+### Phase 6: Skill Best-practice Model Alignment
+- [x] Stop incorrect standard-chain dogfood-readiness research direction.
+- [x] Align on the real target: discover Skill best-practice criteria from source-backed evidence before deriving dimensions.
+- [x] Design source-backed research plan for Skill best-practice criteria.
+- [x] Wait for user approval before dispatching new research agents.
+- **Status:** complete
+
+### Phase 7: Design Doc Written And User Review
+- [x] Write formal design doc.
+- [x] Self-review for placeholders, contradictions, ambiguity, and scope drift.
+- [x] Run fresh verification.
+- [ ] Ask user to review the design doc before implementation planning.
 - **Status:** in_progress
 
 ## Key Questions
-1. Can the review system decide whether standard-chain is ready for a controlled real-task dogfood in its intended team-delivery scenario?
-2. Can it distinguish flow defects from individual skill defects, contract defects, validation defects, and evidence gaps?
-3. Can it identify the minimum blocker set that must be fixed before dogfood?
-4. Can it reject unsupported "best practice" claims, including claims borrowed from gstack or superpowers without local fit evidence?
-5. Can it produce conclusions that survive red-team attack on evidence, assumptions, severity, and reasoning?
+1. Which authoritative or high-signal sources can legitimately inform what makes a Skill effective?
+2. What claims do those sources make about Skill structure, behavior control, workflow, validation, and failure handling?
+3. Which claims are source-backed facts, which are cross-source inferences, and which remain unknown?
+4. Which candidate dimensions survive evidence review, counterexamples, and red-team challenge?
+5. How should validated dimensions later be applied to this repository's Skills without subjective taste or external-authority bias?
 
 ## Decisions Made
 | Decision | Rationale |
@@ -55,6 +69,9 @@ Phase 5
 | Redefine goal around trustworthiness and blocker discovery | User flagged the previous goal as insufficiently clear; the stronger target is a decision system, not merely a review-design document. |
 | Demote the target from team-ready to dogfood-ready | First-principles review shows static evaluation cannot prove team adoption readiness without real-run evidence. |
 | Center the design on a dogfood readiness gate | The next useful decision is whether one controlled real requirement can safely exercise the chain. |
+| Correct scope to Skill best-practice model first | User clarified that the immediate research target is what a best-practice Skill is, not standard-chain dogfood readiness. |
+| Move from predefined rubric to bottom-up evidence discovery | User clarified that unknown or weak areas should be researched from authoritative evidence before deriving dimensions. |
+| Wrote formal design doc before dispatching agents | The approved next artifact is a research design, not execution. |
 
 ## Errors Encountered
 | Error | Attempt | Resolution |
@@ -63,3 +80,5 @@ Phase 5
 ## Notes
 - Scope is the review design for standard-chain process and key skill evaluation.
 - Non-goals: no skill edits, no contract edits, no dogfood run, no actual multi-agent review execution.
+- Design doc: `docs/superpowers/specs/2026-06-18--skill-best-practice-research--design.md`
+- Verification: `git diff --check -- docs/superpowers/specs/2026-06-18--skill-best-practice-research--design.md task_plan.md findings.md progress.md`; `bash tests/run-all.sh --quick`

@@ -6,6 +6,7 @@
 - The user wants separate agents to challenge the review conclusions and distrust weak evidence or unsupported opinions.
 - The current request is to guardrail the overall concept for omissions and ambiguity.
 - The revised goal must answer whether standard-chain and key skills are ready for controlled dogfood, not whether the team can broadly rely on them.
+- Scope correction: before judging standard-chain or dogfood readiness, first research and define what makes an agent Skill best-practice, including format, content, workflow, behavior induction, validation, and runtime integration.
 
 ## Research Findings
 - Current proposed architecture: double-layer review, positive independent reviewers, red-team challengers, main adjudication.
@@ -23,6 +24,11 @@
 - First-principles finding: "team-ready" requires real-run evidence across multiple tasks/users or at least staged dogfood evidence; it cannot be granted by this review design alone.
 - Dogfood readiness should answer whether one controlled real requirement can exercise the chain without predictable fake progress, stale evidence, artifact drift, or unbounded agent loops.
 - Dogfood readiness is not release readiness, production readiness, or team rollout readiness.
+- The prior agent dispatch direction was wrong because it investigated standard-chain dogfood readiness before defining Skill best-practice criteria.
+- Correct research direction: build a source-backed Skill best-practice model, then later apply it to this repo's Skills and flow.
+- Epistemic risk: defining "best Skill" dimensions before validating the dimensions can create circular evaluation. The rubric itself must be treated as a hypothesis and challenged before it is used.
+- Corrected framing: first discover and validate what dimensions are legitimate, then evaluate Skills. Do not assume the initial dimensions are true.
+- Stronger correction: do not predefine weakly understood dimensions at all. First collect authoritative and high-signal evidence, classify source authority, extract claims, compare sources, then derive candidate dimensions.
 
 ## Technical Decisions
 | Decision | Rationale |
@@ -35,6 +41,9 @@
 | Define review output as a dogfood-readiness decision | The useful result is whether the flow/skills deserve controlled real-task trial, what blocks that trial, and what evidence must be collected next. |
 | Reserve `team-ready` for post-dogfood evidence | Prevents static review from overclaiming reliability, adoption, cost, or repeatability. |
 | Define dogfood as a controlled evidence-gathering run | The review should grant permission to learn from a bounded real run, not permission to trust the process broadly. |
+| Stop dogfood-readiness research and reset to Skill best-practice research | User explicitly corrected the scope before the research completed. |
+| Treat best-practice dimensions as hypotheses | Prevents self-confirming evaluation where the rubric only proves our prior assumptions. |
+| Use bottom-up evidence discovery before rubric design | Avoids pretending to know what best-practice Skill quality means before source-backed research. |
 
 ## Issues Encountered
 | Issue | Resolution |
@@ -47,6 +56,7 @@
 - `contracts/standard-chain.yaml`: standard-chain contract entry.
 - `shared/skills/skill-quality-audit/references/audit-dimensions.md`: existing skill audit dimensions.
 - `shared/skills/skill-quality-audit/SKILL.md`: existing formal skill quality audit mechanism.
+- `docs/superpowers/specs/2026-06-18--skill-best-practice-research--design.md`: formal design doc for evidence-first Skill best-practice research.
 
 ## Visual/Browser Findings
 - No visual/browser artifacts used in this guardrail pass.
