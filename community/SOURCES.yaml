@@ -1,8 +1,8 @@
 sources:
   anthropic_skills:
     repo: https://github.com/anthropics/skills
-    ref: 690f15cac7f7b4c055c5ab109c79ed9259934081
-    captured_at: 2026-05-27
+    ref: 57546260929473d4e0d1c1bb75297be2fdfa1949
+    captured_at: 2026-06-19
     scope:
       - community/anthropic/skills
       - community/anthropic/codex/skills
@@ -12,8 +12,8 @@ sources:
       - "`skill-creator` 在仓库中保持 upstream 镜像，并安装到 Claude 与 Codex 用户运行面；Codex 隐藏 system 资源不作为 Skill 真源。"
   superpowers:
     repo: https://github.com/obra/superpowers
-    ref: f2cbfbefebbfef77321e4c9abc9e949826bea9d7
-    captured_at: 2026-05-08
+    ref: 896224c4b1879920ab573417e68fd51d2ccc9072
+    captured_at: 2026-06-19
     scope:
       - community/superpowers/skills
     notes:
@@ -21,8 +21,8 @@ sources:
       - No local overlays, Codex adapters, runtime metadata rewrites, source headers, or local-only skills are allowed under community/superpowers.
   vercel_skills:
     repo: https://github.com/vercel-labs/skills
-    ref: b469d6954dd10be20d3e8d9bb59463584d42efbb
-    captured_at: 2026-05-27
+    ref: e3a5432e888ef415f4d2bfb2d1d427dcf9a23b1f
+    captured_at: 2026-06-19
     scope:
       - community/vercel/skills/find-skills
       - community/vercel/codex/skills/find-skills
@@ -31,8 +31,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   vercel_agent_browser:
     repo: https://github.com/vercel-labs/agent-browser
-    ref: c830d1b67dc18b754e305859f0ae587f858a1447
-    captured_at: 2026-05-09
+    ref: 6323df571ffd17d14e60ec19fcb56cc1caf498ab
+    captured_at: 2026-06-19
     scope:
       - community/vercel/skills/agent-browser
       - community/vercel/codex/skills/agent-browser
@@ -41,8 +41,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   alchaincyf_darwin_skill:
     repo: https://github.com/alchaincyf/darwin-skill
-    ref: 5bfc6b48dded19332143faa4dd9342c898709f1e
-    captured_at: 2026-05-27
+    ref: 7c7b7909b630dc3b5cbb91bd4bcb1b10bfb1f894
+    captured_at: 2026-06-19
     scope:
       - community/alchaincyf/skills/darwin-skill
       - community/alchaincyf/codex/skills/darwin-skill
@@ -63,8 +63,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   panniantong_agent_reach:
     repo: https://github.com/panniantong/agent-reach
-    ref: 23d4d5c611b871a49d33a771769c0b3dc554c85b
-    captured_at: 2026-05-27
+    ref: f65526cbaaad3879473acc1ba6dbefd195caf2be
+    captured_at: 2026-06-19
     scope:
       - community/panniantong/skills/agent-reach
       - community/panniantong/codex/skills/agent-reach
@@ -85,8 +85,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_alirezarezvani_code_to_prd:
     repo: https://github.com/alirezarezvani/claude-skills
-    ref: bd3d06056596d345dd7fdff3d961d2f6a8e60ea2
-    captured_at: 2026-05-27
+    ref: 0d78fd835a0136988f4df2fe75d1e6295b4ef4d7
+    captured_at: 2026-06-19
     scope:
       - community/open-skills/skills/code-to-prd
     notes:
@@ -96,8 +96,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_mattpocock_to_prd:
     repo: https://github.com/mattpocock/skills
-    ref: 0288510dd61ff6ef7c2003834082ab8f2387e80e
-    captured_at: 2026-05-27
+    ref: 2454c95dc305c158b21a0cdafeb728879dd0359a
+    captured_at: 2026-06-19
     scope:
       - community/open-skills/skills/to-prd
     notes:
@@ -106,8 +106,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prd:
     repo: https://github.com/github/awesome-copilot
-    ref: 0cdbad4dbebb98926a3fb4985d69a57d0b83313a
-    captured_at: 2026-05-27
+    ref: 251f416b6d3aa12837b10536e6f9bdd67f482ff7
+    captured_at: 2026-06-19
     scope:
       - community/open-skills/skills/prd
     notes:
@@ -116,8 +116,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prompt_optimizer:
     repo: https://github.com/github/awesome-copilot
-    ref: a1fc7f1a5799eefa984a4e46e672f34be1ce63f1
-    captured_at: 2026-06-11
+    ref: 251f416b6d3aa12837b10536e6f9bdd67f482ff7
+    captured_at: 2026-06-19
     scope:
       - community/open-skills/skills/prompt-optimizer
     notes:
@@ -127,8 +127,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_graphify:
     repo: https://github.com/safishamsi/graphify
-    ref: 43bf3c237117e94c77e52df32107f707d532d5dc
-    captured_at: 2026-05-27
+    ref: dce54a007e2ad3eda41307abd669d5a8acac3813
+    captured_at: 2026-06-19
     scope:
       - community/open-skills/skills/graphify
     notes:
@@ -159,8 +159,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_baoyu_markdown_to_html:
     repo: https://github.com/JimLiu/baoyu-skills
-    ref: e1c0ff7c02393da810ed3fb1810a02f9cb1a7abe
-    captured_at: 2026-05-27
+    ref: f490f7e5e347a356cbce30fee193766b7de792cf
+    captured_at: 2026-06-19
     scope:
       - community/open-skills/skills/baoyu-markdown-to-html
     notes:
@@ -192,8 +192,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_othmanadi_planning_with_files:
     repo: https://github.com/OthmanAdi/planning-with-files
-    ref: 577a1c59b48edbe3eeea37f168461923adfbda5e
-    captured_at: 2026-05-27
+    ref: 8f5a3c2e1c347635cf94debde033b3c1ac97e4ab
+    captured_at: 2026-06-19
     scope:
       - community/open-skills/skills/planning-with-files
     notes:
@@ -202,8 +202,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_self_improving_agent:
     repo: https://github.com/zhaono1/agent-playbook
-    ref: e55b839c0f44a451978db68d514746c02e9fd685
-    captured_at: 2026-05-12
+    ref: f20ceaa1bd85c6902f039bde2cb937e7d7c5e454
+    captured_at: 2026-06-19
     scope:
       - community/open-skills/skills/self-improving-agent
     notes:
