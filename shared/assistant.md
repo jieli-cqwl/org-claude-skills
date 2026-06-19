@@ -21,6 +21,11 @@
 - 硬约束来源：`{{RUNTIME_HOME}}/rules/` 下所有规则优先于 reference；执行前必须确保这些规则已加载或已读取。
 - 测试与变更验证：先读取 `{{RUNTIME_HOME}}/reference/测试规范.md`，从成功标准推导验证点，按维度和风险面审视。
 - 代码变更：先读取 `{{RUNTIME_HOME}}/rules/code-changes.md`，按 Code Changes 判断最小变更、复用、复杂度、错误处理、配置、性能和共享契约。
+- 结构、复用、复杂度、兼容层和共享契约决策：先读取 `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`，确认是否存在可复用语义、是否需要拆分责任以及是否保持现有边界。
+- 注释、SQL、协议、解析、正则、并发和业务不变量表达：先读取 `{{RUNTIME_HOME}}/reference/code-comments.md`，只补能说明意图、边界、取舍或失败模式的注释。
+- 错误处理、外部依赖、fallback、重试、清理和部分成功：先读取 `{{RUNTIME_HOME}}/reference/error-handling.md`，确保失败可见、可诊断、可恢复，禁止把失败包装成成功。
+- 常量、配置、secret、环境差异和共享值：先读取 `{{RUNTIME_HOME}}/reference/constants-and-configuration.md`，确认所有值归属正确且不泄露敏感信息。
+- 性能、批处理、轮询、异步任务、临时文件、缓存和大数据路径：先读取 `{{RUNTIME_HOME}}/reference/performance-and-efficiency.md`，确认资源上限、超时、清理和增长风险。
 - 声称任务完成前：先读取 `{{RUNTIME_HOME}}/rules/completion-claims.md`，按目标、验收项、证据、失败出口逐项校验。
 - 架构设计决策：先读取 `{{RUNTIME_HOME}}/reference/设计原则.md`，用简单/合适/演化三原则判断设计取舍。
 - 评估变更影响范围：先读取 `{{RUNTIME_HOME}}/reference/影响范围分析.md`，先列变更点，系统覆盖影响维度，最后定义验证面。
