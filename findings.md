@@ -7,6 +7,7 @@
 - The current request is to guardrail the overall concept for omissions and ambiguity.
 - The revised goal must answer whether standard-chain and key skills are ready for controlled dogfood, not whether the team can broadly rely on them.
 - Scope correction: before judging standard-chain or dogfood readiness, first research and define what makes an agent Skill best-practice, including format, content, workflow, behavior induction, validation, and runtime integration.
+- User approved moving from the design document into an execution plan for the Skill best-practice research package.
 
 ## Research Findings
 - Current proposed architecture: double-layer review, positive independent reviewers, red-team challengers, main adjudication.
@@ -29,6 +30,7 @@
 - Epistemic risk: defining "best Skill" dimensions before validating the dimensions can create circular evaluation. The rubric itself must be treated as a hypothesis and challenged before it is used.
 - Corrected framing: first discover and validate what dimensions are legitimate, then evaluate Skills. Do not assume the initial dimensions are true.
 - Stronger correction: do not predefine weakly understood dimensions at all. First collect authoritative and high-signal evidence, classify source authority, extract claims, compare sources, then derive candidate dimensions.
+- Current execution plan should include local/runtime Skill-writing guidance because it exposes concrete structure, trigger, progressive-disclosure, validation, and evaluation expectations. These sources still remain evidence, not authority.
 
 ## Technical Decisions
 | Decision | Rationale |
@@ -44,6 +46,8 @@
 | Stop dogfood-readiness research and reset to Skill best-practice research | User explicitly corrected the scope before the research completed. |
 | Treat best-practice dimensions as hypotheses | Prevents self-confirming evaluation where the rubric only proves our prior assumptions. |
 | Use bottom-up evidence discovery before rubric design | Avoids pretending to know what best-practice Skill quality means before source-backed research. |
+| Add an explicit execution plan before research | Keeps source collection, claim extraction, synthesis, counterexamples, and adversarial review in the approved order. |
+| Include runtime Skill-writing guides in the source inventory | Avoids missing the current environment's concrete Skill-design constraints while preserving the no-authority-bias rule. |
 
 ## Issues Encountered
 | Issue | Resolution |
@@ -57,6 +61,7 @@
 - `shared/skills/skill-quality-audit/references/audit-dimensions.md`: existing skill audit dimensions.
 - `shared/skills/skill-quality-audit/SKILL.md`: existing formal skill quality audit mechanism.
 - `docs/superpowers/specs/2026-06-18--skill-best-practice-research--design.md`: formal design doc for evidence-first Skill best-practice research.
+- `docs/superpowers/plans/2026-06-19--skill-best-practice-research.md`: execution plan for the evidence-first Skill best-practice research package.
 
 ## Visual/Browser Findings
 - No visual/browser artifacts used in this guardrail pass.

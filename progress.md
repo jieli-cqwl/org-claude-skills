@@ -77,10 +77,24 @@
   - `docs/superpowers/specs/2026-06-18--skill-best-practice-research--design.md`
 
 ### Phase 7: Design Doc Written And User Review
+- **Status:** complete
+- Actions taken:
+  - User approved continuing from the design document into execution planning.
+  - Confirmed the next artifact is a research execution plan, not research execution itself.
+- Files created/modified:
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+
+### Phase 8: Execution Plan Prepared
 - **Status:** in_progress
 - Actions taken:
-  - Ready to ask user to review the design document before implementation planning.
+  - Read the applicable planning and completion rules before editing.
+  - Wrote `docs/superpowers/plans/2026-06-19--skill-best-practice-research.md`.
+  - Added local/runtime Skill-writing guidance to the planned source inventory as evidence sources.
+  - Kept the plan scoped to source inventory, claim extraction, failure-mode mapping, counterexample testing, adversarial review, and provisional model packaging.
 - Files created/modified:
+  - `docs/superpowers/plans/2026-06-19--skill-best-practice-research.md`
   - `task_plan.md`
   - `findings.md`
   - `progress.md`
@@ -90,6 +104,10 @@
 |------|-------|----------|--------|--------|
 | Diff whitespace check | `git diff --check -- docs/superpowers/specs/2026-06-18--skill-best-practice-research--design.md task_plan.md findings.md progress.md` | No whitespace errors | No output, exit 0 | PASS |
 | Quick regression | `bash tests/run-all.sh --quick` | All checks pass | 34/34 checks passed; "All tests passed" | PASS |
+| Plan placeholder scan | `rg -n "TBD|TODO|exact URLs to be filled|Similar to Task|implement later|fill in details|UNRESOLVED_SOURCE_REF|STATUS_UNRESOLVED" docs/superpowers/plans/2026-06-19--skill-best-practice-research.md` | Only intentional verification-command patterns, no unresolved plan placeholders | Matched only the verification-command examples in the plan | PASS |
+| Plan diff whitespace check | `git diff --check -- docs/superpowers/plans/2026-06-19--skill-best-practice-research.md task_plan.md findings.md progress.md` | No whitespace errors | No output, exit 0 | PASS |
+| Skill runtime surface contract | `bash tests/test-skill-runtime-surface-contract.sh` | Contract passes after removing stale `hidden: true` from auto `agent-browser` source stub | `[PASS] skill runtime surface contract` | PASS |
+| Quick regression after plan | `bash tests/run-all.sh --quick` | All checks pass | 34/34 checks passed; `All tests passed` | PASS |
 
 ## Error Log
 | Timestamp | Error | Attempt | Resolution |
@@ -98,8 +116,8 @@
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | Phase 7: Design Doc Written And User Review |
-| Where am I going? | User review, then implementation plan only after approval |
+| Where am I? | Phase 8: Execution Plan Prepared |
+| Where am I going? | Finish and verify the execution plan, then ask the user to choose execution mode |
 | What's the goal? | Define evidence-first research process for Skill best-practice criteria |
-| What have I learned? | See findings.md |
-| What have I done? | Created planning files and locked scope |
+| What have I learned? | The plan must include runtime Skill-writing sources while keeping them as evidence, not authority |
+| What have I done? | Created the design doc and drafted the execution plan |
