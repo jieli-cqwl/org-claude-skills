@@ -17,6 +17,10 @@ FORBIDDEN_QUICK_TAGS = {
     "migration",
     "install-heavy",
 }
+QUICK_TAG_EXEMPTIONS = {
+    # Synthetic validator for redacted templates/fixtures; this does not run live or E2E dogfood.
+    "product-director-real-transcript-dogfood": {"dogfood"},
+}
 REQUIRED_QUICK_AREAS = {
     "preflight",
     "contracts",
@@ -97,7 +101,8 @@ def validate_quick(steps: list[dict[str, Any]]) -> None:
     if missing:
         raise SystemExit(f"quick plan missing required areas: {missing}")
     for step in steps:
-        blocked = sorted(set(step.get("tags", [])) & FORBIDDEN_QUICK_TAGS)
+        exempted = QUICK_TAG_EXEMPTIONS.get(str(step.get("id")), set())
+        blocked = sorted(set(step.get("tags", [])) & (FORBIDDEN_QUICK_TAGS - exempted))
         if blocked:
             raise SystemExit(
                 f"quick step {step.get('id')} has forbidden tags: {blocked}"

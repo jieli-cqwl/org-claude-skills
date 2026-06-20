@@ -1,0 +1,18 @@
+{
+  "artifact_type": "product-director-real-transcript-summary",
+  "schema_version": "0.1.0",
+  "stage": "STAGE_1_SMOKE",
+  "reviews": [
+    "reviews/PD-DOGFOOD-001.json"
+  ],
+  "review_count": 1,
+  "in_scope_blocker_count": 0,
+  "warning_patterns": [],
+  "promotion_effect": "NOT_PROMOTION_SAMPLE_YET",
+  "next_action": "EXPAND_TO_STAGE_2",
+  "does_not_claim": [
+    "full_chain_readiness",
+    "delivery_owner_real_delivery_readiness",
+    "daily_default_skill_readiness"
+  ]
+}

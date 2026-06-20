@@ -94,7 +94,7 @@ if plan.get("mode") != "quick":
 steps = plan.get("steps")
 if not isinstance(steps, list) or not steps:
     raise SystemExit("quick json plan must include non-empty steps")
-if len(steps) > 35:
+if len(steps) > 36:
     raise SystemExit(f"quick should stay a small canary plan, got {len(steps)} steps")
 required_areas = {
     "preflight",
@@ -112,11 +112,13 @@ missing = sorted(required_areas - areas)
 if missing:
     raise SystemExit(f"quick plan missing required areas: {missing}")
 for step in steps:
+    step_id = step.get("id")
     tags = set(step.get("tags", []))
     forbidden = {"full-only", "release-only", "dogfood", "e2e", "live", "migration", "install-heavy"}
-    blocked = sorted(tags & forbidden)
+    exemptions = {"product-director-real-transcript-dogfood": {"dogfood"}}
+    blocked = sorted(tags & (forbidden - exemptions.get(step_id, set())))
     if blocked:
-        raise SystemExit(f"quick step {step.get('id')} has forbidden tags: {blocked}")
+        raise SystemExit(f"quick step {step_id} has forbidden tags: {blocked}")
     timeout = step.get("timeout_sec")
     if not isinstance(timeout, int) or timeout <= 0 or timeout > 120:
         raise SystemExit(f"quick step {step.get('id')} must have timeout_sec in 1..120")
@@ -128,7 +130,7 @@ release_steps="$(plan_count steps "$release_plan")"
 
 [ "$full_steps" -gt "$quick_steps" ] || fail "full plan should have more steps than quick plan"
 [ "$release_steps" -gt "$full_steps" ] || fail "release plan should add release-only checks beyond the full plan"
-[ "$quick_steps" -le 35 ] || fail "quick plan should stay below 35 canary steps"
+[ "$quick_steps" -le 36 ] || fail "quick plan should stay below 36 canary steps"
 
 assert_contains "bash $ROOT/tests/test-install-core.sh --group basic" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-install-core.sh --group runtime-noise" "$full_plan" "full plan"
@@ -183,8 +185,11 @@ assert_contains "bash $ROOT/tools/validate-contracts.sh" "$quick_plan" "quick pl
 assert_contains "bash $ROOT/tests/test-entry-doc-source-contract.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-test-assertion-boundary-contract.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-product-director-team-pilot-contract.sh" "$quick_plan" "quick plan"
+assert_contains "bash $ROOT/tests/test-product-director-real-transcript-dogfood.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-product-director-team-pilot-contract.sh" "$full_plan" "full plan"
+assert_contains "bash $ROOT/tests/test-product-director-real-transcript-dogfood.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-product-director-team-pilot-contract.sh" "$release_plan" "release plan"
+assert_contains "bash $ROOT/tests/test-product-director-real-transcript-dogfood.sh" "$release_plan" "release plan"
 assert_contains "bash $ROOT/tests/test-standard-chain-field-consumption-contract.sh" "$quick_plan" "quick plan"
 assert_not_contains "test-standard-chain-validator-stack.sh" "$quick_plan" "quick plan"
 assert_contains "bash $ROOT/tests/test-standard-chain-validator-stack.sh" "$full_plan" "full plan"

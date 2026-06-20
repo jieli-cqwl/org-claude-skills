@@ -1,0 +1,88 @@
+{
+  "artifact_type": "product-director-real-transcript-review",
+  "schema_version": "0.1.0",
+  "review_id": "PD-DOGFOOD-001",
+  "stage": "STAGE_3_PROMOTION",
+  "request_summary": "Finance operations needs a reliable overdue invoice follow-up baseline.",
+  "demand_class": "business_growth",
+  "route_rationale": {
+    "matched_signal": "PD-ROUTE-003",
+    "decision": "manual_invoke_product_director",
+    "basis_ref": "contracts/standard-chain-invocation-policy.yaml",
+    "persistent_state_created": false
+  },
+  "transcript_ref": {
+    "storage": "external_redacted_or_digest",
+    "ref": "external://secure-transcript-store/PD-DOGFOOD-001-redacted",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "redacted_excerpt_ref": "reviews/PD-DOGFOOD-001.excerpt.md"
+  },
+  "transcript_redaction_status": "redacted_excerpt_sufficient",
+  "dimension_verdicts": [
+    {
+      "id": "no_interrogation",
+      "verdict": "PASS",
+      "evidence_ref": "reviews/PD-DOGFOOD-001.excerpt.md#turn-2",
+      "reason": "The skill asked one decision-changing blocking fact and explained why it mattered.",
+      "impact": "none"
+    },
+    {
+      "id": "no_pretend_closure",
+      "verdict": "PASS",
+      "evidence_ref": "reviews/PD-DOGFOOD-001.excerpt.md#turn-4",
+      "reason": "Unknown, inferred, and user-confirmed facts remained separated.",
+      "impact": "none"
+    },
+    {
+      "id": "no_stage_jump",
+      "verdict": "PASS",
+      "evidence_ref": "reviews/PD-DOGFOOD-001.excerpt.md#stage-map",
+      "reason": "The transcript stayed in the active Director stage before advancing.",
+      "impact": "none"
+    },
+    {
+      "id": "success_standard_closure",
+      "verdict": "PASS",
+      "evidence_ref": "reviews/PD-DOGFOOD-001.excerpt.md#success-standard",
+      "reason": "Current baseline, target direction, observation window, data source, and failure signal were closed or explicitly blocked.",
+      "impact": "none"
+    },
+    {
+      "id": "director_why_only",
+      "verdict": "PASS",
+      "evidence_ref": "reviews/PD-DOGFOOD-001.excerpt.md#recommendation",
+      "reason": "The output stayed at root problem, success standard, scope boundary, risk, and phase slice.",
+      "impact": "none"
+    },
+    {
+      "id": "explicit_confirmation_before_finalization",
+      "verdict": "PASS",
+      "evidence_ref": "reviews/PD-DOGFOOD-001.excerpt.md#confirmation",
+      "reason": "Finalization was blocked until explicit product director confirmation.",
+      "impact": "none"
+    },
+    {
+      "id": "handoff_to_product_manager_only",
+      "verdict": "PASS",
+      "evidence_ref": "reviews/PD-DOGFOOD-001.excerpt.md#handoff",
+      "reason": "The only allowed downstream target after final gates was product-manager.",
+      "impact": "none"
+    },
+    {
+      "id": "simple_request_reroute",
+      "verdict": "NOT_APPLICABLE",
+      "evidence_ref": "reviews/PD-DOGFOOD-001.excerpt.md#route",
+      "reason": "The candidate was a complex demand, not a simple request.",
+      "impact": "none"
+    }
+  ],
+  "baseline_risk_review": {
+    "likely_without_skill_failure": "fake_closure_or_unclear_success_standard",
+    "skill_prevented_failure": true,
+    "process_cost_observed": "acceptable_for_complex_demand"
+  },
+  "blocking_findings": [],
+  "expansion_decision": "EXPAND_TO_STAGE_2",
+  "reviewer": "independent-reviewer",
+  "reviewed_at": "2026-06-20"
+}

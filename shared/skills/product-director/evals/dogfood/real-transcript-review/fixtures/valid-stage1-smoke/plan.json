@@ -1,0 +1,39 @@
+{
+  "artifact_type": "product-director-real-transcript-dogfood-plan",
+  "schema_version": "0.1.0",
+  "skill_under_test": "shared/skills/product-director",
+  "stage": "STAGE_1_SMOKE",
+  "sample_target": 1,
+  "promotion_required_transcripts": 5,
+  "promotion_target": "default_complex_demand_entry",
+  "allowed_demand_classes": [
+    "business_growth",
+    "stability_or_technical_debt",
+    "workflow_or_compliance"
+  ],
+  "review_dimensions_ref": "shared/skills/product-director/evals/dogfood/team-pilot-readiness.json#/review_dimensions",
+  "route_policy_ref": "contracts/standard-chain-invocation-policy.yaml",
+  "non_goals": [
+    "do_not_start_live_dogfood_from_template",
+    "do_not_create_active_doc_scope",
+    "do_not_create_standard_chain_canonical_artifacts",
+    "do_not_claim_full_chain_readiness",
+    "do_not_run_delivery_owner_real_delivery"
+  ],
+  "stop_conditions": [
+    "premature_final_artifact_write",
+    "inferred_fact_treated_as_confirmed",
+    "stage_jump_before_director_confirmation",
+    "bundled_survey_questioning",
+    "simple_request_forced_into_director",
+    "unreviewable_transcript_evidence",
+    "user_rejects_interaction_cost"
+  ],
+  "evidence_policy": {
+    "raw_transcript_in_repo_allowed": false,
+    "requires_redacted_excerpt_or_external_digest": true,
+    "forbids_raw_secrets_or_customer_identifiers": true
+  },
+  "reviewer": "independent-reviewer",
+  "created_at": "2026-06-20"
+}

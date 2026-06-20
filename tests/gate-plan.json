@@ -835,6 +835,39 @@
       "timeout_sec": 60
     },
     {
+      "id": "product-director-real-transcript-dogfood",
+      "command": [
+        "bash",
+        "tests/test-product-director-real-transcript-dogfood.sh"
+      ],
+      "area": "product",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "product",
+        "team-pilot",
+        "dogfood"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
+      "id": "standard-chain-invocation-policy",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-invocation-policy.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "contract",
+        "standard-chain"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
       "id": "product-director-real-demand-smoke",
       "command": [
         "bash",

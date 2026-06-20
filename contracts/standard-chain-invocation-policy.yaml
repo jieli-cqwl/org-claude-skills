@@ -1,0 +1,173 @@
+# standard-chain invocation policy
+version: 1
+chain_version: standard-chain/v1
+policy_status: non_persistent_route_guardrail
+owner: standard-chain-router
+scope:
+  applies_to:
+    - first-party standard-chain entry routing
+    - manual invocation decisions for product-director
+    - bypass decisions before product-manager, tech-lead, delivery-owner, or direct implementation
+    - inline route rationale in the current response or handoff
+  does_not_prove:
+    - full-chain team rollout readiness
+    - delivery-owner real delivery readiness
+    - product-director promotion beyond complex-demand intake
+  does_not_create:
+    - canonical route-decision artifact
+    - persistent runtime state
+    - required worklog entry
+    - automatic product-director invocation
+
+recording_model:
+  mode: inline_ephemeral
+  canonical_artifact: none
+  runtime_state: none
+  validation_consumer: current_agent_only
+  rule: Route/bypass rationale may be stated in the current response or handoff when it affects the next step, but this policy does not require or define a stored route decision record.
+
+principles:
+  - id: INV-P1
+    rule: product-director is a manual complex-demand intake gate, not an automatic/default skill.
+    evidence_refs:
+      - contracts/skill-runtime-surface.json#/skills/product-director/mode
+      - shared/skills/product-director/evals/dogfood/team-pilot-readiness.json#/default_scope
+  - id: INV-P2
+    rule: route to product-director only when the next decision depends on Director WHY, business boundary, scope, success-standard, risk, or Phase baseline judgment.
+    evidence_refs:
+      - shared/skills/product-director/SKILL.md#/Checklist
+      - shared/skills/product-director/evals/dogfood/team-pilot-readiness.json#/review_dimensions
+  - id: INV-P3
+    rule: bypass product-director when the request is already scoped, implementation-only, simple maintenance, a factual question, or a downstream correction that does not alter Director-locked facts.
+    evidence_refs:
+      - shared/skills/product-director/evals/dogfood/team-pilot-readiness.json#/out_of_scope
+  - id: INV-P4
+    rule: if a downstream role observes changed root problem, success standard, scope, non-goal, risk, or Phase boundary, it must pause and route back to product-director instead of locally patching the baseline.
+    evidence_refs:
+      - contracts/standard-chain.yaml#/chain/0/outputs
+      - shared/skills/product-director/SKILL.md#/上游事实替换回退
+  - id: INV-P5
+    rule: route/bypass judgment is a non-persistent control guardrail; canonical standard-chain state remains only in the artifacts declared by contracts/standard-chain.yaml.
+    evidence_refs:
+      - contracts/standard-chain.yaml#/artifact_contract
+
+route_precedence:
+  rule: route wins over bypass when the current work would create or change Director-locked facts, create or modify standard-chain canonical artifacts, or claim downstream standard-chain readiness.
+  route_wins_when:
+    - root problem is missing or changing
+    - success standard is missing or changing
+    - scope or non-goal is missing or changing
+    - risk or Phase baseline is missing or changing
+    - current work creates or modifies brief.json, phase-prd.json, target-change.json, or another standard-chain canonical artifact based on changed Director-level facts
+  bypass_allowed_only_when:
+    - no Director-locked fact is created or changed
+    - no standard-chain canonical artifact is created or changed from an unfrozen baseline
+    - downstream work stays inside an already frozen scope and has a drift guard
+
+route_to_product_director_when:
+  - id: PD-ROUTE-001
+    signal: new_complex_demand
+    description: 用户提出新业务、技术债、稳定性、效率、合规、范围或 Phase 变更请求，且根问题、成功标准、范围、本期不做、风险或 Phase 切片未冻结。
+    required_action: manual_invoke_product_director
+    router_owner: current_agent
+    pass_condition: 明确说明为什么需要 Director baseline，并请求或执行手动 `/product-director` 入口。
+  - id: PD-ROUTE-002
+    signal: solution_word_before_problem
+    description: 用户先给方案词、竞品功能、工具形态、平台化诉求或技术实现，但业务痛点、受影响角色、触发场景、现实代价或直接原因未闭合。
+    required_action: manual_invoke_product_director
+    router_owner: current_agent
+    pass_condition: 把方案词降级为线索，先闭合 Director WHY。
+  - id: PD-ROUTE-003
+    signal: success_standard_or_investment_unclear
+    description: 目标存在但缺当前基线、目标值或方向、观测窗口、数据来源、失败信号或投入边界。
+    required_action: manual_invoke_product_director
+    router_owner: current_agent
+    pass_condition: 停在成功标准与投入边界，不进入 PM/设计/实现。
+  - id: PD-ROUTE-004
+    signal: downstream_baseline_change
+    description: product-manager、design、test-design、tech-lead 或 delivery-owner 发现根问题、范围、AC、Phase、风险或业务边界需要改变。
+    required_action: pause_and_route_back_to_product_director
+    router_owner: observing_downstream_role
+    pass_condition: 标明被推翻的 Director-locked fact、影响范围和需要用户确认的下一步。
+
+bypass_product_director_when:
+  - id: PD-BYPASS-001
+    signal: simple_daily_question
+    description: 用户只是问事实、解释、定位路径、查看状态或请求一次性小判断，不会产生 standard-chain canonical artifact。
+    required_action: answer_or_use_relevant_non_standard_chain_skill
+    router_owner: current_agent
+    guardrail: 不得强制创建 Director baseline。
+  - id: PD-BYPASS-002
+    signal: direct_implementation_request_with_frozen_scope
+    description: 已有明确 scope、AC、目标、上下游约束和授权，且没有改变 Director-locked facts。
+    required_action: use_relevant_execution_flow_or_direct_implementation
+    router_owner: current_agent
+    guardrail: 若实现中发现 scope/AC/目标漂移，立即暂停并按 PD-ROUTE-004 回退。
+  - id: PD-BYPASS-003
+    signal: downstream_detail_work
+    description: 已存在有效 `brief.json` 和 `phase-{N}/phase-prd.json`，当前工作只是在 product-manager 或后续角色职责内细化 UNIT、AC、设计、测试、计划或交付。
+    required_action: continue_with_downstream_role
+    router_owner: downstream_role
+    guardrail: downstream role 不能改写 Director-locked baseline。
+  - id: PD-BYPASS-004
+    signal: delivery_owner_evidence_pilot
+    description: 当前任务是观察 delivery-owner 证据收集型受控试点，不改变需求根问题、目标、范围或 Phase baseline。
+    required_action: stay_in_delivery_owner_pilot_scope
+    router_owner: human_shadow_owner
+    guardrail: 不得把 evidence pilot 结果写成 product-director 或 full-chain readiness。
+
+blocking_conditions:
+  - id: INV-BLOCK-001
+    condition: current work would create or modify standard-chain canonical artifacts, or claim downstream standard-chain readiness, while route conditions are present and no inline route rationale is stated.
+    required_status: INLINE_ROUTE_RATIONALE_REQUIRED
+    recovery: 停止 canonical artifact write 或 readiness claim；在当前响应/交接中说明 route/back/bypass 依据。若命中 route 条件，手动调用 product-director 或回退到 product-director。
+  - id: INV-BLOCK-002
+    condition: current work would create or modify standard-chain canonical artifacts, or claim downstream standard-chain readiness, while bypass is used to create/change Director-locked facts or bypass a missing/changing root problem, success standard, scope, risk, or Phase baseline.
+    required_status: ROUTE_PRECEDENCE_VIOLATION
+    recovery: 停止 canonical artifact write 或 readiness claim；取消 bypass；按 route_precedence 回到 product-director 或 route_back。
+  - id: INV-BLOCK-003
+    condition: downstream role would create or modify standard-chain canonical artifacts, or claim downstream standard-chain readiness, by locally patching Director-locked facts instead of route_back.
+    required_status: ROUTE_BACK_TO_PRODUCT_DIRECTOR
+    recovery: 停止 canonical artifact write 或 readiness claim；列出 changed facts 和 affected refs，回 product-director 重新确认。
+
+outside_blocking_scope:
+  - simple factual answers, status lookups, explanations, or one-off judgments that do not create or modify standard-chain canonical artifacts and do not claim downstream standard-chain readiness
+  - already-authorized direct implementation with frozen scope that does not create or modify standard-chain canonical artifacts and does not claim downstream standard-chain readiness
+  - evidence review, research, or pilot observation that does not change Director-locked facts, standard-chain canonical artifacts, or readiness status
+
+inline_route_rationale_template:
+  request_summary: "<one sentence>"
+  matched_signal: "<PD-ROUTE-* or PD-BYPASS-*>"
+  decision: manual_invoke_product_director | bypass_product_director | route_back_to_product_director
+  router_owner: current_agent | observing_downstream_role | human_shadow_owner
+  basis_refs:
+    - contracts/standard-chain-invocation-policy.yaml
+  guardrail: "<what must not happen next>"
+  next_action: "<manual skill invocation, downstream role, or pause>"
+
+examples:
+  - id: INV-EXAMPLE-001
+    input_shape: new complex demand with vague success metrics or investment boundary
+    expected_decision: manual_invoke_product_director
+    matched_signal: PD-ROUTE-003
+    rationale: Director WHY, success standard, and investment boundary are not frozen.
+  - id: INV-EXAMPLE-002
+    input_shape: simple factual question or path/status lookup
+    expected_decision: bypass_product_director
+    matched_signal: PD-BYPASS-001
+    rationale: No standard-chain canonical artifact or Director-locked fact is created.
+  - id: INV-EXAMPLE-003
+    input_shape: direct implementation request with frozen scope, AC, and target files
+    expected_decision: bypass_product_director
+    matched_signal: PD-BYPASS-002
+    rationale: Implementation stays inside accepted scope and keeps a drift guard.
+  - id: INV-EXAMPLE-004
+    input_shape: downstream role discovers scope, AC, risk, or Phase baseline must change
+    expected_decision: route_back_to_product_director
+    matched_signal: PD-ROUTE-004
+    rationale: Downstream role cannot locally patch Director-locked baseline.
+  - id: INV-EXAMPLE-005
+    input_shape: delivery-owner evidence pilot that only observes closeout behavior
+    expected_decision: bypass_product_director
+    matched_signal: PD-BYPASS-004
+    rationale: Pilot collects evidence without changing root problem, goal, scope, or Phase baseline.

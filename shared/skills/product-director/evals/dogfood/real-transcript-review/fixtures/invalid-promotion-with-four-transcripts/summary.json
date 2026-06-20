@@ -1,0 +1,21 @@
+{
+  "artifact_type": "product-director-real-transcript-summary",
+  "schema_version": "0.1.0",
+  "stage": "STAGE_3_PROMOTION",
+  "reviews": [
+    "reviews/PD-DOGFOOD-001.json",
+    "reviews/PD-DOGFOOD-002.json",
+    "reviews/PD-DOGFOOD-003.json",
+    "reviews/PD-DOGFOOD-004.json"
+  ],
+  "review_count": 4,
+  "in_scope_blocker_count": 0,
+  "warning_patterns": [],
+  "promotion_effect": "PROMOTION_REQUESTED",
+  "next_action": "PROMOTION_ALLOWED_FOR_COMPLEX_DEMAND_ENTRY",
+  "does_not_claim": [
+    "full_chain_readiness",
+    "delivery_owner_real_delivery_readiness",
+    "daily_default_skill_readiness"
+  ]
+}

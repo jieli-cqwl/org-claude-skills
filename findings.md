@@ -74,5 +74,25 @@
 - Adversarial review: `docs/reports/skill-best-practice-research-2026-06-19/adversarial-review.md`
 - Provisional model: `docs/reports/skill-best-practice-research-2026-06-19/provisional-model.md`
 
+## Provisional Model Trial Application
+- Trial review: `docs/reports/skill-best-practice-model-standard-chain-trial-review-2026-06-19.md`
+- Decision: `product-director` is `CONDITIONAL` for controlled complex-demand dogfood; `delivery-owner` is `CONDITIONAL_EVIDENCE_PILOT_ONLY`, not normal delivery dogfood.
+- Key finding: the provisional model is useful as an illustrative analysis scaffold, but this trial does not validate it as a scoring standard. It needs chain-composition, incremental-uplift, freshness-window, real-transcript, manual-routing, reference-loading, and operational-cost criteria before broad Skill audits.
+- Key risk: `delivery-owner` has strong control design, but lifecycle state remains `optimize` and recent judgment eval evidence still contains QA/fixer and Task Packet visibility failures; full-flow closeout must not be trusted without closing or explicitly accepting those gaps.
+
+## Standard-chain Invocation Policy
+- Policy: `contracts/standard-chain-invocation-policy.yaml`
+- Decision: `product-director` remains manual and scoped to complex-demand intake. The policy is a non-persistent route guardrail: route/bypass rationale can be stated inline in the current response or handoff, but it does not define a canonical route-decision artifact, runtime state, or required `worklog.md` entry.
+- Route precedence: route wins over bypass when root problem, success standard, scope, risk, or Phase baseline is missing/changing, or when current work would create/modify standard-chain canonical artifacts or claim downstream standard-chain readiness.
+- Blocking rule: only standard-chain canonical artifact creation/modification or downstream readiness claims are blocked when route conditions are present, route precedence is violated, or downstream would patch Director-locked facts. Simple factual work, frozen-scope direct implementation, research, review, or evidence pilots remain outside blocking scope when they do not write canonical artifacts or claim readiness.
+- Known adjacent risk: README still references `worklog.md`, but current worktree has no `worklog.md` and `contracts/active-doc-scope.yaml` has no scope entries. This invocation policy explicitly does not repair or depend on that unrelated recovery-path drift.
+
+## Product-director Controlled Dogfood Design
+- Design: `docs/superpowers/specs/2026-06-20--product-director-controlled-dogfood--design.md`
+- Planned implementation: `docs/superpowers/plans/2026-06-20--product-director-controlled-dogfood.md` defines templates, synthetic fixtures, a validator, and quick-gate wiring. It does not create live transcript evidence.
+- Decision: run staged dogfood rather than a heavy upfront 5-transcript gate. Stage 1 uses one real complex-demand transcript as a smoke test, Stage 2 expands to a three-transcript stability sample, and Stage 3 keeps the existing five-transcript promotion gate.
+- Boundary: the design does not start dogfood, does not create active scope, does not create standard-chain canonical artifacts, and does not authorize `delivery-owner` real delivery or full-chain readiness.
+- Evidence model: each transcript is reviewed against the 8 existing `team-pilot-readiness.json` dimensions, with route rationale, transcript evidence, baseline-risk review, blocking findings, expansion decision, and privacy/redaction status.
+
 ## Visual/Browser Findings
 - No visual/browser artifacts used in this guardrail pass.
