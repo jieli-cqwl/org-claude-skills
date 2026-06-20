@@ -100,6 +100,7 @@ VALIDATION_COMMANDS = (
 )
 INSTALL_GATE_COMMAND = ["bash", "install.sh", "--target", "all", "--check", "quick"]
 INSTALL_COMMAND = ["bash", "install.sh", "--target", "all"]
+PUSH_COMMAND = ["git", "push", "origin", "main"]
 WORKFLOW_TIMEOUT_SECONDS = 3600
 
 
@@ -137,6 +138,7 @@ class UpdateResult:
     validations: tuple[CommandOutcome, ...] = ()
     install: CommandOutcome | None = None
     local_install: CommandOutcome | None = None
+    push: CommandOutcome | None = None
 
 
 def make_update_branch_name(today: str, existing_branches: set[str]) -> str:
@@ -253,6 +255,8 @@ def build_report_payload(
     result_payload = asdict(result)
     validations = result_payload.pop("validations")
     install = result_payload.pop("install") or {}
+    local_install = result_payload.pop("local_install") or {}
+    push = result_payload.pop("push") or {}
     checked_sources = [asdict(status) for status in statuses]
     return {
         "result": result_payload,
@@ -262,6 +266,8 @@ def build_report_payload(
         ],
         "validations": validations,
         "install": install,
+        "local_install": local_install,
+        "push": push,
     }
 
 
@@ -353,7 +359,7 @@ def _finalize_success_on_main(
     worktree_path: Path,
     validations: list[CommandOutcome],
     install: CommandOutcome,
-) -> CommandOutcome | UpdateResult:
+) -> tuple[CommandOutcome, CommandOutcome] | UpdateResult:
     for command, phase in (
         (["git", "switch", "main"], "merge"),
         (["git", "merge", "--ff-only", branch], "merge"),
@@ -389,6 +395,23 @@ def _finalize_success_on_main(
         )
     local_install_outcome = _passed(INSTALL_COMMAND)
 
+    push = _run_or_block(
+        runner,
+        PUSH_COMMAND,
+        cwd=repo_root,
+        phase="push",
+        branch=branch,
+        worktree_path=worktree_path,
+    )
+    if push:
+        return replace(
+            push,
+            validations=tuple(validations),
+            install=install,
+            local_install=local_install_outcome,
+        )
+    push_outcome = _passed(PUSH_COMMAND)
+
     for command in (
         ["git", "worktree", "remove", str(worktree_path)],
         ["git", "branch", "-d", branch],
@@ -407,11 +430,12 @@ def _finalize_success_on_main(
                 validations=tuple(validations),
                 install=install,
                 local_install=local_install_outcome,
+                push=push_outcome,
             )
 
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
-    return local_install_outcome
+    return local_install_outcome, push_outcome
 
 
 def _apply_updates_in_worktree(
@@ -478,7 +502,7 @@ def _apply_updates_in_worktree(
     if isinstance(commit, UpdateResult):
         return commit
 
-    local_install = _finalize_success_on_main(
+    finalize = _finalize_success_on_main(
         runner,
         repo_root=repo_root,
         branch=branch,
@@ -486,8 +510,9 @@ def _apply_updates_in_worktree(
         validations=validations,
         install=install,
     )
-    if isinstance(local_install, UpdateResult):
-        return local_install
+    if isinstance(finalize, UpdateResult):
+        return finalize
+    local_install, push = finalize
 
     return UpdateResult(
         status="updated",
@@ -497,6 +522,7 @@ def _apply_updates_in_worktree(
         validations=tuple(validations),
         install=install,
         local_install=local_install,
+        push=push,
     )
 
 

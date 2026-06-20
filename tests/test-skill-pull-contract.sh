@@ -53,12 +53,14 @@ assert_present 'tools/community/check_superpowers_upstream_fidelity.py' "$skill_
 assert_present 'bash install.sh --target all' "$skill_file"
 assert_present "fast-forwards \`main\`" "$skill_file"
 assert_present "runs local install from merged \`main\`" "$skill_file"
+assert_present "pushes \`main\` to \`origin/main\`" "$skill_file"
 assert_present 'deletes the temporary branch' "$skill_file"
 assert_present 'failure preserves the worktree' "$skill_file"
 assert_present 'Source updates' "$skill_file"
 assert_present 'Runtime exposure changes' "$skill_file"
 assert_present 'Validation results' "$skill_file"
 assert_present 'Install result' "$skill_file"
+assert_present 'Push result' "$skill_file"
 
 for script in check_candidates.py run_update.py summarize_changes.py skill_pull_lib.py; do
   assert_file "$skill_dir/scripts/$script"

@@ -504,7 +504,7 @@ class RunUpdateTests(TempDirTest):
             ["bash", "install.sh", "--target", "all", "--check", "quick"],
         )
 
-    def test_update_flow_runs_install_commit_merge_cleanup_and_local_install(self) -> None:
+    def test_update_flow_runs_install_commit_merge_local_install_push_and_cleanup(self) -> None:
         statuses = [make_anthropic_status(self.lib, summary="v2.0.0")]
         runner = FakeRunner()
 
@@ -549,7 +549,8 @@ class RunUpdateTests(TempDirTest):
             command_text.index("git switch main"),
             command_text.index("git merge --ff-only codex/skill-pull-20260422"),
         )
-        self.assertEqual(command_text[-3], "bash install.sh --target all")
+        self.assertEqual(command_text[-4], "bash install.sh --target all")
+        self.assertEqual(command_text[-3], "git push origin main")
         self.assertEqual(
             command_text[-2],
             f"git worktree remove {self.repo_root.resolve() / '.worktrees' / 'codex-skill-pull-20260422'}",
@@ -557,9 +558,33 @@ class RunUpdateTests(TempDirTest):
         self.assertEqual(command_text[-1], "git branch -d codex/skill-pull-20260422")
         merge_call = runner.calls[command_text.index("git merge --ff-only codex/skill-pull-20260422")]
         local_install_call = runner.calls[command_text.index("bash install.sh --target all", command_text.index("git merge --ff-only codex/skill-pull-20260422"))]
+        push_call = runner.calls[command_text.index("git push origin main")]
         self.assertEqual(merge_call[1], self.repo_root.resolve())
         self.assertEqual(local_install_call[1], self.repo_root.resolve())
+        self.assertEqual(push_call[1], self.repo_root.resolve())
+        self.assertEqual(result.push.command, "git push origin main")
         self.assertFalse(Path(result.worktree_path).exists())
+
+    def test_push_failure_preserves_worktree_and_branch(self) -> None:
+        statuses = [make_anthropic_status(self.lib, summary="v2.0.0")]
+        runner = FakeRunner(fail_contains="git push origin main")
+
+        result = self.run_update.run_update_flow(
+            repo_root=self.repo_root,
+            statuses=statuses,
+            today="2026-04-22",
+            runner=runner,
+            existing_branches=set(),
+        )
+
+        command_text = [" ".join(command) for command in runner.commands]
+        push_index = command_text.index("git push origin main")
+        self.assertEqual(result.status, "blocked")
+        self.assertEqual(result.failed_phase, "push")
+        self.assertEqual(result.failed_command, "git push origin main")
+        self.assertTrue(Path(result.worktree_path).exists())
+        self.assertNotIn("git worktree remove", " ".join(command_text[push_index + 1 :]))
+        self.assertNotIn("git branch -d codex/skill-pull-20260422", command_text[push_index + 1 :])
 
     def test_failure_preserves_worktree_and_stops_before_install(self) -> None:
         statuses = [make_anthropic_status(self.lib)]
@@ -652,6 +677,7 @@ class RunUpdateTests(TempDirTest):
         self.assertIn("aaa111 -> new999", summary)
         self.assertIn("bash install.sh --target all --check quick", summary)
         self.assertIn("bash install.sh --target all", summary)
+        self.assertIn("git push origin main", summary)
         self.assertIn("abc123", summary)
 
 
@@ -688,6 +714,14 @@ class SummaryTests(TempDirTest):
                         "command": "bash install.sh --target all",
                         "status": "passed",
                     },
+                    "local_install": {
+                        "command": "bash install.sh --target all",
+                        "status": "passed",
+                    },
+                    "push": {
+                        "command": "git push origin main",
+                        "status": "passed",
+                    },
                 }
             ),
             encoding="utf-8",
@@ -701,6 +735,7 @@ class SummaryTests(TempDirTest):
             "Runtime exposure changes",
             "Validation results",
             "Install result",
+            "Push result",
             "Branch and commit",
         ):
             self.assertIn(section, summary)

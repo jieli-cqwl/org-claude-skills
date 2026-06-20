@@ -86,6 +86,7 @@ def render_summary(result_json: Path) -> str:
     validations = data.get("validations", [])
     install = data.get("install", {})
     local_install = data.get("local_install", {})
+    push = data.get("push", {})
     upstream = [
         f"- {source.get('name', 'unknown')}: {source.get('summary', 'No upstream summary recorded.')}"
         for source in sources
@@ -107,6 +108,9 @@ def render_summary(result_json: Path) -> str:
             "## Install result",
             f"- {install.get('status', result.get('status', 'unknown'))}: {install.get('command', '')}",
             f"- Local main install: {local_install.get('status', result.get('status', 'unknown'))}: {local_install.get('command', '')}",
+            "",
+            "## Push result",
+            f"- {push.get('status', result.get('status', 'unknown'))}: {push.get('command', '')}",
             "",
             "## Branch and commit",
             f"- Branch: {result.get('branch', '')}",
