@@ -8,7 +8,7 @@ import re
 import shutil
 import subprocess
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, Protocol, Sequence
 
@@ -136,6 +136,7 @@ class UpdateResult:
     commit: str = ""
     validations: tuple[CommandOutcome, ...] = ()
     install: CommandOutcome | None = None
+    local_install: CommandOutcome | None = None
 
 
 def make_update_branch_name(today: str, existing_branches: set[str]) -> str:
@@ -344,26 +345,73 @@ def _commit_updates(
     )
 
 
-def _cleanup_worktree(
+def _finalize_success_on_main(
     runner: Runner,
     *,
     repo_root: Path,
     branch: str,
     worktree_path: Path,
-) -> UpdateResult | None:
-    blocked_result = _run_or_block(
+    validations: list[CommandOutcome],
+    install: CommandOutcome,
+) -> CommandOutcome | UpdateResult:
+    for command, phase in (
+        (["git", "switch", "main"], "merge"),
+        (["git", "merge", "--ff-only", branch], "merge"),
+    ):
+        blocked_result = _run_or_block(
+            runner,
+            command,
+            cwd=repo_root,
+            phase=phase,
+            branch=branch,
+            worktree_path=worktree_path,
+        )
+        if blocked_result:
+            return replace(
+                blocked_result,
+                validations=tuple(validations),
+                install=install,
+            )
+
+    local_install = _run_or_block(
         runner,
-        ["git", "worktree", "remove", str(worktree_path)],
+        INSTALL_COMMAND,
         cwd=repo_root,
-        phase="cleanup",
+        phase="local install",
         branch=branch,
         worktree_path=worktree_path,
     )
-    if blocked_result:
-        return blocked_result
+    if local_install:
+        return replace(
+            local_install,
+            validations=tuple(validations),
+            install=install,
+        )
+    local_install_outcome = _passed(INSTALL_COMMAND)
+
+    for command in (
+        ["git", "worktree", "remove", str(worktree_path)],
+        ["git", "branch", "-d", branch],
+    ):
+        blocked_result = _run_or_block(
+            runner,
+            command,
+            cwd=repo_root,
+            phase="cleanup",
+            branch=branch,
+            worktree_path=worktree_path,
+        )
+        if blocked_result:
+            return replace(
+                blocked_result,
+                validations=tuple(validations),
+                install=install,
+                local_install=local_install_outcome,
+            )
+
     if worktree_path.exists():
         shutil.rmtree(worktree_path)
-    return None
+    return local_install_outcome
 
 
 def _apply_updates_in_worktree(
@@ -430,14 +478,16 @@ def _apply_updates_in_worktree(
     if isinstance(commit, UpdateResult):
         return commit
 
-    cleanup = _cleanup_worktree(
+    local_install = _finalize_success_on_main(
         runner,
         repo_root=repo_root,
         branch=branch,
         worktree_path=worktree_path,
+        validations=validations,
+        install=install,
     )
-    if cleanup:
-        return cleanup
+    if isinstance(local_install, UpdateResult):
+        return local_install
 
     return UpdateResult(
         status="updated",
@@ -446,6 +496,7 @@ def _apply_updates_in_worktree(
         commit=commit,
         validations=tuple(validations),
         install=install,
+        local_install=local_install,
     )
 
 

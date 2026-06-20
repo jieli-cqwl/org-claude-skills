@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import subprocess
+import shutil
 from pathlib import Path
 from typing import Callable, Sequence
 
@@ -53,10 +54,21 @@ def clone_locked_ref(
 ) -> Path:
     """Clone an upstream repo and detach at the locked commit/ref."""
     checkout = workdir / checkout_name
-    run_git(
-        git_command(["clone", "--no-checkout", repo, str(checkout)]),
-        runner=runner,
-    )
+    last_clone_error: RuntimeError | None = None
+    for _attempt in range(2):
+        try:
+            run_git(
+                git_command(["clone", "--no-checkout", repo, str(checkout)]),
+                runner=runner,
+            )
+            last_clone_error = None
+            break
+        except RuntimeError as exc:
+            last_clone_error = exc
+            if checkout.exists():
+                shutil.rmtree(checkout)
+    if last_clone_error is not None:
+        raise last_clone_error
     try:
         run_git(
             git_command(["-C", str(checkout), "cat-file", "-e", f"{ref}^{{commit}}"]),

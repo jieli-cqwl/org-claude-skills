@@ -15,11 +15,11 @@ Use this skill for the daily automated update flow that keeps external runtime s
 - Stop when an upstream candidate is blocked, ambiguous, or lacks a stable ref.
 - Stop after any validation or install failure; preserve the generated worktree and branch for diagnosis.
 - Do not run the final install command until every validation command and the quick install gate passes.
-- Do not delete failed worktrees, logs, or generated diffs before reporting the blocker.
+- Do not delete failed worktrees, logs, branches, or generated diffs before reporting the blocker.
 
 ## Goal
 
-Goal: pull managed external Skill sources and prove the local Claude Code and Codex runtime exposure still works after installation. Completion boundary: source lock, vendored content, adapter-bearing source outputs, validation results, install result, branch, and commit are all reported with evidence.
+Goal: pull managed external Skill sources and prove the local Claude Code and Codex runtime exposure still works after installation. Completion boundary: source lock, vendored content, adapter-bearing source outputs, validation results, update-worktree install, merge to `main`, local `main` install, cleaned successful worktree/branch, and commit are all reported with evidence.
 
 ## Managed Sources
 
@@ -56,12 +56,13 @@ Read `community/SOURCES.yaml` as the source lock. The default managed runtime so
 | 3. Source sync | Update worktree | Execute source-specific sync scripts | Vendored content and adapter-bearing source outputs | validations and install | Generated files match source lock | Preserve generated files and logs | git diff and sync logs |
 | 4. Validation | Updated worktree | Run required validation commands | Validation result set | install gate | Every command passes | Stop before install | command outputs |
 | 5. Quick install gate | Validated worktree | Run `bash install.sh --target all --check quick` | Quick install result | final install gate | check command passes | Stop before final install | command output |
-| 6. Final install and commit | Passed quick install gate | Run `bash install.sh --target all`, commit branch | Installed runtime, branch, commit | user | install and commit both pass | Preserve worktree/branch and report blocker | install output and commit hash |
-| 7. Report | Branch, commit, validations | Run `scripts/summarize_changes.py` | Conversation report | user | report includes source updates, validation, install, branch | Report failed phase and next action | report sections |
+| 6. Final install and commit | Passed quick install gate | Run `bash install.sh --target all`, commit branch | Installed runtime, branch, commit | merge | install and commit both pass | Preserve worktree/branch and report blocker | install output and commit hash |
+| 7. Merge, release, local install | Commit branch | Fast-forward merge to `main`, run local install from `main`, remove successful worktree and branch | Updated `main`, local runtime install, no successful temporary worktree | user | merge, local install, cleanup all pass | Preserve worktree/branch and report blocker | merge output, install output, worktree list |
+| 8. Report | Main commit, validations, install results | Run `scripts/summarize_changes.py` | Conversation report | user | report includes source updates, validation, install, local install, main commit | Report failed phase and next action | report sections |
 
 ## Worktree Policy
 
-Use branch names like `codex/skill-pull-YYYYMMDD`, with a numeric suffix when the branch already exists. A success removes the worktree and keeps the branch and commit. A failure preserves the worktree and branch so the exact diff, generated files, logs, and failing state remain available for diagnosis.
+Use branch names like `codex/skill-pull-YYYYMMDD`, with a numeric suffix when the branch already exists. A success fast-forwards `main`, runs local install from merged `main`, removes the successful worktree, and deletes the temporary branch. A failure preserves the worktree and branch so the exact diff, generated files, logs, and failing state remain available for diagnosis.
 
 ## Validation Gates
 
@@ -107,16 +108,16 @@ State whether install exposure behavior changed. Only adapter-bearing sources ma
 List each validation command and its pass result.
 
 ## Install result
-Report the `bash install.sh --target all` result.
+Report both `bash install.sh --target all` results: the update-worktree install before commit and the local install from merged `main`.
 
 ## Branch and commit
-Report the update branch and commit hash.
+Report the update branch name and final commit hash on `main`.
 
 Blocked runs report the failed phase, failed command, preserved worktree path, return code, duration, stdout/stderr evidence, and next action.
 
 ## Completion Check
 
-- [ ] Command evidence recorded for candidate check, validation, quick install gate, final install, and summary.
-- [ ] Successful run reports source updates, upstream changes, runtime exposure changes, validation results, install result, branch, and commit.
+- [ ] Command evidence recorded for candidate check, validation, quick install gate, update-worktree install, merge, local main install, cleanup, and summary.
+- [ ] Successful run reports source updates, upstream changes, runtime exposure changes, validation results, install result, local install result, branch, and commit.
 - [ ] Blocked run reports failed phase, failed command, preserved worktree path, return code, duration, stdout/stderr evidence, and next action.
 - [ ] No failed validation or install step was bypassed.

@@ -345,6 +345,7 @@ class FakeRunner:
         self, fail_contains: str = "", fail_stdout: str = "", fail_stderr: str = ""
     ) -> None:
         self.commands: list[list[str]] = []
+        self.calls: list[tuple[list[str], Path | None]] = []
         self.fail_contains = fail_contains
         self.fail_stdout = fail_stdout
         self.fail_stderr = fail_stderr
@@ -352,6 +353,7 @@ class FakeRunner:
     def run(self, cmd: list[str], cwd: Path | None = None):
         self.last_cwd = cwd
         self.commands.append(cmd)
+        self.calls.append((cmd, cwd))
         text = " ".join(cmd)
         returncode = 1 if self.fail_contains and self.fail_contains in text else 0
         if cmd == ["git", "rev-parse", "--short", "HEAD"]:
@@ -502,7 +504,7 @@ class RunUpdateTests(TempDirTest):
             ["bash", "install.sh", "--target", "all", "--check", "quick"],
         )
 
-    def test_update_flow_runs_install_commit_and_cleanup(self) -> None:
+    def test_update_flow_runs_install_commit_merge_cleanup_and_local_install(self) -> None:
         statuses = [make_anthropic_status(self.lib, summary="v2.0.0")]
         runner = FakeRunner()
 
@@ -539,7 +541,24 @@ class RunUpdateTests(TempDirTest):
             command_text,
         )
         self.assertIn("git commit -m chore: pull external skill sources", command_text)
-        self.assertTrue(command_text[-1].startswith("git worktree remove"))
+        self.assertLess(
+            command_text.index("git commit -m chore: pull external skill sources"),
+            command_text.index("git switch main"),
+        )
+        self.assertLess(
+            command_text.index("git switch main"),
+            command_text.index("git merge --ff-only codex/skill-pull-20260422"),
+        )
+        self.assertEqual(command_text[-3], "bash install.sh --target all")
+        self.assertEqual(
+            command_text[-2],
+            f"git worktree remove {self.repo_root.resolve() / '.worktrees' / 'codex-skill-pull-20260422'}",
+        )
+        self.assertEqual(command_text[-1], "git branch -d codex/skill-pull-20260422")
+        merge_call = runner.calls[command_text.index("git merge --ff-only codex/skill-pull-20260422")]
+        local_install_call = runner.calls[command_text.index("bash install.sh --target all", command_text.index("git merge --ff-only codex/skill-pull-20260422"))]
+        self.assertEqual(merge_call[1], self.repo_root.resolve())
+        self.assertEqual(local_install_call[1], self.repo_root.resolve())
         self.assertFalse(Path(result.worktree_path).exists())
 
     def test_failure_preserves_worktree_and_stops_before_install(self) -> None:

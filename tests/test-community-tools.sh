@@ -161,6 +161,53 @@ assert not any("fetch" in cmd for cmd in calls)
 assert all("http.lowSpeedLimit=1" in cmd and "http.lowSpeedTime=20" in cmd for cmd in calls)
 PY
 
+python3 - <<'PY' >/dev/null || fail "locked upstream clone helper 应重试一次 transient clone 失败"
+import tempfile
+from pathlib import Path
+
+import tools.community.git_upstream as git_upstream
+
+calls = []
+
+def fake_run(cmd, **kwargs):
+    calls.append(cmd)
+    clone_attempts = len([call for call in calls if "clone" in call])
+    if "clone" in cmd and clone_attempts == 1:
+        return type(
+            "Result",
+            (),
+            {
+                "returncode": 128,
+                "stdout": "",
+                "stderr": "fatal: early EOF",
+            },
+        )()
+    if "clone" in cmd:
+        Path(cmd[-1]).mkdir(parents=True, exist_ok=True)
+    return type(
+        "Result",
+        (),
+        {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+        },
+    )()
+
+with tempfile.TemporaryDirectory() as td:
+    checkout = git_upstream.clone_locked_ref(
+        "https://example.invalid/repo.git",
+        "locked-commit",
+        Path(td),
+        "repo",
+        runner=fake_run,
+    )
+
+assert checkout == Path(td) / "repo"
+assert len([cmd for cmd in calls if "clone" in cmd]) == 2
+assert any(cmd[-3:] == ["checkout", "--detach", "locked-commit"] for cmd in calls)
+PY
+
 python3 - <<'PY' >/dev/null || fail "locked upstream clone helper 本地缺失 ref 时应只 fetch 锁定 ref"
 import tempfile
 from pathlib import Path
@@ -245,6 +292,25 @@ with tempfile.TemporaryDirectory() as td:
         raise AssertionError("expected clone_locked_ref to fail")
 PY
 
+python3 - <<'PY' >/dev/null || fail "Superpowers clone 兼容 runner 应保留非零退出供 git helper 生成可读错误"
+import subprocess
+
+import tools.community.sync_canonical_from_upstream as mod
+
+def fake_subprocess_run(cmd, **kwargs):
+    return subprocess.CompletedProcess(cmd, 128, stdout="", stderr="fatal: early EOF")
+
+original = mod.subprocess.run
+try:
+    mod.subprocess.run = fake_subprocess_run
+    result = mod._run_compat(["git", "clone", "https://example.invalid/repo.git", "/tmp/repo"])
+finally:
+    mod.subprocess.run = original
+
+assert result.returncode == 128
+assert result.stderr == "fatal: early EOF"
+PY
+
 python3 - <<'PY' >/dev/null || fail "Superpowers clone 应 checkout SOURCES.yaml 锁定 ref"
 import tempfile
 from pathlib import Path
@@ -271,35 +337,35 @@ with tempfile.TemporaryDirectory() as td:
     calls = []
     cat_file_calls = [0]
 
-    def fake_run(cmd, cwd=None):
-        calls.append((cmd, cwd))
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
         if "clone" in cmd:
             Path(cmd[-1]).mkdir(parents=True, exist_ok=True)
-            return ""
+            return mod.subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
         if "cat-file" in cmd:
             cat_file_calls[0] += 1
             if cat_file_calls[0] == 1:
-                raise RuntimeError("missing ref")
-            return ""
+                return mod.subprocess.CompletedProcess(cmd, 1, stdout="", stderr="missing ref")
+            return mod.subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
         if cmd[-2:] == ["rev-parse", "HEAD"]:
-            return "resolved-locked-commit\n"
-        return ""
+            return mod.subprocess.CompletedProcess(cmd, 0, stdout="resolved-locked-commit\n", stderr="")
+        return mod.subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
     original_community = mod.COMMUNITY
-    original_run = mod.run
+    original_run = mod.subprocess.run
     try:
         mod.COMMUNITY = community
-        mod.run = fake_run
+        mod.subprocess.run = fake_run
         checkout, commit = mod.clone_superpowers_from_lock(root / "tmp")
     finally:
         mod.COMMUNITY = original_community
-        mod.run = original_run
+        mod.subprocess.run = original_run
 
     assert checkout == root / "tmp" / "superpowers"
     assert commit == "resolved-locked-commit"
-    assert any("clone" in call[0] and "--no-checkout" in call[0] for call in calls)
-    assert any("fetch" in call[0] and call[0][-2:] == ["origin", "locked-superpowers-ref"] for call in calls)
-    assert any(call[0][-3:] == ["checkout", "--detach", "locked-superpowers-ref"] for call in calls)
+    assert any("clone" in call and "--no-checkout" in call for call in calls)
+    assert any("fetch" in call and call[-2:] == ["origin", "locked-superpowers-ref"] for call in calls)
+    assert any(call[-3:] == ["checkout", "--detach", "locked-superpowers-ref"] for call in calls)
 PY
 
 python3 - <<'PY' >/dev/null || fail "update_sources_yaml 应收敛到纯 skills scope"

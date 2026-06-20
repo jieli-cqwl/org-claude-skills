@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import re
 import shutil
+import subprocess
 import tempfile
 from datetime import date
 from pathlib import Path
@@ -36,8 +37,6 @@ OFFICIAL_SUPERPOWERS_SKILLS = [
 
 
 def run(cmd: list[str], cwd: Path | None = None) -> str:
-    import subprocess
-
     return subprocess.run(
         cmd,
         cwd=str(cwd) if cwd else None,
@@ -88,13 +87,12 @@ def clone_superpowers_from_lock(workdir: Path) -> tuple[Path, str]:
 
 
 def _run_compat(cmd: list[str], **_kwargs):
-    class Result:
-        def __init__(self, stdout: str) -> None:
-            self.returncode = 0
-            self.stdout = stdout
-            self.stderr = ""
-
-    return Result(run(cmd))
+    return subprocess.run(
+        cmd,
+        check=False,
+        text=True,
+        capture_output=True,
+    )
 
 
 def _validate_official_skill_set(skills_root: Path) -> list[str]:
