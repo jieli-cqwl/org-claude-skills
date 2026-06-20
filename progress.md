@@ -99,6 +99,31 @@
   - `findings.md`
   - `progress.md`
 
+### Phase 9: Skill Best-practice Research Package
+- **Status:** in_progress
+- Actions taken:
+  - Dispatched independent evidence agents for official sources, public workflow sources, and local/runtime sources.
+  - Created `docs/reports/skill-best-practice-research-2026-06-19/source-inventory.md`.
+  - Created `docs/reports/skill-best-practice-research-2026-06-19/claim-extraction.md`.
+  - Created `docs/reports/skill-best-practice-research-2026-06-19/failure-mode-map.md`.
+  - Created `docs/reports/skill-best-practice-research-2026-06-19/counterexamples.md`.
+  - Created `docs/reports/skill-best-practice-research-2026-06-19/adversarial-review.md`.
+  - Created `docs/reports/skill-best-practice-research-2026-06-19/provisional-model.md`.
+  - Verified placeholder scan, claim-stage no-principle scan, status scan, counterexample-status scan, diff whitespace, and internal CLM/FM/PR reference consistency.
+  - Fixed independent review findings on red-team status consistency, public-source line refs, and adversarial attack-role coverage.
+  - Re-review returned PASS.
+  - Ran final quick regression successfully.
+- Files created/modified:
+  - `docs/reports/skill-best-practice-research-2026-06-19/source-inventory.md`
+  - `docs/reports/skill-best-practice-research-2026-06-19/claim-extraction.md`
+  - `docs/reports/skill-best-practice-research-2026-06-19/failure-mode-map.md`
+  - `docs/reports/skill-best-practice-research-2026-06-19/counterexamples.md`
+  - `docs/reports/skill-best-practice-research-2026-06-19/adversarial-review.md`
+  - `docs/reports/skill-best-practice-research-2026-06-19/provisional-model.md`
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+
 ## Test Results
 | Test | Input | Expected | Actual | Status |
 |------|-------|----------|--------|--------|
@@ -108,6 +133,12 @@
 | Plan diff whitespace check | `git diff --check -- docs/superpowers/plans/2026-06-19--skill-best-practice-research.md task_plan.md findings.md progress.md` | No whitespace errors | No output, exit 0 | PASS |
 | Skill runtime surface contract | `bash tests/test-skill-runtime-surface-contract.sh` | Contract passes after removing stale `hidden: true` from auto `agent-browser` source stub | `[PASS] skill runtime surface contract` | PASS |
 | Quick regression after plan | `bash tests/run-all.sh --quick` | All checks pass | 34/34 checks passed; `All tests passed` | PASS |
+| Research package placeholder scan | `rg -n "TBD|TODO|UNRESOLVED_SOURCE_REF|STATUS_UNRESOLVED|fill in details|exact URLs" docs/reports/skill-best-practice-research-2026-06-19` | No unresolved placeholders | No output, exit 1 | PASS |
+| Claim-stage no-principle scan | `rg -n "Principle|Dimension|Rubric|Best practice:|should always|must always" docs/reports/skill-best-practice-research-2026-06-19/claim-extraction.md` | No premature principle/rubric terms | No output, exit 1 | PASS |
+| Research package diff whitespace check | `git diff --check -- docs/reports/skill-best-practice-research-2026-06-19` | No whitespace errors | No output, exit 0 | PASS |
+| Research package reference consistency | Node CLM/FM/PR reference scan | No undefined CLM/FM/PR references | `problems: []` | PASS |
+| Independent package re-review | Subagent review of prior Important findings | Red-team status, public-source refs, and attack-role coverage are fixed | PASS | PASS |
+| Final quick regression | `bash tests/run-all.sh --quick` | All checks pass | 34/34 checks passed; `All tests passed` | PASS |
 
 ## Error Log
 | Timestamp | Error | Attempt | Resolution |
@@ -116,8 +147,8 @@
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | Phase 8: Execution Plan Prepared |
-| Where am I going? | Finish and verify the execution plan, then ask the user to choose execution mode |
+| Where am I? | Phase 9: Skill Best-practice Research Package |
+| Where am I going? | Commit the research package and report execution result |
 | What's the goal? | Define evidence-first research process for Skill best-practice criteria |
-| What have I learned? | The plan must include runtime Skill-writing sources while keeping them as evidence, not authority |
-| What have I done? | Created the design doc and drafted the execution plan |
+| What have I learned? | Source support converges on discoverability, progressive disclosure, actionability, validation evidence, and scoped authority, while description wording remains contested |
+| What have I done? | Created, reviewed, fixed, and verified the research package |

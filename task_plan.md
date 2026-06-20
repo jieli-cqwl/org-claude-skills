@@ -4,7 +4,7 @@
 Build an evidence-first research process that discovers what makes an agent Skill effective from authoritative sources, strong examples, failure evidence, and adversarial review, before deriving any evaluation dimensions for this repository's Skills.
 
 ## Current Phase
-Phase 8
+Phase 9
 
 ## Phases
 
@@ -60,6 +60,21 @@ Phase 8
 - [x] Commit the execution plan and planning-file updates.
 - **Status:** complete
 
+### Phase 9: Skill Best-practice Research Package
+- [x] Collect official source evidence.
+- [x] Collect public workflow source evidence.
+- [x] Collect local/runtime source evidence.
+- [x] Create source inventory.
+- [x] Extract atomic claims before deriving principles.
+- [x] Build failure-mode map.
+- [x] Create candidate principle register and provisional model.
+- [x] Test with counterexamples.
+- [x] Run adversarial review.
+- [x] Resolve independent review findings.
+- [x] Run final verification.
+- [x] Commit research package.
+- **Status:** complete
+
 ## Key Questions
 1. Which authoritative or high-signal sources can legitimately inform what makes a Skill effective?
 2. What claims do those sources make about Skill structure, behavior control, workflow, validation, and failure handling?
@@ -82,6 +97,7 @@ Phase 8
 | Wrote formal design doc before dispatching agents | The approved next artifact is a research design, not execution. |
 | Write an execution plan before running research | User approved the design direction; execution still needs a bounded, reviewable plan before agents or inline research start. |
 | Include local/runtime Skill-writing guidance as evidence sources | Current runtime guidance can expose concrete Skill-format and validation constraints, but must be treated as evidence rather than authority. |
+| Use independent agents for evidence collection, not shared-file edits | Source evidence can be collected in parallel; the main thread must merge and adjudicate to avoid conflicting writes and premature rubric creation. |
 
 ## Errors Encountered
 | Error | Attempt | Resolution |
@@ -93,4 +109,5 @@ Phase 8
 - Non-goals: no current Skill assessment, no standard-chain readiness verdict, no skill edits, no contract edits, no dogfood run, no actual research execution before choosing execution mode.
 - Design doc: `docs/superpowers/specs/2026-06-18--skill-best-practice-research--design.md`
 - Execution plan: `docs/superpowers/plans/2026-06-19--skill-best-practice-research.md`
+- Research package: `docs/reports/skill-best-practice-research-2026-06-19/`
 - Verification: `git diff --check -- docs/superpowers/specs/2026-06-18--skill-best-practice-research--design.md task_plan.md findings.md progress.md`; `bash tests/run-all.sh --quick`

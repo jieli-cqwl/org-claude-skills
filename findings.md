@@ -31,6 +31,8 @@
 - Corrected framing: first discover and validate what dimensions are legitimate, then evaluate Skills. Do not assume the initial dimensions are true.
 - Stronger correction: do not predefine weakly understood dimensions at all. First collect authoritative and high-signal evidence, classify source authority, extract claims, compare sources, then derive candidate dimensions.
 - Current execution plan should include local/runtime Skill-writing guidance because it exposes concrete structure, trigger, progressive-disclosure, validation, and evaluation expectations. These sources still remain evidence, not authority.
+- Evidence collection result: official sources, public workflow sources, local/runtime guidance, and empirical failure evidence converge on several failure modes: bad trigger/discovery, context overload, vague actionability, missing validation evidence, stale/partial evidence, ambiguous handoff states, and authority bias.
+- Description wording remains contested: some sources say description should include what the Skill does and when to use it, while local writing guidance warns workflow summaries can cause agents to skip the Skill body. This cannot become a scoring standard without target-runtime trigger eval evidence.
 
 ## Technical Decisions
 | Decision | Rationale |
@@ -48,6 +50,7 @@
 | Use bottom-up evidence discovery before rubric design | Avoids pretending to know what best-practice Skill quality means before source-backed research. |
 | Add an explicit execution plan before research | Keeps source collection, claim extraction, synthesis, counterexamples, and adversarial review in the approved order. |
 | Include runtime Skill-writing guides in the source inventory | Avoids missing the current environment's concrete Skill-design constraints while preserving the no-authority-bias rule. |
+| Treat the final model as provisional, not a local Skill verdict | The package defines later evaluation guidance; it does not judge any current repository Skill. |
 
 ## Issues Encountered
 | Issue | Resolution |
@@ -62,6 +65,14 @@
 - `shared/skills/skill-quality-audit/SKILL.md`: existing formal skill quality audit mechanism.
 - `docs/superpowers/specs/2026-06-18--skill-best-practice-research--design.md`: formal design doc for evidence-first Skill best-practice research.
 - `docs/superpowers/plans/2026-06-19--skill-best-practice-research.md`: execution plan for the evidence-first Skill best-practice research package.
+
+## Skill Best-practice Research Package
+- Source inventory: `docs/reports/skill-best-practice-research-2026-06-19/source-inventory.md`
+- Claim extraction: `docs/reports/skill-best-practice-research-2026-06-19/claim-extraction.md`
+- Failure-mode map: `docs/reports/skill-best-practice-research-2026-06-19/failure-mode-map.md`
+- Counterexamples: `docs/reports/skill-best-practice-research-2026-06-19/counterexamples.md`
+- Adversarial review: `docs/reports/skill-best-practice-research-2026-06-19/adversarial-review.md`
+- Provisional model: `docs/reports/skill-best-practice-research-2026-06-19/provisional-model.md`
 
 ## Visual/Browser Findings
 - No visual/browser artifacts used in this guardrail pass.
