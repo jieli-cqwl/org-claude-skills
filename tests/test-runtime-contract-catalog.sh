@@ -152,6 +152,7 @@ from pathlib import Path
 
 rule = Path(sys.argv[1])
 text = rule.read_text(encoding="utf-8")
+lower_text = text.lower()
 lines = text.splitlines()
 if not lines or lines[0] != "# Code Changes":
     raise SystemExit("rule must use the Code Changes title")
@@ -202,6 +203,37 @@ semantic_checks = [
                 "invariant",
                 "failure mode",
                 "state that basis",
+            )
+        ),
+    ),
+    (
+        "failure-semantics-positive-contract",
+        ("failure semantics" in lower_text)
+        and any(
+            term in lower_text
+            for term in (
+                "propagate",
+                "explicit failure",
+                "failure/result",
+                "partial failure",
+                "partial-failure",
+            )
+        )
+        and any(
+            term in lower_text
+            for term in (
+                "observable",
+                "visible",
+                "failure remains",
+                "failure state",
+            )
+        )
+        and any(
+            term in lower_text
+            for term in (
+                "fake success",
+                "report fake success",
+                "convert failure into success",
             )
         ),
     ),

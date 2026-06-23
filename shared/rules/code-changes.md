@@ -12,7 +12,7 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - Keep control flow shallow and explicit; prefer early failure over nested happy paths.
 - If complexity makes ownership, failure handling, or verification boundaries unclear, split by responsibility unless the shape is forced by a framework or public contract.
 - Comments must explain intent, invariants, boundaries, tradeoffs, failure modes, or non-obvious business rules; do not narrate obvious code.
-- Do not swallow errors, log-and-continue after failure, return fake defaults, or convert failure into success.
+- Preserve failure semantics: propagate errors, return explicit failure/result states, or expose visible partial failure when continuation is valid; do not hide failed defaults or report fake success.
 - External API, network, database, process execution, remote filesystem, and long-running operations need timeouts, failure handling, cleanup, and observable failure states.
 - User-visible errors must be understandable and must not expose secrets, stack traces, SQL, internal paths, or service internals.
 - Never hardcode secrets, tokens, passwords, credentials, environment-specific addresses, or deployment differences.

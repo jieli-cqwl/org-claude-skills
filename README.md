@@ -34,6 +34,7 @@
 - Superpowers 边界：`contracts/superpowers-boundary.yaml`
 - Superpowers 官方镜像：`community/superpowers/skills`
 - 标准流程合同：`contracts/standard-chain.yaml`
+- 标准流程调用策略：`contracts/standard-chain-invocation-policy.yaml`，非持久化路由护栏，不是 canonical runtime state
 - 标准流程 runtime catalog：`shared/runtime/standard-chain-catalog.json`
 - active scope registry：`contracts/active-doc-scope.yaml`
 - context artifact ownership：`contracts/context-artifact-ownership.yaml`
@@ -111,6 +112,7 @@ standard-chain 的接手恢复顺序固定为：
 - `worklog.md` 不复制 PRD、设计、任务或验收全文，只保存导航字段
 - canonical JSON 是进度和状态真源
 - `validate_context_contract.py`、`recover_context.py`、`tools/validate-contracts.sh` 和相关测试负责证明接手链路可恢复
+- `product-director` 是复杂需求的手动入口，不是自动/default skill；进入、绕过或回退 standard-chain 时按 `contracts/standard-chain-invocation-policy.yaml` 在当前响应/交接中说明 route/bypass rationale，不写入 canonical runtime state
 
 ## 完成前验证
 
