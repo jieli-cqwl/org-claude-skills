@@ -33,6 +33,7 @@ from pathlib import Path
 
 rule = Path(sys.argv[1])
 text = rule.read_text(encoding="utf-8")
+lower_text = text.lower()
 lines = text.splitlines()
 if not lines or lines[0] != "# Completion Claims":
     raise SystemExit("rule must use the Completion Claims title")
@@ -43,69 +44,124 @@ if "TODO" in text or "TBD" in text:
 
 semantic_checks = [
     (
-        "current-direct-evidence",
-        text.find("current") >= 0 and text.find("direct") >= 0 and text.find("evidence") >= 0,
+        "claim-scope-match",
+        all(
+            term in lower_text
+            for term in (
+                "requested outcome",
+                "acceptance scope",
+                "changed artifacts",
+                "delivered artifacts",
+                "observed behavior",
+            )
+        ),
     ),
     (
-        "acceptance-scope-derivation",
-        text.find("derive the acceptance scope") >= 0
-        and text.find("explicit acceptance requirements") >= 0
-        and text.find("affected paths") >= 0
-        and text.find("dependencies") >= 0
-        and text.find("required verification") >= 0,
-    ),
-    (
-        "user-verification-not-scope-shrink",
-        all(term in text for term in ("User-specified", "verification", "evidence", "requirements"))
-        and all(term in text for term in ("shrink", "requested", "outcome"))
-        and all(term in text for term in ("explicitly", "limits", "acceptance", "scope")),
-    ),
-    (
-        "representative-real-consumers",
-        text.find("representative real consumers") >= 0 and text.find("outside scope") >= 0,
-    ),
-    (
-        "accepted-residual-risk-boundary",
-        text.find("unaccepted risk") >= 0
-        and text.find("Accepted residual risks") >= 0
-        and text.find("reported separately") >= 0,
-    ),
-    (
-        "same-level-scope",
-        text.find("user paths") >= 0 and text.find("same level") >= 0,
-    ),
-    (
-        "mock-boundary",
-        text.find("Mock/") >= 0 and text.find("Stub/") >= 0 and text.find("Fake") >= 0,
+        "scope-derivation-and-no-shrink",
+        all(
+            term in lower_text
+            for term in (
+                "explicit acceptance requirements",
+                "affected paths",
+                "dependencies",
+                "required verification",
+                "user-specified verification",
+                "does not shrink",
+                "explicitly limits",
+            )
+        )
+        and ("derive acceptance scope" in lower_text or "derive the acceptance scope" in lower_text),
     ),
     (
         "checks-exercise-only",
-        all(term in text for term in ("Checks", "exercise", "define", "shrink", "acceptance scope")),
+        all(term in lower_text for term in ("checks", "exercise", "define", "shrink"))
+        and ("replace" in lower_text or "redefine" in lower_text),
     ),
     (
-        "completion-evidence-distinguishes-failure-modes",
-        all(term in text for term in ("distinguish", "in-scope failure modes", "wrong behavior")),
+        "failure-mode-discrimination",
+        all(term in lower_text for term in ("distinguish", "in-scope failure modes", "wrong behavior")),
     ),
     (
-        "evidence-strength-matches-claim",
-        all(term in text for term in ("strength", "partial", "sampled", "local", "indirect")),
+        "evidence-strength-and-same-level",
+        all(term in lower_text for term in ("strength", "partial", "sampled", "local", "indirect"))
+        and all(term in lower_text for term in ("mock", "stub", "fake", "same level"))
+        and all(term in lower_text for term in ("user paths", "runtimes", "dependencies", "integrations", "environments")),
     ),
     (
-        "skip-xfail-delete-checks",
-        text.find("skip" + "ping") >= 0
-        and text.find("xfail" + "-ing") >= 0
-        and text.find("delet" + "ing checks") >= 0,
+        "representative-real-consumers",
+        all(
+            term in lower_text
+            for term in (
+                "shared contracts",
+                "entrypoints",
+                "data formats",
+                "install/runtime paths",
+                "representative real consumers",
+                "outside scope",
+            )
+        ),
     ),
     (
-        "weaker-evidence",
-        text.find("weaker " + "evidence") >= 0,
+        "current-reproducible-manual-evidence",
+        all(
+            term in lower_text
+            for term in (
+                "current",
+                "reproducible",
+                "input",
+                "path",
+                "environment",
+                "expected result",
+                "observed result",
+            )
+        ),
     ),
     (
-        "blocked-evidence-states",
-        text.find("un" + "run") >= 0
-        and text.find("failed") >= 0
-        and text.find("blocked") >= 0
-        and text.find("missing " + "evidence") >= 0,
+        "invalid-evidence-and-substitution",
+        all(
+            term in lower_text
+            for term in (
+                "historical output",
+                "cached impressions",
+                "report self-reference",
+                "log summaries",
+            )
+        )
+        and ("substituted paths" in lower_text or "substituted path" in lower_text)
+        and ("green checks outside scope" in lower_text or "green checks outside the claimed scope" in lower_text)
+        and ("tool success" in lower_text or "tool did not error" in lower_text),
+    ),
+    (
+        "manufactured-completion-block",
+        all(
+            term in lower_text
+            for term in (
+                "skipping",
+                "xfail-ing",
+                "deleting checks",
+                "loosening assertions",
+                "changing acceptance scope",
+                "weaker evidence",
+            )
+        ),
+    ),
+    (
+        "blocked-states-and-reporting",
+        all(
+            term in lower_text
+            for term in (
+                "unrun",
+                "failed",
+                "blocked",
+                "missing evidence",
+                "waiting on a dependency",
+                "unaccepted risk",
+                "awaiting a decision",
+                "proven facts",
+                "unverified items",
+                "out-of-scope failures",
+            )
+        ),
     ),
 ]
 missing_semantics = [label for label, present in semantic_checks if not present]
@@ -124,7 +180,7 @@ if len(lead) != 1:
     raise SystemExit("rule must have exactly one lead sentence before constraints")
 
 bullets = [line for line in lines if line.startswith("- ")]
-if not 14 <= len(bullets) <= 22:
+if not 14 <= len(bullets) <= 18:
     raise SystemExit(f"rule should stay concise: got {len(bullets)} bullets")
 if sum(1 for line in bullets if line.startswith("- Test: ")) != 1:
     raise SystemExit("rule must include exactly one explicit self-test bullet")
