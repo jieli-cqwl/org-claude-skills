@@ -8,7 +8,7 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - Before deleting or simplifying existing artifacts, identify the constraint, consumer, invariant, or failure mode they preserve; if none is found, state that basis.
 - Before adding behavior, identify existing implementation paths, capability owners, callers, and contracts through definitions, references, call sites, utilities, types, scripts, or code intelligence when available.
 - Extract shared code only when it makes call sites clearer, removes real duplication, or exposes a stable contract.
-- Do not create an abstraction for a single use, speculative future, or cosmetic consistency.
+- Do not create a reuse abstraction for a single use, speculative future, or cosmetic consistency.
 - Keep control flow shallow and explicit; prefer early failure over nested happy paths.
 - If complexity makes ownership, failure handling, or verification boundaries unclear, split by responsibility unless the shape is forced by a framework or public contract.
 - Comments must explain intent, invariants, boundaries, tradeoffs, failure modes, or non-obvious business rules; do not narrate obvious code.

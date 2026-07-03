@@ -327,6 +327,7 @@ semantic_checks = [
                 "extract shared code only",
                 "real duplication",
                 "stable contract",
+                "reuse abstraction",
             )
         ),
     ),
@@ -362,7 +363,7 @@ heading_order = re.findall(r"^## (.+)$", text, flags=re.MULTILINE)
 expected_heading_order = [
     "Existing Path Reuse",
     "Complexity Signals",
-    "Abstraction For Code Reuse",
+    "Abstraction Boundaries",
     "Compatibility Code",
 ]
 
@@ -394,25 +395,41 @@ semantic_checks = [
         ),
     ),
     (
-        "abstraction-is-separate-code-reuse-decision",
+        "abstraction-serves-real-complexity",
         all(
             term in lower_text
             for term in (
-                "abstraction is a structural change",
-                "code reuse",
+                "abstraction is a structural boundary",
+                "introduce a boundary as",
+                "real duplication",
+                "stable invariant",
+                "identified change boundary",
                 "not the default form of existing-path reuse",
             )
         ),
     ),
     (
-        "abstraction-cost-gate",
+        "abstraction-contract-and-evidence-gate",
         all(
             term in lower_text
             for term in (
-                "real duplication",
                 "stable contract",
-                "aligned change direction",
+                "verification responsibility",
+                "source fact",
+                "failure mode",
                 "dependency direction complexity",
+            )
+        ),
+    ),
+    (
+        "reuse-abstraction-change-direction",
+        all(
+            term in lower_text
+            for term in (
+                "reuse abstractions",
+                "aligned change direction",
+                "surface similarity",
+                "future speculation",
             )
         ),
     ),
@@ -927,6 +944,36 @@ if "技术方案原则.md" in text or "设计原则.md" in text:
     raise SystemExit("technical design reference must not point to retired design names")
 if lower_text.count("code-structure-reuse.md") != 1:
     raise SystemExit("technical design should route to structure reuse reference once, not duplicate it")
+semantic_checks = [
+    (
+        "boundary-decision-fields-cover-structure-choices",
+        all(
+            term in text
+            for term in (
+                "能力归属",
+                "复用路径",
+                "抽象边界",
+                "新路径例外",
+                "回归证据",
+            )
+        ),
+    ),
+    (
+        "abstraction-decision-is-broader-than-code-reuse",
+        all(
+            term in text
+            for term in (
+                "真实重复",
+                "稳定不变量",
+                "已识别的变化边界",
+                "验证责任",
+            )
+        ),
+    ),
+]
+missing_semantics = [label for label, present in semantic_checks if not present]
+if missing_semantics:
+    raise SystemExit("technical design reference missing semantics: " + ", ".join(missing_semantics))
 PY
 
 rg -n "\{\{RUNTIME_HOME\}\}/rules/completion-claims\.md" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \
@@ -935,6 +982,34 @@ rg -n "\{\{RUNTIME_HOME\}\}/rules/completion-claims\.md" "$ROOT/shared/assistant
 if rg -n '补充细则：|只提供补充细则|必要时查看|可参考' "$ROOT/shared/assistant.md" >/dev/null 2>&1; then
   fail "assistant runtime references must be direct read instructions, not weak supplement notes"
 fi
+
+python3 - "$ROOT/shared/assistant.md" <<'PY' || fail "assistant best-practice contract violated"
+import re
+import sys
+from pathlib import Path
+
+assistant = Path(sys.argv[1])
+text = assistant.read_text(encoding="utf-8")
+match = re.search(r"^## Best Practice\n(?P<body>.*?)(?=^## )", text, flags=re.MULTILINE | re.DOTALL)
+if not match:
+    raise SystemExit("missing Best Practice section")
+
+bullets = [line for line in match.group("body").splitlines() if line.startswith("- ")]
+existing_path = next((line for line in bullets if line.startswith("- Existing Path First:")), "")
+if not existing_path:
+    raise SystemExit("missing Existing Path First best practice")
+
+required_terms = (
+    "current implementation path",
+    "capability owner",
+    "caller contracts",
+    "new path",
+    "existing path cannot safely carry the change",
+)
+missing_terms = [term for term in required_terms if term not in existing_path]
+if missing_terms:
+    raise SystemExit("Existing Path First missing terms: " + ", ".join(missing_terms))
+PY
 
 python3 - "$ROOT/shared/assistant.md" <<'PY' || fail "assistant runtime references must keep one reference per item"
 import re

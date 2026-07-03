@@ -1,6 +1,6 @@
 # Code Structure And Reuse
 
-Code structure should preserve existing behavior first, and improve code reuse only when a separate abstraction decision earns its cost.
+Code structure should preserve existing behavior first, and introduce abstraction only when a separate boundary decision earns its cost.
 
 ## Existing Path Reuse
 
@@ -20,14 +20,15 @@ Code structure should preserve existing behavior first, and improve code reuse o
 - Keep framework signatures, public API compatibility, generated files, pure configuration maps, and stable data tables intact when splitting would add risk or obscure intent.
 - Record the reason, risk, and verification method when a high-complexity shape is intentionally retained.
 
-## Abstraction For Code Reuse
+## Abstraction Boundaries
 
-- Abstraction is a structural change for code reuse, not the default form of existing-path reuse.
-- Create shared functions, components, services, interfaces, templates, or configuration structures only when they remove real duplication, expose a stable contract, and the call sites have aligned change direction.
-- Abstraction must make call relationships clearer, reduce maintenance cost, or stabilize a shared contract.
-- Single use, future speculation, naming symmetry, or surface similarity is not enough.
+- Abstraction is a structural boundary, not the default form of existing-path reuse or a cosmetic way to share similar code.
+- Introduce a boundary as a function, component, service, interface, template, or configuration structure only when it removes real duplication, expresses a stable invariant, or isolates an identified change boundary.
+- A valid abstraction must expose a stable contract, make call relationships clearer, reduce maintenance cost, or clarify verification responsibility.
+- For reuse abstractions, call sites need aligned change direction; surface similarity, naming symmetry, single use, or future speculation is not enough.
+- For invariant or change-boundary abstractions, name the source fact, protected invariant, consumers, and failure mode it prevents.
 - Keep concrete code when abstraction increases dependency direction complexity, hidden state, parameter complexity, or test difficulty.
-- An abstraction created only to satisfy a metric is a complexity regression.
+- An abstraction created only to satisfy a metric or make code look uniform is a complexity regression.
 
 ## Compatibility Code
 
