@@ -2,7 +2,7 @@
 
 Code must solve the requested problem without adding hidden risk, unnecessary complexity, or false success paths.
 
-- Make the smallest change that satisfies the current scope.
+- In existing projects, make the smallest compatible change on the existing implementation path; new behavior must not regress affected legacy behavior and needs regression evidence.
 - Match existing style, ownership boundaries, naming, dependency direction, and runtime patterns.
 - Do not refactor, reformat, rename, or clean adjacent code unless required for the current outcome.
 - Before deleting or simplifying existing artifacts, identify the constraint, consumer, invariant, or failure mode they preserve; if none is found, state that basis.

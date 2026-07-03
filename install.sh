@@ -483,11 +483,34 @@ check_hooks_registration() {
 
 render_codex_hooks_payload() {
   local output="$1"
+  local args=(
+    "codex-hooks"
+    "--registry" "$HOOK_REGISTRY"
+    "--runtime-home" "$CODEX_DIR"
+    "--python-launcher" "$PYTHON_LAUNCHER"
+  )
 
-  python3 "$HOOK_RENDERER" codex-hooks \
-    --registry "$HOOK_REGISTRY" \
-    --runtime-home "$CODEX_DIR" \
-    --python-launcher "$PYTHON_LAUNCHER" > "$output"
+  if codex_context_continuity_enabled; then
+    args+=("--enable-feature" "context-continuity")
+  fi
+
+  python3 "$HOOK_RENDERER" "${args[@]}" > "$output"
+}
+
+codex_context_continuity_enabled() {
+  [ "${ORG_CODEX_CONTEXT_CONTINUITY_ENABLED:-0}" = "1" ] || [ -f "$(codex_context_continuity_opt_in_file)" ]
+}
+
+codex_context_continuity_opt_in_file() {
+  printf '%s/context-continuity-enabled\n' "$(target_state_dir codex)"
+}
+
+persist_codex_context_continuity_opt_in() {
+  [ "${ORG_CODEX_CONTEXT_CONTINUITY_ENABLED:-0}" = "1" ] || return 0
+  [ "$DRY_RUN" -eq 0 ] || return 0
+
+  mkdir -p "$(target_state_dir codex)"
+  printf 'enabled\n' > "$(codex_context_continuity_opt_in_file)"
 }
 
 required_codex_hook_commands() {
@@ -497,6 +520,43 @@ $PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/context_contract_validator.py
 $PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_user_prompt_submit.py
 $PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_stop_dispatch.py
 EOF
+  if codex_context_continuity_enabled; then
+    printf '%s\n' \
+      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event UserPromptSubmit" \
+      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event Stop" \
+      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event PreCompact" \
+      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event PostCompact" \
+      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event SessionStart --source compact"
+  fi
+}
+
+check_codex_context_continuity_probe() {
+  local state_dir payload output
+
+  codex_context_continuity_enabled || return 0
+  state_dir="$(mktemp -d)"
+  payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-probe",
+    "hook_event_name": "SessionStart",
+    "source": "compact",
+    "cwd": sys.argv[1],
+}))
+PY
+)"
+  if ! output="$(printf '%s' "$payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$CODEX_DIR/hooks/managed/codex_context_continuity.py" --event SessionStart --source compact)"; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity probe 执行失败"
+  fi
+  if ! printf '%s' "$output" | grep -Fq 'task_state_ref:'; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity probe 未输出 task_state_ref"
+  fi
+  rm -rf "$state_dir"
+  log "context continuity probe passed"
 }
 
 check_codex_hook_trust() {
@@ -1002,15 +1062,12 @@ render_runtime_placeholders() {
   local runtime_home="$2"
   local entry_doc="$3"
   local skills_home="${4:-$runtime_home/skills}"
-  local file
 
-  while IFS= read -r -d '' file; do
-    ORG_RENDER_RUNTIME_HOME="$runtime_home" ORG_RENDER_ENTRY_DOC="$entry_doc" ORG_RENDER_SKILLS_HOME="$skills_home" perl -0pi -e '
-      s/\{\{RUNTIME_HOME\}\}/$ENV{ORG_RENDER_RUNTIME_HOME}/g;
-      s/\{\{ENTRY_DOC\}\}/$ENV{ORG_RENDER_ENTRY_DOC}/g;
-      s/\{\{SKILLS_HOME\}\}/$ENV{ORG_RENDER_SKILLS_HOME}/g;
-    ' "$file"
-  done < <(find "$tree" -type f \( -name '*.md' -o -name '*.sh' -o -name '*.json' -o -name '*.toml' -o -name '*.yaml' \) -print0)
+  python3 "$REPO_ROOT/tools/community/render_runtime_placeholders.py" \
+    "$tree" \
+    "$runtime_home" \
+    "$entry_doc" \
+    "$skills_home" >/dev/null
 }
 
 rewrite_codex_skill_script_runtime_paths() {
@@ -2513,6 +2570,7 @@ runtime_target_complete() {
     [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
     [ -x "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
     [ -f "$target_dir/hooks/managed/context_contract_validator.py" ] || return 1
+    [ -f "$target_dir/hooks/managed/codex_context_continuity.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_user_prompt_submit.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_stop_dispatch.py" ] || return 1
     [ -f "$target_dir/hooks/registry.json" ] || return 1
@@ -2896,6 +2954,7 @@ uninstall_target() {
   if [ "$name" = "codex" ]; then
     restore_codex_hooks_json_baseline
     rm -rf "$target_dir/hooks/state"
+    rm -f "$(codex_context_continuity_opt_in_file)"
     restore_codex_hooks_feature
     remove_if_empty "$target_dir/hooks" "$target_dir"
   fi
@@ -3106,6 +3165,7 @@ quick_check() {
     [ -f "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不存在"
     [ -x "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不可执行"
     [ -f "$CODEX_DIR/hooks/managed/context_contract_validator.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/context_contract_validator.py 不存在"
+    [ -f "$CODEX_DIR/hooks/managed/codex_context_continuity.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_context_continuity.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_user_prompt_submit.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_stop_dispatch.py 不存在"
     [ -f "$CODEX_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.codex/hooks/registry.json 不存在"
@@ -3137,15 +3197,24 @@ quick_check() {
     grep -Fq "$CODEX_DIR/hooks/managed/context_contract_validator.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 context contract validator hook"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 active skill tracker"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 stop dispatcher"
+    if codex_context_continuity_enabled; then
+      grep -Fq "$CODEX_DIR/hooks/managed/codex_context_continuity.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 context continuity hook"
+    else
+      ! grep -Fq "$CODEX_DIR/hooks/managed/codex_context_continuity.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 默认不应启用 context continuity hook"
+    fi
     grep -Fq '"SessionStart"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex SessionStart 事件面"
     grep -Fq '"PermissionRequest"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex PermissionRequest 事件面"
     grep -Fq '"PostToolUse"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex PostToolUse 事件面"
+    grep -Fq '"PreCompact"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex PreCompact 事件面"
+    grep -Fq '"PostCompact"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex PostCompact 事件面"
+    grep -Fq '"SubagentStart"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex SubagentStart 事件面"
+    grep -Fq '"SubagentStop"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex SubagentStop 事件面"
     grep -Fq '"matcher": "Write|Edit"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 PostToolUse Write|Edit matcher"
-    ! grep -Fq '"PostCompact"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 不应渲染 Claude-only PostCompact"
     ! grep -Fq '"TaskCompleted"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 不应渲染 Claude-only TaskCompleted"
     if [ -f "$CODEX_DIR/hooks.json" ] && grep -Fq 'codex-hooks-probe.' "$CODEX_DIR/hooks.json"; then
       fail "Quick Check 失败: ~/.codex/hooks.json 不应残留 codex-hooks-probe 临时路径"
     fi
+    check_codex_context_continuity_probe
     check_codex_hook_trust
     runtime_noise_absent "$CODEX_DIR" || fail "Quick Check 失败: ~/.codex 不应包含 __pycache__、*.pyc 或 .DS_Store"
   fi
@@ -3275,6 +3344,7 @@ main() {
   if [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; then
     install_to_target "codex" "$CODEX_DIR" build_staging_codex "$version_tag"
     if [ "$DRY_RUN" -eq 0 ]; then
+      persist_codex_context_continuity_opt_in
       configure_codex_agents
       enable_codex_hooks_feature
       snapshot_codex_hooks_json_baseline

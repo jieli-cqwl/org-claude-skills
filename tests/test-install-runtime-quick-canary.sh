@@ -15,7 +15,7 @@ while [ "$#" -gt 0 ]; do
       ;;
     -h|--help)
       cat <<'USAGE'
-Usage: bash tests/test-install-runtime-quick-canary.sh [--group all|codex-install|claude-hook-launcher|hook-checks]
+Usage: bash tests/test-install-runtime-quick-canary.sh [--group all|codex-install|codex-context-continuity|claude-hook-launcher|hook-checks]
 USAGE
       exit 0
       ;;
@@ -26,7 +26,7 @@ USAGE
 done
 
 case "$GROUP" in
-  all|codex-install|claude-hook-launcher|hook-checks) ;;
+  all|codex-install|codex-context-continuity|claude-hook-launcher|hook-checks) ;;
   *) install_test_fail "unknown runtime quick canary group: $GROUP" ;;
 esac
 
@@ -45,7 +45,24 @@ if [ "$GROUP" = "all" ] || [ "$GROUP" = "codex-install" ]; then
   install_test_assert_file_exists "$home_dir/.codex/hooks.json" "codex runtime should include hooks.json"
   install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" '"command": "python3 ' "codex Python hooks should pin the installer Python executable"
   install_test_assert_file_contains "$home_dir/.codex/hooks.json" "\"command\": \"$(command -v python3) $home_dir/.codex/hooks/managed/context_contract_validator.py\"" "codex context hook should use installer Python executable"
+  install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "codex context continuity should not install by default"
   install_test_case_pass "runtime-quick-canary: codex install exposes managed runtime entry"
+fi
+
+if [ "$GROUP" = "all" ] || [ "$GROUP" = "codex-context-continuity" ]; then
+  install_test_case_start "runtime-quick-canary: codex context continuity opt-in probe"
+  home_dir="$(install_test_new_home runtime-quick-canary-context-continuity)"
+  (
+    export ORG_CODEX_CONTEXT_CONTINUITY_ENABLED=1
+    install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-quick-canary-context-continuity-install)" --target codex --check quick
+  )
+  install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "context continuity should install when explicitly enabled"
+  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-install)" "context continuity probe passed" "opt-in install should run recovery probe"
+  install_test_assert_file_exists "$home_dir/.org-skills-state/codex/context-continuity-enabled" "context continuity opt-in should persist after enabled install"
+  install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-quick-canary-context-continuity-reinstall)" --target codex --check quick
+  install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "context continuity should remain enabled on later installs without env"
+  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-reinstall)" "context continuity probe passed" "persisted opt-in install should run recovery probe"
+  install_test_case_pass "runtime-quick-canary: codex context continuity opt-in probe"
 fi
 
 if [ "$GROUP" = "all" ] || [ "$GROUP" = "claude-hook-launcher" ]; then

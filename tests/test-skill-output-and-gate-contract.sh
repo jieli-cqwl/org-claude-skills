@@ -295,14 +295,27 @@ assert_hook_registry_renderable() {
       "PreToolUse",
       "PermissionRequest",
       "PostToolUse",
+      "PreCompact",
+      "PostCompact",
       "UserPromptSubmit",
+      "SubagentStart",
+      "SubagentStop",
       "Stop"
     ]
   ' "$rendered" >/dev/null 2>&1 || fail "Codex hook registry should expose the current official Codex event surface"
   jq -e '._org_skills.managed_only_events == ["UserPromptSubmit"]' "$rendered" >/dev/null 2>&1 \
     || fail "Codex hook registry should reserve only internal UserPromptSubmit hooks for managed handlers"
-  jq -e '.hooks | has("PostCompact") | not' "$rendered" >/dev/null 2>&1 \
-    || fail "Codex hook registry should not render Claude-only PostCompact"
+  jq -e '
+    [
+      .hooks.SessionStart[]?.hooks[]?.command,
+      .hooks.PreCompact[]?.hooks[]?.command,
+      .hooks.PostCompact[]?.hooks[]?.command,
+      .hooks.UserPromptSubmit[]?.hooks[]?.command,
+      .hooks.Stop[]?.hooks[]?.command
+    ]
+    | map(select(contains("codex_context_continuity.py")))
+    | length == 0
+  ' "$rendered" >/dev/null 2>&1 || fail "Codex context continuity hooks should be opt-in, not default"
   jq -e '.hooks | has("TaskCompleted") | not' "$rendered" >/dev/null 2>&1 \
     || fail "Codex hook registry should not render Claude-only TaskCompleted"
   jq -e '
@@ -311,7 +324,33 @@ assert_hook_registry_renderable() {
       and any(.hooks[]?; (.command | contains("context_contract_validator.py")))
     )
   ' "$rendered" >/dev/null 2>&1 || fail "Codex PostToolUse should run context validator for Write/Edit edits"
+
+  local opt_in_rendered
+  opt_in_rendered="$(mktemp "${TMPDIR:-/tmp}/rendered-hooks-opt-in.XXXXXX")"
+  python3 "$ROOT/tools/community/render_hook_registry.py" codex-hooks \
+    --registry "$ROOT/shared/hooks/registry.json" \
+    --runtime-home /tmp/runtime \
+    --enable-feature context-continuity > "$opt_in_rendered" || fail "hook registry must render opt-in context continuity hooks for Codex"
+  for event in UserPromptSubmit Stop PreCompact PostCompact; do
+    jq -e --arg event "$event" '
+      any(.hooks[$event][]?;
+        any(.hooks[]?; (.command | contains("codex_context_continuity.py")))
+      )
+    ' "$opt_in_rendered" >/dev/null 2>&1 || fail "Codex context continuity should register opt-in hook for $event"
+  done
+  jq -e '
+    any(.hooks.SessionStart[]?;
+      (.matcher == "compact")
+      and any(.hooks[]?; (.command | contains("codex_context_continuity.py")))
+    )
+  ' "$opt_in_rendered" >/dev/null 2>&1 || fail "Codex context continuity should register opt-in SessionStart compact hook"
+  jq -e '
+    any(.hooks.PreCompact[]?.hooks[]?.command; contains("codex_context_continuity.py --event PreCompact"))
+    and any(.hooks.PostCompact[]?.hooks[]?.command; contains("codex_context_continuity.py --event PostCompact"))
+    and any(.hooks.SessionStart[]?.hooks[]?.command; contains("codex_context_continuity.py --event SessionStart --source compact"))
+  ' "$opt_in_rendered" >/dev/null 2>&1 || fail "context continuity commands should pass explicit event/source args"
   rm -f "$rendered"
+  rm -f "$opt_in_rendered"
 }
 
 run_hook() {

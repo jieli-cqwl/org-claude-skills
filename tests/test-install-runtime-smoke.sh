@@ -175,6 +175,7 @@ install_test_assert_file_exists "$home_dir/.codex/hooks.json" "codex hooks.json 
 install_test_assert_file_contains "$home_dir/.codex/config.toml" "hooks = true" "codex install should enable hooks feature"
 install_test_assert_file_not_contains "$home_dir/.codex/config.toml" "codex_hooks" "codex install should not keep deprecated codex_hooks feature"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/context_contract_validator.py" "codex hooks should include context validator"
+install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "codex context continuity should not install by default"
 install_test_assert_path_absent "$home_dir/.codex/hooks/managed/implementation_router.py" "codex implementation router hook should not install"
 
 install_test_assert_control_plane_runtime_files "$home_dir/.claude" "claude runtime"

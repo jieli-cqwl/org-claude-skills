@@ -267,6 +267,21 @@
       "timeout_sec": 480
     },
     {
+      "id": "runtime-placeholder-renderer",
+      "command": [
+        "python3",
+        "tests/test-render-runtime-placeholders.py"
+      ],
+      "area": "install-runtime",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "python"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
       "id": "install-runtime-quick-canary-codex-install",
       "command": [
         "bash",
@@ -278,6 +293,23 @@
       "tier": "quick",
       "tags": [
         "canary"
+      ],
+      "parallel_safe": false,
+      "timeout_sec": 120
+    },
+    {
+      "id": "install-runtime-quick-canary-codex-context-continuity",
+      "command": [
+        "bash",
+        "tests/test-install-runtime-quick-canary.sh",
+        "--group",
+        "codex-context-continuity"
+      ],
+      "area": "install-runtime",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "codex-context-continuity"
       ],
       "parallel_safe": false,
       "timeout_sec": 120
@@ -762,7 +794,7 @@
         "skill-evals"
       ],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 90
     },
     {
       "id": "impact-analysis-eval-contract",
@@ -776,7 +808,7 @@
         "skill-evals"
       ],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 90
     },
     {
       "id": "eval-summary-compat",
@@ -1473,12 +1505,13 @@
         "tests/test-context-contract-hook.sh"
       ],
       "area": "context",
-      "tier": "full",
+      "tier": "quick",
       "tags": [
+        "canary",
         "context"
       ],
       "parallel_safe": true,
-      "timeout_sec": 180
+      "timeout_sec": 90
     },
     {
       "id": "context-recovery",

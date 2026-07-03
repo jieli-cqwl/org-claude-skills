@@ -237,6 +237,19 @@ semantic_checks = [
             )
         ),
     ),
+    (
+        "existing-project-regression-protection",
+        all(
+            term in lower_text
+            for term in (
+                "existing project",
+                "existing implementation",
+                "new behavior",
+                "legacy behavior",
+                "regression evidence",
+            )
+        ),
+    ),
 ]
 missing_semantics = [label for label, present in semantic_checks if not present]
 if missing_semantics:
@@ -252,6 +265,56 @@ unexpected = [
 ]
 if unexpected:
     raise SystemExit("rule must remain one lead sentence plus bullets:\n" + "\n".join(unexpected))
+PY
+
+python3 - "$ROOT/shared/reference/code-structure-reuse.md" <<'PY' || fail "code structure reuse reference contract violated"
+import sys
+from pathlib import Path
+
+reference = Path(sys.argv[1])
+text = reference.read_text(encoding="utf-8")
+lower_text = text.lower()
+
+semantic_checks = [
+    (
+        "existing-path-default",
+        all(
+            term in lower_text
+            for term in (
+                "existing implementation path",
+                "default",
+                "legacy behavior",
+            )
+        ),
+    ),
+    (
+        "new-path-exception-boundary",
+        all(
+            term in lower_text
+            for term in (
+                "new path",
+                "exception",
+                "boundary",
+                "removal condition",
+            )
+        ),
+    ),
+    (
+        "legacy-regression-evidence",
+        all(
+            term in lower_text
+            for term in (
+                "callers",
+                "state branches",
+                "historical compatibility",
+                "regression evidence",
+            )
+        ),
+    ),
+]
+missing_semantics = [label for label, present in semantic_checks if not present]
+if missing_semantics:
+    raise SystemExit("missing structure reuse semantics: " + ", ".join(missing_semantics))
 PY
 
 

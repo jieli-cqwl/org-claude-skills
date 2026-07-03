@@ -18,6 +18,13 @@ Before adding implementation, check:
 - Same directory, same module, shared utilities, script entrypoints, and test fixtures.
 - Code intelligence, including LSP-backed reference search, IDE navigation, code indexes, and type-aware search when available; use text search to cover dynamic, configuration, and generated paths.
 
+## Existing Project Changes
+
+- The existing implementation path is the default for iterative work; a new path is an exception, not a shortcut.
+- Before adding a path, trace callers, state branches, historical compatibility cases, tests, fixtures, and runtime entrypoints that depend on the old behavior.
+- If the existing path cannot safely carry the change, name the new path boundary, how it relates to the retained callers, and the removal condition.
+- Completion needs regression evidence for affected legacy behavior, not just proof that the new behavior works.
+
 ## Abstraction Judgment
 
 - Evaluate reuse from a senior engineer perspective: optimize clarity, maintainability, evolvability, and contract stability.

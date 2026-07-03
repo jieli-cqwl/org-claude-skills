@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import sys
 from pathlib import Path
 
@@ -11,7 +12,11 @@ CODEX_HOOK_EVENTS = [
     "PreToolUse",
     "PermissionRequest",
     "PostToolUse",
+    "PreCompact",
+    "PostCompact",
     "UserPromptSubmit",
+    "SubagentStart",
+    "SubagentStop",
     "Stop",
 ]
 
@@ -61,6 +66,11 @@ def validate_registry(registry: dict) -> None:
             payload = hook.get(runtime)
             if not isinstance(payload, dict) or "supported" not in payload:
                 raise ValueError(f"{hook_id}: missing runtime payload for {runtime}")
+            args = payload.get("args")
+            if args is not None and (
+                not isinstance(args, list) or any(not isinstance(arg, str) for arg in args)
+            ):
+                raise ValueError(f"{hook_id}: args must be a list of strings")
 
 
 def render_command(
@@ -70,6 +80,12 @@ def render_command(
         validate_python_launcher(python_launcher)
         launcher = python_launcher
     return f"{launcher} {runtime_home}/{command_rel}"
+
+
+def render_command_args(args: list[str] | None) -> str:
+    if not args:
+        return ""
+    return " " + " ".join(shlex.quote(str(arg)) for arg in args)
 
 
 def validate_python_launcher(python_launcher: str) -> None:
@@ -91,7 +107,14 @@ def ordered_unique(items: list[str]) -> list[str]:
 
 
 def sort_hook_events(events: list[str]) -> list[str]:
-    preferred = ["PreToolUse", "PostToolUse", "PostCompact", "TaskCompleted", "Stop"]
+    preferred = [
+        "PreToolUse",
+        "PostToolUse",
+        "PreCompact",
+        "PostCompact",
+        "TaskCompleted",
+        "Stop",
+    ]
     ordered = [event for event in preferred if event in events]
     ordered.extend(sorted(event for event in events if event not in preferred))
     return ordered
@@ -112,11 +135,16 @@ def collect_claude_standard_events(registry: dict) -> list[str]:
     return sort_hook_events(ordered_unique(events))
 
 
-def collect_codex_internal_events(registry: dict) -> list[str]:
+def feature_enabled(payload: dict, enabled_features: set[str]) -> bool:
+    feature = payload.get("feature")
+    return not isinstance(feature, str) or feature in enabled_features
+
+
+def collect_codex_internal_events(registry: dict, enabled_features: set[str]) -> list[str]:
     events: list[str] = []
     for hook in registry["runtime_hooks"]:
         codex = hook["codex"]
-        if codex.get("supported") and codex.get("internal_only"):
+        if codex.get("supported") and feature_enabled(codex, enabled_features) and codex.get("internal_only"):
             events.append(codex["event"])
     return ordered_unique(events)
 
@@ -241,14 +269,19 @@ def inject_claude_skill_hooks(
 
 
 def render_runtime_hook_entries(
-    registry: dict, runtime: str, runtime_home: str, python_launcher: str
+    registry: dict,
+    runtime: str,
+    runtime_home: str,
+    python_launcher: str,
+    enabled_features: set[str] | None = None,
 ) -> dict:
+    enabled_features = enabled_features or set()
     hooks: dict[str, list[dict]] = {}
     standard_events: list[str] = []
     internal_events: list[str] = []
     if runtime == "codex":
         standard_events = CODEX_HOOK_EVENTS[:]
-        internal_events = collect_codex_internal_events(registry)
+        internal_events = collect_codex_internal_events(registry, enabled_features)
         unsupported_events = sorted(set(internal_events) - set(standard_events))
         if unsupported_events:
             raise ValueError(
@@ -262,13 +295,15 @@ def render_runtime_hook_entries(
         payload = hook[runtime]
         if not payload.get("supported"):
             continue
+        if not feature_enabled(payload, enabled_features):
+            continue
 
         event = payload["event"]
         if runtime == "codex" and event not in CODEX_HOOK_EVENTS:
             raise ValueError(f"Codex hook {hook['id']} uses unsupported event: {event}")
         command = render_command(
             runtime_home, payload["launcher"], payload["command_rel"], python_launcher
-        )
+        ) + render_command_args(payload.get("args"))
         command_entry = {"type": "command", "command": command}
         timeout_sec = payload.get("timeout_sec")
         if timeout_sec:
@@ -309,6 +344,7 @@ def main() -> int:
     codex_parser.add_argument("--registry", required=True)
     codex_parser.add_argument("--runtime-home", required=True)
     codex_parser.add_argument("--python-launcher", default="python3")
+    codex_parser.add_argument("--enable-feature", action="append", default=[])
 
     args = parser.parse_args()
     registry = load_registry(Path(args.registry))
@@ -328,7 +364,11 @@ def main() -> int:
 
     if args.command == "codex-hooks":
         payload = render_runtime_hook_entries(
-            registry, "codex", args.runtime_home, args.python_launcher
+            registry,
+            "codex",
+            args.runtime_home,
+            args.python_launcher,
+            set(args.enable_feature),
         )
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0

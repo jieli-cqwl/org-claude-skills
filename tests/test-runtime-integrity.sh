@@ -111,6 +111,7 @@ grep -Fq "$TMP_HOME/.codex/hooks/managed/block_dangerous.sh" "$TMP_HOME/.codex/h
 grep -Fq "$TMP_HOME/.codex/hooks/managed/context_contract_validator.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks should include context validator"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_user_prompt_submit.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks should include active-skill tracker"
 grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_stop_dispatch.py" "$TMP_HOME/.codex/hooks.json" || fail "codex hooks should include stop dispatcher"
+! grep -Fq "$TMP_HOME/.codex/hooks/managed/codex_context_continuity.py" "$TMP_HOME/.codex/hooks.json" || fail "codex context continuity should not install by default"
 
 test -f "$STATE_ROOT/claude/installed-version" || fail "missing claude state version"
 test -f "$STATE_ROOT/codex/installed-version" || fail "missing codex state version"
