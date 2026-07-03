@@ -1,22 +1,14 @@
 # Constants And Configuration
 
-Constants and configuration belong to the right owner: secrets stay outside the repository, environment differences are configurable, stable public semantics are shared, and local implementation details stay local.
+Constants and configuration belong to the owner that can change them safely: secrets stay outside the repository, environment differences stay configurable, stable public semantics can be shared, and local implementation details stay local.
 
-## Forbidden Values
+## Value Classification
 
-- Do not hardcode secrets, tokens, passwords, private keys, private certificates, production credentials, or account credentials.
-- Do not bypass secret management with string concatenation, default fallbacks, copied test configuration, or sample credentials.
-- Do not put environment addresses, ports, accounts, deployment paths, or host-specific paths in business logic.
-
-## Classification And Ownership
-
-| Type | Decision | Owner |
-| --- | --- | --- |
-| Sensitive configuration | Keys, passwords, tokens, secrets, credentials | Environment variables or secret storage, never committed |
-| Environment configuration | Addresses, ports, deployment differences, runtime credentials | Configuration file or environment variable |
-| User-visible messages | Text shown to users, shared copy, localization | Existing message or i18n system |
-| Business constants | Stable values owned by business rules | Owning domain or concept module |
-| Enums and statuses | Finite values used for comparison or workflow | Existing enum/type system or owning domain |
+- Secrets, tokens, passwords, private keys, private certificates, production accounts, and credentials must use environment variables or secret storage and be never committed.
+- Environment addresses, ports, deployment differences, runtime credentials, deployment paths, and host-specific paths belong in configuration or environment variables, not business logic.
+- Missing or invalid required configuration must produce an explicit failure; do not hide drift with a hidden default, string concatenation, copied test configuration, or sample credentials.
+- User-visible messages belong to the existing message or i18n system.
+- Business constants, enums, and statuses belong to the owning domain, concept module, enum, or type system.
 
 ## Layering Decision
 
@@ -24,6 +16,7 @@ Constants and configuration belong to the right owner: secrets stay outside the 
 - Shared within one module: place it in the module owner.
 - Shared across modules: export it only when the value is a stable public contract.
 - Do not import another module's private constants across ownership boundaries; adjust dependency direction or keep duplicated local values when no public contract exists.
+- Changing or removing shared constants, enums, statuses, serialized values, or configuration keys requires checking consumers, stored data, compatibility, migration needs, and rollback or regression evidence.
 
 ## Naming And Splitting
 

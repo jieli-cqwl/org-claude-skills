@@ -451,6 +451,60 @@ if missing_semantics:
     raise SystemExit("missing performance semantics: " + ", ".join(missing_semantics))
 PY
 
+python3 - "$ROOT/shared/reference/constants-and-configuration.md" <<'PY' || fail "constants reference contract violated"
+import sys
+from pathlib import Path
+
+reference = Path(sys.argv[1])
+text = reference.read_text(encoding="utf-8")
+lower_text = text.lower()
+
+semantic_checks = [
+    (
+        "secret-boundary",
+        all(
+            term in lower_text
+            for term in (
+                "secrets",
+                "tokens",
+                "passwords",
+                "credentials",
+                "secret storage",
+                "never committed",
+            )
+        ),
+    ),
+    (
+        "environment-config-boundary",
+        all(
+            term in lower_text
+            for term in (
+                "environment addresses",
+                "ports",
+                "deployment differences",
+                "configuration",
+                "business logic",
+            )
+        ),
+    ),
+    (
+        "missing-config-visible-failure",
+        all(term in lower_text for term in ("missing", "invalid", "explicit failure", "hidden default")),
+    ),
+    (
+        "shared-contract-boundary",
+        all(term in lower_text for term in ("stable public contract", "private constants", "ownership boundaries")),
+    ),
+    (
+        "shared-value-change-safety",
+        all(term in lower_text for term in ("consumers", "stored data", "compatibility", "migration")),
+    ),
+]
+missing_semantics = [label for label, present in semantic_checks if not present]
+if missing_semantics:
+    raise SystemExit("missing constants semantics: " + ", ".join(missing_semantics))
+PY
+
 
 python3 - "$ROOT/shared/rules/execution-control.md" <<'PY' || fail "execution control rule shape contract violated"
 import sys
