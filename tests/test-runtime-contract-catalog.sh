@@ -317,6 +317,69 @@ if missing_semantics:
     raise SystemExit("missing structure reuse semantics: " + ", ".join(missing_semantics))
 PY
 
+python3 - "$ROOT/shared/reference/error-handling.md" <<'PY' || fail "error handling reference contract violated"
+import sys
+from pathlib import Path
+
+reference = Path(sys.argv[1])
+text = reference.read_text(encoding="utf-8")
+lower_text = text.lower()
+
+semantic_checks = [
+    (
+        "failure-outcomes",
+        all(
+            term in lower_text
+            for term in (
+                "propagate",
+                "explicit failure",
+                "visible partial failure",
+                "manual intervention",
+            )
+        ),
+    ),
+    (
+        "fallback-boundary",
+        all(
+            term in lower_text
+            for term in (
+                "fallback",
+                "valid condition",
+                "business semantics",
+                "observable",
+            )
+        ),
+    ),
+    (
+        "allowed-continuation-boundary",
+        all(
+            term in lower_text
+            for term in (
+                "noncritical",
+                "cleanup",
+                "rollback",
+                "batch partial success",
+                "degraded mode",
+            )
+        ),
+    ),
+    (
+        "fake-success-guard",
+        all(
+            term in lower_text
+            for term in (
+                "silent failure",
+                "hidden fallback",
+                "fake success",
+            )
+        ),
+    ),
+]
+missing_semantics = [label for label, present in semantic_checks if not present]
+if missing_semantics:
+    raise SystemExit("missing error handling semantics: " + ", ".join(missing_semantics))
+PY
+
 
 python3 - "$ROOT/shared/rules/execution-control.md" <<'PY' || fail "execution control rule shape contract violated"
 import sys
