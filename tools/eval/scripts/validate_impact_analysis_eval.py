@@ -14,6 +14,12 @@ REQUIRED_TOP_LEVEL = {
     "reference",
     "goal",
     "run_model",
+    "atom_record_schema",
+    "denominator_statuses",
+    "decision_states",
+    "trace_statuses",
+    "runtime_statuses",
+    "trace_chain",
     "output_schema",
     "rubric",
     "pass_threshold",
@@ -22,13 +28,67 @@ REQUIRED_TOP_LEVEL = {
 }
 EXPECTED_OUTPUT_SCHEMA = [
     "case_id",
-    "direct_change_points",
+    "source_atom_denominator",
+    "atom_evidence_anchors",
+    "bottom_up_trace",
     "functional_impact_items",
-    "technical_touchpoints",
+    "preserved_old_logic",
     "regression_verification",
     "coverage_gaps",
     "decision_risks",
+    "runtime_review_status",
     "completion_gate",
+]
+EXPECTED_ATOM_RECORD_SCHEMA = [
+    "source_atom_id",
+    "atom_type",
+    "denominator_status",
+    "denominator_reason",
+    "evidence_anchor",
+    "current_behavior",
+    "target_behavior",
+    "target_action",
+    "trace_status",
+    "business_entry",
+    "business_impact",
+    "preserved_old_logic",
+    "acceptance_assertion",
+    "runtime_status",
+    "risk_or_decision",
+]
+EXPECTED_DENOMINATOR_STATUSES = [
+    "ADMITTED",
+    "REJECTED_WITH_EVIDENCE",
+]
+EXPECTED_DECISION_STATES = [
+    "CHANGE",
+    "KEEP_AS_IS",
+    "REGRESSION_ONLY",
+    "NEEDS_TRACE",
+    "NEEDS_DECISION",
+    "NOT_IMPACTED_WITH_EVIDENCE",
+]
+EXPECTED_TRACE_STATUSES = [
+    "TRACE_COMPLETE",
+    "TRACE_PARTIAL",
+    "TRACE_BLOCKED",
+    "NEEDS_TRACE",
+]
+EXPECTED_RUNTIME_STATUSES = [
+    "STATIC_VERIFIED",
+    "RUNTIME_VERIFIED",
+    "RUNTIME_UNVERIFIED",
+    "ACCOUNT_BLOCKED",
+    "ENV_BLOCKED",
+]
+EXPECTED_TRACE_CHAIN = [
+    "source_atom",
+    "call_chain",
+    "interface_task_or_page",
+    "terminal_or_business_entry",
+    "user_path",
+    "business_impact",
+    "acceptance_assertion",
 ]
 EXPECTED_CASE_IDS = [f"IA-{index:03d}" for index in range(1, 9)]
 EXPECTED_RUBRICS = [f"R{index}" for index in range(1, 9)]
@@ -50,29 +110,63 @@ REQUIRED_RUN_MODEL = {
 REQUIRED_PILOT_RECORD_FIELDS = [
     "task_ref",
     "change_summary",
+    "source_atom_denominator",
+    "atom_evidence_anchors",
     "functional_impact_items",
-    "technical_touchpoints",
+    "preserved_old_logic",
     "regression_verification",
     "coverage_gaps",
     "decision_risks",
+    "runtime_review_status",
     "completion_gate_result",
     "review_findings",
 ]
 REQUIRED_CASE_FOCUS = {
-    "IA-001": {"用户可见行为", "回归验证"},
-    "IA-002": {"内部实现影响", "行为不变证据"},
-    "IA-003": {"runtime 行为约束", "完成声明风险"},
-    "IA-004": {"无额外影响依据", "覆盖盲区检查"},
-    "IA-005": {"代码智能不可见路径", "动态调用", "待裁决风险"},
-    "IA-006": {"schema/script/test 同步", "功能影响项承载"},
+    "IA-001": {"源码原子分母", "用户可见行为", "回归验证"},
+    "IA-002": {"保持现状", "旧逻辑回归对象"},
+    "IA-003": {"runtime 行为约束", "完成声明风险", "测试/安装消费路径"},
+    "IA-004": {"无额外影响依据", "源码原子检查面"},
+    "IA-005": {"代码智能不可见路径", "动态调用", "调用链不合并", "待追踪"},
+    "IA-006": {"schema/script/test 同步", "原子证据锚点"},
     "IA-007": {"门禁覆盖变化", "测试可信度"},
-    "IA-008": {"shared_files 不充分", "统一合并验证"},
+    "IA-008": {"文件无交集不等于独立", "同一用户路径", "统一合并验证"},
 }
 REQUIRED_RUBRIC_REQUIRES = {
+    "R1": {
+        "源码原子证据",
+        "覆盖分母",
+        "证据锚点",
+    },
+    "R2": {
+        "原子点 -> 调用链 -> 接口/任务/页面 -> 终端/业务入口 -> 用户路径 -> 业务影响 -> 验收断言",
+        "每一跳",
+        "调用链不合并",
+    },
+    "R3": {
+        "需修改",
+        "保持现状",
+        "待追踪",
+        "NEEDS_TRACE",
+    },
     "R4": {
-        "技术触点",
         "不得用文件清单替代功能影响结论",
         "文件名、函数名、脚本名不是功能影响项",
+    },
+    "R5": {
+        "旧逻辑",
+        "保持现有行为",
+        "回归对象",
+    },
+    "R6": {
+        "真实系统入口",
+        "运行未验",
+        "静态复核",
+    },
+    "R8": {
+        "需回归验证项",
+        "覆盖盲区",
+        "待裁决风险",
+        "完成前验证",
     },
 }
 
@@ -99,13 +193,43 @@ def validate_top_level(payload: dict[str, Any], errors: list[str]) -> None:
     require(not missing, f"missing top-level fields: {missing}", errors)
     require(payload.get("protocol_version") == 1, "protocol_version must be 1", errors)
     require(
-        payload.get("reference") == "shared/reference/影响范围分析.md",
-        "reference must point to shared/reference/影响范围分析.md",
+        payload.get("reference") == "shared/reference/impact-analysis.md",
+        "reference must point to shared/reference/impact-analysis.md",
         errors,
     )
     require(
         payload.get("output_schema") == EXPECTED_OUTPUT_SCHEMA,
         "output_schema drifted",
+        errors,
+    )
+    require(
+        payload.get("atom_record_schema") == EXPECTED_ATOM_RECORD_SCHEMA,
+        "atom_record_schema drifted",
+        errors,
+    )
+    require(
+        payload.get("denominator_statuses") == EXPECTED_DENOMINATOR_STATUSES,
+        "denominator_statuses drifted",
+        errors,
+    )
+    require(
+        payload.get("decision_states") == EXPECTED_DECISION_STATES,
+        "decision_states drifted",
+        errors,
+    )
+    require(
+        payload.get("trace_statuses") == EXPECTED_TRACE_STATUSES,
+        "trace_statuses drifted",
+        errors,
+    )
+    require(
+        payload.get("runtime_statuses") == EXPECTED_RUNTIME_STATUSES,
+        "runtime_statuses drifted",
+        errors,
+    )
+    require(
+        payload.get("trace_chain") == EXPECTED_TRACE_CHAIN,
+        "trace_chain drifted",
         errors,
     )
 
@@ -239,6 +363,14 @@ def validate_cases(payload: dict[str, Any], errors: list[str]) -> None:
             errors,
         )
         if isinstance(focus, list) and isinstance(case_id, str):
+            duplicates = sorted(
+                {
+                    value
+                    for value in focus
+                    if isinstance(value, str) and focus.count(value) > 1
+                }
+            )
+            require(not duplicates, f"{case_id}: duplicate focus {duplicates}", errors)
             missing = sorted(REQUIRED_CASE_FOCUS.get(case_id, set()) - set(focus))
             require(not missing, f"{case_id}: missing focus {missing}", errors)
 

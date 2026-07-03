@@ -1,7 +1,7 @@
 {
   "protocol_version": 1,
-  "reference": "shared/reference/影响范围分析.md",
-  "goal": "验证影响范围分析 reference 是否能让执行者产出业务、测试、开发可对齐的功能影响项，而不是只给文件清单或搜索结果。",
+  "reference": "shared/reference/impact-analysis.md",
+  "goal": "Validate whether the impact-analysis reference drives business, QA, and engineering aligned functional impact items instead of file lists or search summaries.",
   "run_model": {
     "freeze_first": [
       "reference_version",
@@ -20,68 +20,123 @@
       "reference_change_decision"
     ]
   },
+  "atom_record_schema": [
+    "source_atom_id",
+    "atom_type",
+    "denominator_status",
+    "denominator_reason",
+    "evidence_anchor",
+    "current_behavior",
+    "target_behavior",
+    "target_action",
+    "trace_status",
+    "business_entry",
+    "business_impact",
+    "preserved_old_logic",
+    "acceptance_assertion",
+    "runtime_status",
+    "risk_or_decision"
+  ],
+  "denominator_statuses": [
+    "ADMITTED",
+    "REJECTED_WITH_EVIDENCE"
+  ],
+  "decision_states": [
+    "CHANGE",
+    "KEEP_AS_IS",
+    "REGRESSION_ONLY",
+    "NEEDS_TRACE",
+    "NEEDS_DECISION",
+    "NOT_IMPACTED_WITH_EVIDENCE"
+  ],
+  "trace_statuses": [
+    "TRACE_COMPLETE",
+    "TRACE_PARTIAL",
+    "TRACE_BLOCKED",
+    "NEEDS_TRACE"
+  ],
+  "runtime_statuses": [
+    "STATIC_VERIFIED",
+    "RUNTIME_VERIFIED",
+    "RUNTIME_UNVERIFIED",
+    "ACCOUNT_BLOCKED",
+    "ENV_BLOCKED"
+  ],
+  "trace_chain": [
+    "source_atom",
+    "call_chain",
+    "interface_task_or_page",
+    "terminal_or_business_entry",
+    "user_path",
+    "business_impact",
+    "acceptance_assertion"
+  ],
   "output_schema": [
     "case_id",
-    "direct_change_points",
+    "source_atom_denominator",
+    "atom_evidence_anchors",
+    "bottom_up_trace",
     "functional_impact_items",
-    "technical_touchpoints",
+    "preserved_old_logic",
     "regression_verification",
     "coverage_gaps",
     "decision_risks",
+    "runtime_review_status",
     "completion_gate"
   ],
   "rubric": [
     {
       "id": "R1",
-      "label": "functional_item",
+      "label": "source_atom_denominator",
       "requires": [
-        "功能点",
-        "影响原因",
-        "技术触点",
-        "验证与风险"
+        "源码原子证据",
+        "覆盖分母",
+        "证据锚点"
       ]
     },
     {
       "id": "R2",
-      "label": "business_terms",
+      "label": "bottom_up_trace",
       "requires": [
-        "业务能力或用户可感知行为",
-        "业务/测试/开发可对齐"
+        "原子点 -> 调用链 -> 接口/任务/页面 -> 终端/业务入口 -> 用户路径 -> 业务影响 -> 验收断言",
+        "每一跳",
+        "调用链不合并"
       ]
     },
     {
       "id": "R3",
-      "label": "causal_traceability",
+      "label": "atom_state_closure",
       "requires": [
-        "变更点",
-        "依赖链",
-        "影响原因"
+        "需修改",
+        "保持现状",
+        "待追踪",
+        "NEEDS_TRACE"
       ]
     },
     {
       "id": "R4",
       "label": "technical_evidence_not_substitute",
       "requires": [
-        "技术触点",
         "不得用文件清单替代功能影响结论",
         "文件名、函数名、脚本名不是功能影响项"
       ]
     },
     {
       "id": "R5",
-      "label": "regression_scope",
+      "label": "old_logic_regression",
       "requires": [
-        "受影响功能点",
-        "用户路径",
-        "业务不变量"
+        "旧逻辑",
+        "保持现有行为",
+        "回归对象"
       ]
     },
     {
       "id": "R6",
-      "label": "coverage_gap_or_risk",
+      "label": "runtime_review",
       "requires": [
-        "覆盖盲区或明确无盲区依据",
-        "待裁决风险或无待裁决依据"
+        "真实系统入口",
+        "运行未验",
+        "静态复核"
       ]
     },
     {
@@ -112,11 +167,14 @@
     "required_record_fields": [
       "task_ref",
       "change_summary",
+      "source_atom_denominator",
+      "atom_evidence_anchors",
       "functional_impact_items",
-      "technical_touchpoints",
+      "preserved_old_logic",
       "regression_verification",
       "coverage_gaps",
       "decision_risks",
+      "runtime_review_status",
       "completion_gate_result",
       "review_findings"
     ],
@@ -138,6 +196,7 @@
       "name": "业务功能变更",
       "change_prompt": "登录成功后首页默认展示用户最近访问的项目，并保留原有项目列表分页能力。",
       "expected_focus": [
+        "源码原子分母",
         "用户可见行为",
         "默认排序/分页业务规则",
         "登录到首页用户路径",
@@ -150,8 +209,8 @@
       "change_prompt": "把日期格式化 helper 从本地模块迁到 shared/utils，并保持输出格式不变。",
       "expected_focus": [
         "内部实现影响",
-        "调用方验证对象",
-        "技术触点映射",
+        "保持现状",
+        "旧逻辑回归对象",
         "行为不变证据"
       ]
     },
@@ -172,7 +231,7 @@
       "change_prompt": "修正文档中的错别字，不改变标题、字段名、命令、状态或规则语义。",
       "expected_focus": [
         "无额外影响依据",
-        "技术触点检查",
+        "源码原子检查面",
         "业务规则不变",
         "覆盖盲区检查"
       ]
@@ -180,10 +239,12 @@
     {
       "id": "IA-005",
       "name": "覆盖盲区暴露",
-      "change_prompt": "修改通过字符串拼接调用的动态 handler 名称，代码智能只能找到定义，找不到全部运行时调用。",
+      "change_prompt": "修改一个被页面查询、导出和定时同步共同调用的 mapper 查询条件；其中一个调用通过字符串拼接的动态 handler 到达，代码智能只能找到定义，找不到全部运行时调用。",
       "expected_focus": [
         "代码智能不可见路径",
         "动态调用",
+        "调用链不合并",
+        "待追踪",
         "运行验证需求",
         "待裁决风险"
       ]
@@ -191,11 +252,11 @@
     {
       "id": "IA-006",
       "name": "contract/schema 字段变更",
-      "change_prompt": "把任务合同中的 impact_files 语义调整为技术影响证据，并新增 functional_impact_items 字段。",
+      "change_prompt": "把任务合同中的技术影响字段调整为源码原子证据锚点，并新增 functional_impact_items 字段。",
       "expected_focus": [
         "上下游 contract 消费",
         "schema/script/test 同步",
-        "功能影响项承载",
+        "原子证据锚点",
         "兼容风险"
       ]
     },
@@ -215,7 +276,7 @@
       "name": "并行任务边界",
       "change_prompt": "两个任务修改不同文件，但都影响同一个用户下单路径和同一份订单状态契约。",
       "expected_focus": [
-        "shared_files 不充分",
+        "文件无交集不等于独立",
         "同一用户路径",
         "共享契约",
         "统一合并验证"

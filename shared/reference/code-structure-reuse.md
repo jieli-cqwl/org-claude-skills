@@ -1,6 +1,16 @@
 # Code Structure And Reuse
 
-Code structure should reduce current complexity, not create the appearance of architecture.
+Code structure should preserve existing behavior first, and improve code reuse only when a separate abstraction decision earns its cost.
+
+## Existing Path Reuse
+
+- Existing path reuse is the default for iterative work in existing projects; start from the existing implementation path instead of creating a parallel path.
+- Trace callers, state branches, side effects, source of truth, data sources, UI entries, runtime entrypoints, tests, fixtures, and historical compatibility cases.
+- Before adding behavior, identify the existing capability owner, callers, contracts, extension points, and compatibility constraints.
+- Prefer to compatibly extend the existing path when it owns the same capability; a different scenario does not justify a new path if old callers keep identical behavior and verification remains clear.
+- Add a new path only as an exception when the existing path cannot carry the required behavior or would break an existing contract.
+- When adding a path, name the boundary, retained legacy behavior, affected callers, migration or removal condition, and regression evidence.
+- Completion needs regression evidence for affected legacy behavior, not just proof that the new behavior works.
 
 ## Complexity Signals
 
@@ -10,25 +20,11 @@ Code structure should reduce current complexity, not create the appearance of ar
 - Keep framework signatures, public API compatibility, generated files, pure configuration maps, and stable data tables intact when splitting would add risk or obscure intent.
 - Record the reason, risk, and verification method when a high-complexity shape is intentionally retained.
 
-## Reuse Search
+## Abstraction For Code Reuse
 
-Before adding implementation, check:
-
-- Definitions, references, callers, types, interfaces, and public exports.
-- Same directory, same module, shared utilities, script entrypoints, and test fixtures.
-- Code intelligence, including LSP-backed reference search, IDE navigation, code indexes, and type-aware search when available; use text search to cover dynamic, configuration, and generated paths.
-
-## Existing Project Changes
-
-- The existing implementation path is the default for iterative work; a new path is an exception, not a shortcut.
-- Before adding a path, trace callers, state branches, historical compatibility cases, tests, fixtures, and runtime entrypoints that depend on the old behavior.
-- If the existing path cannot safely carry the change, name the new path boundary, how it relates to the retained callers, and the removal condition.
-- Completion needs regression evidence for affected legacy behavior, not just proof that the new behavior works.
-
-## Abstraction Judgment
-
-- Evaluate reuse from a senior engineer perspective: optimize clarity, maintainability, evolvability, and contract stability.
-- Reuse or abstraction must make call relationships clearer, remove real duplication, or stabilize a shared contract.
+- Abstraction is a structural change for code reuse, not the default form of existing-path reuse.
+- Create shared functions, components, services, interfaces, templates, or configuration structures only when they remove real duplication, expose a stable contract, and the call sites have aligned change direction.
+- Abstraction must make call relationships clearer, reduce maintenance cost, or stabilize a shared contract.
 - Single use, future speculation, naming symmetry, or surface similarity is not enough.
 - Keep concrete code when abstraction increases dependency direction complexity, hidden state, parameter complexity, or test difficulty.
 - An abstraction created only to satisfy a metric is a complexity regression.

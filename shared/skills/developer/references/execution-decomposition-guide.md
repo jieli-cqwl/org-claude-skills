@@ -68,7 +68,7 @@
 | AC 未覆盖但代码逻辑要求的隐含依赖 | 记录并评估是否需要补充 AC |
 | 目标目录无同类实现可参照 | 记录为"模式未知"，标注决策依据 |
 | 与 shared_files 有写入冲突风险 | 记录并通知 delivery-owner |
-| 探索中发现的波及文件 | 按 `{{RUNTIME_HOME}}/reference/影响范围分析.md` 的三步识别法（列变更点→追依赖链→评估影响面）记录，评估是否需要测试覆盖 |
+| 探索中发现的波及文件 | 按 `{{RUNTIME_HOME}}/reference/impact-analysis.md` 从 source atoms 建立 coverage denominator，再向上归并 business impact、verification scope 和 risks |
 
 ## 1e. 确认或提问
 

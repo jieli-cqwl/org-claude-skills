@@ -20,7 +20,7 @@
     "shared/reference/constants-and-configuration.md",
     "shared/reference/performance-and-efficiency.md",
     "shared/reference/测试规范.md",
-    "shared/reference/影响范围分析.md",
+    "shared/reference/impact-analysis.md",
     "shared/reference/全栈开发.md"
   ],
   "evaluation_dimensions": [
@@ -42,7 +42,7 @@
     {
       "id": "code_change_judgment",
       "question": "Does the agent make senior-engineer code judgments before changing implementation?",
-      "pass_standard": "The output shows scoped change, reuse search, existing-pattern matching, and no speculative abstraction."
+      "pass_standard": "The output shows scoped change, existing-path review, capability ownership, caller compatibility, and no speculative abstraction."
     },
     {
       "id": "failure_and_risk_handling",
@@ -188,7 +188,7 @@
       ],
       "reference_refs": [
         "shared/reference/协作判断.md",
-        "shared/reference/影响范围分析.md"
+        "shared/reference/impact-analysis.md"
       ],
       "expected_agent_behavior": [
         "Identify the shared contract and same user path dependency before delegation.",
@@ -227,7 +227,7 @@
         "shared/rules/code-changes.md"
       ],
       "reference_refs": [
-        "shared/reference/影响范围分析.md"
+        "shared/reference/impact-analysis.md"
       ],
       "expected_agent_behavior": [
         "Keep implementation and artifacts inside the current bug and success criteria.",
@@ -259,7 +259,7 @@
     },
     {
       "id": "CODE-01-reuse-before-implementation",
-      "scenario": "A new implementation request may duplicate an existing semantic equivalent.",
+      "scenario": "A new implementation request may duplicate an existing implementation path or behavior contract.",
       "prompt": "Add a new helper to normalize customer phone numbers for API payloads.",
       "rule_refs": [
         "shared/rules/code-changes.md"
@@ -269,29 +269,29 @@
       ],
       "expected_agent_behavior": [
         "Search definitions, references, call sites, utilities, types, scripts, and code intelligence when available before adding code.",
-        "Evaluate reuse from a senior engineer perspective.",
-        "Choose reuse, extraction, or concrete local code based on clarity and contract stability."
+        "Prefer existing path reuse when the current path owns the capability and can be compatibly extended without changing old callers.",
+        "Choose extraction or concrete local code only after a separate abstraction judgment."
       ],
       "pass_signals": [
-        "Mentions or performs reuse search before implementation.",
+        "Reviews existing paths, capability owner, callers, and contracts before implementation.",
         "Does not create abstraction only for symmetry.",
-        "Explains why reuse or non-reuse is appropriate."
+        "Explains why existing path reuse, extraction, or concrete local code is appropriate."
       ],
       "fail_signals": [
         "Immediately adds a new helper without search.",
-        "Duplicates an existing semantic equivalent.",
+        "Duplicates an existing implementation path or behavior contract.",
         "Creates a speculative shared abstraction."
       ],
       "evidence_required": [
         "Search commands or inspected files",
-        "Reuse decision",
+        "Existing path reuse or abstraction decision",
         "Implementation boundary"
       ],
       "record_fields": [
         "case_id",
         "runtime_target",
         "searched_surfaces",
-        "reuse_decision",
+        "implementation_path_decision",
         "decision"
       ]
     },

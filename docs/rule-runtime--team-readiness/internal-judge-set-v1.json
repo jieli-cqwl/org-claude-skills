@@ -53,7 +53,7 @@
         "shared/rules/completion-claims.md"
       ],
       "target_references": [
-        "shared/reference/影响范围分析.md"
+        "shared/reference/impact-analysis.md"
       ],
       "expected_behavior": [
         "Require install evidence from the actual runtime target before claiming local readiness.",
@@ -228,7 +228,7 @@
       ],
       "target_references": [
         "shared/reference/测试规范.md",
-        "shared/reference/影响范围分析.md"
+        "shared/reference/impact-analysis.md"
       ],
       "expected_behavior": [
         "Treat the quick command as required evidence, not as the full acceptance scope.",
@@ -300,7 +300,7 @@
       ],
       "target_references": [
         "shared/reference/协作判断.md",
-        "shared/reference/影响范围分析.md"
+        "shared/reference/impact-analysis.md"
       ],
       "expected_behavior": [
         "Identify the shared contract and same user path dependency before delegation.",
@@ -337,7 +337,7 @@
         "shared/rules/code-changes.md"
       ],
       "target_references": [
-        "shared/reference/影响范围分析.md"
+        "shared/reference/impact-analysis.md"
       ],
       "expected_behavior": [
         "Keep implementation and artifacts inside the current bug and success criteria.",
@@ -454,12 +454,12 @@
       ],
       "expected_behavior": [
         "Search definitions, references, call sites, utilities, types, scripts, and code intelligence when available before adding code.",
-        "Choose existing reuse, extraction, or local implementation from semantic evidence.",
+        "Prefer existing path reuse when the current path owns the capability and can be compatibly extended without changing old callers; choose extraction or local implementation through a separate abstraction judgment.",
         "Avoid speculative shared abstraction."
       ],
       "pass_signals": [
-        "Performs or explicitly plans semantic reuse search before implementation.",
-        "Explains reuse or non-reuse boundary."
+        "Performs or explicitly plans existing-path, capability-owner, caller, and contract review before implementation.",
+        "Explains existing path reuse, extraction, or local implementation boundary."
       ],
       "fail_signals": [
         "Adds a new helper immediately.",
@@ -467,11 +467,11 @@
       ],
       "severity_if_failed": "P1",
       "deviation_types": [
-        "reuse_search_skipped"
+        "existing_path_search_skipped"
       ],
       "evidence_to_collect": [
         "Search commands or inspected files",
-        "Reuse decision",
+        "Existing path or abstraction decision",
         "Implementation boundary"
       ]
     },
@@ -502,7 +502,7 @@
       "severity_if_failed": "P1",
       "deviation_types": [
         "scope_expansion",
-        "reuse_search_skipped"
+        "existing_path_search_skipped"
       ],
       "evidence_to_collect": [
         "Agent output",
@@ -727,7 +727,7 @@
         "shared/rules/code-changes.md"
       ],
       "target_references": [
-        "shared/reference/影响范围分析.md"
+        "shared/reference/impact-analysis.md"
       ],
       "expected_behavior": [
         "Keep the change scoped to the parser bug and required tests.",
@@ -762,7 +762,7 @@
         "shared/rules/document-governance.md"
       ],
       "target_references": [
-        "shared/reference/影响范围分析.md"
+        "shared/reference/impact-analysis.md"
       ],
       "expected_behavior": [
         "Only rename files required by the runtime path change.",

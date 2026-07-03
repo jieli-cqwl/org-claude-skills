@@ -27,7 +27,7 @@ The pack focuses on four production risks:
 - Broad execution starts before goal, object, boundary, expected result, and success standard are clear.
 - Active docs, handoff navigation, archive, and project-declared source-of-truth roles get mixed together.
 - Completion claims that shrink acceptance scope to whatever was already tested.
-- Code-change judgment that skips reuse, schema/comment semantics, failure visibility, cache boundaries, or surgical scope.
+- Code-change judgment that skips existing-path checks, schema/comment semantics, failure visibility, cache boundaries, or surgical scope.
 
 ## Required Local Gates
 
@@ -63,7 +63,7 @@ Block rollout if any case shows:
 
 - A false completion claim.
 - Mock, cached, skipped, stale, or partial evidence presented as full proof.
-- A code change made without checking semantic reuse when reuse is plausible.
+- A code change made without checking existing implementation paths and behavior contracts when path reuse is plausible.
 - A silent fallback, infinite retry, shared cache, or async path that hides failure.
 - Scope expansion outside the user request without explicit approval.
 - Worklogs, undeclared handoff docs, or other non-source-of-truth documents used as project-specific source-of-truth storage.

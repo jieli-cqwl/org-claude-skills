@@ -33,7 +33,7 @@ Scope 只定义**不能做什么**，不预设应该改哪些文件：
 - delivery-owner 根据风险评估额外标记的文件。
 - 并行任务间存在文件/模块冲突风险时，优先串行化而非枚举禁止文件。
 
-**实际变更范围由 developer 自主分析** — developer 拿到 goal 后，结合 `影响范围分析.md` 的三步识别法（列变更点 → 追依赖链 → 评估影响面）自行确定需要修改的文件。实际 scope 在 developer-report 的 `impact_files` 中报告。verifier 基于 AC 和 impact_files 验收。
+**实际变更范围由 developer 自主分析** — developer 拿到 goal 后，结合 `impact-analysis.md` 从 source atoms 建立 coverage denominator，再向上归并 business impact、verification scope 和 risks。实际 scope 在 developer-report 的 `impact_files` 中报告。verifier 基于 AC 和 impact_files 验收。
 
 为什么这样设计：影响文件只有实际开发者在分析代码后才最清楚。预设文件范围是 tech-lead 的规划估计，在执行阶段反而会误导——要么限制 LLM 的跨切洞察能力，要么被当作"正确答案"阻碍独立分析。`forbidden_scope` 防止真正的冲突和风险，其余交给 developer 的专业判断。
 

@@ -6,8 +6,8 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - Match existing style, ownership boundaries, naming, dependency direction, and runtime patterns.
 - Do not refactor, reformat, rename, or clean adjacent code unless required for the current outcome.
 - Before deleting or simplifying existing artifacts, identify the constraint, consumer, invariant, or failure mode they preserve; if none is found, state that basis.
-- Before adding behavior, search for an existing semantic equivalent through definitions, references, call sites, utilities, types, scripts, or code intelligence when available.
-- Reuse or extract only when it makes the code clearer, reduces real duplication, or stabilizes a shared contract.
+- Before adding behavior, identify existing implementation paths, capability owners, callers, and contracts through definitions, references, call sites, utilities, types, scripts, or code intelligence when available.
+- Extract shared code only when it makes call sites clearer, removes real duplication, or exposes a stable contract.
 - Do not create an abstraction for a single use, speculative future, or cosmetic consistency.
 - Keep control flow shallow and explicit; prefer early failure over nested happy paths.
 - If complexity makes ownership, failure handling, or verification boundaries unclear, split by responsibility unless the shape is forced by a framework or public contract.
@@ -20,7 +20,7 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - Remove unused imports, variables, functions, fields, unreachable branches, and commented-out old implementations introduced or touched by the current change, or blocking current correctness/build/verification.
 - Temporary files, retries, loops, polling, async jobs, and batch work must have bounded paths, limits, timeouts, and cleanup.
 - Do not add shared, persistent, cross-request, or freshness-affecting cache without explicit user approval and a verified invalidation/failure strategy.
-- For structure, complexity, reuse, compatibility, or shared contracts, read `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`.
+- For structure, complexity, existing path reuse, abstraction, compatibility, or shared contracts, read `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`.
 - For comments, SQL, schema, concurrency, protocol, parsing, regex, or business invariants, read `{{RUNTIME_HOME}}/reference/code-comments.md`.
 - For errors, external calls, fallback, retries, cleanup, or partial success, read `{{RUNTIME_HOME}}/reference/error-handling.md`.
 - For constants, configuration, secrets, environment differences, or shared values, read `{{RUNTIME_HOME}}/reference/constants-and-configuration.md`.

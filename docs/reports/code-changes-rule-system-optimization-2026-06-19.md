@@ -236,9 +236,9 @@ This audit applies the rule-unit standard to every current bullet in `shared/rul
 | Match existing style and boundaries | Positive default action | Strong root rule. It prevents invention and ownership drift. | Keep. If future failures appear, route details to structure/reuse reference. |
 | No adjacent refactor/reformat/rename | Guardrail | Strong but negative-only. It is acceptable because the exception is already inline: unless required for current outcome. | Keep. |
 | Before deleting/simplifying artifacts, identify preserved constraint/consumer/invariant/failure mode | Positive gate before destructive simplification | Strongest current example of the desired pattern: trigger, action, evidence basis. Already semantically locked by test. | Keep. Use as model for other bullets. |
-| Search for existing semantic equivalent before adding behavior | Positive default action | Strong root rule. Good trigger and action. | Keep. |
-| Reuse/extract only when it clarifies, removes real duplication, or stabilizes shared contract | Positive decision boundary | Strong root rule. It gives allowed conditions. | Keep. |
-| No abstraction for single use/speculation/cosmetic consistency | Guardrail | Good paired guardrail after the reuse rule. | Keep. |
+| Identify existing implementation paths, capability owners, callers, and contracts before adding behavior | Positive default action | Strong root rule. Good trigger and action; avoids treating reuse as abstraction. | Keep. |
+| Extract shared code only when it clarifies call sites, removes real duplication, or exposes a stable contract | Positive abstraction gate | Strong root rule. It keeps extraction as a separate structural decision. | Keep. |
+| No abstraction for single use/speculation/cosmetic consistency | Guardrail | Good paired guardrail after the extraction gate. | Keep. |
 | Shallow explicit control flow; prefer early failure | Positive style/default | Mostly good, but "prefer early failure" can be misread if cleanup/partial-success/fallback is needed. | Keep root wording only if error-handling reference remains explicit about allowed continuation. |
 | Split by responsibility when complexity obscures ownership/failure/verification | Positive decomposition trigger | Strong rule-unit shape. | Keep. |
 | Comments explain intent/invariants/boundaries/tradeoffs/failure/business rules | Positive action plus anti-pattern | Strong rule-unit shape. | Keep. |

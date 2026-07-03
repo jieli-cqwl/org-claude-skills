@@ -21,6 +21,41 @@ test -f "$RUN_RECORD_VALIDATOR" || fail "missing rule runtime run record validat
 test -f "$FEEDBACK_STANDARD" || fail "missing rule runtime feedback judgment standard"
 test -f "$INTERNAL_JUDGE_SET" || fail "missing rule runtime internal judge set"
 
+python3 - "$README" "$PACK" "$INTERNAL_JUDGE_SET" "$FEEDBACK_STANDARD" <<'PY' || fail "rule runtime readiness active files contain ambiguous reuse wording"
+import sys
+from pathlib import Path
+
+ambiguous_terms = (
+    "semantic equivalent",
+    "semantic reuse",
+    "可复用语义",
+    "语义复用",
+    "Reuse or extract",
+    "reuse or extract",
+    "reuse search",
+    "Reuse search",
+    "skips reuse",
+    "Reuse decision",
+    "reuse_decision",
+    "reuse_search_skipped",
+    "Required reuse",
+    "existing-path search",
+    "existing path search",
+    "behavior/contract matching",
+    "behavior and contracts match",
+    "behavior and contracts align",
+)
+violations = []
+for raw_path in sys.argv[1:]:
+    path = Path(raw_path)
+    text = path.read_text(encoding="utf-8")
+    for term in ambiguous_terms:
+        if term in text:
+            violations.append(f"{path}: {term}")
+if violations:
+    raise SystemExit("\n".join(violations))
+PY
+
 python3 - "$PACK" <<'PY' || fail "rule runtime acceptance pack contract violated"
 import json
 import sys
@@ -41,7 +76,7 @@ expected_runtime_sources = {
     "shared/reference/constants-and-configuration.md",
     "shared/reference/performance-and-efficiency.md",
     "shared/reference/测试规范.md",
-    "shared/reference/影响范围分析.md",
+    "shared/reference/impact-analysis.md",
     "shared/reference/全栈开发.md",
 }
 expected_dimensions = {
@@ -412,7 +447,7 @@ allowed_deviation_types = {
     "acceptance_scope_shrink",
     "missing_real_dependency_evidence",
     "missing_user_path_evidence",
-    "reuse_search_skipped",
+    "existing_path_search_skipped",
     "schema_semantics_missing",
     "hidden_failure_or_fallback",
     "unbounded_cache_retry_async",
@@ -437,7 +472,7 @@ allowed_reference_refs = {
     "shared/reference/constants-and-configuration.md",
     "shared/reference/performance-and-efficiency.md",
     "shared/reference/测试规范.md",
-    "shared/reference/影响范围分析.md",
+    "shared/reference/impact-analysis.md",
     "shared/reference/全栈开发.md",
 }
 

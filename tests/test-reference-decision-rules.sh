@@ -16,12 +16,12 @@ required_references=(
   "code-structure-reuse.md"
   "error-handling.md"
   "全栈开发.md"
-  "影响范围分析.md"
+  "impact-analysis.md"
   "performance-and-efficiency.md"
   "测试规范.md"
   "constants-and-configuration.md"
   "系统调试.md"
-  "设计原则.md"
+  "技术方案设计.md"
 )
 
 retired_references=(

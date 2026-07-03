@@ -306,7 +306,34 @@ semantic_checks = [
             )
         ),
     ),
+    (
+        "existing-path-capability-review-before-adding-behavior",
+        all(
+            term in lower_text
+            for term in (
+                "before adding behavior",
+                "existing implementation paths",
+                "capability owners",
+                "callers",
+                "contracts",
+            )
+        ),
+    ),
+    (
+        "shared-code-extraction-is-separate-gated-action",
+        all(
+            term in lower_text
+            for term in (
+                "extract shared code only",
+                "real duplication",
+                "stable contract",
+            )
+        ),
+    ),
 ]
+for ambiguous_term in ("semantic equivalent", "semantic reuse", "可复用语义", "reuse or extract"):
+    if ambiguous_term in lower_text or ambiguous_term in text:
+        raise SystemExit(f"ambiguous code-change reuse term remains: {ambiguous_term}")
 missing_semantics = [label for label, present in semantic_checks if not present]
 if missing_semantics:
     raise SystemExit(
@@ -324,14 +351,26 @@ if unexpected:
 PY
 
 python3 - "$ROOT/shared/reference/code-structure-reuse.md" <<'PY' || fail "code structure reuse reference contract violated"
+import re
 import sys
 from pathlib import Path
 
 reference = Path(sys.argv[1])
 text = reference.read_text(encoding="utf-8")
 lower_text = text.lower()
+heading_order = re.findall(r"^## (.+)$", text, flags=re.MULTILINE)
+expected_heading_order = [
+    "Existing Path Reuse",
+    "Complexity Signals",
+    "Abstraction For Code Reuse",
+    "Compatibility Code",
+]
 
 semantic_checks = [
+    (
+        "existing-path-first-decision-order",
+        heading_order == expected_heading_order,
+    ),
     (
         "existing-path-default",
         all(
@@ -340,6 +379,52 @@ semantic_checks = [
                 "existing implementation path",
                 "default",
                 "legacy behavior",
+            )
+        ),
+    ),
+    (
+        "extend-existing-before-new-path",
+        all(
+            term in lower_text
+            for term in (
+                "compatibly extend the existing path",
+                "owns the same capability",
+                "new path only",
+            )
+        ),
+    ),
+    (
+        "abstraction-is-separate-code-reuse-decision",
+        all(
+            term in lower_text
+            for term in (
+                "abstraction is a structural change",
+                "code reuse",
+                "not the default form of existing-path reuse",
+            )
+        ),
+    ),
+    (
+        "abstraction-cost-gate",
+        all(
+            term in lower_text
+            for term in (
+                "real duplication",
+                "stable contract",
+                "aligned change direction",
+                "dependency direction complexity",
+            )
+        ),
+    ),
+    (
+        "compatible-extension-before-new-path",
+        all(
+            term in lower_text
+            for term in (
+                "same capability",
+                "compatibly extend",
+                "old callers",
+                "identical behavior",
             )
         ),
     ),
@@ -368,6 +453,17 @@ semantic_checks = [
         ),
     ),
 ]
+for ambiguous_term in (
+    "semantic reuse",
+    "可复用语义",
+    "share code",
+    "matching behavior",
+    "behavior/contract matching",
+    "behavior and contracts match",
+    "behavior and contracts align",
+):
+    if ambiguous_term in lower_text or ambiguous_term in text:
+        raise SystemExit(f"ambiguous reuse term remains: {ambiguous_term}")
 missing_semantics = [label for label, present in semantic_checks if not present]
 if missing_semantics:
     raise SystemExit("missing structure reuse semantics: " + ", ".join(missing_semantics))
@@ -794,8 +890,8 @@ for path in \
   "reference/code-comments.md" \
   "reference/error-handling.md" \
   "reference/测试规范.md" \
-  "reference/设计原则.md" \
-  "reference/影响范围分析.md" \
+  "reference/技术方案设计.md" \
+  "reference/impact-analysis.md" \
   "reference/系统调试.md" \
   "reference/全栈开发.md" \
   "reference/performance-and-efficiency.md" \
@@ -803,6 +899,35 @@ for path in \
   rg -n "\{\{RUNTIME_HOME\}\}/$path" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \
     || fail "missing assistant runtime reference: $path"
 done
+
+python3 - "$ROOT/shared/reference/技术方案设计.md" <<'PY' || fail "technical design reference contract violated"
+import re
+import sys
+from pathlib import Path
+
+reference = Path(sys.argv[1])
+text = reference.read_text(encoding="utf-8")
+lower_text = text.lower()
+first_line = text.splitlines()[0] if text.splitlines() else ""
+if first_line.removeprefix("# ").strip() != reference.stem:
+    raise SystemExit("technical design reference title mismatch")
+decision_fields = set(re.findall(r"^- `([a-z0-9_]+)`:", text, flags=re.MULTILINE))
+required_decision_fields = (
+    "capability_owner",
+    "existing_path_reuse",
+    "abstraction_decision",
+    "new_path_exception",
+    "regression_evidence",
+    "reference_route",
+)
+missing = [field for field in required_decision_fields if field not in decision_fields]
+if missing:
+    raise SystemExit(f"technical design reference missing decision fields: {missing}")
+if "技术方案原则.md" in text or "设计原则.md" in text:
+    raise SystemExit("technical design reference must not point to retired design names")
+if lower_text.count("code-structure-reuse.md") != 1:
+    raise SystemExit("technical design should route to structure reuse reference once, not duplicate it")
+PY
 
 rg -n "\{\{RUNTIME_HOME\}\}/rules/completion-claims\.md" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \
   || fail "missing assistant completion rule reference"
@@ -840,37 +965,56 @@ if rg -n 'reference.*自动加载|自动加载.*reference|runtime 自动加载�
   fail "shared runtime docs must not describe runtime references as automatically loaded"
 fi
 
-collaboration_boundary_marker="contract:collaboration-boundary:shared-before-parallel"
-rg -F "$collaboration_boundary_marker" "$ROOT/shared/reference/影响范围分析.md" >/dev/null 2>&1 \
-  || fail "missing collaboration boundary contract marker: $ROOT/shared/reference/影响范围分析.md"
-
-python3 - "$ROOT/shared/reference/影响范围分析.md" <<'PY' || fail "impact analysis reference contract violated"
+python3 - "$ROOT/shared/reference/impact-analysis.md" <<'PY' || fail "impact analysis reference contract violated"
 import re
 import sys
 from pathlib import Path
 
 reference = Path(sys.argv[1])
 text = reference.read_text(encoding="utf-8")
-headings = set(re.findall(r"^## (.+)$", text, flags=re.MULTILINE))
-required_headings = {
-    "三步识别法",
-    "必查维度",
-    "功能影响项",
-    "并行安全",
-    "影响记录",
-    "分析结果",
-}
-missing_headings = sorted(required_headings - headings)
+heading_matches = list(re.finditer(r"^## (.+)$", text, flags=re.MULTILINE))
+heading_order = [match.group(1) for match in heading_matches]
+required_headings = [
+    "Core Rule",
+    "Source Atom Denominator",
+    "Atom Record Contract",
+    "Trace Contract",
+    "Decision States",
+    "Business Impact Projection",
+    "Runtime Verification",
+    "Closure Gate",
+]
+missing_headings = [heading for heading in required_headings if heading not in heading_order]
 if missing_headings:
     raise SystemExit(f"missing headings: {', '.join(missing_headings)}")
+if heading_order != required_headings:
+    raise SystemExit(f"unexpected heading order: {heading_order}")
 
-required_topics = {"technical_evidence": ("impact_files",)}
-missing_topics = [
-    name for name, terms in required_topics.items()
-    if not all(term in text for term in terms)
-]
-if missing_topics:
-    raise SystemExit(f"missing topics: {', '.join(missing_topics)}")
+if re.search(r"<!--\s*contract:", text):
+    raise SystemExit("implementation marker comment remains")
+sections = {}
+for index, match in enumerate(heading_matches):
+    start = match.end()
+    end = heading_matches[index + 1].start() if index + 1 < len(heading_matches) else len(text)
+    sections[match.group(1)] = text[start:end].strip()
+
+empty_sections = [heading for heading in required_headings if not sections[heading]]
+if empty_sections:
+    raise SystemExit(f"empty sections: {', '.join(empty_sections)}")
+
+minimum_bullets = {
+    "Atom Record Contract": 10,
+    "Decision States": 6,
+    "Business Impact Projection": 5,
+    "Closure Gate": 6,
+}
+for heading, minimum in minimum_bullets.items():
+    bullet_count = len(re.findall(r"^- ", sections[heading], flags=re.MULTILINE))
+    if bullet_count < minimum:
+        raise SystemExit(f"{heading} should contain at least {minimum} bullets")
+
+if "MERGED_DUPLICATE" in text:
+    raise SystemExit("impact analysis must not allow merged denominator records")
 PY
 
 echo "[PASS] runtime contract inline"

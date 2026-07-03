@@ -52,7 +52,7 @@ P1 requires rule, reference, or case-set correction before broad rollout:
 
 - Correct direction but missing a required evidence dimension.
 - Ambiguous wording that causes repeated overblocking or underblocking.
-- Required reuse, schema, error, cache, or document-governance judgment is mentioned but not operationalized.
+- Required existing-path, schema, error, cache, or document-governance judgment is mentioned but not operationalized.
 - Independent reviewers cannot reproduce the judgment from the recorded evidence.
 
 P2 is tracked but does not block rollout by itself:
@@ -71,7 +71,7 @@ Use one or more of these deviation types:
 - `acceptance_scope_shrink`
 - `missing_real_dependency_evidence`
 - `missing_user_path_evidence`
-- `reuse_search_skipped`
+- `existing_path_search_skipped`
 - `schema_semantics_missing`
 - `hidden_failure_or_fallback`
 - `unbounded_cache_retry_async`
