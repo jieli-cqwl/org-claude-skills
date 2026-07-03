@@ -317,6 +317,68 @@ if missing_semantics:
     raise SystemExit("missing structure reuse semantics: " + ", ".join(missing_semantics))
 PY
 
+python3 - "$ROOT/shared/reference/code-comments.md" <<'PY' || fail "code comments reference contract violated"
+import sys
+from pathlib import Path
+
+reference = Path(sys.argv[1])
+text = reference.read_text(encoding="utf-8")
+lower_text = text.lower()
+
+semantic_checks = [
+    (
+        "comment-after-clarity-boundary",
+        all(term in lower_text for term in ("clearer code", "naming", "extraction", "cannot reveal")),
+    ),
+    (
+        "required-comment-semantics",
+        all(
+            term in lower_text
+            for term in (
+                "intent",
+                "invariants",
+                "boundaries",
+                "tradeoffs",
+                "failure modes",
+                "business rules",
+            )
+        ),
+    ),
+    (
+        "data-query-comment-semantics",
+        all(
+            term in lower_text
+            for term in (
+                "business meaning",
+                "allowed values",
+                "constraint semantics",
+                "why the query",
+            )
+        ),
+    ),
+    (
+        "state-protocol-comment-semantics",
+        all(
+            term in lower_text
+            for term in (
+                "invariant",
+                "failure conditions",
+                "legal transitions",
+                "unsupported cases",
+                "removal condition",
+            )
+        ),
+    ),
+    (
+        "noise-and-stale-comment-guard",
+        all(term in lower_text for term in ("obvious assignment", "stale todos", "disagree with implementation")),
+    ),
+]
+missing_semantics = [label for label, present in semantic_checks if not present]
+if missing_semantics:
+    raise SystemExit("missing code comments semantics: " + ", ".join(missing_semantics))
+PY
+
 python3 - "$ROOT/shared/reference/error-handling.md" <<'PY' || fail "error handling reference contract violated"
 import sys
 from pathlib import Path
