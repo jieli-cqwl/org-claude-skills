@@ -1,34 +1,30 @@
 # Performance And Efficiency
 
-Performance work starts from an observable bottleneck and closes with baseline metrics, capacity limits, failure paths, and comparison evidence. A complex mechanism is justified only when it improves a real bottleneck.
+Performance work starts from an observable bottleneck and closes with baseline metrics, capacity limits, failure paths, and before and after evidence from the same scenario. Performance changes must preserve existing behavior, correctness, and contracts unless the requested outcome explicitly changes them.
 
 ## Decision Order
 
 1. Locate the bottleneck with profiling, logs, traces, or benchmarks; record the baseline.
 2. Identify constraints: latency, throughput, memory, cost, dependency capacity, and failure cost.
-3. Choose the smallest effective strategy: incremental work, streaming, pagination, indexing, batching, or bounded concurrency.
-4. Define failure paths: concurrency limits, backpressure, retries, timeouts, cleanup, rollback, and visible failure states.
-5. Compare the same scenario before and after: latency, throughput, memory, hit rate, correctness regression, and failure behavior.
+3. Choose the smallest effective strategy: incremental work, streaming, pagination, indexes, batching, bounded concurrency, or local deduplication.
+4. Define limits and failure behavior: attempt limits, intervals, timeouts, exit conditions, cleanup, backpressure, rollback, and visible failure states.
+5. Compare before and after on the same scenario: latency, throughput, memory, hit rate, correctness, contract behavior, and failure behavior.
 
-## Resource Boundaries
+## Bounded Work
 
 - Temporary files must use unique paths and must be cleaned up; fixed shared paths and unbounded accumulation are forbidden.
-- Long-running jobs, polling, retries, batch work, and async jobs need attempt limits, intervals, timeouts, or exit conditions.
+- Long-running jobs, polling, retries, batch work, and async jobs need attempt limits, intervals, timeouts, exit conditions, and cleanup.
 - Large files, large result sets, queues, and in-memory collections need memory, response-size, or batch-size limits.
-- Background work must not fail only in logs.
+- Batch work must define concurrency limits, failure strategy, retry boundary, and recovery path.
+- Shared async job state needs timeout, idempotency key, visible failure state, and resume strategy.
+- Workers and background work must not wait forever, grow queues forever, retry forever, fail only in logs, or mark failed work as success.
 
-## Database And Batch Work
+## Database And IO
 
 - Large-table queries must be paginated.
 - New query paths on user paths, batch jobs, or high-frequency queries must evaluate indexes and query plans when data size can grow.
 - Queries, network requests, or file IO inside loops must be checked for N+1 or repeated IO risk.
-- Batch work must define concurrency limits, failure strategy, retry boundary, and recovery path.
 - CPU-intensive paths must check algorithmic complexity and data size before adding parallelism or task splitting.
-
-## Async Jobs
-
-- Async job state stored in Redis, a database, or another shared store must define timeout, idempotency key, visible failure state, and resume strategy.
-- Workers must not wait forever, grow queues forever, retry forever, or mark failed work as success.
 
 ## Cache Strategy
 

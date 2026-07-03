@@ -380,6 +380,77 @@ if missing_semantics:
     raise SystemExit("missing error handling semantics: " + ", ".join(missing_semantics))
 PY
 
+python3 - "$ROOT/shared/reference/performance-and-efficiency.md" <<'PY' || fail "performance reference contract violated"
+import sys
+from pathlib import Path
+
+reference = Path(sys.argv[1])
+text = reference.read_text(encoding="utf-8")
+lower_text = text.lower()
+
+semantic_checks = [
+    (
+        "evidence-first-optimization",
+        all(
+            term in lower_text
+            for term in (
+                "observable bottleneck",
+                "baseline",
+                "before and after",
+                "same scenario",
+            )
+        ),
+    ),
+    (
+        "correctness-contract-preservation",
+        all(term in lower_text for term in ("correctness", "behavior", "contract")),
+    ),
+    (
+        "bounded-resource-growth",
+        all(
+            term in lower_text
+            for term in (
+                "attempt limits",
+                "exit conditions",
+                "memory",
+                "batch-size",
+                "cleanup",
+            )
+        ),
+    ),
+    (
+        "io-data-growth",
+        all(
+            term in lower_text
+            for term in (
+                "pagination",
+                "indexes",
+                "query plans",
+                "n+1",
+                "repeated io",
+            )
+        ),
+    ),
+    (
+        "cache-approval-and-recovery",
+        all(
+            term in lower_text
+            for term in (
+                "explicit user approval",
+                "invalidation",
+                "bypass",
+                "rollback",
+                "capacity limit",
+                "stale data",
+            )
+        ),
+    ),
+]
+missing_semantics = [label for label, present in semantic_checks if not present]
+if missing_semantics:
+    raise SystemExit("missing performance semantics: " + ", ".join(missing_semantics))
+PY
+
 
 python3 - "$ROOT/shared/rules/execution-control.md" <<'PY' || fail "execution control rule shape contract violated"
 import sys
