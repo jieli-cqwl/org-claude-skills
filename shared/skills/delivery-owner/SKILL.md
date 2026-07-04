@@ -2,7 +2,7 @@
 name: delivery-owner
 user-invocable: true
 disable-model-invocation: true
-description: "交付负责人。Use when tech-lead 已冻结 tasks 且用户进入产品研发交付执行；负责前置校验、交付视角 review、调度 developer/verifier/code-reviewer/qa/fixer/consistency-auditor 与 `/commit`、证据验收、循环收敛和风险暂停。"
+description: "交付负责人。Use when tech-lead 已冻结 tasks 且用户进入产品研发交付执行；负责前置校验、交付视角 review、调度 developer/verifier/显式 review skill/qa/fixer/consistency-auditor 与 `/commit`、证据验收、循环收敛和风险暂停。"
 eval-type: mixed
 argument-hint: "[phase-dir 或 tasks refs]"
 allowed-tools: Read, Write, Bash, Glob, Grep, Agent
@@ -20,7 +20,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, Agent
    - 未识别 task 依赖、串并行策略、共享风险和资源状态前，不派 developer agent。
    - Why: 基线漂移会让开发、验证和 QA 在错误目标上各自前进；调度错误会制造返工和上下文污染。
 3. DO-HG-3 角色执行必须有合格派发包
-   - developer agent / verifier agent / code-reviewer agent / qa agent / fixer agent / consistency-auditor agent 缺少通过校验的 Task Packet 时，不得派发。
+   - developer agent / verifier agent / qa agent / fixer agent / consistency-auditor agent 缺少通过校验的 Task Packet 和 Codex dispatch authorization 时，不得派发；显式 review skill 只走手动技能，不走 agent 授权。
    - Why: 清晰派发才能让执行角色按 scope、证据和停止条件闭环。
 4. DO-HG-4 循环最多 10 轮
    - 开发/验证或 QA/修复达到 10 轮，或同一 gap 连续 2 轮没有关闭、缩小、gap 判断变化、新阻塞、新风险或更权威 owner 路由时，暂停给用户决策。
@@ -104,10 +104,10 @@ digraph delivery_owner_flow {
 ### DO-S6 提测前整体 review
 
 - 提测批次内每个 task 都必须有 developer agent 证据和 verifier agent PASS。
-- 调度 code-reviewer agent 对已验证批次做提测前整体代码审查，输入至少包含冻结计划/需求、developer-report、verify-result 和 git diff 范围。
+- 显式运行 review skill 对已验证批次做提测前整体代码审查，输入至少包含冻结计划/需求、developer-report、verify-result 和 git diff 范围。
 - 进入 QA 前必须由 delivery-owner 消费 active `code-review-result.json`：`gate_result` 必须放行、Critical/Important 阻断问题必须闭合，`dimension_verdicts` / `excluded` / `review_conclusion` 必须证明 review 覆盖和排除范围可解释；QA 不拥有 code-review 准入权。
-- code-reviewer agent 输出 `code-review-result.json` 或等价审查报告；Assessment 为 `No` 或 `With fixes` 且包含必须修复问题时，按问题性质回派 developer agent 或 fixer agent，并在修复后重跑受影响 verifier agent 与 code-reviewer agent。
-- code-reviewer agent Assessment 为 `Yes` 且无 Critical/Important 阻断问题后，确认该结果晚于最后一次代码变更并在 active `artifact-registry.json` 中唯一有效，再汇总测试焦点、风险、变更范围和证据引用，进入 QA。
+- review skill 输出 `code-review-result.json` 或等价审查报告；Assessment 为 `No` 或 `With fixes` 且包含必须修复问题时，按问题性质回派 developer agent 或 fixer agent，并在修复后重跑受影响 verifier agent 与 review skill。
+- review skill Assessment 为 `Yes` 且无 Critical/Important 阻断问题后，确认该结果晚于最后一次代码变更并在 active `artifact-registry.json` 中唯一有效，再汇总测试焦点、风险、变更范围和证据引用，进入 QA。
 - 开发结果和计划/AC 不一致时暂停给用户。
 
 ### DO-S7 QA/修复循环
@@ -116,7 +116,7 @@ digraph delivery_owner_flow {
 - 接收 QA 结果时，必须检查 `qa-result.obligation_results[]` 一对一覆盖 `qa_handoff_contract[].obligation_id` 并覆盖相关 `cross_unit_obligations`；缺口先回 QA 或 test-design，不进入提交准备。
 - 存在 `blocking=true` typed gap 时暂停给用户，说明应回流的 owner、影响和推荐处理。
 - qa agent `gate_result=PASS` 且 `release_recommendation=ALLOW`：进入提交准备。
-- qa agent FAIL：可复现缺陷调度 fixer agent 做根因和最小修复；用户路径、scope、AC 或风险接受不清时暂停给用户；fixer agent 后按“受影响 verifier agent → fresh code-reviewer agent → 受影响 qa agent”重跑，closeout 只能消费最后一次代码变更之后产生的 fresh 证据。
+- qa agent FAIL：可复现缺陷调度 fixer agent 做根因和最小修复；用户路径、scope、AC 或风险接受不清时暂停给用户；fixer agent 后按“受影响 verifier agent → fresh review skill → 受影响 qa agent”重跑，closeout 只能消费最后一次代码变更之后产生的 fresh 证据。
 - qa agent `CONDITIONAL` / `NOT_RUN` / `N_A` 或 `release_recommendation=CONDITIONAL_ALLOW` / `BLOCK` / `DEFER`：不得进入提交准备；必须按 `issue_ledger.owner_hint`、`not_executed_reason`、`conditional_release_basis` 或用户 waiver 需求路由到 fixer / developer / product-manager / design / qa / user，并写明 required artifact、next_owner 和 resume_condition。
 - 每轮更新状态卡（字段按 `templates/status-card.template.md`），按同一进展定义判断 `progress_signal`，不能用单纯更换 owner 或无判断变化的新证据清零无进展计数。
 - 每次回派或重派都写明两个暂停边界：达到 10 轮暂停；同一 gap 连续 2 轮无进展时暂停。
@@ -212,7 +212,7 @@ tasks 未冻结；scope、AC、依赖或 QA handoff 冲突；缺 executor、权�
 - [ ] DO-S2 前已调度 baseline consistency-audit，且 advisory owner action 已消费或暂停给用户。
 - [ ] 每个开发 task 都有唯一 developer agent owner 和合格 Task Packet。
 - [ ] 每个完成 task 都经过 verifier agent。
-- [ ] qa agent 前已调度 code-reviewer agent 做提测前整体 review，且阻断问题已闭合。
+- [ ] qa agent 前已显式运行 review skill 做提测前整体 review，且阻断问题已闭合。
 - [ ] QA/修复循环已闭合，或达到边界后已暂停给用户。
 - [ ] 提交准备前已调度 consistency-auditor agent，且 advisory owner action 已消费或暂停给用户。
 - [ ] qa agent 通过后才调度 `/commit`。

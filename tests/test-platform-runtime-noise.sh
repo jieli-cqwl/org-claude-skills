@@ -35,7 +35,15 @@ run_with_fake_openspec "$TMP_HOME" env HOME="$TMP_HOME" ORG_STATE_ROOT="$STATE_R
 grep -Fxq '# CLAUDE.md' "$TMP_HOME/.claude/CLAUDE.md" || fail "claude entry doc title should be # CLAUDE.md"
 
 codex_agent_toml_count="$(find "$TMP_HOME/.codex/agents" -maxdepth 1 -type f -name '*.toml' | wc -l | tr -d ' ')"
-[ "$codex_agent_toml_count" = "6" ] || fail "codex runtime should install exactly 6 TOML agents"
+expected_codex_agent_toml_count="$(
+  PYTHONPATH="$ROOT/tools/community" python3 - <<'PY'
+from codex_runtime_agents import MANAGED_AGENT_ROLES
+
+print(len(MANAGED_AGENT_ROLES))
+PY
+)"
+[ "$codex_agent_toml_count" = "$expected_codex_agent_toml_count" ] \
+  || fail "codex runtime should install exactly $expected_codex_agent_toml_count TOML agents, got $codex_agent_toml_count"
 if find "$TMP_HOME/.codex/agents" -maxdepth 1 -type f -name '*.md' | grep -q .; then
   find "$TMP_HOME/.codex/agents" -maxdepth 1 -type f -name '*.md' >&2
   fail "codex runtime should not install Markdown agent adapters"

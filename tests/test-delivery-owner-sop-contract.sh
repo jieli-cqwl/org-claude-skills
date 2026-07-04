@@ -408,6 +408,53 @@ assert payload["decision"] == "DISPATCH_READY"
 assert payload["role"] == "developer"
 PY
 
+bash "$PACKET" \
+  --packet "$TMP_DIR/packet-pass.json" \
+  --authorize-dispatch \
+  --session-id "dispatch-session" \
+  --dispatch-state-dir "$TMP_DIR/dispatch-auth" \
+  --ttl-seconds 300 \
+  >"$TMP_DIR/packet-dispatch-auth.out"
+python3 - "$TMP_DIR/packet-dispatch-auth.out" "$TMP_DIR/dispatch-auth/dispatch-session.json" <<'PY'
+import json
+import sys
+from datetime import datetime
+
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+token = json.load(open(sys.argv[2], encoding="utf-8"))
+assert payload["status"] == "PASS"
+assert payload["decision"] == "DISPATCH_READY"
+assert payload["role"] == "developer"
+assert payload["dispatch_authorization_ref"] == sys.argv[2]
+assert token["schema_version"] == 1
+assert token["session_id"] == "dispatch-session"
+assert token["role"] == "developer"
+assert token["authorized_by"] == "delivery-owner"
+assert token["task_ref"] == payload["task_ref"]
+assert len(token["packet_sha256"]) == 64
+assert datetime.fromisoformat(token["expires_at"])
+PY
+
+mkdir -p "$TMP_DIR/active-skills"
+jq -n '{session_id: "inferred-session", skill: "delivery-owner", updated_at: "2026-07-03T00:00:00+00:00"}' \
+  >"$TMP_DIR/active-skills/inferred-session.json"
+ORG_CODEX_ACTIVE_SKILLS_STATE_DIR="$TMP_DIR/active-skills" bash "$PACKET" \
+  --packet "$TMP_DIR/packet-pass.json" \
+  --authorize-dispatch \
+  --dispatch-state-dir "$TMP_DIR/inferred-dispatch-auth" \
+  >"$TMP_DIR/packet-inferred-dispatch-auth.out"
+python3 - "$TMP_DIR/packet-inferred-dispatch-auth.out" "$TMP_DIR/inferred-dispatch-auth/inferred-session.json" <<'PY'
+import json
+import sys
+
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+token = json.load(open(sys.argv[2], encoding="utf-8"))
+assert payload["status"] == "PASS"
+assert payload["dispatch_authorization_ref"] == sys.argv[2]
+assert token["session_id"] == "inferred-session"
+assert token["role"] == "developer"
+PY
+
 cat >"$TMP_DIR/packet-legacy-scope-fail.json" <<'JSON'
 {
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#task-T1",
@@ -468,10 +515,10 @@ assert payload["decision"] == "DISPATCH_READY"
 assert payload["role"] == "developer"
 PY
 
-cat >"$TMP_DIR/packet-code-reviewer-pass.json" <<'JSON'
+cat >"$TMP_DIR/packet-review-pass.json" <<'JSON'
 {
   "task_ref": "artifact://tasks/sample-feature.phase-1.tasks@tasks-v2#batch-review",
-  "role": "code-reviewer",
+  "role": "review",
   "goal": "Review verified implementation batch before QA handoff",
   "forbidden_scope": ["src/", "tests/", "docs/sample-feature/phase-1/tasks.json", "docs/sample-feature/phase-1/test-cases.json"],
   "input_refs": ["tasks.json#batch", "developer-report.json#T1", "verify-result.json#T1", "git diff base..head"],
@@ -485,14 +532,14 @@ cat >"$TMP_DIR/packet-code-reviewer-pass.json" <<'JSON'
   ]
 }
 JSON
-bash "$PACKET" --packet "$TMP_DIR/packet-code-reviewer-pass.json" >"$TMP_DIR/packet-code-reviewer-pass.out"
-python3 - "$TMP_DIR/packet-code-reviewer-pass.out" <<'PY'
+bash "$PACKET" --packet "$TMP_DIR/packet-review-pass.json" >"$TMP_DIR/packet-review-pass.out"
+python3 - "$TMP_DIR/packet-review-pass.out" <<'PY'
 import json
 import sys
 payload = json.load(open(sys.argv[1], encoding="utf-8"))
 assert payload["status"] == "PASS"
 assert payload["decision"] == "DISPATCH_READY"
-assert payload["role"] == "code-reviewer"
+assert payload["role"] == "review"
 PY
 
 cat >"$TMP_DIR/packet-consistency-auditor-pass.json" <<'JSON'

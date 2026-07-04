@@ -676,6 +676,21 @@
       "timeout_sec": 180
     },
     {
+      "id": "codex-subagent-dispatch-guard",
+      "command": [
+        "bash",
+        "tests/test-codex-subagent-dispatch-guard.sh"
+      ],
+      "area": "codex-runtime",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "codex-runtime"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
+    },
+    {
       "id": "consistency-audit-canonical-agent",
       "command": [
         "bash",

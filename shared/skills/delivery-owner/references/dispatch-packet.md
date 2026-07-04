@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | AC 未实现 | developer agent | `developer` |
 | 实现后验 AC/scope | verifier agent | `verifier` |
-| 已验证批次提测前整体 review | code-reviewer agent | `code-reviewer` |
+| 已验证批次提测前整体 review | review skill | `review` |
 | QA FAIL 或已知 bug | fixer agent | `fixer` |
 | 用户路径或端到端验收 | qa agent | `qa` |
 | 介入前冻结工件 baseline 一致性审计 | consistency-auditor agent | `consistency-auditor` |
@@ -81,7 +81,7 @@ Packet 的详细程度应该匹配任务的不确定性：
 | --- | --- | --- | --- | --- |
 | developer | AC 未实现、verifier missing gap 或证据缺口 | tasks、AC/test refs、最新 verify-result | developer preflight、RED/GREEN/REFACTOR、developer-report.json（含 impact_files） | AC green，或 scope/AC/环境阻塞 |
 | verifier | developer/fixer 返回后需要独立验 AC/scope | AC、developer-report（含 impact_files）或 fix-result | AC/scope 独立核验、verify-result.json | PASS，或明确 missing gap |
-| code-reviewer | 已验证批次提测前整体 review | 计划/需求、developer-report、verify-result、git diff 范围 | Strengths、Issues、Recommendations、Assessment、code-review-result.json 或等价审查报告 | Assessment Yes 且无阻断问题，或明确需回派问题 |
+| review | 已验证批次提测前整体 review | 计划/需求、developer-report、verify-result、git diff 范围 | Strengths、Issues、Recommendations、Assessment、code-review-result.json 或等价审查报告 | Assessment Yes 且无阻断问题，或明确需回派问题 |
 | qa | 已验证批次需要用户路径/端到端验收 | qa_handoff_contract、verify-result、用户路径、环境入口 | 用户路径证据、qa-result.json | 全部必测路径 PASS，或可复现缺陷 |
 | fixer | qa-result/verify-result 给出可复现失败 | failing result、scope、相关报告 | root cause、minimal fix、影响面声明、fix-result.json | failure fixed，或精确 blocker |
 | consistency-auditor | 介入前 baseline 一致性审计，或提交准备前 full 一致性审计 | baseline: brief、phase-prd、artifact-registry、plan、tasks、design、test-cases、qa_handoff_contract、cross_unit_obligations；final: baseline 输入加 developer-report、verify-result、code-review-result、qa-result、qa-result.obligation_results | advisory_only、findings、required_owner_action、consistency-audit-result.json | 无 blocked owner action，或明确回流 owner |
@@ -93,6 +93,16 @@ Packet 的详细程度应该匹配任务的不确定性：
 `task_packet_check.sh --packet` 只接收 packet JSON 文件路径；不要把 JSON 字符串直接传给 `--packet`。临时文件命名使用当前运行环境的安全临时目录，校验后按环境约定清理。
 
 校验前把 Task Packet 写入临时 JSON 文件：`bash shared/skills/delivery-owner/scripts/task_packet_check.sh --packet "$TASK_PACKET_JSON_PATH"`。
+
+Codex 受管 agent（`developer` / `verifier` / `qa` / `fixer` / `consistency-auditor`）派发前必须生成一次性调度授权：
+
+```bash
+bash shared/skills/delivery-owner/scripts/task_packet_check.sh \
+  --packet "$TASK_PACKET_JSON_PATH" \
+  --authorize-dispatch
+```
+
+脚本优先使用 `--session-id`，未提供时从 active-skill state 推断最新 `delivery-owner` session，并向 Codex `SubagentStart` guard 使用的 dispatch auth state 写入单次 token。`review` 是显式技能，不走受管 agent 授权。
 
 packet 失败先修派发包；基线或资源问题暂停给用户。
 
@@ -113,7 +123,7 @@ commit_summary:
 stop_condition:
 ```
 
-如果输入已明确 developer/verifier/code-reviewer/qa/consistency-auditor 证据闭合、无未决风险且用户授权，`evidence_refs` 可以使用逻辑引用；不要因为路径不可用而把已满足的提交门禁改判为 DO-S1 阻断。
+如果输入已明确 developer/verifier/review/qa/consistency-auditor 证据闭合、无未决风险且用户授权，`evidence_refs` 可以使用逻辑引用；不要因为路径不可用而把已满足的提交门禁改判为 DO-S1 阻断。
 
 ## 质量标准
 

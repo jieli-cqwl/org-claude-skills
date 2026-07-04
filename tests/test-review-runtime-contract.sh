@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Validates that review's agent-backed runtime contract does not instruct nested agent dispatch.
+# Validates that review stays a manual skill and is not exposed as a managed Codex agent.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,21 +14,24 @@ root = Path(sys.argv[1])
 surface = json.loads((root / "contracts/skill-runtime-surface.json").read_text(encoding="utf-8"))
 review = surface["skills"]["review"]
 
-if review.get("execution_kind") != "agent_backed":
-    raise SystemExit("review must stay agent_backed")
-if review.get("agent_type") != "code-reviewer":
-    raise SystemExit("review must dispatch through code-reviewer")
-if review.get("allow_nested_agents") is not False:
-    raise SystemExit("review must not allow nested agents")
+if review.get("mode") != "manual":
+    raise SystemExit("review must stay manual")
+if review.get("execution_kind", "skill") != "skill":
+    raise SystemExit("review must run as a manual skill, not an agent-backed workflow")
+if "agent_type" in review:
+    raise SystemExit("review must not declare a Codex managed agent")
+if review.get("dispatchers"):
+    raise SystemExit("review must not be auto-dispatched by managed agent workflows")
 
 openai_yaml = (root / "shared/skills/review/agents/openai.yaml").read_text(encoding="utf-8")
-for required in [
+if "allow_implicit_invocation: false" not in openai_yaml:
+    raise SystemExit("review OpenAI policy must disable implicit invocation")
+for forbidden in [
     "execution_kind: agent_backed",
     "agent_type: code-reviewer",
-    "allow_nested_agents: false",
 ]:
-    if required not in openai_yaml:
-        raise SystemExit(f"review OpenAI policy missing {required}")
+    if forbidden in openai_yaml:
+        raise SystemExit(f"review OpenAI policy must not expose managed agent setting: {forbidden}")
 
 skill = (root / "shared/skills/review/SKILL.md").read_text(encoding="utf-8")
 frontmatter = skill.split("---", 2)[1]

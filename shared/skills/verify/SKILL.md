@@ -136,7 +136,7 @@ digraph verify_flow {
 - 模板：`shared/skills/verify/templates/verify-result.template.json`
 - Schema：`shared/skills/verify/contracts/verify-result.schema.json`
 
-verify 负责写入当前 Task 的 `verify-result.json`；派发 code-reviewer / qa 前，由 delivery-owner 确认该结果在 active `artifact-registry.json` 中存在且只有一个 `FINALIZED + active_for_consumption=true` entry。
+verify 负责写入当前 Task 的 `verify-result.json`；派发 review skill / qa 前，由 delivery-owner 确认该结果在 active `artifact-registry.json` 中存在且只有一个 `FINALIZED + active_for_consumption=true` entry。
 
 `verify-result.json` 至少能回答：
 

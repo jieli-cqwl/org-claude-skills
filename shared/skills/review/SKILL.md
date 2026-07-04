@@ -2,13 +2,13 @@
 name: review
 user-invocable: true
 disable-model-invocation: true
-description: "深度代码审查与改进建议。Use when 需要审查代码变更、PR review、代码质量评估或想要第二双眼睛检查实现。"
+description: "Use when 用户显式要求本地 review skill 产出 standard-chain code-review-result.json，或 delivery-owner 需要提测前 canonical review artifact；普通 diff/PR 审查优先使用 Codex 官方 /review 或 codex review。"
 eval-type: mixed
 argument-hint: "[scope: 审查-A|审查-B|审查-C|full]"
 allowed-tools: Read, Write, Bash, Glob, Grep, LSP
 ---
 
-# /review -- 深度代码审查
+# /review -- standard-chain 结构化代码审查
 
 ## HARD-GATE
 
@@ -59,7 +59,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep, LSP
 
 ### Step 2: 分组评审
 
-- 本 skill 由上层调度到 `code-reviewer` 命名 agent 执行；运行内禁止再调用 Agent 或 subagent。按 scope 在同一 `code-reviewer` 上下文内形成 A/B/C 三组独立中间包（`full` 时三组都必须完成）：
+- 本 skill 由用户或交付链显式触发；运行内禁止再调用 Agent 或 subagent。按 scope 在同一 review 上下文内形成 A/B/C 三组独立中间包（`full` 时三组都必须完成）：
   - A 组 prompt：Trigger: scope 含审查-A 或 full；Read: `references/code-safety-reviewer-prompt.md`；Expect: 正确性、安全性、错误处理、并发/状态审查口径；Consume: A 组中间包；Evidence: A 组 findings/excluded 引用 file_path:line_number；Sync: 十维定义或中间包字段变化时同步 prompt、模板和测试。
   - B 组 prompt：Trigger: scope 含审查-B 或 full；Read: `references/code-maintainability-reviewer-prompt.md`；Expect: 设计、测试覆盖、注释准确性、向后兼容审查口径；Consume: B 组中间包；Evidence: B 组 findings/excluded 引用 file_path:line_number；Sync: 十维定义或中间包字段变化时同步 prompt、模板和测试。
   - C 组 prompt：Trigger: scope 含审查-C 或 full；Read: `references/code-performance-reviewer-prompt.md`；Expect: 性能、可观测性审查口径；Consume: C 组中间包；Evidence: C 组 findings/excluded 引用 file_path:line_number；Sync: 十维定义或中间包字段变化时同步 prompt、模板和测试。

@@ -90,6 +90,11 @@ ORG_CODEX_ACTIVE_SKILLS_STATE_DIR="$ACTIVE_STATE" python3 "$PROMPT_TRACKER" <<'J
 JSON
 assert_path_absent "$ACTIVE_STATE/director-brainstorm-session.json"
 
+ORG_CODEX_ACTIVE_SKILLS_STATE_DIR="$ACTIVE_STATE" python3 "$PROMPT_TRACKER" <<'JSON'
+{"session_id":"delivery-owner-session","prompt":"/delivery-owner 执行冻结任务批次"}
+JSON
+assert_present '"skill": "delivery-owner"' "$ACTIVE_STATE/delivery-owner-session.json"
+
 CONTEXT_STATE="$TMP_DIR/context-continuity"
 mkdir -p "$TMP_DIR/project"
 latest_correction='不对，这里核心不是迁移，而是 LLM 上下文窗口治理'

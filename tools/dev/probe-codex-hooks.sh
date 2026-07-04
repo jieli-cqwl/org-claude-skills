@@ -32,6 +32,7 @@ AUDIT_ARGS=(
   --expected-command "bash $CODEX_HOME_DIR/hooks/managed/block_dangerous.sh" \
   --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/context_contract_validator.py" \
   --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_user_prompt_submit.py" \
+  --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_subagent_dispatch_guard.py" \
   --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_stop_dispatch.py"
 )
 if [ "${ORG_CODEX_CONTEXT_CONTINUITY_ENABLED:-0}" = "1" ]; then

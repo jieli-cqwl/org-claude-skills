@@ -170,9 +170,19 @@ expected_agent_backed = {
     "developer": ("developer", {"delivery-owner"}),
     "fix": ("fixer", {"delivery-owner"}),
     "qa": ("qa", {"delivery-owner"}),
-    "review": ("code-reviewer", {"delivery-owner", "requesting-code-review"}),
     "verify": ("verifier", {"delivery-owner"}),
 }
+actual_agent_backed = {
+    name
+    for name, entry in skills.items()
+    if entry.get("execution_kind", "skill") == "agent_backed"
+}
+if actual_agent_backed != set(expected_agent_backed):
+    raise SystemExit(
+        "agent_backed skill set mismatch: "
+        f"missing={sorted(set(expected_agent_backed) - actual_agent_backed)} "
+        f"extra={sorted(actual_agent_backed - set(expected_agent_backed))}"
+    )
 for name, (agent_type, required_dispatchers) in expected_agent_backed.items():
     entry = skills[name]
     if entry.get("execution_kind") != "agent_backed":
@@ -213,6 +223,7 @@ for manual_name in [
     "planning-with-files",
     "prompt",
     "refactor",
+    "review",
     "research",
     "security",
     "ui-ux-pro-max",

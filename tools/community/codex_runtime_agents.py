@@ -22,22 +22,19 @@ AGENT_GLOBAL_SETTINGS = {
 
 MANAGED_AGENT_ROLES = [
     (
-        "code-reviewer",
-        "提测前整体代码审查，按 Superpowers reviewer 语义输出 strengths/issues/assessment",
-        "./agents/code-reviewer.toml",
-    ),
-    (
         "consistency-auditor",
-        "跨工件一致性旁路审计，输出 advisory-only owner action",
+        "仅 delivery-owner 标准链路 Task Packet 授权调度：跨工件一致性旁路审计，输出 advisory-only owner action",
         "./agents/consistency-auditor.toml",
     ),
-    ("developer", "TDD驱动开发执行，完成任务并自验证", "./agents/developer.toml"),
-    ("fixer", "故障根因分析与最小修复", "./agents/fixer.toml"),
-    ("verifier", "Task级AC覆盖与代码质量验收", "./agents/verifier.toml"),
-    ("qa", "用户视角功能验收，独立给出PASS/FAIL", "./agents/qa.toml"),
+    ("developer", "仅 delivery-owner 标准链路 Task Packet 授权调度：TDD驱动开发执行，完成任务并自验证", "./agents/developer.toml"),
+    ("fixer", "仅 delivery-owner 标准链路 Task Packet 授权调度：故障根因分析与最小修复", "./agents/fixer.toml"),
+    ("verifier", "仅 delivery-owner 标准链路 Task Packet 授权调度：Task级AC覆盖与代码质量验收", "./agents/verifier.toml"),
+    ("qa", "仅 delivery-owner 标准链路 Task Packet 授权调度：用户视角功能验收，独立给出PASS/FAIL", "./agents/qa.toml"),
 ]
 MANAGED_AGENT_ROLE_NAMES = {role for role, _, _ in MANAGED_AGENT_ROLES}
 RETIRED_AGENT_ROLE_NAMES = {
+    "code-reviewer",
+    "codex-doc-reviewer",
     "designer",
     "generic-code-reviewer",
     "tech-lead",

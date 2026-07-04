@@ -1,5 +1,5 @@
 name = "fixer"
-description = "故障根因分析与最小修复。"
+description = "仅 delivery-owner 标准链路 Task Packet 授权调度：故障根因分析与最小修复。"
 # model 和 model_reasoning_effort 故意省略：继承 Codex 当前默认设置。
 sandbox_mode = "workspace-write"
 developer_instructions = """

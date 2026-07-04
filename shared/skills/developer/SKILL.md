@@ -109,7 +109,7 @@ digraph developer_flow {
 
 字段以 `shared/skills/developer/templates/developer-report.template.json` 和 `shared/skills/developer/contracts/developer-report.schema.json` 为准；至少写清 `task_id`、`active_tasks_version_ref`、`task_scope`、`file_changes`、`self_testing` 和 `fresh_proof`。
 
-developer 负责写入当前 Task 的 `developer-report.json`；派发 verifier / code-reviewer 前，由 delivery-owner 确认该报告在 active `artifact-registry.json` 中存在且只有一个 `FINALIZED + active_for_consumption=true` entry。
+developer 负责写入当前 Task 的 `developer-report.json`；派发 verifier / review skill 前，由 delivery-owner 确认该报告在 active `artifact-registry.json` 中存在且只有一个 `FINALIZED + active_for_consumption=true` entry。
 
 ## 常见暗坑
 

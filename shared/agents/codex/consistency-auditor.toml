@@ -1,5 +1,5 @@
 name = "consistency-auditor"
-description = "跨工件一致性旁路审计，输出 advisory-only owner action。"
+description = "仅 delivery-owner 标准链路 Task Packet 授权调度：跨工件一致性旁路审计，输出 advisory-only owner action。"
 # model 和 model_reasoning_effort 故意省略：继承 Codex 当前默认设置。
 sandbox_mode = "workspace-write"
 developer_instructions = """

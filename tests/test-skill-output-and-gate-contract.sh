@@ -324,6 +324,11 @@ assert_hook_registry_renderable() {
       and any(.hooks[]?; (.command | contains("context_contract_validator.py")))
     )
   ' "$rendered" >/dev/null 2>&1 || fail "Codex PostToolUse should run context validator for Write/Edit edits"
+  jq -e '
+    any(.hooks.SubagentStart[]?;
+      any(.hooks[]?; (.command | contains("codex_subagent_dispatch_guard.py")))
+    )
+  ' "$rendered" >/dev/null 2>&1 || fail "Codex SubagentStart should run managed agent dispatch guard"
 
   local opt_in_rendered
   opt_in_rendered="$(mktemp "${TMPDIR:-/tmp}/rendered-hooks-opt-in.XXXXXX")"

@@ -159,14 +159,14 @@
       "prompt": "所有 task 都有 developer-report 和 verifier agent PASS，qa agent 执行用户路径后返回 FAIL，给出可复现缺陷和 qa-result.json。fixer agent 随后完成最小修复并返回 fix-result.json。请按 delivery-owner 推进下一步。",
       "files": [],
       "expectations": [
-        "应停在 QA/修复循环；QA FAIL 是可复现缺陷时调度 fixer agent，并输出 fixer packet。packet 必须包含 task_ref、role=fixer、goal 中的 failing qa-result、forbidden_scope、input_refs 指向 qa-result/verify-result、expected_evidence 要求 root cause、minimal fix、freshness 判断和 fix-result.json、stop_condition 和 forbidden_actions。fixer agent 修改后不能直接 /commit，必须重跑受影响 verifier agent、fresh code-reviewer agent 和 qa agent；状态卡必须更新 current_gap、progress_signal、consecutive_no_progress_count、stale_evidence_refs、next_owner、evidence_refs 和 resume_condition。只有 verifier agent / code-reviewer agent / qa agent fresh PASS 且用户授权明确后才调度 /commit。同一 gap 连续 2 轮无进展时暂停给用户决策。",
+        "应停在 QA/修复循环；QA FAIL 是可复现缺陷时调度 fixer agent，并输出 fixer packet。packet 必须包含 task_ref、role=fixer、goal 中的 failing qa-result、forbidden_scope、input_refs 指向 qa-result/verify-result、expected_evidence 要求 root cause、minimal fix、freshness 判断和 fix-result.json、stop_condition 和 forbidden_actions。fixer agent 修改后不能直接 /commit，必须重跑受影响 verifier agent、fresh review skill 和 qa agent；状态卡必须更新 current_gap、progress_signal、consecutive_no_progress_count、stale_evidence_refs、next_owner、evidence_refs 和 resume_condition。只有 verifier agent / review skill / qa agent fresh PASS 且用户授权明确后才调度 /commit。同一 gap 连续 2 轮无进展时暂停给用户决策。",
         "识别 qa agent FAIL 是可复现缺陷",
         "调度 fixer agent 做根因和最小修复",
         "输出 fixer packet",
         "fixer packet 包含 task_ref、role、goal、forbidden_scope、input_refs、expected_evidence、stop_condition、forbidden_actions",
         "要求 root cause、minimal fix、freshness 判断和 fix-result.json",
         "fixer agent 后不直接 /commit",
-        "重跑受影响 verifier agent、fresh code-reviewer agent 和 qa agent",
+        "重跑受影响 verifier agent、fresh review skill 和 qa agent",
         "状态卡更新 current_gap",
         "状态卡更新 progress_signal",
         "状态卡更新 consecutive_no_progress_count",
@@ -309,7 +309,7 @@
       "prompt": "现场状态：T3 之前 verify PASS，QA 也 PASS；后来线上路径复现了一个缺陷，fixer 已经做了最小修复并产出 fix-result。现在能不能进入提交？",
       "files": [],
       "expectations": [
-        "应识别 fixer 后旧 verifier/code-reviewer/QA 证据可能失效，不能直接提交；停在 QA/修复循环，标记 stale_evidence_refs，调度受影响 verifier agent 复验，再调度 fresh code-reviewer agent，最后调度 qa agent 重跑受影响用户路径；只有 fresh verifier PASS、fresh code-review PASS、fresh QA PASS 且用户授权明确后才调度 /commit。",
+        "应识别 fixer 后旧 verifier/review/QA 证据可能失效，不能直接提交；停在 QA/修复循环，标记 stale_evidence_refs，调度受影响 verifier agent 复验，再调度 fresh review skill，最后调度 qa agent 重跑受影响用户路径；只有 fresh verifier PASS、fresh code-review PASS、fresh QA PASS 且用户授权明确后才调度 /commit。",
         "识别 fixer 后旧证据可能失效",
         "不直接提交或 /commit",
         "停在 QA/修复循环",
@@ -512,7 +512,7 @@
     },
     {
       "id": "PA-11",
-      "anchor": "qa agent FAIL 为可复现缺陷时停在 QA/修复循环并调度 fixer agent；fixer agent 返回后必须重跑受影响 verifier agent、fresh code-reviewer agent 和 qa agent，fresh PASS 且用户授权明确后才调度 /commit。",
+      "anchor": "qa agent FAIL 为可复现缺陷时停在 QA/修复循环并调度 fixer agent；fixer agent 返回后必须重跑受影响 verifier agent、fresh review skill 和 qa agent，fresh PASS 且用户授权明确后才调度 /commit。",
       "weight": 1
     },
     {

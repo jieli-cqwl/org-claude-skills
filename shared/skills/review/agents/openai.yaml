@@ -4,7 +4,4 @@ interface:
   default_prompt: "Use $review to perform a deep code review of changes."
 
 policy:
-  allow_nested_agents: false
-  agent_type: code-reviewer
-  execution_kind: agent_backed
   allow_implicit_invocation: false

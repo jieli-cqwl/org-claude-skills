@@ -193,7 +193,7 @@ fi
 if should_run_group codex-agent-model-config || should_run_group codex-agent-config; then
   ensure_baseline_home
 
-  install_test_case_start "core: same-version codex reinstall repairs stale agent model config"
+  install_test_case_start "core: same-version codex reinstall repairs stale agent model config and retires code-reviewer"
   home_dir="$(install_test_clone_baseline_home core-codex-agent-config)"
   install_test_refresh_installed_version "$home_dir" codex
   config_file="$home_dir/.codex/config.toml"
@@ -209,25 +209,31 @@ text = text.replace(
     1,
 )
 text = text.replace(
-    "[agents.code-reviewer]\n",
-    '[agents.code-reviewer]\nmodel = "gpt-5.4"\nmodel_reasoning_effort = "high"\n',
+    "[agents.consistency-auditor]\n",
+    '[agents.consistency-auditor]\nmodel = "gpt-5.4"\nmodel_reasoning_effort = "high"\n',
     1,
 )
+text += '\n[agents.code-reviewer]\ndescription = "retired reviewer"\nconfig_file = "./agents/code-reviewer.toml"\nmodel = "gpt-5.4"\nmodel_reasoning_effort = "high"\n'
+text += '\n[agents.codex-doc-reviewer]\ndescription = "retired doc reviewer"\nconfig_file = "./agents/codex-doc-reviewer.toml"\n'
 path.write_text(text, encoding="utf-8")
 PY
   install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-codex-agent-config-second)" --target codex --check quick
   install_test_assert_file_contains "$(install_test_log_path core-codex-agent-config-second)" "安装完成" "same-version stale agent config should trigger repair install"
   install_test_assert_file_not_contains "$(install_test_log_path core-codex-agent-config-second)" "已是最新版本" "same-version stale agent config should not silently skip"
   install_test_assert_file_not_contains "$config_file" 'model = "gpt-5.4-mini"' "developer agent config should inherit global model"
-  install_test_assert_file_not_contains "$config_file" 'model = "gpt-5.4"' "code-reviewer agent config should inherit global model"
+  install_test_assert_file_not_contains "$config_file" 'model = "gpt-5.4"' "managed agent config should inherit global model and retired code-reviewer should be removed"
   install_test_assert_file_not_contains "$config_file" 'model_reasoning_effort = "high"' "agent config should inherit global reasoning effort"
-  install_test_case_pass "core: same-version codex reinstall repairs stale agent model config"
+  install_test_assert_file_not_contains "$config_file" "[agents.code-reviewer]" "retired code-reviewer agent section should be removed"
+  install_test_assert_file_not_contains "$config_file" "[agents.codex-doc-reviewer]" "retired codex-doc-reviewer agent section should be removed"
+  install_test_assert_file_not_contains "$config_file" 'config_file = "./agents/code-reviewer.toml"' "retired code-reviewer config_file should be removed"
+  install_test_assert_file_not_contains "$config_file" 'config_file = "./agents/codex-doc-reviewer.toml"' "retired codex-doc-reviewer config_file should be removed"
+  install_test_case_pass "core: same-version codex reinstall repairs stale agent model config and retires code-reviewer"
 fi
 
 if should_run_group codex-agent-config-file || should_run_group codex-agent-config; then
   ensure_baseline_home
 
-  install_test_case_start "core: same-version codex reinstall repairs agent config_file drift"
+  install_test_case_start "core: same-version codex reinstall repairs managed agent config_file drift"
   home_dir="$(install_test_clone_baseline_home core-codex-agent-config-file)"
   install_test_refresh_installed_version "$home_dir" codex
   config_file="$home_dir/.codex/config.toml"
@@ -238,8 +244,8 @@ from pathlib import Path
 path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 text = text.replace(
-    'config_file = "./agents/code-reviewer.toml"',
-    'config_file = "./agents/code-reviewer.toml.bak"',
+    'config_file = "./agents/consistency-auditor.toml"',
+    'config_file = "./agents/consistency-auditor.toml.bak"',
     1,
 )
 path.write_text(text, encoding="utf-8")
@@ -247,18 +253,37 @@ PY
   install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-codex-agent-config-file-second)" --target codex --check quick
   install_test_assert_file_contains "$(install_test_log_path core-codex-agent-config-file-second)" "安装完成" "same-version agent config_file drift should trigger repair install"
   install_test_assert_file_not_contains "$(install_test_log_path core-codex-agent-config-file-second)" "已是最新版本" "same-version agent config_file drift should not silently skip"
-  install_test_assert_file_contains "$config_file" 'config_file = "./agents/code-reviewer.toml"' "code-reviewer config_file should be repaired exactly"
-  install_test_assert_file_not_contains "$config_file" 'config_file = "./agents/code-reviewer.toml.bak"' "code-reviewer config_file drift should be removed"
-  install_test_case_pass "core: same-version codex reinstall repairs agent config_file drift"
+  install_test_assert_file_contains "$config_file" 'config_file = "./agents/consistency-auditor.toml"' "consistency-auditor config_file should be repaired exactly"
+  install_test_assert_file_not_contains "$config_file" 'config_file = "./agents/consistency-auditor.toml.bak"' "consistency-auditor config_file drift should be removed"
+  install_test_case_pass "core: same-version codex reinstall repairs managed agent config_file drift"
 fi
 
 if should_run_group codex-agent-file-contracts || should_run_group codex-agent-files; then
   ensure_baseline_home
 
+  install_test_case_start "core: same-version codex reinstall repairs stale review OpenAI policy"
+  home_dir="$(install_test_clone_baseline_home core-codex-review-policy)"
+  install_test_refresh_installed_version "$home_dir" codex
+  review_policy="$home_dir/.agents/skills/review/agents/openai.yaml"
+  cat >> "$review_policy" <<'YAML'
+  execution_kind: agent_backed
+  agent_type: code-reviewer
+  allow_nested_agents: false
+YAML
+  install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path core-codex-review-policy-second)" --target codex --check quick
+  install_test_assert_file_contains "$(install_test_log_path core-codex-review-policy-second)" "安装完成" "same-version stale review policy should trigger repair install"
+  install_test_assert_file_not_contains "$(install_test_log_path core-codex-review-policy-second)" "已是最新版本" "same-version stale review policy should not silently skip"
+  install_test_assert_file_contains "$review_policy" "allow_implicit_invocation: false" "review OpenAI policy should keep explicit manual invocation"
+  install_test_assert_file_not_contains "$review_policy" "execution_kind: agent_backed" "review OpenAI policy should not stay agent-backed"
+  install_test_assert_file_not_contains "$review_policy" "agent_type: code-reviewer" "review OpenAI policy should not point to retired code-reviewer"
+  install_test_assert_file_not_contains "$review_policy" "allow_nested_agents:" "review OpenAI policy should not carry nested-agent runtime policy"
+  install_test_case_pass "core: same-version codex reinstall repairs stale review OpenAI policy"
+
   install_test_case_start "core: same-version codex reinstall repairs stale agent file contracts"
   home_dir="$(install_test_clone_baseline_home core-codex-agent-file-contracts)"
   install_test_refresh_installed_version "$home_dir" codex
   verifier_agent="$home_dir/.codex/agents/verifier.toml"
+  printf 'retired reviewer\n' > "$home_dir/.codex/agents/code-reviewer.toml"
 python3 - "$verifier_agent" <<'PY'
 import re
 import sys
@@ -297,6 +322,7 @@ PY
   install_test_assert_file_not_contains "$verifier_agent" 'verify-result.json' "verifier agent should not duplicate skill output artifact contracts"
   install_test_assert_file_not_contains "$verifier_agent" '先读并严格遵循' "verifier agent should not duplicate AGENTS.md/rules loading"
   install_test_assert_file_not_contains "$verifier_agent" '可用工具' "verifier agent should not duplicate tool policy"
+  install_test_assert_path_absent "$home_dir/.codex/agents/code-reviewer.toml" "retired code-reviewer agent file should be removed even when absent from manifest"
   install_test_case_pass "core: same-version codex reinstall repairs stale agent file contracts"
 fi
 

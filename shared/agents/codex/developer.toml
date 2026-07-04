@@ -1,5 +1,5 @@
 name = "developer"
-description = "TDD 驱动开发执行，完成任务并自验证。"
+description = "仅 delivery-owner 标准链路 Task Packet 授权调度：TDD 驱动开发执行，完成任务并自验证。"
 # model 和 model_reasoning_effort 故意省略：继承 Codex 当前默认设置。
 sandbox_mode = "workspace-write"
 developer_instructions = """

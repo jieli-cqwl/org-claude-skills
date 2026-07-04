@@ -518,6 +518,7 @@ required_codex_hook_commands() {
 bash $CODEX_DIR/hooks/managed/block_dangerous.sh
 $PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/context_contract_validator.py
 $PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_user_prompt_submit.py
+$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_subagent_dispatch_guard.py
 $PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_stop_dispatch.py
 EOF
   if codex_context_continuity_enabled; then
@@ -1600,7 +1601,7 @@ codex_agent_files_match_contract() {
   local duplicated_skill_detail_pattern='先读并严格遵循|硬约束|完整方法论|可用工具|Write 仅用于|禁止使用 Edit|禁止 Edit|developer-report\.json|verify-result\.json|qa-result\.json|code-review-result\.json|consistency-audit-result\.json|\{\{HOME\}\}/\.codex/rules|\{\{HOME\}\}/\.agents/skills|/\.codex/rules|/\.agents/skills'
 
   [ -d "$agents_dir" ] || return 1
-  for agent in code-reviewer consistency-auditor developer fixer qa verifier; do
+  for agent in consistency-auditor developer fixer qa verifier; do
     [ -f "$agents_dir/$agent.toml" ] || return 1
   done
 
@@ -1609,18 +1610,85 @@ codex_agent_files_match_contract() {
     return 1
   fi
 
-  for agent in code-reviewer consistency-auditor developer fixer qa verifier; do
+  for agent in consistency-auditor developer fixer qa verifier; do
     file="$agents_dir/$agent.toml"
     grep -Fq 'sandbox_mode = "workspace-write"' "$file" || return 1
   done
 
   ! grep -REq "$duplicated_skill_detail_pattern" "$agents_dir"/*.toml || return 1
-  grep -Fq "加载 \`review\` skill，结合目标和成功标准交付结果。" "$agents_dir/code-reviewer.toml" || return 1
   grep -Fq "加载 \`consistency-audit\` skill，结合目标和成功标准交付结果。" "$agents_dir/consistency-auditor.toml" || return 1
   grep -Fq "加载 \`developer\` skill，结合目标和成功标准交付结果。" "$agents_dir/developer.toml" || return 1
   grep -Fq "加载 \`fix\` skill，结合目标和成功标准交付结果。" "$agents_dir/fixer.toml" || return 1
   grep -Fq "加载 \`qa\` skill，结合目标和成功标准交付结果。" "$agents_dir/qa.toml" || return 1
   grep -Fq "加载 \`verify\` skill，结合目标和成功标准交付结果。" "$agents_dir/verifier.toml" || return 1
+  [ ! -e "$agents_dir/code-reviewer.toml" ] || return 1
+}
+
+retired_runtime_agent_files() {
+  local name="$1"
+
+  case "$name" in
+    claude)
+      printf '%s\n' \
+        code-reviewer.md \
+        designer.md \
+        tech-lead.md \
+        test-designer.md \
+        generic-code-reviewer.md \
+        codex-doc-reviewer.md
+      ;;
+    codex)
+      printf '%s\n' \
+        code-reviewer.toml \
+        generic-code-reviewer.toml \
+        designer.toml \
+        tech-lead.toml \
+        test-designer.toml \
+        codex-doc-reviewer.toml \
+        code-reviewer.md \
+        generic-code-reviewer.md \
+        consistency-auditor.md \
+        designer.md \
+        tech-lead.md \
+        test-designer.md \
+        codex-doc-reviewer.md
+      ;;
+  esac
+}
+
+audit_runtime_agents() {
+  local name="$1"
+  local target_dir="$2"
+  local state_dir="$3"
+  local apply_cleanup="${4:-0}"
+  local backup_root="${5:-}"
+  local backup_tmp="${6:-}"
+  local agents_dir="$target_dir/agents"
+  local agent_file agent_path archive_root=""
+
+  [ -d "$agents_dir" ] || return 0
+
+  while IFS= read -r agent_file; do
+    [ -n "$agent_file" ] || continue
+    agent_path="$agents_dir/$agent_file"
+    [ -e "$agent_path" ] || [ -L "$agent_path" ] || continue
+
+    RUNTIME_AUDIT_DIRTY=1
+    if [ "$DRY_RUN" -eq 1 ] || [ "$apply_cleanup" -eq 0 ]; then
+      log "[dry-run] $name 将归档并清理退休 agent 残留: $agent_path"
+      continue
+    fi
+
+    [ -n "$archive_root" ] || archive_root="$state_dir/unexpected-artifacts/$(date +%Y%m%d%H%M%S)-$$"
+    mkdir -p "$archive_root/agents"
+    cp -a "$agent_path" "$archive_root/agents/$agent_file"
+    if [ -n "$backup_root" ] && [ -n "$backup_tmp" ]; then
+      backup_existing_path "$name" "$target_dir" "$agent_path" "$backup_root" "$backup_tmp"
+    fi
+    rm -rf "$agent_path"
+    remove_if_empty "$agents_dir" "$target_dir"
+    log "$name 已归档并清理退休 agent 残留: $agent_path -> $archive_root/agents/$agent_file"
+  done < <(retired_runtime_agent_files "$name")
 }
 
 audit_runtime_rules() {
@@ -1745,6 +1813,11 @@ is_retired_runtime_path() {
     "$target_dir/reference/"*)
       item_name="$(basename "$path")"
       retired_runtime_reference_names | grep -Fxq "$item_name"
+      return $?
+      ;;
+    "$target_dir/agents/"*)
+      item_name="$(basename "$path")"
+      retired_runtime_agent_files "$name" | grep -Fxq "$item_name"
       return $?
       ;;
   esac
@@ -2420,6 +2493,10 @@ for skill_file in sorted(skills_dir.glob("*/SKILL.md")):
     user_invocable = bool(re.search(r"^user-invocable:\s*true\s*$", fm, re.MULTILINE))
     disables_implicit = bool(re.search(r"^\s*allow_implicit_invocation:\s*false\s*$", policy_text, re.MULTILINE))
 
+    for key in ("execution_kind", "agent_type", "allow_nested_agents"):
+        if key not in entry and re.search(rf"^\s*{re.escape(key)}\s*:", policy_text, re.MULTILINE):
+            raise SystemExit(f"{name}: installed OpenAI policy contains stale {key}")
+
     if owner == "superpowers":
         if policy_file.exists() or disables_model or user_invocable:
             raise SystemExit(f"{name}: Superpowers mirror must not be runtime-mutated")
@@ -2553,8 +2630,8 @@ runtime_target_complete() {
     [ -f "$codex_skills_dir/webapp-testing/SKILL.md" ] || return 1
     [ -f "$codex_skills_dir/webapp-testing/agents/openai.yaml" ] || return 1
     [ -f "$target_dir/agents/developer.toml" ] || return 1
-    [ -f "$target_dir/agents/code-reviewer.toml" ] || return 1
     [ -f "$target_dir/agents/consistency-auditor.toml" ] || return 1
+    [ ! -e "$target_dir/agents/code-reviewer.toml" ] || return 1
     [ ! -e "$target_dir/agents/generic-code-reviewer.toml" ] || return 1
     [ ! -e "$target_dir/agents/designer.toml" ] || return 1
     [ ! -e "$target_dir/agents/tech-lead.toml" ] || return 1
@@ -2572,6 +2649,7 @@ runtime_target_complete() {
     [ -f "$target_dir/hooks/managed/context_contract_validator.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_context_continuity.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_user_prompt_submit.py" ] || return 1
+    [ -f "$target_dir/hooks/managed/codex_subagent_dispatch_guard.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_stop_dispatch.py" ] || return 1
     [ -f "$target_dir/hooks/registry.json" ] || return 1
     [ -f "$target_dir/protocols/phase-selection-protocol.md" ] || return 1
@@ -2616,6 +2694,7 @@ install_to_target() {
 
   audit_runtime_rules "$name" "$target_dir" "$state_dir"
   audit_runtime_references "$name" "$target_dir" "$state_dir"
+  audit_runtime_agents "$name" "$target_dir" "$state_dir"
   audit_retired_runtime_skills "$name" "$target_dir" "$state_dir"
   audit_runtime_probe_skills "$name" "$target_dir" "$state_dir"
   audit_runtime_internal_skill_roots "$name" "$target_dir" "$state_dir"
@@ -2747,6 +2826,7 @@ install_to_target() {
 
   audit_runtime_rules "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
   audit_runtime_references "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
+  audit_runtime_agents "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
   audit_retired_runtime_skills "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
   audit_runtime_probe_skills "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
   audit_runtime_internal_skill_roots "$name" "$target_dir" "$state_dir" 1 "$backup_root" "$backup_tmp"
@@ -3148,8 +3228,8 @@ quick_check() {
     [ -f "$CODEX_DIR/agents/developer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/developer.toml 不存在"
     quick_check_rendered_shared_tree "$SHARED_SOURCE/rules" "$CODEX_DIR/rules" "\$HOME/.codex" "$HOME/.codex/rules"
     quick_check_rendered_shared_tree "$SHARED_SOURCE/reference" "$CODEX_DIR/reference" "\$HOME/.codex" "$HOME/.codex/reference"
-    [ -f "$CODEX_DIR/agents/code-reviewer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/code-reviewer.toml 不存在"
     [ -f "$CODEX_DIR/agents/consistency-auditor.toml" ] || fail "Quick Check 失败: ~/.codex/agents/consistency-auditor.toml 不存在"
+    [ ! -e "$CODEX_DIR/agents/code-reviewer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/code-reviewer.toml 不应存在"
     [ ! -e "$CODEX_DIR/agents/generic-code-reviewer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/generic-code-reviewer.toml 不应存在"
     [ ! -e "$CODEX_DIR/agents/designer.toml" ] || fail "Quick Check 失败: ~/.codex/agents/designer.toml 不应存在"
     [ ! -e "$CODEX_DIR/agents/tech-lead.toml" ] || fail "Quick Check 失败: ~/.codex/agents/tech-lead.toml 不应存在"
@@ -3167,6 +3247,7 @@ quick_check() {
     [ -f "$CODEX_DIR/hooks/managed/context_contract_validator.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/context_contract_validator.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_context_continuity.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_context_continuity.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_user_prompt_submit.py 不存在"
+    [ -f "$CODEX_DIR/hooks/managed/codex_subagent_dispatch_guard.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_subagent_dispatch_guard.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_stop_dispatch.py 不存在"
     [ -f "$CODEX_DIR/hooks/registry.json" ] || fail "Quick Check 失败: ~/.codex/hooks/registry.json 不存在"
     [ -f "$CODEX_DIR/protocols/phase-selection-protocol.md" ] || fail "Quick Check 失败: ~/.codex/protocols/phase-selection-protocol.md 不存在"
@@ -3183,9 +3264,10 @@ quick_check() {
     grep -Fq 'max_threads = 6' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.max_threads"
     grep -Fq 'max_depth = 1' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.max_depth"
     grep -Fq 'job_max_runtime_seconds = 1800' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 agents.job_max_runtime_seconds"
-    grep -Fq './agents/code-reviewer.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 code-reviewer agent"
     grep -Fq './agents/consistency-auditor.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 缺少 consistency-auditor agent"
+    ! grep -Fq './agents/code-reviewer.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 不应保留 code-reviewer agent"
     ! grep -Fq './agents/generic-code-reviewer.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 不应保留 generic-code-reviewer agent"
+    ! grep -Fq './agents/codex-doc-reviewer.toml' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 不应保留 codex-doc-reviewer agent"
     codex_agent_config_inherits_defaults "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml agent 配置不应保留退休角色或钉死 model/model_reasoning_effort"
     codex_agent_files_match_contract "$CODEX_DIR" || fail "Quick Check 失败: ~/.codex/agents agent 文件不应钉死模型，且 developer_instructions 不应重复 skill 能力细节"
     for removed_feature in codex_hooks collaboration_modes sqlite steer tui_app_server; do
@@ -3196,6 +3278,7 @@ quick_check() {
     grep -Fq "$CODEX_DIR/hooks/managed/block_dangerous.sh" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 managed dangerous hook"
     grep -Fq "$CODEX_DIR/hooks/managed/context_contract_validator.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 context contract validator hook"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 active skill tracker"
+    grep -Fq "$CODEX_DIR/hooks/managed/codex_subagent_dispatch_guard.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 subagent dispatch guard"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 stop dispatcher"
     if codex_context_continuity_enabled; then
       grep -Fq "$CODEX_DIR/hooks/managed/codex_context_continuity.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 context continuity hook"

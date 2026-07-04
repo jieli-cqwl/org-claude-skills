@@ -18,6 +18,7 @@ STATE_DIR = Path(
     )
 )
 SKILL_PATTERN = re.compile(r"^[/$]([A-Za-z0-9-]+)(?:\s|$)")
+DISPATCH_GUARD_ACTIVE_SKILLS = {"delivery-owner"}
 
 
 def entry_dispatches_on_stop(entry: dict) -> bool:
@@ -59,7 +60,7 @@ def main() -> int:
     state_file = state_file_for(session_id)
 
     support_map = load_codex_stop_support_map()
-    if support_map.get(skill) is not True:
+    if support_map.get(skill) is not True and skill not in DISPATCH_GUARD_ACTIVE_SKILLS:
         state_file.unlink(missing_ok=True)
         return 0
 

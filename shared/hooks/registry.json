@@ -506,6 +506,21 @@
       }
     },
     {
+      "id": "codex-subagent-dispatch-guard",
+      "intent": "block-managed-agent-start-without-delivery-owner-authorization",
+      "claude": {
+        "supported": false,
+        "reason": "Claude exposes managed agents through separate runtime surfaces; this guard is for Codex SubagentStart payloads."
+      },
+      "codex": {
+        "supported": true,
+        "event": "SubagentStart",
+        "launcher": "python3",
+        "command_rel": "hooks/managed/codex_subagent_dispatch_guard.py",
+        "timeout_sec": 10
+      }
+    },
+    {
       "id": "codex-stop-dispatch",
       "intent": "dispatch-skill-completion-gate",
       "claude": {

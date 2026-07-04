@@ -42,6 +42,13 @@ cat > "$TMP_DIR/ready.json" <<'JSON'
           "trustStatus": "managed"
         },
         {
+          "eventName": "subagentStart",
+          "matcher": null,
+          "command": "python3 /tmp/codex/hooks/managed/codex_subagent_dispatch_guard.py",
+          "enabled": true,
+          "trustStatus": "trusted"
+        },
+        {
           "eventName": "stop",
           "matcher": null,
           "command": "python3 /tmp/disabled.py",
@@ -60,9 +67,10 @@ run_audit "$TMP_DIR/ready.json" \
   --require-ready \
   --require-all-enabled \
   --expected-command "bash /tmp/codex/hooks/managed/block_dangerous.sh" \
+  --expected-command "python3 /tmp/codex/hooks/managed/codex_subagent_dispatch_guard.py" \
   --expected-command "python3 /tmp/codex/hooks/managed/codex_stop_dispatch.py" \
   || fail "ready trusted/managed hooks should pass"
-grep -Fq 'ready=2 not_ready=0 extra_not_ready=0' "$TMP_DIR/audit.out" || fail "ready audit should report all audited hooks ready"
+grep -Fq 'ready=3 not_ready=0 extra_not_ready=0' "$TMP_DIR/audit.out" || fail "ready audit should report all audited hooks ready"
 
 cat > "$TMP_DIR/untrusted.json" <<'JSON'
 {
@@ -169,6 +177,7 @@ hooks = [
     hook("preToolUse", "pre_tool_use:0:0", f"bash {codex_home}/hooks/managed/block_dangerous.sh"),
     hook("postToolUse", "post_tool_use:0:0", f"{python_launcher} {codex_home}/hooks/managed/context_contract_validator.py"),
     hook("userPromptSubmit", "user_prompt_submit:0:0", f"{python_launcher} {codex_home}/hooks/managed/codex_user_prompt_submit.py"),
+    hook("subagentStart", "subagent_start:0:0", f"{python_launcher} {codex_home}/hooks/managed/codex_subagent_dispatch_guard.py"),
     hook("stop", "stop:0:0", f"{python_launcher} {codex_home}/hooks/managed/codex_stop_dispatch.py", "managed"),
 ]
 if os.environ.get("ORG_CODEX_CONTEXT_CONTINUITY_ENABLED") == "1":
@@ -195,9 +204,9 @@ chmod +x "$TMP_DIR/bin/codex"
 
 PATH="$TMP_DIR/bin:$PATH" CODEX_HOME="/tmp/probe-codex" bash "$ROOT/tools/dev/probe-codex-hooks.sh" /repo >"$TMP_DIR/probe.out" 2>"$TMP_DIR/probe.err" \
   || fail "probe should accept the installer python launcher"
-grep -Fq 'ready=4 not_ready=0 extra_not_ready=0' "$TMP_DIR/probe.out" || fail "probe should audit all managed Codex hooks as ready"
+grep -Fq 'ready=5 not_ready=0 extra_not_ready=0' "$TMP_DIR/probe.out" || fail "probe should audit all managed Codex hooks as ready"
 PATH="$TMP_DIR/bin:$PATH" CODEX_HOME="/tmp/probe-codex" ORG_CODEX_CONTEXT_CONTINUITY_ENABLED=1 bash "$ROOT/tools/dev/probe-codex-hooks.sh" /repo >"$TMP_DIR/probe-context.out" 2>"$TMP_DIR/probe-context.err" \
   || fail "probe should include opt-in context continuity hooks when enabled"
-grep -Fq 'ready=9 not_ready=0 extra_not_ready=0' "$TMP_DIR/probe-context.out" || fail "probe should audit opt-in context continuity hooks as ready"
+grep -Fq 'ready=10 not_ready=0 extra_not_ready=0' "$TMP_DIR/probe-context.out" || fail "probe should audit opt-in context continuity hooks as ready"
 
 echo "[PASS] codex hook trust audit"

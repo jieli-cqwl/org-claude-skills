@@ -237,6 +237,7 @@ install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"SubagentStop"'
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/block_dangerous.sh" "managed dangerous hook should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/context_contract_validator.py" "managed context validator hook should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_user_prompt_submit.py" "managed active-skill tracker should be installed"
+install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_subagent_dispatch_guard.py" "managed subagent dispatch guard should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_stop_dispatch.py" "managed stop dispatcher should be installed"
 install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "context continuity hook should not install by default"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PostToolUse"' "supported Codex PostToolUse should be present"
@@ -401,6 +402,7 @@ hooks = [
     hook("preToolUse", "pre_tool_use:0:0", f"bash {home}/.codex/hooks/managed/block_dangerous.sh"),
     hook("postToolUse", "post_tool_use:0:0", f"{python} {home}/.codex/hooks/managed/context_contract_validator.py"),
     hook("userPromptSubmit", "user_prompt_submit:0:0", f"{python} {home}/.codex/hooks/managed/codex_user_prompt_submit.py"),
+    hook("subagentStart", "subagent_start:0:0", f"{python} {home}/.codex/hooks/managed/codex_subagent_dispatch_guard.py"),
     hook("stop", "stop:0:0", f"{python} {home}/.codex/hooks/managed/codex_stop_dispatch.py"),
 ]
 
@@ -464,6 +466,7 @@ hooks = [
     hook("preToolUse", "pre_tool_use:0:0", f"bash {home}/.codex/hooks/managed/block_dangerous.sh", "trusted"),
     hook("postToolUse", "post_tool_use:0:0", f"{python} {home}/.codex/hooks/managed/context_contract_validator.py", "trusted"),
     hook("userPromptSubmit", "user_prompt_submit:0:0", f"{python} {home}/.codex/hooks/managed/codex_user_prompt_submit.py", "trusted"),
+    hook("subagentStart", "subagent_start:0:0", f"{python} {home}/.codex/hooks/managed/codex_subagent_dispatch_guard.py", "trusted"),
     hook("stop", "stop:0:0", f"{python} {home}/.codex/hooks/managed/codex_stop_dispatch.py", "trusted"),
     hook("stop", "stop:1:0", f"{home}/bin/external-notify.sh", "modified"),
 ]

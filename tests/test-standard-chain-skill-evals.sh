@@ -319,7 +319,7 @@ field_expectations = {
         "root cause",
         "minimal fix",
         "fix-result.json",
-        "重跑受影响 verifier agent、fresh code-reviewer agent 和 qa agent",
+        "重跑受影响 verifier agent、fresh review skill 和 qa agent",
         "current_gap",
         "progress_signal",
         "consecutive_no_progress_count",

@@ -17,12 +17,12 @@ REQUIRED_FIELDS = (
 )
 
 ALLOWED_ROLES = {
-    "code-reviewer",
     "consistency-auditor",
     "developer",
     "verifier",
     "qa",
     "fixer",
+    "review",
 }
 
 AMBIGUOUS_VALUES = {
@@ -54,7 +54,7 @@ ROLE_EVIDENCE_CATEGORIES = {
         "refactor_evidence": (r"\brefactor\b", "重构", "no-op"),
         "developer_report": ("developer-report.json", "developer report"),
     },
-    "code-reviewer": {
+    "review": {
         "strengths": ("strengths", "优点"),
         "issues": ("issues", "问题"),
         "assessment": ("assessment", "ready to merge", "评估"),
@@ -100,7 +100,7 @@ ROLE_INPUT_CATEGORIES = {
             "任务",
         ),
     },
-    "code-reviewer": {
+    "review": {
         "implementation_evidence": (
             "developer-report.json",
             "developer-report",

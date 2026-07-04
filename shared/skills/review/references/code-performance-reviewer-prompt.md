@@ -1,7 +1,7 @@
 # 代码性能与可观测性审查 Prompt（审查-C）
 
-> 引用者：review SKILL.md（code-reviewer 分组审查步骤）
-> 使用方式：由当前 code-reviewer 读取本 prompt，产出审查-C中间包；禁止嵌套调用子代理
+> 引用者：review SKILL.md（分组审查步骤）
+> 使用方式：由当前 review skill 读取本 prompt，产出审查-C中间包；禁止嵌套调用子代理
 
 ## Prompt
 

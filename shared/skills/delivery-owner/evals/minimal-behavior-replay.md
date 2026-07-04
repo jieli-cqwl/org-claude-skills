@@ -78,7 +78,7 @@ progress_signal: gap_judgment_changed
 consecutive_no_progress_count: 0
 evidence_refs: ["verify-result.json#PASS", "qa-result.json#checkout-fail"]
 stale_evidence_refs: ["verify-result.json#PASS"]
-next_action: dispatch fixer packet; after fix, rerun affected verifier agent, fresh code-reviewer agent, and qa agent
+next_action: dispatch fixer packet; after fix, rerun affected verifier agent, fresh review skill, and qa agent
 resume_condition: fix-result.json includes root cause, minimal fix, and freshness judgement
 ```
 
@@ -109,14 +109,14 @@ forbidden_actions: no files in forbidden_scope; no baseline/AC change; no commit
 ```
 
 ```text
-code-reviewer packet
+review packet
 task_ref: T1
-role: code-reviewer
+role: review
 goal: review code changed by fix-result.json after fresh verifier PASS
 forbidden_scope: ["src/", "tests/", "tasks.json", "test-cases.json"]
 input_refs: ["fix-result.json", "fresh verify-result.json", "stale code-review-result.json#pre-fix"]
 expected_evidence: ["Strengths", "Issues", "Assessment", "fresh code-review-result.json"]
-stop_condition: code-reviewer PASS or exact review blocker reported
+stop_condition: review PASS or exact review blocker reported
 forbidden_actions: no files in forbidden_scope; no baseline/AC change; no commit/release; no QA or delivery conclusion
 ```
 

@@ -28,15 +28,11 @@ assert_absent() {
 }
 
 assert_managed_runtime_agents_contract() {
-  PYTHONPATH="$ROOT/tools/community" python3 - <<'PY'
+PYTHONPATH="$ROOT/tools/community" python3 - <<'PY'
 from codex_runtime_agents import MANAGED_AGENT_ROLES
 
 roles = {role: {"description": description, "config_file": config_file} for role, description, config_file in MANAGED_AGENT_ROLES}
 expected = {
-    "code-reviewer": {
-        "description_terms": ["代码审查", "strengths/issues/assessment"],
-        "config_file": "./agents/code-reviewer.toml",
-    },
     "consistency-auditor": {
         "description_terms": ["一致性", "advisory"],
         "config_file": "./agents/consistency-auditor.toml",
@@ -52,6 +48,9 @@ for role, contract in expected.items():
         missing.append(f"{role}: config_file")
     if not all(term in actual["description"] for term in contract["description_terms"]):
         missing.append(f"{role}: description")
+for role, actual in roles.items():
+    if "delivery-owner" not in actual["description"] or "Task Packet" not in actual["description"]:
+        missing.append(f"{role}: missing delivery-owner dispatch boundary")
 if missing:
     raise SystemExit("; ".join(missing))
 PY
@@ -65,9 +64,9 @@ from pathlib import Path
 skill = Path(sys.argv[1]).read_text(encoding="utf-8")
 packet = Path(sys.argv[2]).read_text(encoding="utf-8")
 contracts = {
-    "skill_code_reviewer": (skill, ["code-reviewer agent"]),
+    "skill_review": (skill, ["review skill"]),
     "skill_consistency_auditor": (skill, ["consistency-auditor agent", "consistency-audit"]),
-    "packet_code_reviewer": (packet, ["code-reviewer agent", "review"]),
+    "packet_review": (packet, ["review skill", "review"]),
     "packet_consistency_baseline": (packet, ["consistency-auditor agent", "baseline"]),
     "packet_consistency_commit": (packet, ["consistency-auditor agent", "提交"]),
 }
@@ -78,7 +77,6 @@ PY
 }
 
 expected_agents=(
-  code-reviewer
   consistency-auditor
   developer
   fixer
@@ -120,7 +118,6 @@ done
 
 expected_skill_for() {
   case "$1" in
-    code-reviewer) printf '%s\n' "review" ;;
     consistency-auditor) printf '%s\n' "consistency-audit" ;;
     developer) printf '%s\n' "developer" ;;
     fixer) printf '%s\n' "fix" ;;
@@ -141,6 +138,9 @@ import tomllib
 from pathlib import Path
 
 payload = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+description = payload.get("description", "")
+if "delivery-owner" not in description or "Task Packet" not in description:
+    raise SystemExit("Codex agent description must declare delivery-owner Task Packet dispatch boundary")
 instructions = payload.get("developer_instructions", "")
 lines = [line for line in instructions.splitlines() if line.strip()]
 if len(lines) != 1:
@@ -159,7 +159,7 @@ for forbidden in (
 PY
 done
 
-for removed in generic-code-reviewer designer tech-lead test-designer; do
+for removed in code-reviewer codex-doc-reviewer generic-code-reviewer designer tech-lead test-designer; do
   [ ! -e "$ROOT/shared/agents/codex/$removed.toml" ] || fail "retired codex agent remains: $removed"
   [ ! -e "$ROOT/shared/agents/claude/$removed.md" ] || fail "retired claude agent remains: $removed"
 done
@@ -171,14 +171,12 @@ assert_present '^name = "consistency-auditor"$' "$ROOT/shared/agents/codex/consi
 assert_present 'advisory_only|advisory' "$ROOT/shared/agents/codex/consistency-auditor.toml"
 
 assert_managed_runtime_agents_contract
-assert_present '"code-reviewer"' "$ROOT/tools/community/codex_runtime_agents.py"
-assert_present '"\./agents/code-reviewer.toml"' "$ROOT/tools/community/codex_runtime_agents.py"
 assert_present '"consistency-auditor"' "$ROOT/tools/community/codex_runtime_agents.py"
 assert_present '"\./agents/consistency-auditor.toml"' "$ROOT/tools/community/codex_runtime_agents.py"
 PYTHONPATH="$ROOT/tools/community" python3 - <<'PY'
 from codex_runtime_agents import MANAGED_AGENT_ROLE_NAMES, RETIRED_AGENT_ROLE_NAMES
 
-retired = {"generic-code-reviewer", "designer", "tech-lead", "test-designer"}
+retired = {"code-reviewer", "codex-doc-reviewer", "generic-code-reviewer", "designer", "tech-lead", "test-designer"}
 assert retired <= RETIRED_AGENT_ROLE_NAMES
 assert not (retired & MANAGED_AGENT_ROLE_NAMES)
 PY
@@ -214,6 +212,10 @@ model_reasoning_effort = "high"
 description = "retired generic"
 config_file = "./agents/generic-code-reviewer.toml"
 
+[agents.codex-doc-reviewer]
+description = "retired doc reviewer"
+config_file = "./agents/codex-doc-reviewer.toml"
+
 [agents.designer]
 description = "retired designer"
 config_file = "./agents/designer.toml"
@@ -233,11 +235,15 @@ text = config_path.read_text(encoding="utf-8")
 assert 'model = "gpt-5.5"' in text
 assert 'model_reasoning_effort = "xhigh"' in text
 for forbidden in (
+    "[agents.code-reviewer]",
     "[agents.generic-code-reviewer]",
+    "[agents.codex-doc-reviewer]",
     "[agents.designer]",
     "[agents.tech-lead]",
     "[agents.test-designer]",
+    "./agents/code-reviewer.toml",
     "./agents/generic-code-reviewer.toml",
+    "./agents/codex-doc-reviewer.toml",
     "./agents/designer.toml",
     'model = "gpt-5.4"',
     'model = "gpt-5.4-mini"',
@@ -246,8 +252,6 @@ for forbidden in (
     assert forbidden not in text, forbidden
 
 for expected in (
-    "[agents.code-reviewer]",
-    'config_file = "./agents/code-reviewer.toml"',
     "[agents.consistency-auditor]",
     'config_file = "./agents/consistency-auditor.toml"',
     "[agents.developer]",

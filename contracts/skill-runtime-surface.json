@@ -328,14 +328,7 @@
     "review": {
       "mode": "manual",
       "owner": "first-party",
-      "execution_kind": "agent_backed",
-      "agent_type": "code-reviewer",
-      "allow_nested_agents": false,
-      "dispatchers": [
-        "delivery-owner",
-        "requesting-code-review"
-      ],
-      "reason": "Deep code review runs through the managed code-reviewer agent when dispatched by delivery or review workflows."
+      "reason": "Structured standard-chain review is a manual first-party skill; ordinary Codex code review should use the official /review or codex review entrypoint."
     },
     "rules-manager": {
       "mode": "manual",
