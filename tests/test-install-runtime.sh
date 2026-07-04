@@ -285,7 +285,8 @@ install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.code
 install_test_assert_file_exists "$home_dir/.org-skills-state/codex/context-continuity-enabled" "context continuity opt-in should persist after enabled install"
 install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-codex-context-continuity-reinstall)" --target codex --force --check quick
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "persisted context continuity opt-in should survive reinstall without env"
-install_test_assert_file_contains "$(install_test_log_path runtime-codex-context-continuity-reinstall)" "context continuity probe passed" "persisted context continuity opt-in should run recovery probe"
+install_test_assert_file_contains "$(install_test_log_path runtime-codex-context-continuity-reinstall)" "context continuity ready probe passed" "persisted context continuity opt-in should prove ready recovery"
+install_test_assert_file_contains "$(install_test_log_path runtime-codex-context-continuity-reinstall)" "context continuity incomplete probe passed" "persisted context continuity opt-in should prove degraded recovery"
 for event in UserPromptSubmit Stop PreCompact PostCompact; do
   jq -e --arg event "$event" --arg script "$home_dir/.codex/hooks/managed/codex_context_continuity.py" '
     any(.hooks[$event][]?;
@@ -308,6 +309,28 @@ context_payload="$(jq -nc \
   '{session_id: $sid, hook_event_name: "UserPromptSubmit", prompt: $prompt, cwd: $cwd}')"
 printf '%s' "$context_payload" | HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py" >/dev/null \
   || install_test_fail "context continuity should record latest user correction"
+context_state_update="$(jq -nc \
+  --arg sid "codex-context-runtime" \
+  --arg prompt "$context_prompt" \
+  '{
+    session_id: $sid,
+    hook_event_name: "StateUpdate",
+    source: "install-runtime-test",
+    state: {
+      active_goal: "prove installed context continuity recovery",
+      scope_boundary: "installed Codex runtime hook state only",
+      latest_user_correction: $prompt,
+      current_phase: "runtime verification",
+      current_plan: ["record state", "seal compact", "recover"],
+      completed_items: ["prompt metadata recorded"],
+      evidence_refs: ["tests/test-install-runtime.sh"],
+      pending_items: ["session recovery"],
+      blockers: [],
+      next_action: "continue from structured recovery state"
+    }
+  }')"
+printf '%s' "$context_state_update" | HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py" >/dev/null \
+  || install_test_fail "context continuity should record runtime recovery state"
 context_precompact="$(jq -nc \
   --arg sid "codex-context-runtime" \
   --arg cwd "$home_dir/project" \
@@ -330,6 +353,7 @@ install_test_assert_file_not_contains "$context_state" "$context_summary" "conte
 jq -e --arg summary "$context_summary" --arg prompt "$context_prompt" '
   .last_user_prompt_preview == $prompt
   and (.last_user_prompt_hash | type == "string" and length == 64)
+  and .recovery_evaluation.status == "READY"
   and .postcompact.summary_length == ($summary | length)
   and (.postcompact.summary_sha256 | type == "string" and length == 64)
   and (.postcompact | has("compact_summary") | not)
@@ -345,6 +369,8 @@ printf '%s' "$context_recovery_output" | jq -e '
   and (.hookSpecificOutput.additionalContext | contains("task_state_ref:"))
   and (.hookSpecificOutput.additionalContext | contains("precompact_checkpoint_ref:"))
   and (.hookSpecificOutput.additionalContext | contains("compact_summary_ref:"))
+  and (.hookSpecificOutput.additionalContext | contains("recovery_status: READY"))
+  and (.hookSpecificOutput.additionalContext | contains("allowed_next_step: CONTINUE_FROM_STATE"))
   and (.hookSpecificOutput.additionalContext | contains("不要猜测"))
 ' >/dev/null 2>&1 || install_test_fail "context continuity should inject recovery context only from SessionStart compact"
 printf '%s' "$context_recovery_output" | grep -Fq "$context_summary" && install_test_fail "context continuity must not inject compact summary from SessionStart"

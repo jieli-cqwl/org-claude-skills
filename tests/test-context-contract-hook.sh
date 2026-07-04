@@ -131,6 +131,53 @@ jq -e --arg correction "$latest_correction" '
   and (.recovery_contract.required_questions | index("下一步是什么？") != null)
 ' "$context_card" >/dev/null 2>&1 || fail "context continuity should persist a structured recovery contract without fake progress"
 
+incomplete_prompt_payload="$(jq -nc \
+  --arg sid "incomplete-session" \
+  --arg prompt "继续前先恢复上下文" \
+  --arg cwd "$TMP_DIR/project" \
+  '{session_id: $sid, hook_event_name: "UserPromptSubmit", prompt: $prompt, cwd: $cwd}')"
+printf '%s' "$incomplete_prompt_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" python3 "$CONTEXT_CONTINUITY" >/dev/null \
+  || fail "incomplete session should record prompt metadata"
+incomplete_stop_payload="$(jq -nc \
+  --arg sid "incomplete-session" \
+  --arg cwd "$TMP_DIR/project" \
+  --arg transcript "$TMP_DIR/incomplete-transcript.jsonl" \
+  '{session_id: $sid, hook_event_name: "Stop", cwd: $cwd, transcript_path: $transcript}')"
+printf '%s' "$incomplete_stop_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" python3 "$CONTEXT_CONTINUITY" >/dev/null \
+  || fail "incomplete session should record transcript fallback"
+incomplete_precompact_payload="$(jq -nc \
+  --arg sid "incomplete-session" \
+  --arg cwd "$TMP_DIR/project" \
+  '{session_id: $sid, hook_event_name: "PreCompact", trigger: "auto", cwd: $cwd}')"
+printf '%s' "$incomplete_precompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" python3 "$CONTEXT_CONTINUITY" >/dev/null \
+  || fail "incomplete session should seal precompact checkpoint"
+incomplete_postcompact_payload="$(jq -nc \
+  --arg sid "incomplete-session" \
+  --arg cwd "$TMP_DIR/project" \
+  '{session_id: $sid, hook_event_name: "PostCompact", trigger: "auto", cwd: $cwd}')"
+printf '%s' "$incomplete_postcompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" python3 "$CONTEXT_CONTINUITY" >/dev/null \
+  || fail "incomplete session should record postcompact metadata"
+incomplete_sessionstart_payload="$(jq -nc \
+  --arg sid "incomplete-session" \
+  --arg cwd "$TMP_DIR/project" \
+  '{session_id: $sid, hook_event_name: "SessionStart", source: "compact", cwd: $cwd}')"
+incomplete_sessionstart_output="$(printf '%s' "$incomplete_sessionstart_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" python3 "$CONTEXT_CONTINUITY")" \
+  || fail "incomplete session should emit recoverable blocked context"
+printf '%s' "$incomplete_sessionstart_output" | jq -e '
+  .hookSpecificOutput.hookEventName == "SessionStart"
+  and (.hookSpecificOutput.additionalContext | contains("recovery_status: INCOMPLETE"))
+  and (.hookSpecificOutput.additionalContext | contains("recovery_action_required: true"))
+  and (.hookSpecificOutput.additionalContext | contains("allowed_next_step: READ_ONLY_RECOVERY"))
+  and (.hookSpecificOutput.additionalContext | contains("transcript_path:"))
+  and (.hookSpecificOutput.additionalContext | contains("active_goal"))
+' >/dev/null 2>&1 || fail "incomplete recovery should force read-only reconstruction instead of normal continuation"
+incomplete_card="$CONTEXT_STATE/incomplete-session.json"
+jq -e '
+  .last_recovery_injection.recovery_status == "INCOMPLETE"
+  and .last_recovery_injection.recovery_action_required == true
+  and (.last_recovery_injection.required_recovery_actions | index("READ_TRANSCRIPT") != null)
+' "$incomplete_card" >/dev/null 2>&1 || fail "incomplete recovery injection should persist structured degraded status"
+
 missing_session_payload='{"hook_event_name":"UserPromptSubmit","prompt":"no session"}'
 if printf '%s' "$missing_session_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" python3 "$CONTEXT_CONTINUITY" >/dev/null 2>"$TMP_DIR/context-missing-session.err"; then
   fail "missing session id should fail visibly"
@@ -309,6 +356,9 @@ printf '%s' "$sessionstart_output" | jq -e '
   and (.hookSpecificOutput.additionalContext | contains("precompact_checkpoint_ref:"))
   and (.hookSpecificOutput.additionalContext | contains("compact_summary_ref:"))
   and (.hookSpecificOutput.additionalContext | contains("recovery_missing_fields: none"))
+  and (.hookSpecificOutput.additionalContext | contains("recovery_status: READY"))
+  and (.hookSpecificOutput.additionalContext | contains("recovery_action_required: false"))
+  and (.hookSpecificOutput.additionalContext | contains("allowed_next_step: CONTINUE_FROM_STATE"))
   and (.hookSpecificOutput.additionalContext | contains("active_goal: 确保 Codex 压缩上下文后仍能恢复目标、计划、证据和下一步"))
   and (.hookSpecificOutput.additionalContext | contains("current_phase: 实现前验证"))
   and (.hookSpecificOutput.additionalContext | contains("next_action: 补实现并跑 focused tests"))
@@ -319,11 +369,29 @@ assert_absent "$compact_summary" "$TMP_DIR/context-sessionstart.out"
 jq -e --arg state "$context_card" --arg checkpoint "$precompact_card" --arg compact "$compact_ref" '
   .last_recovery_injection.hook_event_name == "SessionStart"
   and .last_recovery_injection.source == "compact"
+  and .last_recovery_injection.recovery_status == "READY"
+  and .last_recovery_injection.recovery_action_required == false
   and .last_recovery_injection.task_state_ref == $state
   and .last_recovery_injection.precompact_checkpoint_ref == $checkpoint
   and .last_recovery_injection.compact_summary_ref == $compact
   and (.last_recovery_injection.additional_context_sha256 | type == "string" and length == 64)
 ' "$context_card" >/dev/null 2>&1 || fail "SessionStart compact hook should persist recovery injection evidence"
+
+stale_prompt_payload="$(jq -nc \
+  --arg sid "continuity-session" \
+  --arg prompt "前面目标变了，先别继续" \
+  --arg cwd "$TMP_DIR/project" \
+  '{session_id: $sid, hook_event_name: "UserPromptSubmit", prompt: $prompt, cwd: $cwd}')"
+printf '%s' "$stale_prompt_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" python3 "$CONTEXT_CONTINUITY" >/dev/null \
+  || fail "new prompt after state update should be recorded"
+stale_sessionstart_output="$(printf '%s' "$sessionstart_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" python3 "$CONTEXT_CONTINUITY")" \
+  || fail "stale state should still emit recovery context"
+printf '%s' "$stale_sessionstart_output" | jq -e '
+  .hookSpecificOutput.hookEventName == "SessionStart"
+  and (.hookSpecificOutput.additionalContext | contains("recovery_status: STALE"))
+  and (.hookSpecificOutput.additionalContext | contains("recovery_action_required: true"))
+  and (.hookSpecificOutput.additionalContext | contains("allowed_next_step: REFRESH_STATE_UPDATE"))
+' >/dev/null 2>&1 || fail "stale recovery should force a fresh StateUpdate before continuation"
 sessionstart_no_source_payload="$(jq -nc \
   --arg sid "continuity-session" \
   --arg cwd "$TMP_DIR/project" \

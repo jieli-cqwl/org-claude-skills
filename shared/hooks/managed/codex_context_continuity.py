@@ -65,6 +65,14 @@ RECOVERY_REQUIRED_FIELDS = [
     "pending_items",
     "next_action",
 ]
+RECOVERY_STATUS_READY = "READY"
+RECOVERY_STATUS_INCOMPLETE = "INCOMPLETE"
+RECOVERY_STATUS_STALE = "STALE"
+RECOVERY_STATUS_UNRECOVERABLE = "UNRECOVERABLE"
+RECOVERY_ALLOWED_CONTINUE = "CONTINUE_FROM_STATE"
+RECOVERY_ALLOWED_READ_ONLY = "READ_ONLY_RECOVERY"
+RECOVERY_ALLOWED_REFRESH = "REFRESH_STATE_UPDATE"
+RECOVERY_ALLOWED_USER_INPUT = "ASK_USER_FOR_SCOPE"
 RECOVERY_STATE_FIELDS = [
     "active_goal",
     "scope_boundary",
@@ -226,17 +234,23 @@ def load_state(path: Path, session_id: str) -> dict[str, Any]:
     for key, value in RECOVERY_DEFAULTS.items():
         if key not in state:
             state[key] = list(value) if isinstance(value, list) else value
-    refresh_recovery_contract(state)
+    refresh_recovery_contracts(state)
     return state
 
 
-def refresh_recovery_contract(state: dict[str, Any]) -> None:
+def refresh_recovery_contracts(state: dict[str, Any]) -> None:
     state["recovery_contract"] = {
         "mode": "codex_context_window_continuity",
         "truth_policy": state["truth_policy"],
         "required_questions": REQUIRED_QUESTIONS,
         "required_state_fields": RECOVERY_REQUIRED_FIELDS,
     }
+    state["recovery_evaluation"] = recovery_evaluation(state)
+
+
+def write_state(path: Path, state: dict[str, Any]) -> None:
+    refresh_recovery_contracts(state)
+    write_json(path, state)
 
 
 def state_path_for(root: Path, session_id: str) -> Path:
@@ -327,10 +341,12 @@ def record_state_update(state: dict[str, Any], payload: dict[str, Any], source: 
             "recorded_at": utc_now(),
             "source": source or "unknown",
             "updated_fields": sorted(normalized.keys()),
+            "last_user_prompt_hash": state.get("last_user_prompt_hash") or "",
         }
     )
     state["state_updates"] = updates[-MAX_STATE_UPDATES:]
-    refresh_recovery_contract(state)
+    state["last_state_update"] = state["state_updates"][-1]
+    refresh_recovery_contracts(state)
 
 
 def record_precompact(root: Path, state_path: Path, state: dict[str, Any], payload: dict[str, Any]) -> None:
@@ -341,9 +357,10 @@ def record_precompact(root: Path, state_path: Path, state: dict[str, Any], paylo
         "checkpoint_ref": str(checkpoint_path),
         "sealed_at": utc_now(),
         "recovery_missing_fields": recovery_missing_fields(state),
+        "recovery_status": recovery_evaluation(state)["status"],
     }
     state["updated_at"] = utc_now()
-    write_json(state_path, state)
+    write_state(state_path, state)
 
     checkpoint = dict(state)
     checkpoint["checkpoint_event"] = "PreCompact"
@@ -377,7 +394,7 @@ def record_postcompact(root: Path, state_path: Path, state: dict[str, Any], payl
         "compact_summary_ref": str(metadata_path),
     }
     state["updated_at"] = recorded_at
-    write_json(state_path, state)
+    write_state(state_path, state)
     write_json(metadata_path, metadata)
     return metadata
 
@@ -389,6 +406,111 @@ def recovery_missing_fields(state: dict[str, Any]) -> list[str]:
         if value in ("", None, []):
             missing.append(field)
     return missing
+
+
+def latest_state_update(state: dict[str, Any]) -> dict[str, Any]:
+    update = state.get("last_state_update")
+    if isinstance(update, dict):
+        return update
+    updates = state.get("state_updates")
+    if isinstance(updates, list) and updates and isinstance(updates[-1], dict):
+        return updates[-1]
+    return {}
+
+
+def state_is_stale(state: dict[str, Any]) -> str:
+    prompt_hash = state.get("last_user_prompt_hash")
+    update_prompt_hash = latest_state_update(state).get("last_user_prompt_hash")
+    if isinstance(prompt_hash, str) and prompt_hash:
+        if not isinstance(update_prompt_hash, str) or not update_prompt_hash:
+            return "state update is not bound to the latest prompt"
+        if update_prompt_hash != prompt_hash:
+            return "latest prompt hash differs from the last StateUpdate prompt hash"
+
+    prompt_recorded_at = state.get("last_user_prompt_recorded_at")
+    if not isinstance(prompt_recorded_at, str) or not prompt_recorded_at:
+        return ""
+
+    update_recorded_at = latest_state_update(state).get("recorded_at")
+    if not isinstance(update_recorded_at, str) or not update_recorded_at:
+        return "state has no StateUpdate after the latest prompt"
+    if update_recorded_at < prompt_recorded_at:
+        return "latest prompt is newer than the last StateUpdate"
+    return ""
+
+
+def recovery_evidence_actions(state: dict[str, Any]) -> list[str]:
+    actions = ["READ_TASK_STATE"]
+    precompact_ref = state.get("precompact", {}).get("checkpoint_ref")
+    if isinstance(precompact_ref, str) and precompact_ref:
+        actions.append("READ_PRECOMPACT_CHECKPOINT")
+
+    transcript_path = state.get("last_stop", {}).get("transcript_path")
+    if isinstance(transcript_path, str) and transcript_path:
+        actions.append("READ_TRANSCRIPT")
+
+    evidence_refs = state.get("evidence_refs")
+    if isinstance(evidence_refs, list) and evidence_refs:
+        actions.append("READ_EVIDENCE_REFS")
+
+    prompt_preview = state.get("last_user_prompt_preview")
+    if isinstance(prompt_preview, str) and prompt_preview:
+        actions.append("READ_LAST_USER_PROMPT")
+
+    return actions
+
+
+def recovery_evaluation(state: dict[str, Any]) -> dict[str, Any]:
+    missing_fields = recovery_missing_fields(state)
+    stale_reason = "" if missing_fields else state_is_stale(state)
+
+    if not missing_fields and not stale_reason:
+        return {
+            "status": RECOVERY_STATUS_READY,
+            "action_required": False,
+            "allowed_next_step": RECOVERY_ALLOWED_CONTINUE,
+            "missing_fields": [],
+            "stale_reason": "",
+            "required_recovery_actions": [],
+        }
+
+    if stale_reason:
+        return {
+            "status": RECOVERY_STATUS_STALE,
+            "action_required": True,
+            "allowed_next_step": RECOVERY_ALLOWED_REFRESH,
+            "missing_fields": [],
+            "stale_reason": stale_reason,
+            "required_recovery_actions": [
+                "READ_TASK_STATE",
+                "READ_LAST_USER_PROMPT",
+                "REFRESH_STATE_UPDATE",
+            ],
+        }
+
+    required_actions = recovery_evidence_actions(state)
+    has_external_recovery_evidence = any(
+        action in required_actions
+        for action in ("READ_PRECOMPACT_CHECKPOINT", "READ_TRANSCRIPT", "READ_EVIDENCE_REFS", "READ_LAST_USER_PROMPT")
+    )
+    if has_external_recovery_evidence:
+        return {
+            "status": RECOVERY_STATUS_INCOMPLETE,
+            "action_required": True,
+            "allowed_next_step": RECOVERY_ALLOWED_READ_ONLY,
+            "missing_fields": missing_fields,
+            "stale_reason": "",
+            "required_recovery_actions": required_actions,
+        }
+
+    return {
+        "status": RECOVERY_STATUS_UNRECOVERABLE,
+        "action_required": True,
+        "allowed_next_step": RECOVERY_ALLOWED_USER_INPUT,
+        "missing_fields": missing_fields,
+        "stale_reason": "",
+        "required_recovery_actions": ["ASK_USER_FOR_SCOPE"],
+    }
 
 
 def inline_scalar(state: dict[str, Any], field: str) -> str:
@@ -412,17 +534,30 @@ def inline_list(state: dict[str, Any], field: str) -> str:
 
 
 def additional_context(state_path: Path, state: dict[str, Any]) -> str:
+    refresh_recovery_contracts(state)
+    evaluation = state["recovery_evaluation"]
     precompact_ref = state.get("precompact", {}).get("checkpoint_ref") or "missing"
     compact_ref = state.get("postcompact", {}).get("compact_summary_ref") or "missing"
     missing_fields = recovery_missing_fields(state)
     missing_text = ", ".join(missing_fields) if missing_fields else "none"
+    actions = evaluation.get("required_recovery_actions") or []
+    actions_text = ", ".join(str(action) for action in actions) if actions else "none"
+    stale_reason = str(evaluation.get("stale_reason") or "none")
+    transcript_path = state.get("last_stop", {}).get("transcript_path") or "missing"
+    action_required = "true" if evaluation.get("action_required") else "false"
     return "\n".join(
         [
             "[Codex context continuity recovery]",
             f"task_state_ref: {state_path}",
             f"precompact_checkpoint_ref: {precompact_ref}",
             f"compact_summary_ref: {compact_ref}",
+            f"transcript_path: {transcript_path}",
+            f"recovery_status: {evaluation['status']}",
+            f"recovery_action_required: {action_required}",
+            f"allowed_next_step: {evaluation['allowed_next_step']}",
             f"recovery_missing_fields: {missing_text}",
+            f"required_recovery_actions: {actions_text}",
+            f"stale_reason: {stale_reason}",
             "恢复状态摘要:",
             f"active_goal: {inline_scalar(state, 'active_goal')}",
             f"scope_boundary: {inline_scalar(state, 'scope_boundary')}",
@@ -437,14 +572,16 @@ def additional_context(state_path: Path, state: dict[str, Any]) -> str:
             f"last_user_prompt_preview: {inline_scalar(state, 'last_user_prompt_preview')}",
             "恢复步骤:",
             "1. 先读取 task_state_ref 的 active_goal、scope_boundary、latest_user_correction、current_phase、completed_items、evidence_refs、pending_items、blockers、next_action。",
-            "2. 若任何关键字段为空且 transcript/evidence 不足以恢复，报告 blocked，不继续执行。",
-            "3. compact_summary_ref 只保存压缩事件元数据；不要猜测，不要把 compact summary 当真源。证据不足就回查源码、测试或 transcript 引用。",
+            "2. recovery_status 不是 READY 时，只能按 allowed_next_step 做恢复动作，不得继续执行原任务。",
+            "3. 若任何关键字段为空且 transcript/evidence 不足以恢复，报告 blocked，不继续执行。",
+            "4. compact_summary_ref 只保存压缩事件元数据；不要猜测，不要把 compact summary 当真源。证据不足就回查源码、测试或 transcript 引用。",
         ]
     )
 
 
 def emit_sessionstart_compact(state_path: Path, state: dict[str, Any]) -> None:
     context = additional_context(state_path, state)
+    evaluation = state["recovery_evaluation"]
     injected_at = utc_now()
     state["last_recovery_injection"] = {
         "hook_event_name": "SessionStart",
@@ -453,11 +590,17 @@ def emit_sessionstart_compact(state_path: Path, state: dict[str, Any]) -> None:
         "task_state_ref": str(state_path),
         "precompact_checkpoint_ref": state.get("precompact", {}).get("checkpoint_ref") or "missing",
         "compact_summary_ref": state.get("postcompact", {}).get("compact_summary_ref") or "missing",
+        "recovery_status": evaluation["status"],
+        "recovery_action_required": evaluation["action_required"],
+        "allowed_next_step": evaluation["allowed_next_step"],
+        "missing_fields": evaluation["missing_fields"],
+        "stale_reason": evaluation["stale_reason"],
+        "required_recovery_actions": evaluation["required_recovery_actions"],
         "additional_context_length": len(context),
         "additional_context_sha256": sha256_text(context),
     }
     state["updated_at"] = injected_at
-    write_json(state_path, state)
+    write_state(state_path, state)
     payload = {
         "hookSpecificOutput": {
             "hookEventName": "SessionStart",
@@ -498,19 +641,19 @@ def main() -> int:
     if event_name == "UserPromptSubmit":
         record_user_prompt(state, payload)
         state["updated_at"] = utc_now()
-        write_json(state_path, state)
+        write_state(state_path, state)
         return 0
 
     if event_name == "Stop":
         record_stop(state, payload)
         state["updated_at"] = utc_now()
-        write_json(state_path, state)
+        write_state(state_path, state)
         return 0
 
     if event_name == "StateUpdate":
         record_state_update(state, payload, source)
         state["updated_at"] = utc_now()
-        write_json(state_path, state)
+        write_state(state_path, state)
         return 0
 
     if event_name == "PreCompact":
@@ -526,7 +669,7 @@ def main() -> int:
         "hook_event_name": event_name,
         "recorded_at": utc_now(),
     }
-    write_json(state_path, state)
+    write_state(state_path, state)
     return 0
 
 

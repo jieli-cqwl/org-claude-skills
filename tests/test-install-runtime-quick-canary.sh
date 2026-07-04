@@ -57,11 +57,13 @@ if [ "$GROUP" = "all" ] || [ "$GROUP" = "codex-context-continuity" ]; then
     install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-quick-canary-context-continuity-install)" --target codex --check quick
   )
   install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "context continuity should install when explicitly enabled"
-  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-install)" "context continuity probe passed" "opt-in install should run recovery probe"
+  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-install)" "context continuity ready probe passed" "opt-in install should prove ready recovery"
+  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-install)" "context continuity incomplete probe passed" "opt-in install should prove degraded recovery"
   install_test_assert_file_exists "$home_dir/.org-skills-state/codex/context-continuity-enabled" "context continuity opt-in should persist after enabled install"
   install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-quick-canary-context-continuity-reinstall)" --target codex --check quick
   install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "context continuity should remain enabled on later installs without env"
-  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-reinstall)" "context continuity probe passed" "persisted opt-in install should run recovery probe"
+  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-reinstall)" "context continuity ready probe passed" "persisted opt-in install should prove ready recovery"
+  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-reinstall)" "context continuity incomplete probe passed" "persisted opt-in install should prove degraded recovery"
   install_test_case_pass "runtime-quick-canary: codex context continuity opt-in probe"
 fi
 

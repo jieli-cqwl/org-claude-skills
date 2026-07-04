@@ -83,7 +83,7 @@ ORG_CODEX_CONTEXT_CONTINUITY_ENABLED=1 bash install.sh --target codex --check qu
 
 首次启用会写入 `~/.org-skills-state/codex/context-continuity-enabled`，后续安装无需重复带环境变量；要关闭则删除该标记后重新安装 Codex runtime。
 
-It records a compact recovery state card and redacted probe metadata. Agents can refresh the recovery card by invoking `codex_context_continuity.py` with `hook_event_name=StateUpdate` and a controlled `state` object containing `active_goal`, `scope_boundary`, `current_phase`, `current_plan`, `completed_items`, `evidence_refs`, `pending_items`, and `next_action`. It does not replace Codex memories and does not use compact summaries as truth. If recovery state is missing or stale, Codex must stop and ask for recovery evidence instead of continuing from guesses.
+It records a compact recovery state card and redacted probe metadata. Agents can refresh the recovery card by invoking `codex_context_continuity.py` with `hook_event_name=StateUpdate` and a controlled `state` object containing `active_goal`, `scope_boundary`, `current_phase`, `current_plan`, `completed_items`, `evidence_refs`, `pending_items`, and `next_action`. The hook evaluates recovery as `READY`, `INCOMPLETE`, `STALE`, or `UNRECOVERABLE`; only `READY` may continue from state. `INCOMPLETE` must do read-only reconstruction from task state, transcript, checkpoints, and evidence refs; `STALE` must refresh `StateUpdate` after the latest prompt; `UNRECOVERABLE` must ask the user for scope or recovery evidence. It does not replace Codex memories and does not use compact summaries as truth.
 
 组织级无人值守场景应使用 Codex 官方 `requirements.toml` managed hooks：由管理员在系统或云端 requirements 中声明 `[hooks]` 与 `hooks.managed_dir`，并通过 MDM/设备管理分发脚本。本仓库不会把用户级 `~/.codex/hooks.json` 伪装成 managed hooks。
 

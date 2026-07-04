@@ -532,32 +532,205 @@ EOF
 }
 
 check_codex_context_continuity_probe() {
-  local state_dir payload output
+  local state_dir script prompt_payload stop_payload precompact_payload postcompact_payload sessionstart_payload state_update_payload output
 
   codex_context_continuity_enabled || return 0
   state_dir="$(mktemp -d)"
-  payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+  script="$CODEX_DIR/hooks/managed/codex_context_continuity.py"
+
+  prompt_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
 import json
 import sys
 
 print(json.dumps({
-    "session_id": "install-context-continuity-probe",
+    "session_id": "install-context-continuity-incomplete-probe",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "restore context continuity probe",
+    "cwd": sys.argv[1],
+}))
+PY
+)"
+  if ! printf '%s' "$prompt_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event UserPromptSubmit >/dev/null; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity incomplete probe 写入 prompt 失败"
+  fi
+  stop_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-incomplete-probe",
+    "hook_event_name": "Stop",
+    "cwd": sys.argv[1],
+    "transcript_path": f"{sys.argv[1]}/install-context-continuity-transcript.jsonl",
+}))
+PY
+)"
+  if ! printf '%s' "$stop_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event Stop >/dev/null; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity incomplete probe 写入 stop 失败"
+  fi
+  precompact_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-incomplete-probe",
+    "hook_event_name": "PreCompact",
+    "trigger": "auto",
+    "cwd": sys.argv[1],
+}))
+PY
+)"
+  if ! printf '%s' "$precompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event PreCompact >/dev/null; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity incomplete probe 写入 precompact 失败"
+  fi
+  postcompact_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-incomplete-probe",
+    "hook_event_name": "PostCompact",
+    "trigger": "auto",
+    "cwd": sys.argv[1],
+}))
+PY
+)"
+  if ! printf '%s' "$postcompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event PostCompact >/dev/null; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity incomplete probe 写入 postcompact 失败"
+  fi
+  sessionstart_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-incomplete-probe",
     "hook_event_name": "SessionStart",
     "source": "compact",
     "cwd": sys.argv[1],
 }))
 PY
 )"
-  if ! output="$(printf '%s' "$payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$CODEX_DIR/hooks/managed/codex_context_continuity.py" --event SessionStart --source compact)"; then
+  if ! output="$(printf '%s' "$sessionstart_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event SessionStart --source compact)"; then
     rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity probe 执行失败"
+    fail "Quick Check 失败: context continuity incomplete probe 恢复输出失败"
   fi
-  if ! printf '%s' "$output" | grep -Fq 'task_state_ref:'; then
+  printf '%s' "$output" | grep -Fq 'recovery_status: INCOMPLETE' || {
     rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity probe 未输出 task_state_ref"
+    fail "Quick Check 失败: context continuity incomplete probe 未输出 INCOMPLETE"
+  }
+  printf '%s' "$output" | grep -Fq 'allowed_next_step: READ_ONLY_RECOVERY' || {
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity incomplete probe 未要求只读恢复"
+  }
+  log "context continuity incomplete probe passed"
+
+  prompt_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-ready-probe",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "restore context continuity ready probe",
+    "cwd": sys.argv[1],
+}))
+PY
+)"
+  if ! printf '%s' "$prompt_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event UserPromptSubmit >/dev/null; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity ready probe 写入 prompt 失败"
   fi
+  state_update_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-ready-probe",
+    "hook_event_name": "StateUpdate",
+    "source": "install-quick-check",
+    "state": {
+        "active_goal": "prove context continuity ready recovery",
+        "scope_boundary": "Codex context continuity install quick check",
+        "latest_user_correction": "restore context continuity ready probe",
+        "current_phase": "install quick check",
+        "current_plan": ["record state", "seal compact", "recover"],
+        "completed_items": ["prompt metadata recorded"],
+        "evidence_refs": ["install.sh"],
+        "pending_items": ["SessionStart compact recovery"],
+        "blockers": [],
+        "next_action": "continue from structured recovery state",
+    },
+    "cwd": sys.argv[1],
+}))
+PY
+)"
+  if ! printf '%s' "$state_update_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event StateUpdate >/dev/null; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity ready probe 写入 StateUpdate 失败"
+  fi
+  precompact_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-ready-probe",
+    "hook_event_name": "PreCompact",
+    "trigger": "auto",
+    "cwd": sys.argv[1],
+}))
+PY
+)"
+  if ! printf '%s' "$precompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event PreCompact >/dev/null; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity ready probe 写入 precompact 失败"
+  fi
+  postcompact_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-ready-probe",
+    "hook_event_name": "PostCompact",
+    "trigger": "auto",
+    "cwd": sys.argv[1],
+    "compact_summary": "summary remains metadata only",
+}))
+PY
+)"
+  if ! printf '%s' "$postcompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event PostCompact >/dev/null; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity ready probe 写入 postcompact 失败"
+  fi
+  sessionstart_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "session_id": "install-context-continuity-ready-probe",
+    "hook_event_name": "SessionStart",
+    "source": "compact",
+    "cwd": sys.argv[1],
+}))
+PY
+)"
+  if ! output="$(printf '%s' "$sessionstart_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event SessionStart --source compact)"; then
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity ready probe 恢复输出失败"
+  fi
+  printf '%s' "$output" | grep -Fq 'recovery_status: READY' || {
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity ready probe 未输出 READY"
+  }
+  printf '%s' "$output" | grep -Fq 'allowed_next_step: CONTINUE_FROM_STATE' || {
+    rm -rf "$state_dir"
+    fail "Quick Check 失败: context continuity ready probe 未允许结构化继续"
+  }
   rm -rf "$state_dir"
-  log "context continuity probe passed"
+  log "context continuity ready probe passed"
 }
 
 check_codex_hook_trust() {
