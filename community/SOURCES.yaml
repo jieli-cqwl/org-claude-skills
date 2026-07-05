@@ -1,8 +1,8 @@
 sources:
   anthropic_skills:
     repo: https://github.com/anthropics/skills
-    ref: 57546260929473d4e0d1c1bb75297be2fdfa1949
-    captured_at: 2026-06-19
+    ref: 9d2f1ae187231d8199c64b5b762e1bdf2244733d
+    captured_at: 2026-07-04
     scope:
       - community/anthropic/skills
       - community/anthropic/codex/skills
@@ -12,8 +12,8 @@ sources:
       - "`skill-creator` 在仓库中保持 upstream 镜像，并安装到 Claude 与 Codex 用户运行面；Codex 隐藏 system 资源不作为 Skill 真源。"
   superpowers:
     repo: https://github.com/obra/superpowers
-    ref: 896224c4b1879920ab573417e68fd51d2ccc9072
-    captured_at: 2026-06-19
+    ref: d884ae04edebef577e82ff7c4e143debd0bbec99
+    captured_at: 2026-07-04
     scope:
       - community/superpowers/skills
     notes:
@@ -21,8 +21,8 @@ sources:
       - No local overlays, Codex adapters, runtime metadata rewrites, source headers, or local-only skills are allowed under community/superpowers.
   vercel_skills:
     repo: https://github.com/vercel-labs/skills
-    ref: e3a5432e888ef415f4d2bfb2d1d427dcf9a23b1f
-    captured_at: 2026-06-19
+    ref: 2adcfe5a4cce0ce5f4d5547a997b2a161ec5d127
+    captured_at: 2026-07-04
     scope:
       - community/vercel/skills/find-skills
       - community/vercel/codex/skills/find-skills
@@ -31,8 +31,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   vercel_agent_browser:
     repo: https://github.com/vercel-labs/agent-browser
-    ref: 6323df571ffd17d14e60ec19fcb56cc1caf498ab
-    captured_at: 2026-06-19
+    ref: ed2e10598c9064aecfaeb7cf21b540684db4be2c
+    captured_at: 2026-07-04
     scope:
       - community/vercel/skills/agent-browser
       - community/vercel/codex/skills/agent-browser
@@ -52,8 +52,8 @@ sources:
       - Upstream README 声明 MIT，但 GitHub API license 字段为空且根目录未提供独立 LICENSE 文件。
   nextlevelbuilder_ui_ux_pro_max:
     repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
-    ref: 07f4ef3ac2568c25a3b0c8ef5165a86abc3e56e4
-    captured_at: 2026-04-24
+    ref: 4baa399d00da806f83ed93652172f66943205153
+    captured_at: 2026-07-04
     scope:
       - community/nextlevelbuilder/skills/ui-ux-pro-max
       - community/nextlevelbuilder/codex/skills/ui-ux-pro-max
@@ -106,8 +106,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prd:
     repo: https://github.com/github/awesome-copilot
-    ref: 251f416b6d3aa12837b10536e6f9bdd67f482ff7
-    captured_at: 2026-06-19
+    ref: e986f49695491311df2774030ebe11efabd0fb77
+    captured_at: 2026-07-04
     scope:
       - community/open-skills/skills/prd
     notes:
@@ -116,8 +116,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prompt_optimizer:
     repo: https://github.com/github/awesome-copilot
-    ref: 251f416b6d3aa12837b10536e6f9bdd67f482ff7
-    captured_at: 2026-06-19
+    ref: e986f49695491311df2774030ebe11efabd0fb77
+    captured_at: 2026-07-04
     scope:
       - community/open-skills/skills/prompt-optimizer
     notes:
@@ -127,8 +127,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_graphify:
     repo: https://github.com/safishamsi/graphify
-    ref: dce54a007e2ad3eda41307abd669d5a8acac3813
-    captured_at: 2026-06-19
+    ref: 29b3f9126d9347dcf40993f2f3c4101b1f3d4ab4
+    captured_at: 2026-07-04
     scope:
       - community/open-skills/skills/graphify
     notes:
@@ -192,8 +192,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_othmanadi_planning_with_files:
     repo: https://github.com/OthmanAdi/planning-with-files
-    ref: 8f5a3c2e1c347635cf94debde033b3c1ac97e4ab
-    captured_at: 2026-06-19
+    ref: 8459756b18998f5f99d0325c3ee28043fd423760
+    captured_at: 2026-07-04
     scope:
       - community/open-skills/skills/planning-with-files
     notes:
@@ -202,8 +202,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_self_improving_agent:
     repo: https://github.com/zhaono1/agent-playbook
-    ref: f20ceaa1bd85c6902f039bde2cb937e7d7c5e454
-    captured_at: 2026-06-19
+    ref: c79bd5fcff0922c2890fe743c51667ebbb700c27
+    captured_at: 2026-07-04
     scope:
       - community/open-skills/skills/self-improving-agent
     notes:
