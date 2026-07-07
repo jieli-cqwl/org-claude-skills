@@ -21,8 +21,8 @@ sources:
       - No local overlays, Codex adapters, runtime metadata rewrites, source headers, or local-only skills are allowed under community/superpowers.
   vercel_skills:
     repo: https://github.com/vercel-labs/skills
-    ref: 2adcfe5a4cce0ce5f4d5547a997b2a161ec5d127
-    captured_at: 2026-07-04
+    ref: 75e7ea2825230197cf20bfd6fd3762acc2620746
+    captured_at: 2026-07-07
     scope:
       - community/vercel/skills/find-skills
       - community/vercel/codex/skills/find-skills
@@ -52,8 +52,8 @@ sources:
       - Upstream README 声明 MIT，但 GitHub API license 字段为空且根目录未提供独立 LICENSE 文件。
   nextlevelbuilder_ui_ux_pro_max:
     repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
-    ref: 4baa399d00da806f83ed93652172f66943205153
-    captured_at: 2026-07-04
+    ref: 12b486b22e67f5d887962ef8351c1ac863bfaeb9
+    captured_at: 2026-07-07
     scope:
       - community/nextlevelbuilder/skills/ui-ux-pro-max
       - community/nextlevelbuilder/codex/skills/ui-ux-pro-max
@@ -106,8 +106,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prd:
     repo: https://github.com/github/awesome-copilot
-    ref: e986f49695491311df2774030ebe11efabd0fb77
-    captured_at: 2026-07-04
+    ref: cb2a6022d709288f51b499c60bc57b0adaf459a4
+    captured_at: 2026-07-07
     scope:
       - community/open-skills/skills/prd
     notes:
@@ -116,8 +116,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prompt_optimizer:
     repo: https://github.com/github/awesome-copilot
-    ref: e986f49695491311df2774030ebe11efabd0fb77
-    captured_at: 2026-07-04
+    ref: cb2a6022d709288f51b499c60bc57b0adaf459a4
+    captured_at: 2026-07-07
     scope:
       - community/open-skills/skills/prompt-optimizer
     notes:
@@ -127,8 +127,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_graphify:
     repo: https://github.com/safishamsi/graphify
-    ref: 29b3f9126d9347dcf40993f2f3c4101b1f3d4ab4
-    captured_at: 2026-07-04
+    ref: 80e199defa4a63781f7e846fe7d4f24bfae732b9
+    captured_at: 2026-07-07
     scope:
       - community/open-skills/skills/graphify
     notes:
@@ -192,8 +192,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_othmanadi_planning_with_files:
     repo: https://github.com/OthmanAdi/planning-with-files
-    ref: 8459756b18998f5f99d0325c3ee28043fd423760
-    captured_at: 2026-07-04
+    ref: d71b3be47b62fe49d60fb2ede800e1907ebea3d9
+    captured_at: 2026-07-07
     scope:
       - community/open-skills/skills/planning-with-files
     notes:
