@@ -917,6 +917,40 @@ for path in \
     || fail "missing assistant runtime reference: $path"
 done
 
+python3 - "$ROOT/shared/reference/测试规范.md" <<'PY' || fail "testing reference contract violated"
+import re
+import sys
+from pathlib import Path
+
+reference = Path(sys.argv[1])
+text = reference.read_text(encoding="utf-8")
+code_terms = set(re.findall(r"`([^`]+)`", text))
+required_code_terms = {
+    "trace-record-derived-tests": {
+        "trace_record",
+        "acceptance_assertion",
+    },
+    "preserved-old-logic": {
+        "preserved_old_logic",
+    },
+    "evidence-levels": {
+        "evidence_level",
+        "static",
+        "local",
+        "mock",
+        "runtime",
+        "E2E",
+    },
+}
+missing = [
+    label
+    for label, terms in required_code_terms.items()
+    if not terms <= code_terms
+]
+if missing:
+    raise SystemExit("testing reference missing semantics: " + ", ".join(missing))
+PY
+
 python3 - "$ROOT/shared/reference/技术方案设计.md" <<'PY' || fail "technical design reference contract violated"
 import re
 import sys
