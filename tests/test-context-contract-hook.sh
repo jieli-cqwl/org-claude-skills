@@ -201,6 +201,33 @@ printf '%s' "$stop_payload" | \
 jq -e 'length == 0' "$TMP_DIR/context-stop-after.out" >/dev/null 2>&1 \
   || fail "Stop should allow only after the current turn is ready"
 
+jq -cn \
+  '{type: "response_item", payload: {role: "user", content: [{type: "input_text", text: "transcript fallback turn"}], internal_chat_message_metadata_passthrough: {turn_id: "turn-3"}}}' \
+  >"$TRANSCRIPT"
+turn_three_stop="$(printf '%s' "$stop_payload" | jq -c '.turn_id = "turn-3"')"
+printf '%s' "$turn_three_stop" | \
+  ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" \
+  python3 "$CONTEXT_CONTINUITY" --event Stop >"$TMP_DIR/context-transcript-fallback.out"
+jq -e '
+  .decision == "block"
+  and (.reason | contains("state_update_command:"))
+' "$TMP_DIR/context-transcript-fallback.out" >/dev/null 2>&1 \
+  || fail "Stop should expose an update command after transcript pending recovery"
+jq -e --arg tid "turn-3" '
+  .turn_id == $tid
+  and .base_revision == 1
+' "$CONTEXT_STATE/shell-session/pending-turn.json" >/dev/null 2>&1 \
+  || fail "transcript fallback should bind the current pending turn"
+turn_three_update="$(printf '%s' "$state_update_payload" | jq -c '.turn_id = "turn-3" | .base_revision = 1')"
+ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" \
+  python3 "$CONTEXT_CONTINUITY" state-update --payload "$turn_three_update" >/dev/null \
+  || fail "transcript fallback turn should accept a complete state update"
+printf '%s' "$turn_three_stop" | \
+  ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" \
+  python3 "$CONTEXT_CONTINUITY" --event Stop >"$TMP_DIR/context-transcript-fallback-ready.out"
+jq -e 'length == 0' "$TMP_DIR/context-transcript-fallback-ready.out" >/dev/null 2>&1 \
+  || fail "transcript fallback turn should become ready only after state update"
+
 turn_two_payload="$(printf '%s' "$prompt_payload" | jq -c '.turn_id = "turn-2" | .user_prompt = "same prompt, new turn"')"
 printf '%s' "$turn_two_payload" | \
   ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$CONTEXT_STATE" \

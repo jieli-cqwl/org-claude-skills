@@ -2568,6 +2568,76 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(self.invoke_hook("Stop", "turn-1"), {})
         self.assertEqual(self.invoke_hook("Stop", "turn-1"), {})
 
+    def test_stop_bootstraps_missing_pending_from_current_turn_transcript(self):
+        self.submit_prompt("goal", "turn-1")
+        self.write_full_state("turn-1")
+        self.transcript.write_text(
+            json.dumps(
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "role": "user",
+                        "content": [
+                            {"type": "input_text", "text": "turn two request"}
+                        ],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-2"
+                        },
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        before = self.invoke_hook_result("Stop", "turn-2")
+
+        self.assertEqual(before.returncode, 0, before.stderr)
+        output = json.loads(before.stdout)
+        self.assertEqual(output["decision"], "block")
+        self.assertIn("state_update_command:", output["reason"])
+        pending = self.store().load_pending_turn()
+        self.assertEqual(pending["turn_id"], "turn-2")
+        self.assertEqual(pending["base_revision"], 1)
+
+        update = self.invoke_state_update("turn-2")
+        self.assertEqual(update.returncode, 0, update.stderr)
+        self.assertEqual(self.invoke_hook("Stop", "turn-2"), {})
+
+    def test_stop_does_not_read_untrusted_transcript_path_for_bootstrap(self):
+        self.submit_prompt("goal", "turn-1")
+        self.write_full_state("turn-1")
+        outside_transcript = self.temp / "outside-transcript.jsonl"
+        outside_transcript.write_text(
+            json.dumps(
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": "untrusted"}],
+                        "internal_chat_message_metadata_passthrough": {
+                            "turn_id": "turn-2"
+                        },
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        before = self.invoke_hook_result(
+            "Stop",
+            "turn-2",
+            transcript_path=str(outside_transcript),
+        )
+
+        self.assertEqual(before.returncode, 0, before.stderr)
+        self.assertEqual(json.loads(before.stdout), {
+            "decision": "block",
+            "reason": self.STOP_REASON,
+        })
+        self.assertEqual(self.store().load_pending_turn()["turn_id"], "turn-1")
+
     def test_submit_requires_exact_identity_prompt_cwd_and_transcript(self):
         cases = (
             ("missing session", {"session_id": ""}),

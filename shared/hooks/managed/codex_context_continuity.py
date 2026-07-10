@@ -38,6 +38,7 @@ MAX_PROMPT_PREVIEW_CHARS = 1024
 SECRET_REDACTION_LOOKAHEAD_CHARS = 4096
 MAX_HOOK_PAYLOAD_BYTES = 1024 * 1024
 MAX_RECOVERY_OUTPUT_BYTES = 4 * 1024
+MAX_TRANSCRIPT_TAIL_BYTES = 512 * 1024
 GIT_TIMEOUT_SECONDS = 5.0
 NOT_A_GIT_REPOSITORY = "not-a-git-repository"
 RECOVERY_CARD_SCHEMA_VERSION = "1.0"
@@ -232,6 +233,112 @@ def _record_stop_in_state(state: dict[str, object], payload: dict[str, object]) 
         "turn_id": payload.get("turn_id") or "",
         "recorded_at": utc_now(),
     }
+
+
+def _transcript_path_for_recovery(
+    value: object,
+    state: dict[str, object],
+) -> Path | None:
+    if not isinstance(value, str) or not value.strip() or len(value) > 4096:
+        return None
+    try:
+        path = Path(value).expanduser().resolve(strict=True)
+    except (OSError, RuntimeError):
+        return None
+    if not path.is_file():
+        return None
+
+    known_path = state.get("transcript_path")
+    if isinstance(known_path, str) and known_path.strip():
+        try:
+            if path == Path(known_path).expanduser().resolve(strict=True):
+                return path
+        except (OSError, RuntimeError):
+            pass
+
+    sessions_root = Path.home() / ".codex" / "sessions"
+    try:
+        path.relative_to(sessions_root.resolve())
+    except (OSError, RuntimeError, ValueError):
+        return None
+    return path
+
+
+def _current_turn_prompt_from_path(path: Path, turn_id: str) -> str | None:
+    # Hook retries can bypass UserPromptSubmit; only inspect a bounded transcript tail
+    # and accept user text whose runtime metadata belongs to this exact turn.
+
+    try:
+        file_size = path.stat().st_size
+        with path.open("rb") as stream:
+            stream.seek(max(0, file_size - MAX_TRANSCRIPT_TAIL_BYTES))
+            content = stream.read(MAX_TRANSCRIPT_TAIL_BYTES)
+    except OSError:
+        return None
+
+    prompt: str | None = None
+    for line in content.decode("utf-8", errors="ignore").splitlines():
+        try:
+            record = json.loads(line)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if not isinstance(record, dict):
+            continue
+        payload = record.get("payload")
+        if not isinstance(payload, dict) or payload.get("role") != "user":
+            continue
+        metadata = payload.get("internal_chat_message_metadata_passthrough")
+        if not isinstance(metadata, dict) or metadata.get("turn_id") != turn_id:
+            continue
+        content_blocks = payload.get("content")
+        if not isinstance(content_blocks, list):
+            continue
+        text_blocks = [
+            block.get("text")
+            for block in content_blocks
+            if isinstance(block, dict)
+            and block.get("type") == "input_text"
+            and isinstance(block.get("text"), str)
+        ]
+        candidate = "\n".join(text_blocks).strip()
+        if candidate:
+            prompt = candidate
+    return prompt
+
+
+def _bootstrap_pending_from_transcript(
+    store: SessionStore,
+    state: dict[str, object],
+    payload: dict[str, object],
+    session_id: str,
+    turn_id: str,
+    cwd: Path,
+) -> dict[str, object] | None:
+    transcript_path = payload.get("transcript_path") or payload.get("transcriptPath")
+    resolved_transcript_path = _transcript_path_for_recovery(transcript_path, state)
+    if resolved_transcript_path is None:
+        return None
+    prompt = _current_turn_prompt_from_path(resolved_transcript_path, turn_id)
+    if prompt is None:
+        return None
+    canonical_transcript_path = str(resolved_transcript_path)
+    pending = store.record_pending_turn(
+        turn_id=turn_id,
+        prompt_sha256=sha256_text(prompt),
+        prompt_preview=redacted_prompt_preview(prompt),
+        transcript_path=canonical_transcript_path,
+        cwd=str(cwd),
+    )
+    _record_prompt_in_state(
+        state,
+        prompt,
+        turn_id,
+        str(cwd),
+        canonical_transcript_path,
+        str(pending["updated_at"]),
+    )
+    _save_recovery_state(session_id, state)
+    return pending
 
 
 def _record_snapshot_in_state(
@@ -671,8 +778,11 @@ def handle_user_prompt(payload: dict[str, object]) -> None:
     )
 
 
-def _stop_block() -> None:
-    emit_json({"decision": "block", "reason": STOP_REASON})
+def _stop_block(pending: dict[str, object] | None = None) -> None:
+    reason = STOP_REASON
+    if pending is not None:
+        reason += f"\nstate_update_command: {state_update_command(pending)}"
+    emit_json({"decision": "block", "reason": reason})
 
 
 def handle_stop(payload: dict[str, object]) -> None:
@@ -685,6 +795,22 @@ def handle_stop(payload: dict[str, object]) -> None:
         _record_stop_in_state(state, payload)
         _save_recovery_state(session_id, state)
         pending = store.load_pending_turn()
+        bootstrapped = False
+        if (
+            pending is None
+            or pending["session_id"] != session_id
+            or pending["turn_id"] != turn_id
+            or pending["cwd"] != str(cwd)
+        ):
+            pending = _bootstrap_pending_from_transcript(
+                store,
+                state,
+                payload,
+                session_id,
+                turn_id,
+                cwd,
+            )
+            bootstrapped = pending is not None
         if (
             pending is None
             or pending["session_id"] != session_id
@@ -696,7 +822,7 @@ def handle_stop(payload: dict[str, object]) -> None:
         git_head = git_head_for_cwd(cwd)
         status, _, _ = lifecycle_status(store, pending, git_head)
         if status is not RecoveryStatus.READY:
-            _stop_block()
+            _stop_block(pending if bootstrapped else None)
             return
     except (LifecycleInputError, GitStateError, StoreError, SnapshotValidationError):
         _stop_block()
