@@ -100,6 +100,23 @@ class SchemaTests(unittest.TestCase):
         with self.assertRaises(SnapshotValidationError):
             verify_snapshot(snapshot)
 
+    def test_non_ascii_snapshot_digest_is_corrupt_and_accumulates_field_errors(self):
+        snapshot = build_valid_snapshot()
+        snapshot["active_goal"] = ""
+        snapshot["snapshot_sha256"] = "é" * 64
+
+        with self.assertRaises(SnapshotValidationError) as raised:
+            verify_snapshot(snapshot)
+
+        self.assertEqual(
+            raised.exception.field_errors["snapshot_sha256"],
+            "must be a lowercase SHA-256 hex digest",
+        )
+        self.assertIn("active_goal", raised.exception.field_errors)
+        self.assertEqual(
+            evaluate_snapshot(snapshot, valid_runtime_identity())[0], RecoveryStatus.CORRUPT
+        )
+
     def test_serialized_snapshot_over_64_kib_is_rejected(self):
         task = valid_task_payload(active_goal="x" * 70000)
         with self.assertRaises(SnapshotValidationError):
@@ -154,6 +171,25 @@ class SchemaTests(unittest.TestCase):
             validate_task_payload(task)
 
         self.assertIn("blockers", raised.exception.field_errors)
+
+    def test_blocked_task_rejects_whitespace_only_blockers(self):
+        task = valid_task_payload(task_status="blocked", blockers=["   "])
+
+        with self.assertRaises(SnapshotValidationError) as raised:
+            validate_task_payload(task)
+
+        self.assertIn("blockers[0]", raised.exception.field_errors)
+
+    def test_completed_item_rejects_whitespace_only_evidence_refs(self):
+        task = valid_task_payload(
+            task_status="complete",
+            completed_items=[{"item": "wrote model", "evidence_refs": ["   "]}],
+        )
+
+        with self.assertRaises(SnapshotValidationError) as raised:
+            validate_task_payload(task)
+
+        self.assertIn("completed_items[0].evidence_refs[0]", raised.exception.field_errors)
 
     def test_canonical_json_is_sorted_compact_utf8(self):
         self.assertEqual(

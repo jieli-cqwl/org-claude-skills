@@ -148,6 +148,8 @@ def _validate_string_list(field: str, value: object, errors: dict[str, str]) -> 
             errors[f"{field}[{index}]"] = "must be a string"
         elif any(0xD800 <= ord(character) <= 0xDFFF for character in item):
             errors[f"{field}[{index}]"] = "must not contain Unicode surrogate code points"
+        elif not item.strip():
+            errors[f"{field}[{index}]"] = "must not be empty"
 
 
 def _validate_completed_items(value: object, errors: dict[str, str]) -> None:
@@ -331,7 +333,11 @@ def verify_snapshot(snapshot: object) -> dict[str, object]:
     """Validate a complete snapshot and verify its canonical-content checksum."""
     errors: dict[str, str] = {}
     _validate_full_snapshot(snapshot, errors)
-    if isinstance(snapshot, dict) and isinstance(snapshot.get("snapshot_sha256"), str):
+    if (
+        isinstance(snapshot, dict)
+        and isinstance(snapshot.get("snapshot_sha256"), str)
+        and _SHA256_RE.fullmatch(snapshot["snapshot_sha256"])
+    ):
         try:
             expected_hash = _snapshot_hash(snapshot)
         except Exception:
