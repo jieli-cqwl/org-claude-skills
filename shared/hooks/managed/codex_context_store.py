@@ -13,7 +13,7 @@ import re
 import stat
 import time
 import uuid
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -42,6 +42,7 @@ _FULL_GENERATION_NAMES = {
     PREVIOUS_CHECKPOINT_NAME,
 }
 _SESSION_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+_RESERVED_SESSION_IDS = frozenset({"cleanup.meta.json", "cleanup", "metadata"})
 _TEMP_NAME_RE = re.compile(
     r"^\.(?:primary\.json|checkpoint\.(?:latest|previous)\.json)\.[0-9a-f]{32}\.tmp$"
 )
@@ -197,10 +198,18 @@ class _SessionRecord:
     total_bytes: int
 
 
+def _is_valid_session_id(session_id: object) -> bool:
+    return (
+        isinstance(session_id, str)
+        and _SESSION_ID_RE.fullmatch(session_id) is not None
+        and session_id not in _RESERVED_SESSION_IDS
+    )
+
+
 def _validate_session_id(session_id: object) -> str:
     if not isinstance(session_id, str) or not _SESSION_ID_RE.fullmatch(session_id):
         raise StoreError("session_id must use 1-128 safe ASCII identifier characters")
-    if session_id in {"cleanup.meta.json", "cleanup", "metadata"}:
+    if not _is_valid_session_id(session_id):
         raise StoreError("session_id collides with cleanup metadata")
     return session_id
 
@@ -638,10 +647,16 @@ class SessionStore:
     @contextmanager
     def _locked(self, *, timeout_seconds: float | None = None) -> Iterator[None]:
         timeout = self.lock_timeout_seconds if timeout_seconds is None else timeout_seconds
-        with _bounded_lock(self.lifecycle_lock_path, float(timeout)):
-            _ensure_private_directory(self.session_dir)
-            session_descriptor = _acquire_bounded_lock(self.lock_path, float(timeout))
-        with _held_lock_descriptor(session_descriptor):
+        with ExitStack() as session_cleanup:
+            with _bounded_lock(self.lifecycle_lock_path, float(timeout)):
+                _ensure_private_directory(self.session_dir)
+                session_descriptor = _acquire_bounded_lock(
+                    self.lock_path, float(timeout)
+                )
+                # Register before lifecycle release so either handoff failure closes it.
+                session_cleanup.enter_context(
+                    _held_lock_descriptor(session_descriptor)
+                )
             yield
 
     def _load_primary_unlocked(self) -> dict[str, object] | None:
@@ -698,13 +713,16 @@ class SessionStore:
             runtime_values = dict(runtime)
             now = _utc_now_text()
             created_at = now if current is None else current["created_at"]
-            snapshot = build_snapshot(
-                task,
-                runtime_values,
-                revision=base_revision + 1,
-                created_at=created_at,
-                updated_at=now,
-            )
+            try:
+                snapshot = build_snapshot(
+                    task,
+                    runtime_values,
+                    revision=base_revision + 1,
+                    created_at=created_at,
+                    updated_at=now,
+                )
+            except SnapshotValidationError as exc:
+                raise StoreError(f"snapshot validation failed: {exc}") from None
             temp_path = _prepare_temp(
                 self.session_dir, PRIMARY_NAME, canonical_json_bytes(snapshot)
             )
@@ -753,11 +771,35 @@ class SessionStore:
                 checkpoint_bytes = canonical_json_bytes(checkpoint)
             except (TypeError, ValueError, UnicodeError, RecursionError):
                 raise StoreError("checkpoint serialization failed") from None
-            temp_path = _prepare_temp(
-                self.session_dir,
-                LATEST_CHECKPOINT_NAME,
-                checkpoint_bytes,
+
+            try:
+                existing_latest = self._load_checkpoint_unlocked(
+                    self.latest_checkpoint_path, "latest checkpoint"
+                )
+            except IntegrityError:
+                existing_latest = None
+            try:
+                existing_previous = self._load_checkpoint_unlocked(
+                    self.previous_checkpoint_path, "previous checkpoint"
+                )
+            except IntegrityError:
+                existing_previous = None
+            _check_owned_file(self.latest_checkpoint_path)
+            _check_owned_file(self.previous_checkpoint_path)
+            self._assert_generation_consistency(
+                primary, existing_latest, existing_previous
             )
+
+            try:
+                temp_path = _prepare_temp(
+                    self.session_dir,
+                    LATEST_CHECKPOINT_NAME,
+                    checkpoint_bytes,
+                )
+            except OSError as exc:
+                raise StoreError(
+                    f"cannot prepare checkpoint candidate: {exc.strerror or exc}"
+                ) from None
             try:
                 candidate = self._load_checkpoint_unlocked(
                     temp_path, "temporary checkpoint"
@@ -765,10 +807,7 @@ class SessionStore:
                 if candidate != checkpoint:
                     raise IntegrityError("temporary checkpoint differs from its candidate")
 
-                if _check_owned_file(self.latest_checkpoint_path) is not None:
-                    if _check_owned_file(self.previous_checkpoint_path) is not None:
-                        self.previous_checkpoint_path.unlink()
-                        _fsync_directory(self.session_dir)
+                if existing_latest is not None:
                     try:
                         os.replace(
                             self.latest_checkpoint_path, self.previous_checkpoint_path
@@ -782,7 +821,14 @@ class SessionStore:
                 published = self._load_checkpoint_unlocked(
                     self.latest_checkpoint_path, "latest checkpoint"
                 )
-            except (IntegrityError, StoreError, OSError) as exc:
+            except OSError as exc:
+                _cleanup_temp_after_failure(
+                    temp_path, exc, "checkpoint candidate processing failed"
+                )
+                raise StoreError(
+                    f"checkpoint candidate processing failed: {exc.strerror or exc}"
+                ) from None
+            except (IntegrityError, StoreError) as exc:
                 _cleanup_temp_after_failure(
                     temp_path, exc, "checkpoint candidate processing failed"
                 )
@@ -914,13 +960,25 @@ class SessionStore:
                 if current["snapshot_sha256"] == snapshot["snapshot_sha256"]:
                     return current
                 raise IntegrityError("valid primary contradicts the requested checkpoint")
-            temp_path = _prepare_temp(
-                self.session_dir, PRIMARY_NAME, canonical_json_bytes(snapshot)
-            )
+            try:
+                temp_path = _prepare_temp(
+                    self.session_dir, PRIMARY_NAME, canonical_json_bytes(snapshot)
+                )
+            except OSError as exc:
+                raise StoreError(
+                    f"cannot prepare restored primary: {exc.strerror or exc}"
+                ) from None
             try:
                 verify_snapshot(_read_json(temp_path, "temporary restored primary"))
                 _publish_temp(temp_path, self.primary_path)
                 restored = self._load_primary_unlocked()
+            except OSError as exc:
+                _cleanup_temp_after_failure(
+                    temp_path, exc, "restored primary candidate processing failed"
+                )
+                raise StoreError(
+                    f"restored primary candidate processing failed: {exc.strerror or exc}"
+                ) from None
             except (SnapshotValidationError, IntegrityError, StoreError) as exc:
                 _cleanup_temp_after_failure(
                     temp_path, exc, "restored primary candidate processing failed"
@@ -931,6 +989,14 @@ class SessionStore:
             return restored
 
 
+def _is_owned_session_file_name(name: str) -> bool:
+    return (
+        name in _FULL_GENERATION_NAMES
+        or name == SESSION_LOCK_NAME
+        or _TEMP_NAME_RE.fullmatch(name) is not None
+    )
+
+
 def _owned_session_files(directory: Path) -> list[Path]:
     files: list[Path] = []
     try:
@@ -938,11 +1004,7 @@ def _owned_session_files(directory: Path) -> list[Path]:
     except OSError as exc:
         raise StoreError(f"cannot scan managed session: {exc.strerror or exc}") from None
     for path in children:
-        if (
-            path.name in _FULL_GENERATION_NAMES
-            or path.name == SESSION_LOCK_NAME
-            or _TEMP_NAME_RE.fullmatch(path.name)
-        ):
+        if _is_owned_session_file_name(path.name):
             info = _check_owned_file(path, allow_missing=False)
             assert info is not None
             if path.name == SESSION_LOCK_NAME and info.st_size > _MAX_LOCK_BYTES:
@@ -988,7 +1050,7 @@ def _scan_session_records(root: Path) -> list[_SessionRecord]:
     except OSError as exc:
         raise StoreError(f"cannot scan state root: {exc.strerror or exc}") from None
     for directory in children:
-        if not _SESSION_ID_RE.fullmatch(directory.name):
+        if not _is_valid_session_id(directory.name):
             continue
         if directory.is_symlink():
             raise StoreError("session directory symlink makes retention ownership ambiguous")
@@ -996,7 +1058,12 @@ def _scan_session_records(root: Path) -> list[_SessionRecord]:
             continue
         _ensure_private_directory(directory)
         files = _owned_session_files(directory)
-        total_bytes = 0
+        try:
+            total_bytes = directory.stat(follow_symlinks=False).st_size
+        except OSError as exc:
+            raise StoreError(
+                f"cannot account managed session directory: {exc.strerror or exc}"
+            ) from None
         for path in files:
             info = _check_owned_file(path, allow_missing=False)
             assert info is not None
@@ -1059,6 +1126,43 @@ def _delete_owned_root_temps(root: Path) -> tuple[int, int]:
     return deleted_files, deleted_bytes
 
 
+def _sweep_record_temps(
+    root: Path, record: _SessionRecord, timeout_seconds: float
+) -> tuple[int, int]:
+    deleted_files = 0
+    deleted_bytes = 0
+    with ExitStack() as session_cleanup:
+        with _bounded_lock(root / LIFECYCLE_LOCK_NAME, timeout_seconds):
+            if not record.directory.exists():
+                return 0, 0
+            if record.directory.is_symlink() or not record.directory.is_dir():
+                raise StoreError("temp sweep candidate is not a safe session directory")
+            descriptor = _acquire_bounded_lock(
+                record.directory / SESSION_LOCK_NAME, timeout_seconds
+            )
+            # The session descriptor must outlive lifecycle handoff on every exit.
+            session_cleanup.enter_context(_held_lock_descriptor(descriptor))
+
+        for path in _owned_session_files(record.directory):
+            if _TEMP_NAME_RE.fullmatch(path.name) is None:
+                continue
+            info = _check_owned_file(path, allow_missing=False)
+            assert info is not None
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                continue
+            except OSError as exc:
+                raise StoreError(
+                    f"cannot delete abandoned session temp: {exc.strerror or exc}"
+                ) from None
+            deleted_files += 1
+            deleted_bytes += info.st_size
+        if deleted_files:
+            _fsync_directory(record.directory)
+    return deleted_files, deleted_bytes
+
+
 def _delete_record(
     root: Path, record: _SessionRecord, timeout_seconds: float
 ) -> tuple[int, int, bool]:
@@ -1075,6 +1179,11 @@ def _delete_record(
         with _held_lock_descriptor(session_descriptor):
             try:
                 current_files = _owned_session_files(record.directory)
+                unrelated = [
+                    path
+                    for path in record.directory.iterdir()
+                    if not _is_owned_session_file_name(path.name)
+                ]
                 current_payload = [
                     path for path in current_files if path.name != SESSION_LOCK_NAME
                 ]
@@ -1093,6 +1202,10 @@ def _delete_record(
                 raise StoreError(
                     f"cannot revalidate retention candidate: {exc.strerror or exc}"
                 ) from None
+            if unrelated:
+                raise StoreError(
+                    "cannot remove inactive session directory: unrelated files remain"
+                )
             if (
                 current_sizes != expected_sizes
                 or _record_timestamp(current_payload, record.session_id)
@@ -1128,11 +1241,13 @@ def _delete_record(
         try:
             if any(record.directory.iterdir()):
                 return deleted_files, deleted_bytes, False
+            directory_bytes = record.directory.stat(follow_symlinks=False).st_size
             record.directory.rmdir()
         except OSError as exc:
             raise StoreError(
                 f"cannot remove inactive session directory: {exc.strerror or exc}"
             ) from None
+        deleted_bytes += directory_bytes
         _fsync_directory(root)
         return deleted_files, deleted_bytes, True
 
@@ -1186,6 +1301,15 @@ def prune_state_root(
             metadata = None
         root_temp_files, root_temp_bytes = _delete_owned_root_temps(root)
         records = _scan_session_records(root)
+        session_temp_files = 0
+        session_temp_bytes = 0
+        for record in records:
+            file_count, byte_count = _sweep_record_temps(
+                root, record, policy.lock_timeout_seconds
+            )
+            session_temp_files += file_count
+            session_temp_bytes += byte_count
+        records = _scan_session_records(root)
         active_present = any(
             record.session_id == active_session_id for record in records
         )
@@ -1199,8 +1323,8 @@ def prune_state_root(
                 return _cleanup_result(
                     records,
                     skipped_active_session=active_present,
-                    deleted_files=root_temp_files,
-                    deleted_bytes=root_temp_bytes,
+                    deleted_files=root_temp_files + session_temp_files,
+                    deleted_bytes=root_temp_bytes + session_temp_bytes,
                 )
 
         inactive = [
@@ -1238,8 +1362,8 @@ def prune_state_root(
             select(record)
             remaining_bytes -= record.total_bytes
 
-        deleted_files = root_temp_files
-        deleted_bytes = root_temp_bytes
+        deleted_files = root_temp_files + session_temp_files
+        deleted_bytes = root_temp_bytes + session_temp_bytes
         deleted_sessions = 0
         for record in selected:
             file_count, byte_count, removed_session = _delete_record(
@@ -1254,6 +1378,12 @@ def prune_state_root(
         remaining_inactive_count = sum(
             record.session_id != active_session_id for record in remaining_records
         )
+        if any(
+            record.session_id != active_session_id
+            and record.updated_at < age_cutoff
+            for record in remaining_records
+        ):
+            raise StoreError("inactive session age limit could not be satisfied")
         if remaining_inactive_count > policy.max_inactive_sessions:
             raise StoreError("inactive session limit could not be satisfied")
         if remaining_bytes > policy.max_total_bytes:

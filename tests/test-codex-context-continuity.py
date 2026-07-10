@@ -6,7 +6,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import select
 import stat
+import subprocess
 import sys
 import tempfile
 import threading
@@ -813,7 +815,16 @@ class StoreTests(unittest.TestCase):
             store.load_primary()
 
     def test_session_identifier_cannot_escape_or_collide_with_metadata(self):
-        for session_id in ("../escape", "a/b", ".", "..", ".cleanup", "cleanup.meta.json"):
+        for session_id in (
+            "../escape",
+            "a/b",
+            ".",
+            "..",
+            ".cleanup",
+            "cleanup",
+            "metadata",
+            "cleanup.meta.json",
+        ):
             with self.subTest(session_id=session_id):
                 with self.assertRaises(StoreError):
                     SessionStore(self.root, session_id)
@@ -952,6 +963,117 @@ class StoreTests(unittest.TestCase):
                 with codex_context_store._bounded_lock(store.lock_path, 0.1):
                     raise RuntimeError("body boom")
 
+    def test_locked_handoff_closes_session_when_lifecycle_release_fails(self):
+        store = self.new_store("handoff-release")
+        lifecycle_inode = store.lifecycle_lock_path.stat().st_ino
+        acquired: dict[str, int] = {}
+        real_acquire = codex_context_store._acquire_bounded_lock
+        real_release = codex_context_store._release_lock
+
+        def recording_acquire(path: Path, timeout_seconds: float) -> int:
+            descriptor = real_acquire(path, timeout_seconds)
+            if Path(path) == store.lock_path:
+                acquired["session"] = descriptor
+            return descriptor
+
+        def failing_release(descriptor: int) -> None:
+            inode = os.fstat(descriptor).st_ino
+            real_release(descriptor)
+            if inode == lifecycle_inode:
+                raise StoreError("lifecycle release boom")
+            raise StoreError("session release boom")
+
+        try:
+            with mock.patch.object(
+                codex_context_store,
+                "_acquire_bounded_lock",
+                side_effect=recording_acquire,
+            ), mock.patch.object(
+                codex_context_store, "_release_lock", side_effect=failing_release
+            ):
+                with self.assertRaisesRegex(StoreError, "lifecycle release boom"):
+                    with store._locked():
+                        self.fail("lifecycle release must fail before the body")
+
+            session_descriptor = acquired["session"]
+            with self.assertRaises(OSError):
+                os.fstat(session_descriptor)
+        finally:
+            descriptor = acquired.get("session")
+            if descriptor is not None:
+                try:
+                    os.fstat(descriptor)
+                except OSError:
+                    pass
+                else:
+                    real_release(descriptor)
+
+        with store._locked(timeout_seconds=0.1):
+            pass
+
+    @unittest.skipUnless(os.name == "posix", "POSIX flock evidence only")
+    def test_posix_lock_timeout_coordinates_across_processes(self):
+        store = self.new_store("process-lock")
+        child_code = """
+import sys
+sys.path.insert(0, sys.argv[1])
+from pathlib import Path
+from codex_context_store import LockTimeout, SessionStore
+
+store = SessionStore(Path(sys.argv[2]), sys.argv[3], lock_timeout_seconds=0.15)
+print("ready", flush=True)
+for _ in range(2):
+    if sys.stdin.readline() != "attempt\\n":
+        raise SystemExit(2)
+    try:
+        with store._locked(timeout_seconds=0.15):
+            outcome = "acquired"
+    except LockTimeout:
+        outcome = "timeout"
+    print(outcome, flush=True)
+"""
+        process = subprocess.Popen(
+            [
+                sys.executable,
+                "-c",
+                child_code,
+                str(MANAGED_HOOKS),
+                str(self.root),
+                store.session_id,
+            ],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        def read_child_line() -> str:
+            assert process.stdout is not None
+            readable, _, _ = select.select([process.stdout], [], [], 1.0)
+            self.assertTrue(readable, "child lock attempt timed out")
+            return process.stdout.readline().strip()
+
+        try:
+            self.assertEqual(read_child_line(), "ready")
+            assert process.stdin is not None
+            with store._locked(timeout_seconds=0.5):
+                process.stdin.write("attempt\n")
+                process.stdin.flush()
+                self.assertEqual(read_child_line(), "timeout")
+
+            process.stdin.write("attempt\n")
+            process.stdin.flush()
+            self.assertEqual(read_child_line(), "acquired")
+            process.stdin.close()
+            self.assertEqual(process.wait(timeout=1.0), 0, process.stderr.read())
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=1.0)
+            for stream in (process.stdin, process.stdout, process.stderr):
+                if stream is not None and not stream.closed:
+                    stream.close()
+
     def test_failed_replace_preserves_primary_and_cleans_unique_temp(self):
         store = self.ready_store("replace-failure")
         original = store.primary_path.read_bytes()
@@ -1037,6 +1159,96 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(
             sorted(path.name for path in store.session_dir.glob("*.json")),
             ["checkpoint.latest.json", "checkpoint.previous.json", "primary.json"],
+        )
+
+    def test_corrupt_latest_never_displaces_valid_previous_on_publish_failure(self):
+        store = self.ready_store("corrupt-latest-rotation")
+        first = store.seal_checkpoint(
+            "auto", self.runtime("corrupt-latest-rotation", "turn-1", 0)
+        )
+        store.commit_snapshot(
+            valid_task_payload(active_goal="second"),
+            self.runtime("corrupt-latest-rotation", "turn-2", 1),
+            1,
+        )
+        store.seal_checkpoint(
+            "auto", self.runtime("corrupt-latest-rotation", "turn-2", 1)
+        )
+        store.latest_checkpoint_path.write_bytes(b"{broken")
+        previous_bytes = store.previous_checkpoint_path.read_bytes()
+
+        real_replace = codex_context_store.os.replace
+
+        def fail_latest(source: object, destination: object) -> None:
+            if Path(destination) == store.latest_checkpoint_path:
+                raise OSError("forced latest publish failure")
+            real_replace(source, destination)
+
+        with mock.patch.object(codex_context_store.os, "replace", side_effect=fail_latest):
+            with self.assertRaises(StoreError):
+                store.seal_checkpoint(
+                    "manual", self.runtime("corrupt-latest-rotation", "turn-2", 1)
+                )
+
+        self.assertEqual(store.previous_checkpoint_path.read_bytes(), previous_bytes)
+        pair = store.load_recovery_pair()
+        self.assertEqual(pair.previous_checkpoint, first)
+        self.assertEqual(pair.status, RecoveryStatus.CORRUPT)
+
+    def test_corrupt_previous_is_replaced_only_by_valid_latest_before_publish(self):
+        store = self.ready_store("corrupt-previous-rotation")
+        store.seal_checkpoint(
+            "auto", self.runtime("corrupt-previous-rotation", "turn-1", 0)
+        )
+        store.commit_snapshot(
+            valid_task_payload(active_goal="second"),
+            self.runtime("corrupt-previous-rotation", "turn-2", 1),
+            1,
+        )
+        latest = store.seal_checkpoint(
+            "auto", self.runtime("corrupt-previous-rotation", "turn-2", 1)
+        )
+        store.previous_checkpoint_path.write_bytes(b"{broken")
+        real_replace = codex_context_store.os.replace
+
+        def fail_latest(source: object, destination: object) -> None:
+            if Path(destination) == store.latest_checkpoint_path:
+                raise OSError("forced latest publish failure")
+            real_replace(source, destination)
+
+        with mock.patch.object(codex_context_store.os, "replace", side_effect=fail_latest):
+            with self.assertRaises(StoreError):
+                store.seal_checkpoint(
+                    "manual", self.runtime("corrupt-previous-rotation", "turn-2", 1)
+                )
+
+        pair = store.load_recovery_pair()
+        self.assertEqual(pair.previous_checkpoint, latest)
+        self.assertEqual(pair.status, RecoveryStatus.READY)
+
+    def test_checkpoint_rotation_rejects_unsafe_previous_path_without_mutation(self):
+        store = self.ready_store("unsafe-previous-rotation")
+        checkpoint = store.seal_checkpoint(
+            "auto", self.runtime("unsafe-previous-rotation", "turn-1", 0)
+        )
+        generation_paths = (store.primary_path, store.latest_checkpoint_path)
+        generations = {
+            path.name: path.read_bytes() for path in generation_paths
+        }
+        external = Path(self._temporary_directory.name) / "external-checkpoint.json"
+        external.write_bytes(canonical_json_bytes(checkpoint))
+        store.previous_checkpoint_path.symlink_to(external)
+
+        with self.assertRaises(IntegrityError):
+            store.seal_checkpoint(
+                "manual", self.runtime("unsafe-previous-rotation", "turn-1", 0)
+            )
+
+        self.assertTrue(store.previous_checkpoint_path.is_symlink())
+        self.assertEqual(external.read_bytes(), canonical_json_bytes(checkpoint))
+        self.assertEqual(
+            {path.name: path.read_bytes() for path in generation_paths},
+            generations,
         )
 
     def test_interrupted_checkpoint_rotation_retains_a_verified_fallback(self):
@@ -1139,6 +1351,71 @@ class StoreTests(unittest.TestCase):
             generations,
         )
         self.assertEqual(store.load_recovery_pair().latest_checkpoint, checkpoint)
+        self.assertEqual(list(store.session_dir.glob(".*.tmp")), [])
+
+    def test_commit_converts_caller_validation_error_without_mutation(self):
+        store = self.ready_store("commit-validation-error")
+        primary_bytes = store.primary_path.read_bytes()
+
+        with self.assertRaises(StoreError) as raised:
+            store.commit_snapshot(
+                valid_task_payload(active_goal=7),
+                self.runtime("commit-validation-error", "turn-2", 1),
+                1,
+            )
+
+        self.assertNotIsInstance(raised.exception, SnapshotValidationError)
+        self.assertIn("active_goal", str(raised.exception))
+        self.assertEqual(store.primary_path.read_bytes(), primary_bytes)
+        self.assertEqual(list(store.session_dir.glob(".*.tmp")), [])
+
+    def test_checkpoint_prepare_oserror_is_store_error_without_mutation(self):
+        store = self.ready_store("checkpoint-prepare-oserror")
+        checkpoint = store.seal_checkpoint(
+            "auto", self.runtime("checkpoint-prepare-oserror", "turn-1", 0)
+        )
+        generation_bytes = {
+            path.name: path.read_bytes() for path in store.session_dir.glob("*.json")
+        }
+
+        with mock.patch.object(
+            codex_context_store,
+            "_prepare_temp",
+            side_effect=OSError("checkpoint disk failure"),
+        ):
+            with self.assertRaises(StoreError) as raised:
+                store.seal_checkpoint(
+                    "manual",
+                    self.runtime("checkpoint-prepare-oserror", "turn-1", 0),
+                )
+
+        self.assertNotIsInstance(raised.exception, OSError)
+        self.assertIn("checkpoint disk failure", str(raised.exception))
+        self.assertEqual(
+            {path.name: path.read_bytes() for path in store.session_dir.glob("*.json")},
+            generation_bytes,
+        )
+        self.assertEqual(store.load_recovery_pair().latest_checkpoint, checkpoint)
+
+    def test_restore_prepare_oserror_is_store_error_without_mutation(self):
+        store = self.ready_store("restore-prepare-oserror")
+        checkpoint = store.seal_checkpoint(
+            "auto", self.runtime("restore-prepare-oserror", "turn-1", 0)
+        )
+        store.primary_path.write_bytes(b"{broken")
+        corrupt_primary = store.primary_path.read_bytes()
+
+        with mock.patch.object(
+            codex_context_store,
+            "_prepare_temp",
+            side_effect=OSError("restore disk failure"),
+        ):
+            with self.assertRaises(StoreError) as raised:
+                store.restore_primary(checkpoint)
+
+        self.assertNotIsInstance(raised.exception, OSError)
+        self.assertIn("restore disk failure", str(raised.exception))
+        self.assertEqual(store.primary_path.read_bytes(), corrupt_primary)
         self.assertEqual(list(store.session_dir.glob(".*.tmp")), [])
 
     def test_corrupt_primary_restores_from_valid_checkpoint(self):
@@ -1284,7 +1561,10 @@ class StoreTests(unittest.TestCase):
         new = self.ready_store("byte-new")
         self.age_session(old, now - timedelta(days=2))
         self.age_session(new, now - timedelta(days=1))
-        one_size = new.primary_path.stat().st_size
+        one_size = sum(
+            path.stat(follow_symlinks=False).st_size
+            for path in (new.session_dir, new.primary_path, new.lock_path)
+        )
 
         result = prune_state_root(
             self.root,
@@ -1366,6 +1646,50 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(result.deleted_files, 1)
         self.assertEqual(result.deleted_bytes, 512)
         self.assertEqual(result.remaining_bytes, 0)
+
+    def test_cleanup_sweeps_active_session_temp_before_cadence_return(self):
+        now = datetime.now(timezone.utc)
+        active = self.ready_store("active-temp-cadence")
+        prune_state_root(self.root, active.session_id, self.policy(), now)
+        temp_path = active.session_dir / (".primary.json." + "c" * 32 + ".tmp")
+        temp_path.write_bytes(b"active-temp")
+        os.chmod(temp_path, 0o600)
+
+        result = prune_state_root(self.root, active.session_id, self.policy(), now)
+
+        self.assertFalse(temp_path.exists())
+        self.assertTrue(active.session_dir.exists())
+        self.assertIsNotNone(active.load_primary())
+        self.assertEqual(result.deleted_files, 1)
+        self.assertEqual(result.deleted_bytes, len(b"active-temp"))
+        expected_bytes = sum(
+            path.stat(follow_symlinks=False).st_size
+            for path in (active.session_dir, active.primary_path, active.lock_path)
+        )
+        self.assertEqual(result.remaining_bytes, expected_bytes)
+
+    def test_temp_bytes_are_swept_before_retention_byte_selection(self):
+        now = datetime.now(timezone.utc)
+        store = self.ready_store("temp-byte-selection")
+        managed_bytes = sum(
+            path.stat(follow_symlinks=False).st_size
+            for path in (store.session_dir, store.primary_path, store.lock_path)
+        )
+        temp_path = store.session_dir / (".primary.json." + "d" * 32 + ".tmp")
+        temp_path.write_bytes(b"x" * 8192)
+        os.chmod(temp_path, 0o600)
+        byte_limit = managed_bytes + 1024
+
+        result = prune_state_root(
+            self.root,
+            "different-active-session",
+            self.policy(inactive_days=365, max_total_bytes=byte_limit),
+            now,
+        )
+
+        self.assertFalse(temp_path.exists())
+        self.assertTrue(store.primary_path.exists())
+        self.assertLessEqual(result.remaining_bytes, byte_limit)
 
     def test_corrupt_cleanup_metadata_forces_cleanup_and_canonical_rewrite(self):
         now = datetime(2026, 7, 9, tzinfo=timezone.utc)
@@ -1461,7 +1785,7 @@ class StoreTests(unittest.TestCase):
             )
         )
 
-    def test_retention_accounts_for_session_lock_and_exact_temp_bytes(self):
+    def test_retention_sweeps_exact_temp_and_accounts_for_session_lock(self):
         now = datetime(1970, 1, 2, tzinfo=timezone.utc)
         store = self.new_store("artifact-accounting")
         with store._locked():
@@ -1478,8 +1802,55 @@ class StoreTests(unittest.TestCase):
             now,
         )
 
+        self.assertFalse(temp_path.exists())
+        self.assertEqual(result.deleted_files, 1)
+        self.assertEqual(result.deleted_bytes, 4)
         self.assertEqual(result.remaining_sessions, 1)
-        self.assertEqual(result.remaining_bytes, 5)
+        self.assertEqual(
+            result.remaining_bytes,
+            store.session_dir.stat(follow_symlinks=False).st_size + 1,
+        )
+
+    def test_retention_accounts_for_session_directory_bytes(self):
+        now = datetime.now(timezone.utc)
+        store = self.ready_store("directory-accounting")
+        expected_bytes = sum(
+            path.stat(follow_symlinks=False).st_size
+            for path in (store.session_dir, store.primary_path, store.lock_path)
+        )
+
+        result = prune_state_root(self.root, store.session_id, self.policy(), now)
+
+        self.assertEqual(result.remaining_bytes, expected_bytes)
+
+    def test_old_session_with_unrelated_file_fails_without_deleting_or_metadata(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        store = self.ready_store("old-with-unrelated")
+        self.age_session(store, now - timedelta(days=31))
+        primary_bytes = store.primary_path.read_bytes()
+        unrelated = store.session_dir / "operator-notes.txt"
+        unrelated.write_bytes(b"keep")
+
+        with self.assertRaisesRegex(StoreError, "unrelated"):
+            prune_state_root(self.root, "active", self.policy(), now)
+
+        self.assertEqual(unrelated.read_bytes(), b"keep")
+        self.assertEqual(store.primary_path.read_bytes(), primary_bytes)
+        self.assertFalse((self.root / codex_context_store.CLEANUP_METADATA_NAME).exists())
+
+    def test_final_rescan_rejects_unsatisfied_age_limit(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        store = self.ready_store("old-not-removed")
+        self.age_session(store, now - timedelta(days=31))
+
+        with mock.patch.object(
+            codex_context_store, "_delete_record", return_value=(0, 0, False)
+        ):
+            with self.assertRaisesRegex(StoreError, "age limit"):
+                prune_state_root(self.root, "active", self.policy(), now)
+
+        self.assertTrue(store.primary_path.exists())
+        self.assertFalse((self.root / codex_context_store.CLEANUP_METADATA_NAME).exists())
 
     def test_future_cleanup_metadata_cannot_disable_retention(self):
         now = datetime(2026, 7, 9, tzinfo=timezone.utc)
@@ -1500,11 +1871,49 @@ class StoreTests(unittest.TestCase):
         root_unrelated = self.root / "notes.txt"
         root_unrelated.write_text("keep", encoding="utf-8")
 
-        prune_state_root(self.root, "active", self.policy(), now)
+        with self.assertRaisesRegex(StoreError, "unrelated"):
+            prune_state_root(self.root, "active", self.policy(), now)
 
-        self.assertFalse(store.primary_path.exists())
+        self.assertTrue(store.primary_path.exists())
         self.assertTrue(unrelated.exists())
         self.assertTrue(root_unrelated.exists())
+
+    def test_reserved_session_directories_are_not_owned_or_deleted(self):
+        codex_context_store._ensure_private_directory(self.root)
+        reserved_paths: list[Path] = []
+        for index, name in enumerate(("cleanup", "metadata", "cleanup.meta.json")):
+            directory = self.root / name
+            directory.mkdir(mode=0o700)
+            temp_path = directory / (
+                ".primary.json." + f"{index:x}" * 32 + ".tmp"
+            )
+            temp_path.write_bytes(b"reserved")
+            os.chmod(temp_path, 0o600)
+            reserved_paths.append(temp_path)
+
+        self.assertEqual(codex_context_store._scan_session_records(self.root), [])
+
+        for path in reserved_paths:
+            self.assertEqual(path.read_bytes(), b"reserved")
+
+    def test_cleanup_preserves_reserved_session_directories(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        codex_context_store._ensure_private_directory(self.root)
+        reserved_files: list[Path] = []
+        for index, name in enumerate(("cleanup", "metadata")):
+            directory = self.root / name
+            directory.mkdir(mode=0o700)
+            temp_path = directory / (
+                ".primary.json." + f"{index + 8:x}" * 32 + ".tmp"
+            )
+            temp_path.write_bytes(b"reserved")
+            os.chmod(temp_path, 0o600)
+            reserved_files.append(temp_path)
+
+        prune_state_root(self.root, "active", self.policy(), now)
+
+        for path in reserved_files:
+            self.assertEqual(path.read_bytes(), b"reserved")
 
     def test_invalid_policy_and_environment_values_fail_visibly(self):
         defaults = RetentionPolicy()
