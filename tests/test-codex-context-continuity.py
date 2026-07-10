@@ -9,6 +9,7 @@ import os
 import stat
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -861,6 +862,96 @@ class StoreTests(unittest.TestCase):
         with self.assertRaises(IntegrityError):
             store.load_primary()
 
+    def test_lock_creation_tolerates_unavailable_fchmod(self):
+        store = self.new_store("portable-lock")
+        fchmod = getattr(codex_context_store.os, "fchmod", None)
+        if fchmod is not None:
+            delattr(codex_context_store.os, "fchmod")
+
+        try:
+            with store._locked():
+                pass
+        finally:
+            if fchmod is not None:
+                setattr(codex_context_store.os, "fchmod", fchmod)
+
+        self.assertTrue(store.lock_path.exists())
+
+    def test_session_directory_creation_waits_for_lifecycle_lock(self):
+        codex_context_store._ensure_private_directory(self.root)
+        lifecycle_path = self.root / codex_context_store.LIFECYCLE_LOCK_NAME
+        session_path = self.root / "lifecycle-created"
+        construction_started = threading.Event()
+        failures: list[BaseException] = []
+
+        def construct_store() -> None:
+            construction_started.set()
+            try:
+                SessionStore(self.root, "lifecycle-created", lock_timeout_seconds=1.0)
+            except BaseException as exc:
+                failures.append(exc)
+
+        with codex_context_store._bounded_lock(lifecycle_path, 1.0):
+            thread = threading.Thread(target=construct_store)
+            thread.start()
+            self.assertTrue(construction_started.wait(0.5))
+            time.sleep(0.05)
+            created_while_lifecycle_held = session_path.exists()
+
+        thread.join(1.0)
+        self.assertFalse(thread.is_alive())
+        self.assertEqual(failures, [])
+        self.assertFalse(created_while_lifecycle_held)
+        self.assertTrue(session_path.exists())
+
+    def test_temp_creation_tolerates_unavailable_fchmod(self):
+        store = self.new_store("portable-temp")
+        fchmod = getattr(codex_context_store.os, "fchmod", None)
+        if fchmod is not None:
+            delattr(codex_context_store.os, "fchmod")
+
+        try:
+            temp_path = codex_context_store._prepare_temp(
+                store.session_dir, "portable.json", b"{}"
+            )
+        finally:
+            if fchmod is not None:
+                setattr(codex_context_store.os, "fchmod", fchmod)
+
+        self.assertEqual(temp_path.read_bytes(), b"{}")
+
+    def test_unlock_failure_closes_descriptor_and_does_not_poison_next_lock(self):
+        store = self.new_store("unlock-close")
+        closed_descriptors: list[int] = []
+        real_close = os.close
+
+        def recording_close(descriptor: int) -> None:
+            closed_descriptors.append(descriptor)
+            real_close(descriptor)
+
+        with mock.patch.object(
+            codex_context_store, "_unlock", side_effect=OSError("unlock boom")
+        ), mock.patch.object(
+            codex_context_store.os, "close", side_effect=recording_close
+        ):
+            with self.assertRaisesRegex(StoreError, "unlock boom"):
+                with codex_context_store._bounded_lock(store.lock_path, 0.1):
+                    pass
+
+        self.assertTrue(closed_descriptors)
+        with codex_context_store._bounded_lock(store.lock_path, 0.1):
+            pass
+
+    def test_body_exception_wins_when_unlock_also_fails(self):
+        store = self.new_store("unlock-body-error")
+
+        with mock.patch.object(
+            codex_context_store, "_unlock", side_effect=OSError("unlock boom")
+        ):
+            with self.assertRaisesRegex(RuntimeError, "body boom"):
+                with codex_context_store._bounded_lock(store.lock_path, 0.1):
+                    raise RuntimeError("body boom")
+
     def test_failed_replace_preserves_primary_and_cleans_unique_temp(self):
         store = self.ready_store("replace-failure")
         original = store.primary_path.read_bytes()
@@ -887,6 +978,41 @@ class StoreTests(unittest.TestCase):
         self.assertFalse(store.primary_path.exists())
         self.assertEqual(list(store.session_dir.glob("*.tmp")), [])
         self.assertEqual(list(store.session_dir.glob(".*.tmp")), [])
+
+    def test_temp_unlink_failure_reports_original_write_failure(self):
+        store = self.new_store("write-cleanup-failure")
+
+        with mock.patch.object(
+            codex_context_store.os, "fsync", side_effect=OSError("write boom")
+        ), mock.patch.object(
+            Path, "unlink", side_effect=OSError("cleanup denied")
+        ):
+            with self.assertRaises(StoreError) as raised:
+                codex_context_store._prepare_temp(
+                    store.session_dir, "primary.json", b"{}"
+                )
+
+        message = str(raised.exception)
+        self.assertIn("write boom", message)
+        self.assertIn("cleanup denied", message)
+
+    def test_temp_unlink_failure_reports_original_publish_failure(self):
+        store = self.new_store("publish-cleanup-failure")
+        temp_path = codex_context_store._prepare_temp(
+            store.session_dir, "primary.json", b"{}"
+        )
+
+        with mock.patch.object(
+            codex_context_store.os, "replace", side_effect=OSError("publish boom")
+        ), mock.patch.object(
+            Path, "unlink", side_effect=OSError("cleanup denied")
+        ):
+            with self.assertRaises(StoreError) as raised:
+                codex_context_store._publish_temp(temp_path, store.primary_path)
+
+        message = str(raised.exception)
+        self.assertIn("publish boom", message)
+        self.assertIn("cleanup denied", message)
 
     def test_checkpoint_rotation_keeps_exactly_three_full_generations(self):
         store = self.ready_store("rotation")
@@ -1094,6 +1220,33 @@ class StoreTests(unittest.TestCase):
         self.assertNotIsInstance(raised.exception.__cause__, json.JSONDecodeError)
         self.assertEqual(store.load_recovery_pair().status, RecoveryStatus.CORRUPT)
 
+    def test_read_rejects_file_swapped_between_lstat_and_open(self):
+        store = self.ready_store("read-swap")
+        replacement = store.session_dir / "replacement.json"
+        replacement.write_bytes(store.primary_path.read_bytes())
+        os.chmod(replacement, 0o600)
+        displaced = store.session_dir / "displaced.json"
+        real_open = os.open
+        swapped = False
+
+        def swapping_open(
+            path: object, flags: int, mode: int = 0o777, *, dir_fd: int | None = None
+        ) -> int:
+            nonlocal swapped
+            if Path(path) == store.primary_path and not swapped:
+                swapped = True
+                os.replace(store.primary_path, displaced)
+                os.replace(replacement, store.primary_path)
+            if dir_fd is None:
+                return real_open(path, flags, mode)
+            return real_open(path, flags, mode, dir_fd=dir_fd)
+
+        with mock.patch.object(codex_context_store.os, "open", side_effect=swapping_open):
+            with self.assertRaises(IntegrityError):
+                codex_context_store._read_json(store.primary_path, "swapped primary")
+
+        self.assertTrue(swapped)
+
     def test_retention_prunes_sessions_older_than_thirty_days(self):
         now = datetime(2026, 7, 9, tzinfo=timezone.utc)
         old = self.ready_store("old")
@@ -1228,37 +1381,105 @@ class StoreTests(unittest.TestCase):
         parsed = json.loads(metadata.read_text(encoding="utf-8"))
         self.assertEqual(metadata.read_bytes(), canonical_json_bytes(parsed))
 
-    def test_retention_does_not_unlink_a_held_session_lock(self):
+    def test_cleanup_waits_for_inflight_state_operation_before_removing_session(self):
         now = datetime(2026, 7, 9, tzinfo=timezone.utc)
         store = self.ready_store("held-retention-lock")
         self.age_session(store, now - timedelta(days=31))
-        lock_inode = store.lock_path.stat().st_ino
+        state_entered = threading.Event()
+        release_state = threading.Event()
+        cleanup_started = threading.Event()
+        failures: list[BaseException] = []
+        lock_inode: list[int] = []
 
-        with store._locked():
-            with self.assertRaises(LockTimeout):
+        def state_operation() -> None:
+            try:
+                with store._locked(timeout_seconds=1.0):
+                    lock_inode.append(store.lock_path.stat().st_ino)
+                    state_entered.set()
+                    if not release_state.wait(1.0):
+                        raise AssertionError("state operation release timed out")
+            except BaseException as exc:
+                failures.append(exc)
+
+        def cleanup() -> None:
+            cleanup_started.set()
+            try:
                 prune_state_root(
                     self.root,
                     "active",
-                    self.policy(lock_timeout_seconds=0.05),
+                    self.policy(lock_timeout_seconds=1.0),
                     now,
                 )
+            except BaseException as exc:
+                failures.append(exc)
 
-        self.assertTrue(store.primary_path.exists())
-        self.assertEqual(store.lock_path.stat().st_ino, lock_inode)
+        state_thread = threading.Thread(target=state_operation)
+        cleanup_thread = threading.Thread(target=cleanup)
+        state_thread.start()
+        self.assertTrue(state_entered.wait(0.5))
+        cleanup_thread.start()
+        self.assertTrue(cleanup_started.wait(0.5))
+        time.sleep(0.05)
 
-    def test_retention_leaves_only_fixed_lock_overhead_for_pruned_session(self):
-        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
-        store = self.ready_store("pruned-lock-overhead")
-        self.age_session(store, now - timedelta(days=31))
-        lock_inode = store.lock_path.stat().st_ino
+        self.assertTrue(cleanup_thread.is_alive())
+        self.assertEqual(store.lock_path.stat().st_ino, lock_inode[0])
+        release_state.set()
+        state_thread.join(1.0)
+        cleanup_thread.join(1.0)
 
-        result = prune_state_root(self.root, "active", self.policy(), now)
+        self.assertFalse(state_thread.is_alive())
+        self.assertFalse(cleanup_thread.is_alive())
+        self.assertEqual(failures, [])
+        self.assertFalse(store.session_dir.exists())
 
-        self.assertEqual([path.name for path in store.session_dir.iterdir()], [".session.lock"])
-        self.assertEqual(store.lock_path.stat().st_ino, lock_inode)
-        self.assertLessEqual(store.lock_path.stat().st_size, 1)
-        self.assertEqual(result.remaining_sessions, 0)
-        self.assertEqual(result.remaining_bytes, 0)
+    def test_retention_bounds_empty_and_lock_only_session_artifacts(self):
+        now = datetime(1970, 1, 2, tzinfo=timezone.utc)
+        active = self.ready_store("active")
+        inactive = [self.new_store(f"inactive-{index:02d}") for index in range(12)]
+        for store in inactive[::2]:
+            with store._locked():
+                pass
+
+        result = prune_state_root(
+            self.root,
+            "active",
+            self.policy(inactive_days=3650, max_inactive_sessions=4),
+            now,
+        )
+
+        remaining_inactive = [store for store in inactive if store.session_dir.exists()]
+        remaining_locks = list(self.root.glob("inactive-*/.session.lock"))
+        self.assertTrue(active.primary_path.exists())
+        self.assertEqual(len(remaining_inactive), 4)
+        self.assertLessEqual(len(remaining_locks), 4)
+        self.assertEqual(result.remaining_sessions, 5)
+        self.assertTrue(
+            all(
+                set(path.name for path in store.session_dir.iterdir())
+                <= {codex_context_store.SESSION_LOCK_NAME}
+                for store in remaining_inactive
+            )
+        )
+
+    def test_retention_accounts_for_session_lock_and_exact_temp_bytes(self):
+        now = datetime(1970, 1, 2, tzinfo=timezone.utc)
+        store = self.new_store("artifact-accounting")
+        with store._locked():
+            pass
+        store.lock_path.write_bytes(b"x")
+        temp_path = store.session_dir / (".primary.json." + "a" * 32 + ".tmp")
+        temp_path.write_bytes(b"temp")
+        os.chmod(temp_path, 0o600)
+
+        result = prune_state_root(
+            self.root,
+            "active",
+            self.policy(inactive_days=3650),
+            now,
+        )
+
+        self.assertEqual(result.remaining_sessions, 1)
+        self.assertEqual(result.remaining_bytes, 5)
 
     def test_future_cleanup_metadata_cannot_disable_retention(self):
         now = datetime(2026, 7, 9, tzinfo=timezone.utc)

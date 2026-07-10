@@ -33,6 +33,7 @@ LATEST_CHECKPOINT_NAME = "checkpoint.latest.json"
 PREVIOUS_CHECKPOINT_NAME = "checkpoint.previous.json"
 SESSION_LOCK_NAME = ".session.lock"
 CLEANUP_LOCK_NAME = ".cleanup.lock"
+LIFECYCLE_LOCK_NAME = ".lifecycle.lock"
 CLEANUP_METADATA_NAME = "cleanup.meta.json"
 
 _FULL_GENERATION_NAMES = {
@@ -71,9 +72,9 @@ _MAX_LOCK_BYTES = 1
 _LOCK_POLL_SECONDS = 0.01
 _EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
-# Retention bytes cover generations and owned temporary payloads. Advisory locks
-# (at most one byte each) and the single bounded root metadata file are control
-# overhead. Lock paths stay on their original inode to avoid unlink/recreate races.
+# Lock order is cleanup (cleanup only) -> lifecycle -> session; reversing it deadlocks.
+# Per-session accounting includes directories, locks, generations, and exact temps.
+# Root cleanup/lifecycle locks and cleanup metadata are fixed singleton overhead.
 
 
 class StoreError(RuntimeError):
@@ -204,6 +205,33 @@ def _validate_session_id(session_id: object) -> str:
     return session_id
 
 
+def _enforce_directory_mode(path: Path, info: os.stat_result) -> None:
+    if os.name != "posix" or stat.S_IMODE(info.st_mode) == 0o700:
+        return
+    chmod = getattr(os, "chmod", None)
+    if not callable(chmod):
+        raise StoreError("cannot enforce private directory permissions")
+    try:
+        supports_follow = chmod in getattr(os, "supports_follow_symlinks", set())
+        if supports_follow:
+            chmod(path, 0o700, follow_symlinks=False)
+        else:
+            chmod(path, 0o700)
+    except (NotImplementedError, OSError) as exc:
+        raise StoreError(f"cannot enforce private directory permissions: {exc}") from None
+
+
+def _enforce_descriptor_mode(descriptor: int, mode: int) -> None:
+    if os.name != "posix":
+        return
+    fchmod = getattr(os, "fchmod", None)
+    if callable(fchmod):
+        fchmod(descriptor, mode)
+        return
+    if stat.S_IMODE(os.fstat(descriptor).st_mode) != mode:
+        raise OSError(errno.ENOTSUP, "descriptor permission enforcement is unavailable")
+
+
 def _ensure_private_directory(path: Path) -> None:
     if path.is_symlink():
         raise StoreError("state directory must not be a symlink")
@@ -216,10 +244,22 @@ def _ensure_private_directory(path: Path) -> None:
         raise StoreError("state directory is not a directory")
     if os.name == "posix" and info.st_uid != os.geteuid():
         raise StoreError("state directory is not owned by the current user")
-    try:
-        os.chmod(path, 0o700, follow_symlinks=False)
-    except (NotImplementedError, OSError) as exc:
-        raise StoreError(f"cannot enforce private directory permissions: {exc}") from None
+    _enforce_directory_mode(path, info)
+
+
+def _validate_owned_file_info(info: os.stat_result, *, descriptor: bool = False) -> None:
+    if (not descriptor and stat.S_ISLNK(info.st_mode)) or not stat.S_ISREG(info.st_mode):
+        raise IntegrityError("managed path is not a regular non-symlink file")
+    if info.st_nlink != 1:
+        raise IntegrityError("managed file has an ambiguous hard-link owner")
+    if os.name == "posix" and info.st_uid != os.geteuid():
+        raise IntegrityError("managed file is not owned by the current user")
+    if os.name == "posix" and stat.S_IMODE(info.st_mode) != 0o600:
+        raise IntegrityError("managed file permissions are not private")
+
+
+def _same_file_identity(left: os.stat_result, right: os.stat_result) -> bool:
+    return (left.st_dev, left.st_ino) == (right.st_dev, right.st_ino)
 
 
 def _check_owned_file(path: Path, *, allow_missing: bool = True) -> os.stat_result | None:
@@ -231,14 +271,7 @@ def _check_owned_file(path: Path, *, allow_missing: bool = True) -> os.stat_resu
         raise IntegrityError("managed file is missing") from None
     except OSError as exc:
         raise IntegrityError(f"cannot inspect managed file: {exc.strerror or exc}") from None
-    if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode):
-        raise IntegrityError("managed path is not a regular non-symlink file")
-    if info.st_nlink != 1:
-        raise IntegrityError("managed file has an ambiguous hard-link owner")
-    if os.name == "posix" and info.st_uid != os.geteuid():
-        raise IntegrityError("managed file is not owned by the current user")
-    if os.name == "posix" and stat.S_IMODE(info.st_mode) != 0o600:
-        raise IntegrityError("managed file permissions are not private")
+    _validate_owned_file_info(info)
     return info
 
 
@@ -260,15 +293,20 @@ def _safe_open_lock(path: Path) -> int:
         flags |= os.O_NOFOLLOW
     descriptor: int | None = None
     try:
+        before = _check_owned_file(path)
         descriptor = os.open(path, flags, 0o600)
         info = os.fstat(descriptor)
-        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-            raise IntegrityError("lock path is not an unambiguous regular file")
+        _enforce_descriptor_mode(descriptor, 0o600)
+        info = os.fstat(descriptor)
+        _validate_owned_file_info(info, descriptor=True)
         if info.st_size > _MAX_LOCK_BYTES:
             raise IntegrityError("lock file exceeds fixed control-plane overhead")
-        if os.name == "posix" and info.st_uid != os.geteuid():
-            raise IntegrityError("lock file is not owned by the current user")
-        os.fchmod(descriptor, 0o600)
+        after = _check_owned_file(path, allow_missing=False)
+        assert after is not None
+        if not _same_file_identity(info, after) or (
+            before is not None and not _same_file_identity(before, info)
+        ):
+            raise IntegrityError("lock path changed while it was being opened")
         if os.name == "nt" and info.st_size == 0:
             os.write(descriptor, b"\0")
             os.fsync(descriptor)
@@ -316,11 +354,9 @@ def _unlock(descriptor: int) -> None:
     fcntl.flock(descriptor, fcntl.LOCK_UN)
 
 
-@contextmanager
-def _bounded_lock(path: Path, timeout_seconds: float) -> Iterator[None]:
+def _acquire_bounded_lock(path: Path, timeout_seconds: float) -> int:
     descriptor = _safe_open_lock(path)
     deadline = time.monotonic() + timeout_seconds
-    acquired = False
     try:
         while True:
             try:
@@ -328,18 +364,57 @@ def _bounded_lock(path: Path, timeout_seconds: float) -> Iterator[None]:
             except OSError as exc:
                 raise StoreError(f"advisory lock failed: {exc.strerror or exc}") from None
             if acquired:
-                break
+                return descriptor
             if time.monotonic() >= deadline:
                 raise LockTimeout(f"advisory lock timed out after {timeout_seconds:g} seconds")
             time.sleep(min(_LOCK_POLL_SECONDS, max(0.0, deadline - time.monotonic())))
-        yield
-    finally:
-        if acquired:
-            try:
-                _unlock(descriptor)
-            except OSError as exc:
-                raise StoreError(f"advisory unlock failed: {exc.strerror or exc}") from None
+    except BaseException:
         os.close(descriptor)
+        raise
+
+
+def _release_lock(descriptor: int) -> None:
+    unlock_error: OSError | None = None
+    close_error: OSError | None = None
+    try:
+        _unlock(descriptor)
+    except OSError as exc:
+        unlock_error = exc
+    try:
+        os.close(descriptor)
+    except OSError as exc:
+        close_error = exc
+    if unlock_error is not None:
+        raise StoreError(
+            f"advisory unlock failed: {unlock_error.strerror or unlock_error}"
+        ) from None
+    if close_error is not None:
+        raise StoreError(
+            f"advisory lock close failed: {close_error.strerror or close_error}"
+        ) from None
+
+
+@contextmanager
+def _held_lock_descriptor(descriptor: int) -> Iterator[None]:
+    body_error: BaseException | None = None
+    try:
+        yield
+    except BaseException as exc:
+        body_error = exc
+        raise
+    finally:
+        try:
+            _release_lock(descriptor)
+        except StoreError:
+            if body_error is None:
+                raise
+
+
+@contextmanager
+def _bounded_lock(path: Path, timeout_seconds: float) -> Iterator[None]:
+    descriptor = _acquire_bounded_lock(path, timeout_seconds)
+    with _held_lock_descriptor(descriptor):
+        yield
 
 
 def _fsync_directory(directory: Path) -> None:
@@ -363,6 +438,19 @@ def _fsync_directory(directory: Path) -> None:
         os.close(descriptor)
 
 
+def _cleanup_temp_after_failure(
+    temp_path: Path, original: BaseException, operation: str
+) -> None:
+    try:
+        temp_path.unlink()
+    except FileNotFoundError:
+        return
+    except OSError as cleanup_error:
+        raise StoreError(
+            f"{operation}: {original}; temporary cleanup failed: {cleanup_error}"
+        ) from None
+
+
 def _prepare_temp(directory: Path, target_name: str, content: bytes) -> Path:
     temp_path = directory / f".{target_name}.{uuid.uuid4().hex}.tmp"
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
@@ -371,7 +459,7 @@ def _prepare_temp(directory: Path, target_name: str, content: bytes) -> Path:
     descriptor: int | None = None
     try:
         descriptor = os.open(temp_path, flags, 0o600)
-        os.fchmod(descriptor, 0o600)
+        _enforce_descriptor_mode(descriptor, 0o600)
         with os.fdopen(descriptor, "wb") as stream:
             descriptor = None
             stream.write(content)
@@ -381,12 +469,7 @@ def _prepare_temp(directory: Path, target_name: str, content: bytes) -> Path:
     except (OSError, ValueError) as exc:
         if descriptor is not None:
             os.close(descriptor)
-        try:
-            temp_path.unlink()
-        except FileNotFoundError:
-            pass
-        except OSError:
-            pass
+        _cleanup_temp_after_failure(temp_path, exc, "durable temporary write failed")
         raise StoreError(f"durable temporary write failed: {exc}") from None
 
 
@@ -396,29 +479,39 @@ def _publish_temp(temp_path: Path, target_path: Path) -> None:
         os.replace(temp_path, target_path)
         _fsync_directory(target_path.parent)
     except (OSError, StoreError, IntegrityError) as exc:
-        try:
-            temp_path.unlink()
-        except FileNotFoundError:
-            pass
-        except OSError:
-            pass
+        _cleanup_temp_after_failure(temp_path, exc, "atomic state publish failed")
         if isinstance(exc, (StoreError, IntegrityError)):
             raise
         raise StoreError(f"atomic state publish failed: {exc.strerror or exc}") from None
 
 
 def _read_json(path: Path, kind: str) -> object | None:
-    if _check_owned_file(path) is None:
+    before = _check_owned_file(path)
+    if before is None:
         return None
     flags = os.O_RDONLY
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
+    descriptor: int | None = None
     try:
         descriptor = os.open(path, flags)
+        descriptor_info = os.fstat(descriptor)
+        _validate_owned_file_info(descriptor_info, descriptor=True)
+        after = _check_owned_file(path, allow_missing=False)
+        assert after is not None
+        if not (
+            _same_file_identity(before, descriptor_info)
+            and _same_file_identity(descriptor_info, after)
+        ):
+            raise IntegrityError(f"{kind} changed while it was being opened")
         with os.fdopen(descriptor, "rb") as stream:
+            descriptor = None
             content = stream.read(_MAX_JSON_BYTES + 1)
     except OSError as exc:
         raise IntegrityError(f"cannot read {kind}: {exc.strerror or exc}") from None
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
     if len(content) > _MAX_JSON_BYTES:
         raise IntegrityError(f"{kind} exceeds the managed size limit")
     try:
@@ -534,16 +627,21 @@ class SessionStore:
         self.session_dir = self.root / self.session_id
         if self.session_dir.parent.resolve() != self.root.resolve():
             raise StoreError("session path escapes the state root")
-        _ensure_private_directory(self.session_dir)
         self.primary_path = self.session_dir / PRIMARY_NAME
         self.latest_checkpoint_path = self.session_dir / LATEST_CHECKPOINT_NAME
         self.previous_checkpoint_path = self.session_dir / PREVIOUS_CHECKPOINT_NAME
         self.lock_path = self.session_dir / SESSION_LOCK_NAME
+        self.lifecycle_lock_path = self.root / LIFECYCLE_LOCK_NAME
+        with _bounded_lock(self.lifecycle_lock_path, self.lock_timeout_seconds):
+            _ensure_private_directory(self.session_dir)
 
     @contextmanager
     def _locked(self, *, timeout_seconds: float | None = None) -> Iterator[None]:
         timeout = self.lock_timeout_seconds if timeout_seconds is None else timeout_seconds
-        with _bounded_lock(self.lock_path, float(timeout)):
+        with _bounded_lock(self.lifecycle_lock_path, float(timeout)):
+            _ensure_private_directory(self.session_dir)
+            session_descriptor = _acquire_bounded_lock(self.lock_path, float(timeout))
+        with _held_lock_descriptor(session_descriptor):
             yield
 
     def _load_primary_unlocked(self) -> dict[str, object] | None:
@@ -615,11 +713,10 @@ class SessionStore:
                 verify_snapshot(candidate)
                 _publish_temp(temp_path, self.primary_path)
                 published = self._load_primary_unlocked()
-            except (IntegrityError, SnapshotValidationError, StoreError):
-                try:
-                    temp_path.unlink()
-                except FileNotFoundError:
-                    pass
+            except (IntegrityError, SnapshotValidationError, StoreError) as exc:
+                _cleanup_temp_after_failure(
+                    temp_path, exc, "primary candidate processing failed"
+                )
                 raise
             if published != snapshot:
                 raise IntegrityError("published primary differs from the verified candidate")
@@ -685,13 +782,10 @@ class SessionStore:
                 published = self._load_checkpoint_unlocked(
                     self.latest_checkpoint_path, "latest checkpoint"
                 )
-            except (IntegrityError, StoreError, OSError):
-                try:
-                    temp_path.unlink()
-                except FileNotFoundError:
-                    pass
-                except OSError:
-                    pass
+            except (IntegrityError, StoreError, OSError) as exc:
+                _cleanup_temp_after_failure(
+                    temp_path, exc, "checkpoint candidate processing failed"
+                )
                 raise
             if published != checkpoint:
                 raise IntegrityError("published checkpoint differs from verified candidate")
@@ -827,11 +921,10 @@ class SessionStore:
                 verify_snapshot(_read_json(temp_path, "temporary restored primary"))
                 _publish_temp(temp_path, self.primary_path)
                 restored = self._load_primary_unlocked()
-            except (SnapshotValidationError, IntegrityError, StoreError):
-                try:
-                    temp_path.unlink()
-                except FileNotFoundError:
-                    pass
+            except (SnapshotValidationError, IntegrityError, StoreError) as exc:
+                _cleanup_temp_after_failure(
+                    temp_path, exc, "restored primary candidate processing failed"
+                )
                 raise
             if restored != snapshot:
                 raise IntegrityError("restored primary differs from the checkpoint snapshot")
@@ -845,8 +938,15 @@ def _owned_session_files(directory: Path) -> list[Path]:
     except OSError as exc:
         raise StoreError(f"cannot scan managed session: {exc.strerror or exc}") from None
     for path in children:
-        if path.name in _FULL_GENERATION_NAMES or _TEMP_NAME_RE.fullmatch(path.name):
-            _check_owned_file(path, allow_missing=False)
+        if (
+            path.name in _FULL_GENERATION_NAMES
+            or path.name == SESSION_LOCK_NAME
+            or _TEMP_NAME_RE.fullmatch(path.name)
+        ):
+            info = _check_owned_file(path, allow_missing=False)
+            assert info is not None
+            if path.name == SESSION_LOCK_NAME and info.st_size > _MAX_LOCK_BYTES:
+                raise IntegrityError("lock file exceeds fixed control-plane overhead")
             files.append(path)
     return files
 
@@ -855,6 +955,8 @@ def _record_timestamp(files: list[Path], session_id: str) -> datetime:
     timestamps: list[datetime] = []
     invalid = False
     for path in files:
+        if path.name == SESSION_LOCK_NAME:
+            continue
         if _TEMP_NAME_RE.fullmatch(path.name):
             invalid = True
             continue
@@ -894,8 +996,6 @@ def _scan_session_records(root: Path) -> list[_SessionRecord]:
             continue
         _ensure_private_directory(directory)
         files = _owned_session_files(directory)
-        if not files:
-            continue
         total_bytes = 0
         for path in files:
             info = _check_owned_file(path, allow_missing=False)
@@ -959,42 +1059,82 @@ def _delete_owned_root_temps(root: Path) -> tuple[int, int]:
     return deleted_files, deleted_bytes
 
 
-def _delete_record(record: _SessionRecord, timeout_seconds: float) -> tuple[int, int]:
+def _delete_record(
+    root: Path, record: _SessionRecord, timeout_seconds: float
+) -> tuple[int, int, bool]:
     lock_path = record.directory / SESSION_LOCK_NAME
     deleted_files = 0
     deleted_bytes = 0
-    with _bounded_lock(lock_path, timeout_seconds):
+    with _bounded_lock(root / LIFECYCLE_LOCK_NAME, timeout_seconds):
+        if not record.directory.exists():
+            return 0, 0, True
+        if record.directory.is_symlink() or not record.directory.is_dir():
+            raise StoreError("retention candidate is no longer a safe session directory")
+        session_descriptor = _acquire_bounded_lock(lock_path, timeout_seconds)
+        lock_info = os.fstat(session_descriptor)
+        with _held_lock_descriptor(session_descriptor):
+            try:
+                current_files = _owned_session_files(record.directory)
+                current_payload = [
+                    path for path in current_files if path.name != SESSION_LOCK_NAME
+                ]
+                expected_payload = [
+                    path for path in record.files if path.name != SESSION_LOCK_NAME
+                ]
+                current_sizes = {
+                    path.name: path.stat(follow_symlinks=False).st_size
+                    for path in current_payload
+                }
+                expected_sizes = {
+                    path.name: path.stat(follow_symlinks=False).st_size
+                    for path in expected_payload
+                }
+            except OSError as exc:
+                raise StoreError(
+                    f"cannot revalidate retention candidate: {exc.strerror or exc}"
+                ) from None
+            if (
+                current_sizes != expected_sizes
+                or _record_timestamp(current_payload, record.session_id)
+                != record.updated_at
+            ):
+                raise StoreError("session changed while retention was selecting candidates")
+            for path in current_payload:
+                try:
+                    size = path.stat(follow_symlinks=False).st_size
+                    path.unlink()
+                except FileNotFoundError:
+                    continue
+                except OSError as exc:
+                    raise StoreError(
+                        f"cannot delete managed generation: {exc.strerror or exc}"
+                    ) from None
+                deleted_files += 1
+                deleted_bytes += size
+            _fsync_directory(record.directory)
+
+        current_lock = _check_owned_file(lock_path, allow_missing=False)
+        assert current_lock is not None
+        if not _same_file_identity(lock_info, current_lock):
+            raise IntegrityError("session lock changed during lifecycle handoff")
         try:
-            current_files = _owned_session_files(record.directory)
-            current_sizes = {
-                path.name: path.stat(follow_symlinks=False).st_size
-                for path in current_files
-            }
-            expected_sizes = {
-                path.name: path.stat(follow_symlinks=False).st_size
-                for path in record.files
-            }
+            lock_path.unlink()
+        except OSError as exc:
+            raise StoreError(f"cannot delete inactive session lock: {exc.strerror or exc}") from None
+        deleted_files += 1
+        deleted_bytes += current_lock.st_size
+        _fsync_directory(record.directory)
+
+        try:
+            if any(record.directory.iterdir()):
+                return deleted_files, deleted_bytes, False
+            record.directory.rmdir()
         except OSError as exc:
             raise StoreError(
-                f"cannot revalidate retention candidate: {exc.strerror or exc}"
+                f"cannot remove inactive session directory: {exc.strerror or exc}"
             ) from None
-        if (
-            current_sizes != expected_sizes
-            or _record_timestamp(current_files, record.session_id) != record.updated_at
-        ):
-            raise StoreError("session changed while retention was selecting candidates")
-        for path in current_files:
-            try:
-                size = path.stat(follow_symlinks=False).st_size
-                path.unlink()
-            except FileNotFoundError:
-                continue
-            except OSError as exc:
-                raise StoreError(f"cannot delete managed generation: {exc.strerror or exc}") from None
-            deleted_files += 1
-            deleted_bytes += size
-        _fsync_directory(record.directory)
-    return deleted_files, deleted_bytes
+        _fsync_directory(root)
+        return deleted_files, deleted_bytes, True
 
 
 def _cleanup_result(
@@ -1100,12 +1240,14 @@ def prune_state_root(
 
         deleted_files = root_temp_files
         deleted_bytes = root_temp_bytes
+        deleted_sessions = 0
         for record in selected:
-            file_count, byte_count = _delete_record(
-                record, policy.lock_timeout_seconds
+            file_count, byte_count, removed_session = _delete_record(
+                root, record, policy.lock_timeout_seconds
             )
             deleted_files += file_count
             deleted_bytes += byte_count
+            deleted_sessions += int(removed_session)
 
         remaining_records = _scan_session_records(root)
         remaining_bytes = sum(record.total_bytes for record in remaining_records)
@@ -1118,7 +1260,7 @@ def prune_state_root(
             raise StoreError("byte limit cannot be satisfied without deleting the active session")
 
         result = CleanupResult(
-            deleted_sessions=len(selected),
+            deleted_sessions=deleted_sessions,
             deleted_files=deleted_files,
             deleted_bytes=deleted_bytes,
             remaining_sessions=len(remaining_records),
