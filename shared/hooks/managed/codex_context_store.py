@@ -43,6 +43,9 @@ _FULL_GENERATION_NAMES = {
 }
 _SESSION_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _RESERVED_SESSION_IDS = frozenset({"cleanup.meta.json", "cleanup", "metadata"})
+_WINDOWS_DEVICE_BASENAME_RE = re.compile(
+    r"^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$", re.IGNORECASE
+)
 _TEMP_NAME_RE = re.compile(
     r"^\.(?:primary\.json|checkpoint\.(?:latest|previous)\.json)\.[0-9a-f]{32}\.tmp$"
 )
@@ -192,26 +195,58 @@ class CleanupResult:
 @dataclass
 class _SessionRecord:
     session_id: str
+    session_key: str
     directory: Path
     files: list[Path]
     updated_at: datetime
     total_bytes: int
+    has_unrelated_content: bool
 
 
-def _is_valid_session_id(session_id: object) -> bool:
+def _filesystem_session_key(
+    session_id: object, *, platform_semantics: str | None = None
+) -> str | None:
+    semantics = os.name if platform_semantics is None else platform_semantics
+    if semantics not in {"nt", "posix"}:
+        raise StoreError("platform semantics must be 'nt' or 'posix'")
+    if not isinstance(session_id, str) or _SESSION_ID_RE.fullmatch(session_id) is None:
+        return None
+    folded = session_id.casefold()
+    basename = session_id.split(".", 1)[0]
+    if (
+        session_id.endswith(".")
+        or folded in _RESERVED_SESSION_IDS
+        or _WINDOWS_DEVICE_BASENAME_RE.fullmatch(basename) is not None
+    ):
+        return None
+    return folded if semantics == "nt" else session_id
+
+
+def _is_owned_session_id(
+    session_id: object, *, platform_semantics: str | None = None
+) -> bool:
     return (
-        isinstance(session_id, str)
-        and _SESSION_ID_RE.fullmatch(session_id) is not None
-        and session_id not in _RESERVED_SESSION_IDS
+        _filesystem_session_key(
+            session_id, platform_semantics=platform_semantics
+        )
+        is not None
     )
 
 
-def _validate_session_id(session_id: object) -> str:
+def _validate_session_id(
+    session_id: object, *, platform_semantics: str | None = None
+) -> str:
     if not isinstance(session_id, str) or not _SESSION_ID_RE.fullmatch(session_id):
         raise StoreError("session_id must use 1-128 safe ASCII identifier characters")
-    if not _is_valid_session_id(session_id):
-        raise StoreError("session_id collides with cleanup metadata")
-    return session_id
+    if not _is_owned_session_id(
+        session_id, platform_semantics=platform_semantics
+    ):
+        raise StoreError("session_id is reserved or not portable across filesystems")
+    key = _filesystem_session_key(
+        session_id, platform_semantics=platform_semantics
+    )
+    assert key is not None
+    return key
 
 
 def _enforce_directory_mode(path: Path, info: os.stat_result) -> None:
@@ -1013,6 +1048,42 @@ def _owned_session_files(directory: Path) -> list[Path]:
     return files
 
 
+def _account_session_tree(
+    directory: Path, owned_files: list[Path]
+) -> tuple[int, bool]:
+    try:
+        total_bytes = directory.stat(follow_symlinks=False).st_size
+    except OSError as exc:
+        raise StoreError(
+            f"cannot account managed session directory: {exc.strerror or exc}"
+        ) from None
+    owned_names = {path.name for path in owned_files}
+    has_unrelated_content = False
+    pending = [directory]
+    while pending:
+        current = pending.pop()
+        try:
+            entries = list(os.scandir(current))
+        except OSError as exc:
+            raise StoreError(
+                f"cannot account managed session content: {exc.strerror or exc}"
+            ) from None
+        for entry in entries:
+            try:
+                info = entry.stat(follow_symlinks=False)
+            except OSError as exc:
+                raise StoreError(
+                    f"cannot account managed session entry: {exc.strerror or exc}"
+                ) from None
+            total_bytes += info.st_size
+            path = Path(entry.path)
+            if current != directory or entry.name not in owned_names:
+                has_unrelated_content = True
+            if stat.S_ISDIR(info.st_mode):
+                pending.append(path)
+    return total_bytes, has_unrelated_content
+
+
 def _record_timestamp(files: list[Path], session_id: str) -> datetime:
     timestamps: list[datetime] = []
     invalid = False
@@ -1043,41 +1114,48 @@ def _record_timestamp(files: list[Path], session_id: str) -> datetime:
     return max(timestamps)
 
 
-def _scan_session_records(root: Path) -> list[_SessionRecord]:
+def _scan_session_records(
+    root: Path, *, platform_semantics: str | None = None
+) -> list[_SessionRecord]:
     records: list[_SessionRecord] = []
+    session_keys: set[str] = set()
     try:
         children = list(root.iterdir())
     except OSError as exc:
         raise StoreError(f"cannot scan state root: {exc.strerror or exc}") from None
     for directory in children:
-        if not _is_valid_session_id(directory.name):
+        if not _is_owned_session_id(
+            directory.name, platform_semantics=platform_semantics
+        ):
             continue
         if directory.is_symlink():
             raise StoreError("session directory symlink makes retention ownership ambiguous")
         if not directory.is_dir():
             continue
+        session_key = _filesystem_session_key(
+            directory.name, platform_semantics=platform_semantics
+        )
+        assert session_key is not None
+        if session_key in session_keys:
+            raise StoreError("session directory filesystem aliases collide")
+        session_keys.add(session_key)
         _ensure_private_directory(directory)
         files = _owned_session_files(directory)
-        try:
-            total_bytes = directory.stat(follow_symlinks=False).st_size
-        except OSError as exc:
-            raise StoreError(
-                f"cannot account managed session directory: {exc.strerror or exc}"
-            ) from None
-        for path in files:
-            info = _check_owned_file(path, allow_missing=False)
-            assert info is not None
-            total_bytes += info.st_size
+        total_bytes, has_unrelated_content = _account_session_tree(directory, files)
         records.append(
             _SessionRecord(
                 directory.name,
+                session_key,
                 directory,
                 files,
                 _record_timestamp(files, directory.name),
                 total_bytes,
+                has_unrelated_content,
             )
         )
-    records.sort(key=lambda record: (record.updated_at, record.session_id))
+    records.sort(
+        key=lambda record: (record.updated_at, record.session_key, record.session_id)
+    )
     return records
 
 
@@ -1174,9 +1252,15 @@ def _delete_record(
             return 0, 0, True
         if record.directory.is_symlink() or not record.directory.is_dir():
             raise StoreError("retention candidate is no longer a safe session directory")
-        session_descriptor = _acquire_bounded_lock(lock_path, timeout_seconds)
-        lock_info = os.fstat(session_descriptor)
-        with _held_lock_descriptor(session_descriptor):
+        with ExitStack() as session_cleanup:
+            session_descriptor = _acquire_bounded_lock(lock_path, timeout_seconds)
+            session_cleanup.enter_context(_held_lock_descriptor(session_descriptor))
+            try:
+                lock_info = os.fstat(session_descriptor)
+            except OSError as exc:
+                raise StoreError(
+                    f"cannot inspect retention lock: {exc.strerror or exc}"
+                ) from None
             try:
                 current_files = _owned_session_files(record.directory)
                 unrelated = [
@@ -1276,7 +1360,7 @@ def prune_state_root(
     now: datetime,
 ) -> CleanupResult:
     """Apply age, inactive-session, and byte limits under a separate lock."""
-    active_session_id = _validate_session_id(active_session_id)
+    active_session_key = _validate_session_id(active_session_id)
     if not isinstance(policy, RetentionPolicy):
         raise StoreError("retention policy must be a validated RetentionPolicy")
     if not isinstance(now, datetime) or now.tzinfo is None:
@@ -1311,7 +1395,7 @@ def prune_state_root(
             session_temp_bytes += byte_count
         records = _scan_session_records(root)
         active_present = any(
-            record.session_id == active_session_id for record in records
+            record.session_key == active_session_key for record in records
         )
         if metadata is not None:
             last_cleanup = _parse_utc_timestamp(metadata["last_cleanup_at"])
@@ -1328,15 +1412,15 @@ def prune_state_root(
                 )
 
         inactive = [
-            record for record in records if record.session_id != active_session_id
+            record for record in records if record.session_key != active_session_key
         ]
         selected: list[_SessionRecord] = []
         selected_ids: set[str] = set()
 
         def select(record: _SessionRecord) -> None:
-            if record.session_id not in selected_ids:
+            if record.session_key not in selected_ids:
                 selected.append(record)
-                selected_ids.add(record.session_id)
+                selected_ids.add(record.session_key)
 
         age_cutoff = now - timedelta(days=policy.inactive_days)
         for record in inactive:
@@ -1344,7 +1428,7 @@ def prune_state_root(
                 select(record)
 
         remaining_inactive = [
-            record for record in inactive if record.session_id not in selected_ids
+            record for record in inactive if record.session_key not in selected_ids
         ]
         while len(remaining_inactive) > policy.max_inactive_sessions:
             select(remaining_inactive.pop(0))
@@ -1352,15 +1436,20 @@ def prune_state_root(
         remaining_bytes = sum(
             record.total_bytes
             for record in records
-            if record.session_id not in selected_ids
+            if record.session_key not in selected_ids
         )
         byte_candidates = [
-            record for record in inactive if record.session_id not in selected_ids
+            record for record in inactive if record.session_key not in selected_ids
         ]
         while remaining_bytes > policy.max_total_bytes and byte_candidates:
             record = byte_candidates.pop(0)
             select(record)
             remaining_bytes -= record.total_bytes
+
+        if any(record.has_unrelated_content for record in selected):
+            raise StoreError(
+                "cannot remove selected inactive session: unrelated content remains"
+            )
 
         deleted_files = root_temp_files + session_temp_files
         deleted_bytes = root_temp_bytes + session_temp_bytes
@@ -1376,10 +1465,10 @@ def prune_state_root(
         remaining_records = _scan_session_records(root)
         remaining_bytes = sum(record.total_bytes for record in remaining_records)
         remaining_inactive_count = sum(
-            record.session_id != active_session_id for record in remaining_records
+            record.session_key != active_session_key for record in remaining_records
         )
         if any(
-            record.session_id != active_session_id
+            record.session_key != active_session_key
             and record.updated_at < age_cutoff
             for record in remaining_records
         ):

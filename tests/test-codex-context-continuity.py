@@ -824,10 +824,102 @@ class StoreTests(unittest.TestCase):
             "cleanup",
             "metadata",
             "cleanup.meta.json",
+            "Cleanup",
+            "METADATA",
+            "Cleanup.Meta.Json",
+            "trailing.",
+            "CON",
+            "con.txt",
+            "PRN.log",
+            "aux",
+            "NUL.json",
+            "COM1",
+            "com9.data",
+            "LPT1",
+            "lpt9.backup",
         ):
             with self.subTest(session_id=session_id):
                 with self.assertRaises(StoreError):
                     SessionStore(self.root, session_id)
+
+    def test_filesystem_session_key_has_explicit_platform_semantics(self):
+        key = codex_context_store._filesystem_session_key
+        owns = codex_context_store._is_owned_session_id
+
+        self.assertEqual(key("Foo", platform_semantics="posix"), "Foo")
+        self.assertEqual(key("foo", platform_semantics="posix"), "foo")
+        self.assertEqual(key("Foo", platform_semantics="nt"), "foo")
+        self.assertTrue(owns("Foo", platform_semantics="posix"))
+        self.assertTrue(owns("Foo", platform_semantics="nt"))
+        for session_id in (
+            "name.",
+            "CON",
+            "con.txt",
+            "PRN.log",
+            "AUX",
+            "nul.json",
+            "COM1",
+            "com9.data",
+            "LPT1",
+            "lpt9.backup",
+            "CLEANUP",
+            "Metadata",
+            "Cleanup.Meta.Json",
+        ):
+            for platform_semantics in ("posix", "nt"):
+                with self.subTest(
+                    session_id=session_id,
+                    platform_semantics=platform_semantics,
+                ):
+                    self.assertIsNone(
+                        key(session_id, platform_semantics=platform_semantics)
+                    )
+                    self.assertFalse(
+                        owns(session_id, platform_semantics=platform_semantics)
+                    )
+
+        for session_id in ("COM0", "COM10", "LPT0", "LPT10", "console"):
+            self.assertEqual(
+                key(session_id, platform_semantics="posix"), session_id
+            )
+            self.assertEqual(
+                key(session_id, platform_semantics="nt"), session_id.casefold()
+            )
+
+    def test_scanner_rejects_windows_aliases_but_preserves_posix_case(self):
+        root = mock.Mock()
+        directories = []
+        for name in ("Foo", "foo"):
+            directory = mock.Mock()
+            directory.name = name
+            directory.is_symlink.return_value = False
+            directory.is_dir.return_value = True
+            directories.append(directory)
+        root.iterdir.return_value = directories
+
+        with mock.patch.object(
+            codex_context_store, "_ensure_private_directory"
+        ), mock.patch.object(
+            codex_context_store, "_owned_session_files", return_value=[]
+        ), mock.patch.object(
+            codex_context_store, "_account_session_tree", return_value=(0, False)
+        ), mock.patch.object(
+            codex_context_store,
+            "_record_timestamp",
+            return_value=datetime(1970, 1, 1, tzinfo=timezone.utc),
+        ):
+            posix_records = codex_context_store._scan_session_records(
+                root, platform_semantics="posix"
+            )
+
+            self.assertEqual(
+                {(record.session_id, record.session_key) for record in posix_records},
+                {("Foo", "Foo"), ("foo", "foo")},
+            )
+            with self.assertRaisesRegex(StoreError, "aliases collide"):
+                codex_context_store._scan_session_records(
+                    root, platform_semantics="nt"
+                )
 
     def test_store_fails_closed_on_root_or_owned_file_symlink(self):
         target = Path(self._temporary_directory.name) / "target"
@@ -1009,6 +1101,60 @@ class StoreTests(unittest.TestCase):
                     real_release(descriptor)
 
         with store._locked(timeout_seconds=0.1):
+            pass
+
+    def test_retention_fstat_failure_releases_acquired_session_descriptor(self):
+        store = self.ready_store("retention-fstat")
+        record = codex_context_store._scan_session_records(self.root)[0]
+        acquired: dict[str, int] = {}
+        unlocked: list[int] = []
+        closed: list[int] = []
+        real_acquire = codex_context_store._acquire_bounded_lock
+        real_fstat = os.fstat
+        real_unlock = codex_context_store._unlock
+        real_close = os.close
+        injected = False
+
+        def recording_acquire(path: Path, timeout_seconds: float) -> int:
+            descriptor = real_acquire(path, timeout_seconds)
+            if Path(path) == store.lock_path:
+                acquired["session"] = descriptor
+            return descriptor
+
+        def failing_fstat(descriptor: int) -> os.stat_result:
+            nonlocal injected
+            if descriptor == acquired.get("session") and not injected:
+                injected = True
+                raise OSError("fstat boom")
+            return real_fstat(descriptor)
+
+        def recording_unlock(descriptor: int) -> None:
+            unlocked.append(descriptor)
+            real_unlock(descriptor)
+
+        def recording_close(descriptor: int) -> None:
+            closed.append(descriptor)
+            real_close(descriptor)
+
+        with mock.patch.object(
+            codex_context_store,
+            "_acquire_bounded_lock",
+            side_effect=recording_acquire,
+        ), mock.patch.object(
+            codex_context_store.os, "fstat", side_effect=failing_fstat
+        ), mock.patch.object(
+            codex_context_store, "_unlock", side_effect=recording_unlock
+        ), mock.patch.object(
+            codex_context_store.os, "close", side_effect=recording_close
+        ):
+            with self.assertRaisesRegex(StoreError, "inspect retention lock"):
+                codex_context_store._delete_record(self.root, record, 0.1)
+
+        session_descriptor = acquired["session"]
+        self.assertTrue(injected)
+        self.assertIn(session_descriptor, unlocked)
+        self.assertIn(session_descriptor, closed)
+        with codex_context_store._bounded_lock(store.lock_path, 0.1):
             pass
 
     @unittest.skipUnless(os.name == "posix", "POSIX flock evidence only")
@@ -1822,6 +1968,128 @@ for _ in range(2):
         result = prune_state_root(self.root, store.session_id, self.policy(), now)
 
         self.assertEqual(result.remaining_bytes, expected_bytes)
+
+    def test_retention_accounts_for_nested_content_without_following_symlinks(self):
+        now = datetime.now(timezone.utc)
+        store = self.ready_store("nested-accounting")
+        nested = store.session_dir / "operator-data"
+        nested.mkdir()
+        leaf = nested / "notes.bin"
+        leaf.write_bytes(b"nested-content")
+        external = Path(self._temporary_directory.name) / "external-large.bin"
+        external.write_bytes(b"x" * 8192)
+        link = nested / "external-link"
+        try:
+            link.symlink_to(external)
+        except OSError as exc:
+            self.skipTest(f"symlink creation unavailable: {exc}")
+        expected_bytes = sum(
+            path.stat(follow_symlinks=False).st_size
+            for path in (
+                store.session_dir,
+                store.primary_path,
+                store.lock_path,
+                nested,
+                leaf,
+                link,
+            )
+        )
+
+        result = prune_state_root(self.root, store.session_id, self.policy(), now)
+
+        self.assertEqual(result.remaining_bytes, expected_bytes)
+        self.assertLess(result.remaining_bytes, expected_bytes + external.stat().st_size)
+
+    def test_recent_unrelated_bytes_fail_without_rewriting_cleanup_metadata(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        metadata_path = self.root / codex_context_store.CLEANUP_METADATA_NAME
+        prune_state_root(self.root, "active", self.policy(), now - timedelta(days=2))
+        metadata_before = metadata_path.read_bytes()
+        store = self.ready_store("recent-unrelated-bytes")
+        self.age_session(store, now - timedelta(days=1))
+        unrelated = store.session_dir / "operator-cache.bin"
+        unrelated.write_bytes(b"x" * 8192)
+        owned_accounting = sum(
+            path.stat(follow_symlinks=False).st_size
+            for path in (store.session_dir, store.primary_path, store.lock_path)
+        )
+        primary_before = store.primary_path.read_bytes()
+
+        with self.assertRaisesRegex(StoreError, "unrelated"):
+            prune_state_root(
+                self.root,
+                "active",
+                self.policy(
+                    inactive_days=365,
+                    max_total_bytes=owned_accounting + 1,
+                ),
+                now,
+            )
+
+        self.assertEqual(store.primary_path.read_bytes(), primary_before)
+        self.assertEqual(unrelated.read_bytes(), b"x" * 8192)
+        self.assertEqual(metadata_path.read_bytes(), metadata_before)
+
+    def test_unrelated_selected_candidate_blocks_all_payload_deletion(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        safe = self.ready_store("count-safe-oldest")
+        blocked = self.ready_store("count-blocked-middle")
+        keeper = self.ready_store("count-keeper-newest")
+        for days, store in ((3, safe), (2, blocked), (1, keeper)):
+            self.age_session(store, now - timedelta(days=days))
+        unrelated = blocked.session_dir / "operator-notes.txt"
+        unrelated.write_bytes(b"keep")
+        payloads_before = {
+            store.session_id: store.primary_path.read_bytes()
+            for store in (safe, blocked, keeper)
+        }
+
+        with self.assertRaisesRegex(StoreError, "unrelated"):
+            prune_state_root(
+                self.root,
+                "active",
+                self.policy(inactive_days=365, max_inactive_sessions=1),
+                now,
+            )
+
+        for store in (safe, blocked, keeper):
+            self.assertEqual(
+                store.primary_path.read_bytes(), payloads_before[store.session_id]
+            )
+        self.assertEqual(unrelated.read_bytes(), b"keep")
+        self.assertFalse((self.root / codex_context_store.CLEANUP_METADATA_NAME).exists())
+
+    def test_active_unrelated_bytes_fail_after_safe_inactive_deletion(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        active = self.ready_store("active-unrelated-bytes")
+        inactive = self.ready_store("safe-inactive-bytes")
+        self.age_session(active, now - timedelta(days=1))
+        self.age_session(inactive, now - timedelta(days=2))
+        unrelated = active.session_dir / "operator-cache.bin"
+        unrelated.write_bytes(b"y" * 8192)
+        active_bytes = sum(
+            path.stat(follow_symlinks=False).st_size
+            for path in (
+                active.session_dir,
+                active.primary_path,
+                active.lock_path,
+                unrelated,
+            )
+        )
+        active_primary_before = active.primary_path.read_bytes()
+
+        with self.assertRaisesRegex(StoreError, "active session"):
+            prune_state_root(
+                self.root,
+                active.session_id,
+                self.policy(inactive_days=365, max_total_bytes=active_bytes - 1),
+                now,
+            )
+
+        self.assertFalse(inactive.session_dir.exists())
+        self.assertEqual(active.primary_path.read_bytes(), active_primary_before)
+        self.assertEqual(unrelated.read_bytes(), b"y" * 8192)
+        self.assertFalse((self.root / codex_context_store.CLEANUP_METADATA_NAME).exists())
 
     def test_old_session_with_unrelated_file_fails_without_deleting_or_metadata(self):
         now = datetime(2026, 7, 9, tzinfo=timezone.utc)
