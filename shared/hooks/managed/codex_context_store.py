@@ -222,6 +222,21 @@ def _filesystem_session_key(
     return folded if semantics == "nt" else session_id
 
 
+def _session_id_matches_filesystem_key(
+    session_id: object,
+    session_key: object,
+    *,
+    platform_semantics: str | None = None,
+) -> bool:
+    return (
+        isinstance(session_key, str)
+        and _filesystem_session_key(
+            session_id, platform_semantics=platform_semantics
+        )
+        == session_key
+    )
+
+
 def _is_owned_session_id(
     session_id: object, *, platform_semantics: str | None = None
 ) -> bool:
@@ -242,11 +257,7 @@ def _validate_session_id(
         session_id, platform_semantics=platform_semantics
     ):
         raise StoreError("session_id is reserved or not portable across filesystems")
-    key = _filesystem_session_key(
-        session_id, platform_semantics=platform_semantics
-    )
-    assert key is not None
-    return key
+    return session_id
 
 
 def _enforce_directory_mode(path: Path, info: os.stat_result) -> None:
@@ -655,9 +666,20 @@ class SessionStore:
     """Own one session's locked snapshot and bounded checkpoint generations."""
 
     def __init__(
-        self, root: Path, session_id: str, *, lock_timeout_seconds: float = 2.0
+        self,
+        root: Path,
+        session_id: str,
+        *,
+        lock_timeout_seconds: float = 2.0,
+        _platform_semantics: str | None = None,
     ) -> None:
-        self.session_id = _validate_session_id(session_id)
+        self.session_id = _validate_session_id(
+            session_id, platform_semantics=_platform_semantics
+        )
+        self.session_key = _filesystem_session_key(
+            self.session_id, platform_semantics=_platform_semantics
+        )
+        assert self.session_key is not None
         if (
             isinstance(lock_timeout_seconds, bool)
             or not isinstance(lock_timeout_seconds, (int, float))
@@ -668,7 +690,7 @@ class SessionStore:
         self.lock_timeout_seconds = float(lock_timeout_seconds)
         self.root = Path(root)
         _ensure_private_directory(self.root)
-        self.session_dir = self.root / self.session_id
+        self.session_dir = self.root / self.session_key
         if self.session_dir.parent.resolve() != self.root.resolve():
             raise StoreError("session path escapes the state root")
         self.primary_path = self.session_dir / PRIMARY_NAME
@@ -678,6 +700,21 @@ class SessionStore:
         self.lifecycle_lock_path = self.root / LIFECYCLE_LOCK_NAME
         with _bounded_lock(self.lifecycle_lock_path, self.lock_timeout_seconds):
             _ensure_private_directory(self.session_dir)
+            with _bounded_lock(self.lock_path, self.lock_timeout_seconds):
+                self._assert_stored_session_identity()
+
+    def _assert_stored_session_identity(self) -> None:
+        for path, label in (
+            (self.primary_path, "primary snapshot"),
+            (self.latest_checkpoint_path, "latest checkpoint"),
+            (self.previous_checkpoint_path, "previous checkpoint"),
+        ):
+            value = _read_json(path, label)
+            if value is not None and isinstance(value, dict):
+                if value.get("session_id") != self.session_id:
+                    raise IntegrityError(
+                        "stored session identity does not match the session store"
+                    )
 
     @contextmanager
     def _locked(self, *, timeout_seconds: float | None = None) -> Iterator[None]:
@@ -1084,7 +1121,12 @@ def _account_session_tree(
     return total_bytes, has_unrelated_content
 
 
-def _record_timestamp(files: list[Path], session_id: str) -> datetime:
+def _record_timestamp(
+    files: list[Path],
+    session_key: str,
+    *,
+    platform_semantics: str | None = None,
+) -> datetime:
     timestamps: list[datetime] = []
     invalid = False
     for path in files:
@@ -1097,11 +1139,23 @@ def _record_timestamp(files: list[Path], session_id: str) -> datetime:
             value = _read_json(path, "retention generation")
             if path.name == PRIMARY_NAME:
                 snapshot = verify_snapshot(value)
-                if snapshot["session_id"] != session_id:
+                if not _session_id_matches_filesystem_key(
+                    snapshot["session_id"],
+                    session_key,
+                    platform_semantics=platform_semantics,
+                ):
                     raise IntegrityError("retention primary belongs to another session")
                 parsed = _parse_utc_timestamp(snapshot["updated_at"])
             else:
-                checkpoint = _verify_checkpoint(value, session_id)
+                if not isinstance(value, dict) or not _session_id_matches_filesystem_key(
+                    value.get("session_id"),
+                    session_key,
+                    platform_semantics=platform_semantics,
+                ):
+                    raise IntegrityError("retention checkpoint belongs to another session")
+                checkpoint_session_id = value["session_id"]
+                assert isinstance(checkpoint_session_id, str)
+                checkpoint = _verify_checkpoint(value, checkpoint_session_id)
                 parsed = _parse_utc_timestamp(checkpoint["sealed_at"])
             if parsed is None:
                 invalid = True
@@ -1148,7 +1202,11 @@ def _scan_session_records(
                 session_key,
                 directory,
                 files,
-                _record_timestamp(files, directory.name),
+                _record_timestamp(
+                    files,
+                    session_key,
+                    platform_semantics=platform_semantics,
+                ),
                 total_bytes,
                 has_unrelated_content,
             )
@@ -1360,7 +1418,9 @@ def prune_state_root(
     now: datetime,
 ) -> CleanupResult:
     """Apply age, inactive-session, and byte limits under a separate lock."""
-    active_session_key = _validate_session_id(active_session_id)
+    _validate_session_id(active_session_id)
+    active_session_key = _filesystem_session_key(active_session_id)
+    assert active_session_key is not None
     if not isinstance(policy, RetentionPolicy):
         raise StoreError("retention policy must be a validated RetentionPolicy")
     if not isinstance(now, datetime) or now.tzinfo is None:

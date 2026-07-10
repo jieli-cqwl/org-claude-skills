@@ -849,6 +849,12 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(key("Foo", platform_semantics="posix"), "Foo")
         self.assertEqual(key("foo", platform_semantics="posix"), "foo")
         self.assertEqual(key("Foo", platform_semantics="nt"), "foo")
+        self.assertEqual(
+            codex_context_store._validate_session_id(
+                "Foo", platform_semantics="nt"
+            ),
+            "Foo",
+        )
         self.assertTrue(owns("Foo", platform_semantics="posix"))
         self.assertTrue(owns("Foo", platform_semantics="nt"))
         for session_id in (
@@ -885,6 +891,58 @@ class StoreTests(unittest.TestCase):
             self.assertEqual(
                 key(session_id, platform_semantics="nt"), session_id.casefold()
             )
+
+    def test_nt_store_preserves_logical_id_while_using_folded_directory_key(self):
+        store = SessionStore(self.root, "Foo", _platform_semantics="nt")
+
+        snapshot = store.commit_snapshot(
+            valid_task_payload(), self.runtime("Foo", "turn-1", 0), 0
+        )
+        checkpoint = store.seal_checkpoint(
+            "auto", self.runtime("Foo", "turn-1", 0)
+        )
+        reopened = SessionStore(self.root, "Foo", _platform_semantics="nt")
+
+        self.assertEqual(store.session_id, "Foo")
+        self.assertEqual(store.session_key, "foo")
+        self.assertEqual(store.session_dir, self.root / "foo")
+        self.assertEqual(snapshot["session_id"], "Foo")
+        self.assertEqual(checkpoint["session_id"], "Foo")
+        self.assertEqual(reopened.load_primary(), snapshot)
+
+    def test_nt_store_rejects_logical_alias_rebind_for_existing_directory_key(self):
+        store = SessionStore(self.root, "Foo", _platform_semantics="nt")
+        store.commit_snapshot(
+            valid_task_payload(), self.runtime("Foo", "turn-1", 0), 0
+        )
+
+        with self.assertRaises(IntegrityError):
+            SessionStore(self.root, "foo", _platform_semantics="nt")
+
+    def test_scanner_accepts_mixed_case_snapshot_in_nt_canonical_key_directory(self):
+        store = SessionStore(self.root, "Foo", _platform_semantics="nt")
+        store.commit_snapshot(
+            valid_task_payload(), self.runtime("Foo", "turn-1", 0), 0
+        )
+        store.seal_checkpoint("auto", self.runtime("Foo", "turn-1", 0))
+        store.primary_path.unlink()
+
+        records = codex_context_store._scan_session_records(
+            self.root, platform_semantics="nt"
+        )
+
+        self.assertEqual(
+            [(record.session_id, record.session_key) for record in records],
+            [("foo", "foo")],
+        )
+        self.assertNotEqual(records[0].updated_at, codex_context_store._EPOCH)
+
+    def test_session_id_matches_filesystem_key_with_explicit_platform_semantics(self):
+        matches = codex_context_store._session_id_matches_filesystem_key
+
+        self.assertTrue(matches("Foo", "foo", platform_semantics="nt"))
+        self.assertFalse(matches("Foo", "Foo", platform_semantics="nt"))
+        self.assertTrue(matches("Foo", "Foo", platform_semantics="posix"))
 
     def test_scanner_rejects_windows_aliases_but_preserves_posix_case(self):
         root = mock.Mock()
