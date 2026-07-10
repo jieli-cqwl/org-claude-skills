@@ -16,7 +16,7 @@ The system optimizes for increasing usefulness over long sessions. Recovery corr
 The feature is acceptable only when all of the following are proven:
 
 - A task can cross repeated manual and automatic compactions without goal, scope, correction, progress, or evidence drift.
-- A new user correction invalidates the previous snapshot before any ordinary tool call or final response.
+- A new user correction invalidates the previous snapshot before any supported intercepted tool call or final response; unintercepted runtime paths remain visible coverage gaps and cannot support a stronger enforcement claim.
 - Empty, partial, stale, conflicting, legacy, or corrupted snapshots never become `READY`.
 - Compaction is stopped when no complete current snapshot can be sealed.
 - A valid precompact checkpoint can recover from a corrupted primary state.
@@ -32,7 +32,7 @@ The feature is acceptable only when all of the following are proven:
 4. Presence and emptiness are different. A present empty `completed_items` or `pending_items` list can be valid for the task phase.
 5. A checkpoint reference is not evidence that the checkpoint exists, is intact, or matches the current state.
 6. Atomic replacement prevents torn filenames but does not prevent lost concurrent updates or guarantee durable writes.
-7. Developer-context instructions are advisory. High-risk transitions also require mechanical hook gates.
+7. Developer-context instructions are advisory. High-risk turn and compaction transitions also require mechanical `Stop` and `PreCompact` gates; `PreToolUse` is an additional guardrail, not a complete enforcement boundary.
 8. Recovery work consumes context. Every automatic and on-demand recovery output must be bounded before it reaches the model.
 
 ## Architecture Decision
@@ -43,7 +43,7 @@ The capability has five responsibilities:
 
 1. **Prompt tracker:** records the current turn identity and marks the previous snapshot stale.
 2. **Snapshot writer:** accepts only a complete schema-2 snapshot and commits it with compare-and-swap revision checks.
-3. **Execution guard:** prevents ordinary tool calls and turn completion until the current turn has a trusted snapshot.
+3. **Execution guard:** denies supported intercepted tool calls and prevents turn completion until the current turn has a trusted snapshot.
 4. **Compaction coordinator:** seals and validates checkpoints before compaction, then injects a bounded recovery packet after compaction.
 5. **Retention manager:** enforces file permissions, generation limits, age limits, session limits, and total storage limits.
 
@@ -146,9 +146,11 @@ The update command rejects shell chaining, extra commands, missing or unknown ar
 
 ### PreToolUse Execution Guard
 
-When state is not `READY`, ordinary tools are denied. Only the exact single-command forms for bounded `recover` and `state-update` are allowed. Any shell control operator, pipeline, redirection, command substitution, extra executable, or mismatched session/turn value makes the exception invalid.
+When state is not `READY`, tool calls exposed to Codex `PreToolUse` are denied. Only the exact single-command forms for bounded `recover` and `state-update` are allowed. Any shell control operator, pipeline, redirection, command substitution, extra executable, or mismatched session/turn value makes the exception invalid.
 
-This gate prevents the model from mutating code, files, external systems, or tools under stale context. Initial task intake remains possible because the first snapshot can record inspection and analysis as pending work before ordinary tools are used.
+Current Codex documentation states that `PreToolUse` interception is incomplete for unified execution and does not cover every non-shell tool. This guard therefore cannot be the sole production boundary or justify a claim that every mutation path is mechanically blocked. The runtime acceptance report must enumerate intercepted tool paths and retain unsupported paths as explicit coverage gaps. Strict turn completion and compaction safety remain enforced by `Stop` and `PreCompact`.
+
+For intercepted paths, the gate prevents stale-context mutation. Initial task intake remains possible because the first snapshot can record inspection and analysis as pending work before ordinary tools are used.
 
 ### Stop
 
@@ -296,7 +298,8 @@ Observability records follow the same permissions and retention limits as state.
 
 - Installed hook registry covers `UserPromptSubmit`, `PreToolUse`, `Stop`, `PreCompact`, `PostCompact`, and `SessionStart:compact` using documented payload fields.
 - State-update and recover exceptions pass the execution guard only in exact single-command form.
-- Unknown or mutating tools are denied while state is not ready.
+- Every tool path exposed to `PreToolUse` is denied while state is not ready unless it is the exact bounded recovery or state-update command.
+- Unified execution and non-shell paths not exposed to `PreToolUse` are listed separately with runtime evidence and block any claim of complete tool-level enforcement.
 - Hook trust inspection proves installed commands are enabled and trusted.
 
 ### Failure Injection
