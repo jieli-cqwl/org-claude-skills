@@ -544,9 +544,11 @@ import sys
 
 print(json.dumps({
     "session_id": "install-context-continuity-incomplete-probe",
+    "turn_id": "turn-1",
     "hook_event_name": "UserPromptSubmit",
-    "prompt": "restore context continuity probe",
+    "user_prompt": "restore context continuity probe",
     "cwd": sys.argv[1],
+    "transcript_path": f"{sys.argv[1]}/install-context-continuity-transcript.jsonl",
 }))
 PY
 )"
@@ -560,6 +562,7 @@ import sys
 
 print(json.dumps({
     "session_id": "install-context-continuity-incomplete-probe",
+    "turn_id": "turn-1",
     "hook_event_name": "Stop",
     "cwd": sys.argv[1],
     "transcript_path": f"{sys.argv[1]}/install-context-continuity-transcript.jsonl",
@@ -634,9 +637,11 @@ import sys
 
 print(json.dumps({
     "session_id": "install-context-continuity-ready-probe",
+    "turn_id": "turn-1",
     "hook_event_name": "UserPromptSubmit",
-    "prompt": "restore context continuity ready probe",
+    "user_prompt": "restore context continuity ready probe",
     "cwd": sys.argv[1],
+    "transcript_path": f"{sys.argv[1]}/install-context-continuity-transcript.jsonl",
 }))
 PY
 )"
@@ -650,25 +655,25 @@ import sys
 
 print(json.dumps({
     "session_id": "install-context-continuity-ready-probe",
-    "hook_event_name": "StateUpdate",
-    "source": "install-quick-check",
-    "state": {
+    "turn_id": "turn-1",
+    "base_revision": 0,
+    "task": {
+        "task_status": "active",
         "active_goal": "prove context continuity ready recovery",
         "scope_boundary": "Codex context continuity install quick check",
+        "non_goals": [],
         "latest_user_correction": "restore context continuity ready probe",
         "current_phase": "install quick check",
         "current_plan": ["record state", "seal compact", "recover"],
-        "completed_items": ["prompt metadata recorded"],
-        "evidence_refs": ["install.sh"],
+        "completed_items": [{"item": "prompt metadata recorded", "evidence_refs": ["install.sh"]}],
         "pending_items": ["SessionStart compact recovery"],
         "blockers": [],
         "next_action": "continue from structured recovery state",
     },
-    "cwd": sys.argv[1],
 }))
 PY
 )"
-  if ! printf '%s' "$state_update_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event StateUpdate >/dev/null; then
+  if ! ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" state-update --payload "$state_update_payload" >/dev/null; then
     rm -rf "$state_dir"
     fail "Quick Check 失败: context continuity ready probe 写入 StateUpdate 失败"
   fi

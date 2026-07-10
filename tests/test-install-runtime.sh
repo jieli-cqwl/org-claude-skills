@@ -304,32 +304,36 @@ jq -e --arg script "$home_dir/.codex/hooks/managed/codex_context_continuity.py" 
 context_prompt='不对，这里核心不是迁移，而是 LLM 上下文窗口治理'
 context_payload="$(jq -nc \
   --arg sid "codex-context-runtime" \
+  --arg tid "turn-1" \
   --arg prompt "$context_prompt" \
   --arg cwd "$home_dir/project" \
-  '{session_id: $sid, hook_event_name: "UserPromptSubmit", prompt: $prompt, cwd: $cwd}')"
+  --arg transcript "$home_dir/project/context-transcript.jsonl" \
+  '{session_id: $sid, turn_id: $tid, hook_event_name: "UserPromptSubmit", user_prompt: $prompt, cwd: $cwd, transcript_path: $transcript}')"
 printf '%s' "$context_payload" | HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py" >/dev/null \
   || install_test_fail "context continuity should record latest user correction"
 context_state_update="$(jq -nc \
   --arg sid "codex-context-runtime" \
+  --arg tid "turn-1" \
   --arg prompt "$context_prompt" \
   '{
     session_id: $sid,
-    hook_event_name: "StateUpdate",
-    source: "install-runtime-test",
-    state: {
+    turn_id: $tid,
+    base_revision: 0,
+    task: {
+      task_status: "active",
       active_goal: "prove installed context continuity recovery",
       scope_boundary: "installed Codex runtime hook state only",
+      non_goals: [],
       latest_user_correction: $prompt,
       current_phase: "runtime verification",
       current_plan: ["record state", "seal compact", "recover"],
-      completed_items: ["prompt metadata recorded"],
-      evidence_refs: ["tests/test-install-runtime.sh"],
+      completed_items: [{item: "prompt metadata recorded", evidence_refs: ["tests/test-install-runtime.sh"]}],
       pending_items: ["session recovery"],
       blockers: [],
       next_action: "continue from structured recovery state"
     }
   }')"
-printf '%s' "$context_state_update" | HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py" >/dev/null \
+HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py" state-update --payload "$context_state_update" >/dev/null \
   || install_test_fail "context continuity should record runtime recovery state"
 context_precompact="$(jq -nc \
   --arg sid "codex-context-runtime" \
@@ -353,7 +357,7 @@ install_test_assert_file_not_contains "$context_state" "$context_summary" "conte
 jq -e --arg summary "$context_summary" --arg prompt "$context_prompt" '
   .last_user_prompt_preview == $prompt
   and (.last_user_prompt_hash | type == "string" and length == 64)
-  and .recovery_evaluation.status == "READY"
+  and .recovery_status == "READY"
   and .postcompact.summary_length == ($summary | length)
   and (.postcompact.summary_sha256 | type == "string" and length == 64)
   and (.postcompact | has("compact_summary") | not)

@@ -28,6 +28,7 @@ from codex_context_store import (
     RevisionConflict,
     SessionStore,
     StoreError,
+    _validate_session_id,
     prune_state_root,
 )
 
@@ -39,6 +40,16 @@ MAX_HOOK_PAYLOAD_BYTES = 1024 * 1024
 MAX_RECOVERY_OUTPUT_BYTES = 4 * 1024
 GIT_TIMEOUT_SECONDS = 5.0
 NOT_A_GIT_REPOSITORY = "not-a-git-repository"
+RECOVERY_CARD_SCHEMA_VERSION = "1.0"
+RECOVERY_REQUIRED_FIELDS = (
+    "active_goal",
+    "scope_boundary",
+    "current_phase",
+    "completed_items",
+    "evidence_refs",
+    "pending_items",
+    "next_action",
+)
 STOP_REASON = (
     "Context snapshot is not READY for this turn. Run the exact state-update "
     "command from the latest continuity context before finishing."
@@ -80,6 +91,247 @@ def state_root() -> Path:
 
 def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(
+        "+00:00", "Z"
+    )
+
+
+def _write_json(path: Path, payload: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temporary.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    try:
+        temporary.chmod(0o600)
+    except OSError:
+        pass
+    temporary.replace(path)
+
+
+def _recovery_state_path(session_id: str) -> Path:
+    return state_root() / f"{session_id}.json"
+
+
+def _new_recovery_state(session_id: str) -> dict[str, object]:
+    now = utc_now()
+    return {
+        "schema_version": RECOVERY_CARD_SCHEMA_VERSION,
+        "session_id": session_id,
+        "created_at": now,
+        "updated_at": now,
+        "last_user_prompt_hash": "",
+        "last_user_prompt_preview": "",
+        "current_turn_id": "",
+        "active_goal": "",
+        "scope_boundary": "",
+        "non_goals": [],
+        "latest_user_correction": "",
+        "current_phase": "",
+        "current_plan": [],
+        "completed_items": [],
+        "evidence_refs": [],
+        "pending_items": [],
+        "blockers": [],
+        "next_action": "",
+        "git_head": "",
+        "truth_policy": "恢复时优先读取 task_state_ref 和证据引用；证据不足必须报告 blocked，禁止猜测。",
+        "recovery_status": "INCOMPLETE",
+        "recovery_action_required": True,
+        "allowed_next_step": "READ_ONLY_RECOVERY",
+        "last_stop": {},
+        "precompact": {},
+        "postcompact": {},
+        "state_updates": [],
+    }
+
+
+def _load_recovery_state(session_id: str) -> dict[str, object]:
+    path = _recovery_state_path(session_id)
+    if not path.exists():
+        return _new_recovery_state(session_id)
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise StoreError("recovery state card is unreadable") from exc
+    if not isinstance(value, dict) or value.get("session_id") != session_id:
+        raise IntegrityError("recovery state card identity is invalid")
+    state = _new_recovery_state(session_id)
+    state.update(value)
+    return state
+
+
+def _save_recovery_state(session_id: str, state: dict[str, object]) -> None:
+    state["schema_version"] = RECOVERY_CARD_SCHEMA_VERSION
+    state["session_id"] = session_id
+    state["updated_at"] = utc_now()
+    candidate_turn_at = state.get("pending_turn_updated_at")
+    path = _recovery_state_path(session_id)
+    if path.exists() and isinstance(candidate_turn_at, str):
+        try:
+            existing = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing = None
+        existing_turn_at = (
+            existing.get("pending_turn_updated_at")
+            if isinstance(existing, dict)
+            else None
+        )
+        if isinstance(existing_turn_at, str) and existing_turn_at > candidate_turn_at:
+            return
+    _write_json(path, state)
+
+
+def _validated_session_id(payload: dict[str, object]) -> str:
+    session_id = _required_text(payload, "session_id", maximum=128)
+    try:
+        return _validate_session_id(session_id)
+    except StoreError as exc:
+        raise LifecycleInputError(str(exc)) from None
+
+
+def _prompt_from_payload(payload: dict[str, object]) -> str:
+    value = payload.get("user_prompt")
+    if not isinstance(value, str) or not value:
+        value = payload.get("prompt")
+    if not isinstance(value, str) or not value:
+        raise LifecycleInputError("user_prompt must be a non-empty bounded string")
+    if len(value.encode("utf-8")) > MAX_HOOK_PAYLOAD_BYTES:
+        raise LifecycleInputError("user_prompt exceeds its bounded size")
+    return value
+
+
+def _record_prompt_in_state(
+    state: dict[str, object],
+    prompt: str,
+    turn_id: str,
+    cwd: str,
+    transcript_path: str,
+    pending_turn_updated_at: str,
+) -> None:
+    state["last_user_prompt_hash"] = sha256_text(prompt)
+    state["last_user_prompt_preview"] = redacted_prompt_preview(prompt)
+    state["last_user_prompt_length"] = len(prompt)
+    state["last_user_prompt_truncated"] = len(prompt) > prompt_preview_limit()
+    state["current_turn_id"] = turn_id
+    state["cwd"] = cwd
+    state["transcript_path"] = transcript_path
+    state["pending_turn_updated_at"] = pending_turn_updated_at
+    state["recovery_status"] = "INCOMPLETE"
+    state["recovery_action_required"] = True
+    state["allowed_next_step"] = "READ_ONLY_RECOVERY"
+
+
+def _record_stop_in_state(state: dict[str, object], payload: dict[str, object]) -> None:
+    state["last_stop"] = {
+        "cwd": payload.get("cwd") or "",
+        "transcript_path": payload.get("transcript_path") or payload.get("transcriptPath") or "",
+        "turn_id": payload.get("turn_id") or "",
+        "recorded_at": utc_now(),
+    }
+
+
+def _record_snapshot_in_state(
+    state: dict[str, object],
+    task: dict[str, object],
+    pending: dict[str, object],
+    snapshot: dict[str, object],
+) -> None:
+    completed: list[str] = []
+    evidence: list[str] = []
+    for item in task["completed_items"]:
+        if isinstance(item, dict):
+            if item.get("item"):
+                completed.append(redact_secrets(str(item["item"])))
+            refs = item.get("evidence_refs")
+            if isinstance(refs, list):
+                evidence.extend(redact_secrets(str(ref)) for ref in refs)
+    state.update(
+        {
+            "active_goal": task["active_goal"],
+            "scope_boundary": task["scope_boundary"],
+            "non_goals": task["non_goals"],
+            "latest_user_correction": task["latest_user_correction"],
+            "current_phase": task["current_phase"],
+            "current_plan": task["current_plan"],
+            "completed_items": completed,
+            "evidence_refs": evidence or [f"snapshot:{snapshot['snapshot_sha256']}"],
+            "pending_items": task["pending_items"],
+            "blockers": task["blockers"],
+            "next_action": task["next_action"],
+            "git_head": snapshot["git_head"],
+            "current_turn_id": pending["turn_id"],
+            "pending_turn_updated_at": pending["updated_at"],
+            "recovery_status": "READY",
+            "recovery_action_required": False,
+            "allowed_next_step": "CONTINUE_FROM_STATE",
+        }
+    )
+    update = {
+        "recorded_at": utc_now(),
+        "source": "state-update",
+        "turn_id": pending["turn_id"],
+        "base_revision": pending["base_revision"],
+        "last_user_prompt_hash": pending["prompt_sha256"],
+    }
+    state["last_state_update"] = update
+    updates = state.get("state_updates")
+    if not isinstance(updates, list):
+        updates = []
+    state["state_updates"] = [*updates, update][-20:]
+
+
+def _compact_value(value: object) -> str:
+    if isinstance(value, str):
+        return redact_secrets(value)[:320]
+    if isinstance(value, list):
+        values = [redact_secrets(str(item))[:180] for item in value[:3]]
+        return " | ".join(values) if values else "none"
+    return "<missing>"
+
+
+def recovery_context(session_id: str, state: dict[str, object]) -> str:
+    status = str(state.get("recovery_status") or "INCOMPLETE")
+    missing = "none" if status == "READY" else ", ".join(
+        field for field in RECOVERY_REQUIRED_FIELDS if not state.get(field)
+    ) or "none"
+    precompact = state.get("precompact") if isinstance(state.get("precompact"), dict) else {}
+    postcompact = state.get("postcompact") if isinstance(state.get("postcompact"), dict) else {}
+    last_stop = state.get("last_stop") if isinstance(state.get("last_stop"), dict) else {}
+    transcript = last_stop.get("transcript_path") or state.get("transcript_path") or "missing"
+    lines = [
+        "[Codex context continuity recovery]",
+        f"task_state_ref: {_recovery_state_path(session_id)}",
+        f"precompact_checkpoint_ref: {precompact.get('checkpoint_ref') or 'missing'}",
+        f"compact_summary_ref: {postcompact.get('compact_summary_ref') or 'missing'}",
+        f"transcript_path: {transcript}",
+        f"recovery_status: {status}",
+        f"recovery_action_required: {'true' if state.get('recovery_action_required', True) else 'false'}",
+        f"allowed_next_step: {state.get('allowed_next_step') or 'READ_ONLY_RECOVERY'}",
+        f"recovery_missing_fields: {missing}",
+        "恢复状态摘要:",
+        f"active_goal: {_compact_value(state.get('active_goal'))}",
+        f"scope_boundary: {_compact_value(state.get('scope_boundary'))}",
+        f"latest_user_correction: {_compact_value(state.get('latest_user_correction'))}",
+        f"current_phase: {_compact_value(state.get('current_phase'))}",
+        f"current_plan: {_compact_value(state.get('current_plan'))}",
+        f"completed_items: {_compact_value(state.get('completed_items'))}",
+        f"evidence_refs: {_compact_value(state.get('evidence_refs'))}",
+        f"pending_items: {_compact_value(state.get('pending_items'))}",
+        f"blockers: {_compact_value(state.get('blockers'))}",
+        f"next_action: {_compact_value(state.get('next_action'))}",
+        "恢复步骤:",
+        "1. 先读取 task_state_ref 和 precompact_checkpoint_ref。",
+        "2. recovery_status 不是 READY 时，只能按 allowed_next_step 做恢复动作。",
+        "3. compact_summary_ref 只保存压缩事件元数据，不把摘要当真源。",
+    ]
+    context = "\n".join(lines)
+    if len(context.encode("utf-8")) > MAX_RECOVERY_OUTPUT_BYTES:
+        context = context[: MAX_RECOVERY_OUTPUT_BYTES - 64] + "\n[context truncated]"
+    return context
 
 
 def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -304,19 +556,81 @@ def prompt_additional_context(
     return context
 
 
+def handle_precompact(payload: dict[str, object]) -> None:
+    session_id = _validated_session_id(payload)
+    SessionStore(state_root(), session_id)
+    state = _load_recovery_state(session_id)
+    checkpoint_path = state_root() / f"latest-precompact-{session_id}.json"
+    state["precompact"] = {
+        "hook_event_name": "PreCompact",
+        "trigger": payload.get("trigger") or payload.get("matcher") or "",
+        "cwd": payload.get("cwd") or "",
+        "checkpoint_ref": str(checkpoint_path),
+        "sealed_at": utc_now(),
+        "recovery_status": state.get("recovery_status") or "INCOMPLETE",
+    }
+    _save_recovery_state(session_id, state)
+    checkpoint = dict(state)
+    checkpoint["checkpoint_event"] = "PreCompact"
+    _write_json(checkpoint_path, checkpoint)
+
+
+def handle_postcompact(payload: dict[str, object]) -> None:
+    session_id = _validated_session_id(payload)
+    SessionStore(state_root(), session_id)
+    state = _load_recovery_state(session_id)
+    summary = payload.get("compact_summary") or payload.get("compactSummary") or payload.get("summary")
+    summary_text = summary if isinstance(summary, str) else ""
+    metadata_path = state_root() / f"latest-postcompact-{session_id}.json"
+    metadata = {
+        "schema_version": RECOVERY_CARD_SCHEMA_VERSION,
+        "session_id": session_id,
+        "hook_event_name": "PostCompact",
+        "trigger": payload.get("trigger") or payload.get("matcher") or "",
+        "cwd": payload.get("cwd") or "",
+        "recorded_at": utc_now(),
+        "summary_length": len(summary_text),
+        "summary_sha256": sha256_text(summary_text),
+        "compact_summary_saved": False,
+    }
+    state["postcompact"] = {**metadata, "compact_summary_ref": str(metadata_path)}
+    _save_recovery_state(session_id, state)
+    _write_json(metadata_path, metadata)
+
+
+def handle_session_start(payload: dict[str, object], source: str) -> None:
+    if source != "compact":
+        emit_json({})
+        return
+    session_id = _validated_session_id(payload)
+    SessionStore(state_root(), session_id)
+    state = _load_recovery_state(session_id)
+    context = recovery_context(session_id, state)
+    state["last_recovery_injection"] = {
+        "hook_event_name": "SessionStart",
+        "source": "compact",
+        "injected_at": utc_now(),
+        "task_state_ref": str(_recovery_state_path(session_id)),
+        "precompact_checkpoint_ref": state.get("precompact", {}).get("checkpoint_ref", "missing"),
+        "compact_summary_ref": state.get("postcompact", {}).get("compact_summary_ref", "missing"),
+        "recovery_status": state.get("recovery_status", "INCOMPLETE"),
+        "recovery_action_required": state.get("recovery_action_required", True),
+        "allowed_next_step": state.get("allowed_next_step", "READ_ONLY_RECOVERY"),
+        "additional_context_length": len(context),
+        "additional_context_sha256": sha256_text(context),
+    }
+    _save_recovery_state(session_id, state)
+    emit_json({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}})
+
+
 def emit_json(payload: object) -> None:
     sys.stdout.write(json.dumps(payload, ensure_ascii=False, sort_keys=True) + "\n")
 
 
 def handle_user_prompt(payload: dict[str, object]) -> None:
-    session_id = _required_text(payload, "session_id", maximum=128)
+    session_id = _validated_session_id(payload)
     turn_id = _required_text(payload, "turn_id", maximum=512)
-    prompt = _required_text(
-        payload,
-        "user_prompt",
-        maximum=MAX_HOOK_PAYLOAD_BYTES,
-        exact_whitespace=False,
-    )
+    prompt = _prompt_from_payload(payload)
     transcript_path = _required_text(
         payload,
         "transcript_path",
@@ -336,6 +650,16 @@ def handle_user_prompt(payload: dict[str, object]) -> None:
     )
     git_head = git_head_for_cwd(cwd)
     status, _, _ = lifecycle_status(store, pending, git_head)
+    state = _load_recovery_state(session_id)
+    _record_prompt_in_state(
+        state,
+        prompt,
+        turn_id,
+        str(cwd),
+        transcript_path,
+        str(pending["updated_at"]),
+    )
+    _save_recovery_state(session_id, state)
     prune_state_root(root, session_id, policy, datetime.now(timezone.utc))
     emit_json(
         {
@@ -353,10 +677,13 @@ def _stop_block() -> None:
 
 def handle_stop(payload: dict[str, object]) -> None:
     try:
-        session_id = _required_text(payload, "session_id", maximum=128)
+        session_id = _validated_session_id(payload)
         turn_id = _required_text(payload, "turn_id", maximum=512)
         cwd = canonical_cwd(payload.get("cwd"))
         store = SessionStore(state_root(), session_id)
+        state = _load_recovery_state(session_id)
+        _record_stop_in_state(state, payload)
+        _save_recovery_state(session_id, state)
         pending = store.load_pending_turn()
         if (
             pending is None
@@ -388,7 +715,7 @@ def handle_state_update(payload_text: str) -> None:
             "state-update payload must contain exactly session_id, turn_id, "
             "base_revision, and task"
         )
-    session_id = _required_text(payload, "session_id", maximum=128)
+    session_id = _validated_session_id(payload)
     turn_id = _required_text(payload, "turn_id", maximum=512)
     base_revision = payload.get("base_revision")
     if (
@@ -428,12 +755,15 @@ def handle_state_update(payload_text: str) -> None:
     status, reason, _ = lifecycle_status(store, pending, git_head)
     if status is not RecoveryStatus.READY:
         raise IntegrityError("committed snapshot did not reach READY")
+    state = _load_recovery_state(session_id)
+    _record_snapshot_in_state(state, task, pending, snapshot)
+    _save_recovery_state(session_id, state)
     emit_json({"status": status.value, "reason": reason, "snapshot": snapshot})
 
 
 def handle_recover(session_id: str, turn_id: str) -> None:
     identity = {"session_id": session_id, "turn_id": turn_id}
-    session_id = _required_text(identity, "session_id", maximum=128)
+    session_id = _validated_session_id(identity)
     turn_id = _required_text(identity, "turn_id", maximum=512)
     store = SessionStore(state_root(), session_id)
     pending = store.load_pending_turn()
@@ -503,10 +833,17 @@ def main() -> int:
 
     payload = load_hook_payload()
     event = resolve_event(payload, args.event)
+    source = args.source or payload.get("source") or payload.get("matcher") or payload.get("trigger") or ""
     if event == "UserPromptSubmit":
         handle_user_prompt(payload)
     elif event == "Stop":
         handle_stop(payload)
+    elif event == "PreCompact":
+        handle_precompact(payload)
+    elif event == "PostCompact":
+        handle_postcompact(payload)
+    elif event == "SessionStart":
+        handle_session_start(payload, str(source))
     else:
         # StateUpdate is retained only as legacy evidence and never writes READY.
         emit_json({})
