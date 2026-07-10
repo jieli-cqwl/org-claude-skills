@@ -21,6 +21,7 @@ from typing import Iterator, Mapping
 
 from codex_context_model import (
     RecoveryStatus,
+    SCHEMA_VERSION,
     SnapshotValidationError,
     build_snapshot,
     canonical_json_bytes,
@@ -31,6 +32,7 @@ from codex_context_model import (
 PRIMARY_NAME = "primary.json"
 LATEST_CHECKPOINT_NAME = "checkpoint.latest.json"
 PREVIOUS_CHECKPOINT_NAME = "checkpoint.previous.json"
+PENDING_TURN_NAME = "pending-turn.json"
 SESSION_LOCK_NAME = ".session.lock"
 CLEANUP_LOCK_NAME = ".cleanup.lock"
 LIFECYCLE_LOCK_NAME = ".lifecycle.lock"
@@ -47,7 +49,7 @@ _WINDOWS_DEVICE_BASENAME_RE = re.compile(
     r"^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$", re.IGNORECASE
 )
 _TEMP_NAME_RE = re.compile(
-    r"^\.(?:primary\.json|checkpoint\.(?:latest|previous)\.json)\.[0-9a-f]{32}\.tmp$"
+    r"^\.(?:primary\.json|pending-turn\.json|checkpoint\.(?:latest|previous)\.json)\.[0-9a-f]{32}\.tmp$"
 )
 _ROOT_TEMP_NAME_RE = re.compile(r"^\.cleanup\.meta\.json\.[0-9a-f]{32}\.tmp$")
 _CHECKPOINT_FIELDS = {
@@ -71,10 +73,27 @@ _CLEANUP_FIELDS = {
     "remaining_bytes",
 }
 _MAX_JSON_BYTES = 256 * 1024
+_MAX_PENDING_TURN_BYTES = 8 * 1024
+_MAX_PENDING_PREVIEW_CHARS = 1024
+_MAX_PENDING_REFERENCE_CHARS = 4096
 _MAX_CLEANUP_METADATA_BYTES = 4 * 1024
 _MAX_LOCK_BYTES = 1
 _LOCK_POLL_SECONDS = 0.01
 _EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_PENDING_TURN_FIELDS = {
+    "schema_version",
+    "kind",
+    "session_id",
+    "turn_id",
+    "prompt_sha256",
+    "prompt_preview",
+    "transcript_path",
+    "cwd",
+    "base_revision",
+    "created_at",
+    "updated_at",
+}
 
 # Lock order is cleanup (cleanup only) -> lifecycle -> session; reversing it deadlocks.
 # Per-session accounting includes directories, locks, generations, and exact temps.
@@ -607,6 +626,71 @@ def _validate_snapshot_timestamps(snapshot: Mapping[str, object], kind: str) -> 
         raise IntegrityError(f"{kind} snapshot timestamps are invalid")
 
 
+def _validate_pending_text(
+    value: object,
+    field: str,
+    *,
+    maximum: int,
+    allow_empty: bool = False,
+) -> str:
+    if not isinstance(value, str):
+        raise IntegrityError(f"pending turn {field} must be a string")
+    if not allow_empty and not value.strip():
+        raise IntegrityError(f"pending turn {field} must not be empty")
+    if len(value) > maximum:
+        raise IntegrityError(f"pending turn {field} exceeds its bounded size")
+    if any(ord(character) < 0x20 or 0xD800 <= ord(character) <= 0xDFFF for character in value):
+        raise IntegrityError(f"pending turn {field} contains invalid characters")
+    return value
+
+
+def _verify_pending_turn(value: object, session_id: str) -> dict[str, object]:
+    if not isinstance(value, dict) or set(value) != _PENDING_TURN_FIELDS:
+        raise IntegrityError("pending turn fields are invalid")
+    if value.get("schema_version") != SCHEMA_VERSION or value.get("kind") != "pending_turn":
+        raise IntegrityError("pending turn schema is invalid")
+    if value.get("session_id") != session_id:
+        raise IntegrityError("pending turn session does not match its store")
+    _validate_pending_text(value.get("turn_id"), "turn_id", maximum=512)
+    prompt_sha256 = value.get("prompt_sha256")
+    if not isinstance(prompt_sha256, str) or _SHA256_RE.fullmatch(prompt_sha256) is None:
+        raise IntegrityError("pending turn prompt hash is invalid")
+    _validate_pending_text(
+        value.get("prompt_preview"),
+        "prompt_preview",
+        maximum=_MAX_PENDING_PREVIEW_CHARS,
+        allow_empty=True,
+    )
+    _validate_pending_text(
+        value.get("transcript_path"),
+        "transcript_path",
+        maximum=_MAX_PENDING_REFERENCE_CHARS,
+    )
+    cwd = _validate_pending_text(
+        value.get("cwd"), "cwd", maximum=_MAX_PENDING_REFERENCE_CHARS
+    )
+    if not Path(cwd).is_absolute() or str(Path(cwd).resolve()) != cwd:
+        raise IntegrityError("pending turn cwd must be canonical and absolute")
+    base_revision = value.get("base_revision")
+    if (
+        isinstance(base_revision, bool)
+        or not isinstance(base_revision, int)
+        or base_revision < 0
+    ):
+        raise IntegrityError("pending turn base revision is invalid")
+    created_at = _parse_utc_timestamp(value.get("created_at"))
+    updated_at = _parse_utc_timestamp(value.get("updated_at"))
+    if created_at is None or updated_at is None or created_at > updated_at:
+        raise IntegrityError("pending turn timestamps are invalid")
+    try:
+        serialized = canonical_json_bytes(value)
+    except (TypeError, ValueError, UnicodeError, RecursionError):
+        raise IntegrityError("pending turn is not canonical JSON") from None
+    if len(serialized) > _MAX_PENDING_TURN_BYTES:
+        raise IntegrityError("pending turn exceeds its bounded size")
+    return dict(value)
+
+
 def _checkpoint_hash(checkpoint: dict[str, object]) -> str:
     hashed = {
         key: value for key, value in checkpoint.items() if key != "checkpoint_sha256"
@@ -696,6 +780,7 @@ class SessionStore:
         self.primary_path = self.session_dir / PRIMARY_NAME
         self.latest_checkpoint_path = self.session_dir / LATEST_CHECKPOINT_NAME
         self.previous_checkpoint_path = self.session_dir / PREVIOUS_CHECKPOINT_NAME
+        self.pending_turn_path = self.session_dir / PENDING_TURN_NAME
         self.lock_path = self.session_dir / SESSION_LOCK_NAME
         self.lifecycle_lock_path = self.root / LIFECYCLE_LOCK_NAME
         with _bounded_lock(self.lifecycle_lock_path, self.lock_timeout_seconds):
@@ -708,6 +793,7 @@ class SessionStore:
             (self.primary_path, "primary snapshot"),
             (self.latest_checkpoint_path, "latest checkpoint"),
             (self.previous_checkpoint_path, "previous checkpoint"),
+            (self.pending_turn_path, "pending turn"),
         ):
             value = _read_json(path, label)
             if value is not None and isinstance(value, dict):
@@ -750,6 +836,66 @@ class SessionStore:
             return None
         return _verify_checkpoint(value, self.session_id)
 
+    def _load_pending_turn_unlocked(self) -> dict[str, object] | None:
+        value = _read_json(self.pending_turn_path, "pending turn")
+        if value is None:
+            return None
+        return _verify_pending_turn(value, self.session_id)
+
+    def load_pending_turn(self) -> dict[str, object] | None:
+        with self._locked():
+            return self._load_pending_turn_unlocked()
+
+    def record_pending_turn(
+        self,
+        *,
+        turn_id: str,
+        prompt_sha256: str,
+        prompt_preview: str,
+        transcript_path: str,
+        cwd: str,
+    ) -> dict[str, object]:
+        now = _utc_now_text()
+        with self._locked():
+            current = self._load_primary_unlocked()
+            candidate: dict[str, object] = {
+                "schema_version": SCHEMA_VERSION,
+                "kind": "pending_turn",
+                "session_id": self.session_id,
+                "turn_id": turn_id,
+                "prompt_sha256": prompt_sha256,
+                "prompt_preview": prompt_preview,
+                "transcript_path": transcript_path,
+                "cwd": cwd,
+                "base_revision": 0 if current is None else current["revision"],
+                "created_at": now,
+                "updated_at": now,
+            }
+            verified = _verify_pending_turn(candidate, self.session_id)
+            temp_path = _prepare_temp(
+                self.session_dir,
+                PENDING_TURN_NAME,
+                canonical_json_bytes(verified),
+            )
+            try:
+                temporary = _read_json(temp_path, "temporary pending turn")
+                if _verify_pending_turn(temporary, self.session_id) != verified:
+                    raise IntegrityError(
+                        "temporary pending turn differs from its candidate"
+                    )
+                _publish_temp(temp_path, self.pending_turn_path)
+                published = self._load_pending_turn_unlocked()
+            except (IntegrityError, StoreError) as exc:
+                _cleanup_temp_after_failure(
+                    temp_path, exc, "pending turn candidate processing failed"
+                )
+                raise
+            if published != verified:
+                raise IntegrityError(
+                    "published pending turn differs from the verified candidate"
+                )
+            return verified
+
     def load_primary(self) -> dict[str, object] | None:
         with self._locked():
             return self._load_primary_unlocked()
@@ -759,6 +905,8 @@ class SessionStore:
         task: object,
         runtime: object,
         base_revision: int,
+        *,
+        expected_pending: object | None = None,
     ) -> dict[str, object]:
         if isinstance(base_revision, bool) or not isinstance(base_revision, int) or base_revision < 0:
             raise RevisionConflict("base revision must be a non-negative integer")
@@ -776,6 +924,13 @@ class SessionStore:
                 f"{runtime_base_revision!r}"
             )
         with self._locked():
+            if expected_pending is not None:
+                expected = _verify_pending_turn(expected_pending, self.session_id)
+                observed_pending = self._load_pending_turn_unlocked()
+                if observed_pending != expected:
+                    raise RevisionConflict(
+                        "revision conflict: pending turn changed before snapshot commit"
+                    )
             current = self._load_primary_unlocked()
             observed_revision = 0 if current is None else current["revision"]
             if base_revision != observed_revision:
@@ -1064,6 +1219,7 @@ class SessionStore:
 def _is_owned_session_file_name(name: str) -> bool:
     return (
         name in _FULL_GENERATION_NAMES
+        or name == PENDING_TURN_NAME
         or name == SESSION_LOCK_NAME
         or _TEMP_NAME_RE.fullmatch(name) is not None
     )
@@ -1146,6 +1302,17 @@ def _record_timestamp(
                 ):
                     raise IntegrityError("retention primary belongs to another session")
                 parsed = _parse_utc_timestamp(snapshot["updated_at"])
+            elif path.name == PENDING_TURN_NAME:
+                if not isinstance(value, dict) or not _session_id_matches_filesystem_key(
+                    value.get("session_id"),
+                    session_key,
+                    platform_semantics=platform_semantics,
+                ):
+                    raise IntegrityError("retention pending turn belongs to another session")
+                pending_session_id = value["session_id"]
+                assert isinstance(pending_session_id, str)
+                pending = _verify_pending_turn(value, pending_session_id)
+                parsed = _parse_utc_timestamp(pending["updated_at"])
             else:
                 if not isinstance(value, dict) or not _session_id_matches_filesystem_key(
                     value.get("session_id"),

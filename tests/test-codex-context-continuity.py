@@ -35,6 +35,7 @@ from codex_context_model import (  # noqa: E402
     verify_snapshot,
 )
 import codex_context_store  # noqa: E402
+import codex_context_continuity  # noqa: E402
 from codex_context_store import (  # noqa: E402
     IntegrityError,
     LockTimeout,
@@ -778,6 +779,74 @@ class StoreTests(unittest.TestCase):
             self.assertEqual(stat.S_IMODE(self.root.stat().st_mode), 0o700)
             self.assertEqual(stat.S_IMODE(store.session_dir.stat().st_mode), 0o700)
             self.assertEqual(stat.S_IMODE(store.primary_path.stat().st_mode), 0o600)
+
+    def test_pending_turn_is_store_owned_private_and_overwrites_one_generation(self):
+        store = self.new_store("pending-owner")
+
+        first = store.record_pending_turn(
+            turn_id="turn-1",
+            prompt_sha256="a" * 64,
+            prompt_preview="first",
+            transcript_path="/tmp/transcript.jsonl",
+            cwd=str(self.root.parent.resolve()),
+        )
+        second = store.record_pending_turn(
+            turn_id="turn-2",
+            prompt_sha256="b" * 64,
+            prompt_preview="second",
+            transcript_path="/tmp/transcript.jsonl",
+            cwd=str(self.root.parent.resolve()),
+        )
+
+        self.assertEqual(first["base_revision"], 0)
+        self.assertEqual(second["turn_id"], "turn-2")
+        self.assertEqual(store.load_pending_turn(), second)
+        self.assertEqual(
+            sorted(path.name for path in store.session_dir.glob("pending*.json")),
+            ["pending-turn.json"],
+        )
+        self.assertIn(
+            store.pending_turn_path,
+            codex_context_store._owned_session_files(store.session_dir),
+        )
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(store.pending_turn_path.stat().st_mode), 0o600)
+
+    def test_corrupt_pending_turn_fails_closed(self):
+        store = self.new_store("pending-corrupt")
+        store.record_pending_turn(
+            turn_id="turn-1",
+            prompt_sha256="a" * 64,
+            prompt_preview="preview",
+            transcript_path="/tmp/transcript.jsonl",
+            cwd=str(self.root.parent.resolve()),
+        )
+        store.pending_turn_path.write_bytes(b"{broken")
+
+        with self.assertRaises(IntegrityError):
+            store.load_pending_turn()
+
+    def test_retention_owns_and_prunes_pending_only_session(self):
+        old = datetime(2026, 6, 1, tzinfo=timezone.utc)
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        store = self.new_store("pending-retention")
+        with mock.patch.object(
+            codex_context_store,
+            "_utc_now_text",
+            return_value=old.isoformat().replace("+00:00", "Z"),
+        ):
+            store.record_pending_turn(
+                turn_id="turn-1",
+                prompt_sha256="a" * 64,
+                prompt_preview="preview",
+                transcript_path="/tmp/transcript.jsonl",
+                cwd=str(self.root.parent.resolve()),
+            )
+
+        result = prune_state_root(self.root, "active", self.policy(), now)
+
+        self.assertEqual(result.deleted_sessions, 1)
+        self.assertFalse(store.session_dir.exists())
 
     def test_managed_snapshot_read_rejects_semantically_valid_noncanonical_bytes(self):
         store = self.ready_store("noncanonical-primary")
@@ -2267,6 +2336,466 @@ for _ in range(2):
             RetentionPolicy.from_environment(
                 {"CODEX_CONTEXT_STORE_MAX_TOTAL_BYTES": "unlimited"}
             )
+
+class LifecycleTests(unittest.TestCase):
+    STOP_REASON = (
+        "Context snapshot is not READY for this turn. Run the exact state-update "
+        "command from the latest continuity context before finishing."
+    )
+
+    def setUp(self) -> None:
+        self._temporary_directory = tempfile.TemporaryDirectory()
+        self.temp = Path(self._temporary_directory.name)
+        self.root = self.temp / "state"
+        self.project = self.temp / "project"
+        self.project.mkdir()
+        self.transcript = self.temp / "transcript.jsonl"
+        self.transcript.write_text("{}\n", encoding="utf-8")
+        self.session_id = "lifecycle-session"
+        self.script = MANAGED_HOOKS / "codex_context_continuity.py"
+        self.env = {
+            **os.environ,
+            "ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR": str(self.root),
+        }
+        self.run_git("init")
+        self.run_git("config", "user.email", "tests@example.invalid")
+        self.run_git("config", "user.name", "Context Tests")
+        (self.project / "tracked.txt").write_text("initial\n", encoding="utf-8")
+        self.run_git("add", "tracked.txt")
+        self.run_git("commit", "-m", "initial")
+
+    def tearDown(self) -> None:
+        self._temporary_directory.cleanup()
+
+    def run_git(self, *arguments: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["git", "-C", str(self.project), *arguments],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+    def store(self, session_id: str | None = None) -> SessionStore:
+        return SessionStore(self.root, session_id or self.session_id)
+
+    def hook_payload(
+        self,
+        event: str,
+        turn_id: str,
+        **overrides: object,
+    ) -> dict[str, object]:
+        payload: dict[str, object] = {
+            "hook_event_name": event,
+            "session_id": self.session_id,
+            "turn_id": turn_id,
+            "cwd": str(self.project),
+            "transcript_path": str(self.transcript),
+            "permission_mode": "default",
+            "last_assistant_message": "bounded lifecycle test",
+        }
+        payload.update(overrides)
+        return payload
+
+    def invoke_hook_raw(
+        self,
+        stdin: str,
+        *,
+        event: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        command = [sys.executable, str(self.script)]
+        if event is not None:
+            command.extend(["--event", event])
+        return subprocess.run(
+            command,
+            input=stdin,
+            capture_output=True,
+            text=True,
+            env=self.env,
+        )
+
+    def invoke_hook_result(
+        self,
+        event: str,
+        turn_id: str,
+        **overrides: object,
+    ) -> subprocess.CompletedProcess[str]:
+        payload = self.hook_payload(event, turn_id, **overrides)
+        return self.invoke_hook_raw(json.dumps(payload), event=event)
+
+    def invoke_hook(
+        self,
+        event: str,
+        turn_id: str,
+        **overrides: object,
+    ) -> dict[str, object]:
+        result = self.invoke_hook_result(event, turn_id, **overrides)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout or "{}")
+
+    def submit_prompt(
+        self,
+        prompt: str,
+        turn_id: str,
+        **overrides: object,
+    ) -> dict[str, object]:
+        return self.invoke_hook(
+            "UserPromptSubmit",
+            turn_id,
+            user_prompt=prompt,
+            **overrides,
+        )
+
+    def update_payload(
+        self,
+        turn_id: str,
+        task: object | None = None,
+        *,
+        session_id: str | None = None,
+        base_revision: int | None = None,
+        **extra: object,
+    ) -> dict[str, object]:
+        pending = self.store().load_pending_turn()
+        observed_revision = 0 if pending is None else pending["base_revision"]
+        payload: dict[str, object] = {
+            "session_id": session_id or self.session_id,
+            "turn_id": turn_id,
+            "base_revision": (
+                observed_revision if base_revision is None else base_revision
+            ),
+            "task": valid_task_payload() if task is None else task,
+        }
+        payload.update(extra)
+        return payload
+
+    def invoke_state_update_payload(
+        self, payload: object
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [
+                sys.executable,
+                str(self.script),
+                "state-update",
+                "--payload",
+                json.dumps(payload),
+            ],
+            capture_output=True,
+            text=True,
+            env=self.env,
+        )
+
+    def invoke_state_update(
+        self,
+        turn_id: str,
+        task: object | None = None,
+        **kwargs: object,
+    ) -> subprocess.CompletedProcess[str]:
+        return self.invoke_state_update_payload(
+            self.update_payload(turn_id, task, **kwargs)
+        )
+
+    def write_full_state(
+        self,
+        turn_id: str,
+        *,
+        goal: str = "Implement lifecycle",
+    ) -> dict[str, object]:
+        task = valid_task_payload(
+            active_goal=goal,
+            scope_boundary="Task 3 lifecycle only",
+            current_phase="implementation",
+            pending_items=["verify lifecycle"],
+            next_action="run lifecycle tests",
+        )
+        result = self.invoke_state_update(turn_id, task)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def recover(
+        self,
+        turn_id: str,
+        *,
+        session_id: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [
+                sys.executable,
+                str(self.script),
+                "recover",
+                "--session-id",
+                session_id or self.session_id,
+                "--turn-id",
+                turn_id,
+            ],
+            capture_output=True,
+            text=True,
+            env=self.env,
+        )
+
+    def assert_status(self, expected: str, turn_id: str) -> dict[str, object]:
+        result = self.recover(turn_id)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["status"], expected)
+        return payload
+
+    def test_new_prompt_invalidates_ready_state_by_turn_id(self):
+        self.submit_prompt("same prompt", "turn-1")
+        self.write_full_state("turn-1")
+        self.assert_status("READY", "turn-1")
+
+        self.submit_prompt("same prompt", "turn-2")
+
+        self.assert_status("STALE", "turn-2")
+
+    def test_empty_state_update_cannot_rebind_old_fields(self):
+        self.submit_prompt("goal A", "turn-1")
+        self.write_full_state("turn-1", goal="goal A")
+        self.submit_prompt("goal B", "turn-2")
+
+        result = self.invoke_state_update("turn-2", {})
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assert_status("STALE", "turn-2")
+        self.assertEqual(self.store().load_primary()["active_goal"], "goal A")
+
+    def test_stop_continues_turn_until_current_snapshot_is_ready(self):
+        self.submit_prompt("goal", "turn-1")
+
+        before = self.invoke_hook("Stop", "turn-1")
+
+        self.assertEqual(before, {"decision": "block", "reason": self.STOP_REASON})
+        self.write_full_state("turn-1")
+        self.assertEqual(self.invoke_hook("Stop", "turn-1"), {})
+        self.assertEqual(self.invoke_hook("Stop", "turn-1"), {})
+
+    def test_submit_requires_exact_identity_prompt_cwd_and_transcript(self):
+        cases = (
+            ("missing session", {"session_id": ""}),
+            ("unsafe session alias", {"session_id": "alias/session"}),
+            ("missing turn", {"turn_id": ""}),
+            ("missing prompt", {"user_prompt": ""}),
+            ("missing cwd", {"cwd": ""}),
+            ("missing transcript", {"transcript_path": ""}),
+        )
+        for label, overrides in cases:
+            with self.subTest(label=label):
+                user_prompt = overrides.get("user_prompt", "prompt")
+                result = self.invoke_hook_result(
+                    "UserPromptSubmit",
+                    str(overrides.get("turn_id", "turn-1")),
+                    user_prompt=user_prompt,
+                    **{
+                        key: value
+                        for key, value in overrides.items()
+                        if key not in {"turn_id", "user_prompt"}
+                    },
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("Traceback", result.stderr)
+
+        self.assertFalse(self.root.exists())
+
+    def test_submit_canonicalizes_cwd_without_rebinding_session_aliases(self):
+        alias = self.temp / "project-alias"
+        alias.symlink_to(self.project, target_is_directory=True)
+
+        self.submit_prompt("prompt", "turn-1", cwd=str(alias))
+
+        pending = self.store().load_pending_turn()
+        self.assertEqual(pending["cwd"], str(self.project.resolve()))
+        self.assertEqual(pending["session_id"], self.session_id)
+
+    def test_pending_preview_is_bounded_and_redacts_common_secrets(self):
+        secret = (
+            "token=visible-token-value sk-proj-abcdefghijklmnopqrstuvwxyz123456 "
+            "ghp_abcdefghijklmnopqrstuvwxyz123456 AKIAABCDEFGHIJKLMNOP "
+            "-----BEGIN PRIVATE KEY-----PRIVATEKEYMATERIAL-----END PRIVATE KEY-----"
+        )
+
+        self.submit_prompt(secret + ("x" * 1000), "turn-1")
+
+        pending = self.store().load_pending_turn()
+        serialized = json.dumps(pending)
+        self.assertLessEqual(len(pending["prompt_preview"]), 240)
+        for leaked in (
+            "visible-token-value",
+            "sk-proj-abcdefghijklmnopqrstuvwxyz123456",
+            "ghp_abcdefghijklmnopqrstuvwxyz123456",
+            "AKIAABCDEFGHIJKLMNOP",
+            "PRIVATEKEYMATERIAL",
+        ):
+            self.assertNotIn(leaked, serialized)
+        self.assertIn("[REDACTED]", pending["prompt_preview"])
+
+    def test_additional_context_is_bounded_and_names_exact_update_contract(self):
+        output = self.submit_prompt("prompt", "turn-1")
+
+        context = output["hookSpecificOutput"]["additionalContext"]
+        self.assertLessEqual(len(context.encode("utf-8")), 4096)
+        self.assertIn("status: INCOMPLETE", context)
+        self.assertIn("base_revision: 0", context)
+        self.assertIn(f"session_id: {self.session_id}", context)
+        self.assertIn("turn_id: turn-1", context)
+        self.assertIn("state-update --payload", context)
+        self.assertNotIn("status: READY", context)
+
+    def test_state_update_rejects_stale_base_and_mismatched_identity(self):
+        self.submit_prompt("prompt", "turn-1")
+        original = self.store().load_primary()
+
+        cases = (
+            self.update_payload("turn-1", base_revision=1),
+            self.update_payload("other-turn"),
+            self.update_payload("turn-1", session_id="other-session"),
+        )
+        for payload in cases:
+            with self.subTest(payload=payload):
+                result = self.invoke_state_update_payload(payload)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("Traceback", result.stderr)
+                self.assertEqual(self.store().load_primary(), original)
+
+    def test_state_update_rejects_partial_unknown_and_oversize_json_before_mutation(self):
+        self.submit_prompt("prompt", "turn-1")
+        payloads = (
+            self.update_payload("turn-1", {"active_goal": "partial"}),
+            self.update_payload("turn-1", extra_runtime="not allowed"),
+            self.update_payload(
+                "turn-1",
+                valid_task_payload(active_goal="x" * (MAX_SNAPSHOT_BYTES + 1)),
+            ),
+        )
+        for payload in payloads:
+            with self.subTest(keys=list(payload)):
+                result = self.invoke_state_update_payload(payload)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIsNone(self.store().load_primary())
+
+    def test_state_update_argument_is_json_only_and_never_shell_evaluated(self):
+        self.submit_prompt("prompt", "turn-1")
+        marker = self.temp / "must-not-exist"
+        payload = self.update_payload("turn-1")
+        injected = json.dumps(payload) + f"; touch {marker}"
+
+        result = subprocess.run(
+            [sys.executable, str(self.script), "state-update", "--payload", injected],
+            capture_output=True,
+            text=True,
+            env=self.env,
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(marker.exists())
+        self.assertIsNone(self.store().load_primary())
+
+    def test_hook_stdin_rejects_empty_malformed_non_object_and_extra_json(self):
+        for stdin in ("", "{broken", "[]", "{} {}"):
+            with self.subTest(stdin=stdin):
+                result = self.invoke_hook_raw(stdin, event="UserPromptSubmit")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("Traceback", result.stderr)
+        self.assertFalse(self.root.exists())
+
+    def test_repeated_timestamps_do_not_make_new_turn_ready(self):
+        fixed = "2026-07-09T00:00:00Z"
+        with mock.patch.object(codex_context_store, "_utc_now_text", return_value=fixed):
+            self.submit_prompt("same", "turn-1")
+            self.write_full_state("turn-1")
+            self.submit_prompt("same", "turn-2")
+
+        self.assert_status("STALE", "turn-2")
+
+    def test_git_drift_blocks_stop_without_mutating_snapshot(self):
+        self.submit_prompt("prompt", "turn-1")
+        snapshot = self.write_full_state("turn-1")
+        (self.project / "tracked.txt").write_text("changed\n", encoding="utf-8")
+        self.run_git("add", "tracked.txt")
+        self.run_git("commit", "-m", "drift")
+
+        output = self.invoke_hook("Stop", "turn-1")
+
+        self.assertEqual(output, {"decision": "block", "reason": self.STOP_REASON})
+        self.assertEqual(self.store().load_primary(), snapshot["snapshot"])
+        self.assert_status("STALE", "turn-1")
+
+    def test_non_git_workspace_uses_explicit_sentinel(self):
+        nongit = self.temp / "not-git"
+        nongit.mkdir()
+        self.submit_prompt("prompt", "turn-1", cwd=str(nongit))
+
+        snapshot = self.write_full_state("turn-1")
+
+        self.assertEqual(snapshot["snapshot"]["git_head"], "not-a-git-repository")
+        self.assert_status("READY", "turn-1")
+
+    def test_git_timeout_uses_exact_five_seconds_and_is_visible(self):
+        with mock.patch.object(
+            codex_context_continuity.subprocess,
+            "run",
+            side_effect=subprocess.TimeoutExpired(["git"], 5.0),
+        ) as run:
+            with self.assertRaises(codex_context_continuity.GitStateError):
+                codex_context_continuity.git_head_for_cwd(self.project)
+
+        self.assertEqual(run.call_args.kwargs["timeout"], 5.0)
+
+    def test_corrupted_pending_never_promotes_or_leaks_traceback(self):
+        self.submit_prompt("prompt", "turn-1")
+        store = self.store()
+        store.pending_turn_path.write_bytes(b"{broken")
+
+        update = self.invoke_state_update_payload(
+            {
+                "session_id": self.session_id,
+                "turn_id": "turn-1",
+                "base_revision": 0,
+                "task": valid_task_payload(),
+            }
+        )
+        stop = self.invoke_hook("Stop", "turn-1")
+
+        self.assertNotEqual(update.returncode, 0)
+        self.assertNotIn("Traceback", update.stderr)
+        self.assertEqual(stop, {"decision": "block", "reason": self.STOP_REASON})
+        self.assertIsNone(store.load_primary())
+
+    def test_schema1_partial_stateupdate_event_cannot_manufacture_ready(self):
+        self.submit_prompt("prompt", "turn-1")
+        legacy = self.invoke_hook(
+            "StateUpdate",
+            "turn-1",
+            state={"active_goal": "legacy partial goal"},
+        )
+
+        self.assertEqual(legacy, {})
+        self.assertEqual(
+            self.invoke_hook("Stop", "turn-1"),
+            {"decision": "block", "reason": self.STOP_REASON},
+        )
+        self.assertIsNone(self.store().load_primary())
+
+    def test_recover_is_bounded_evidence_only_and_cannot_promote(self):
+        self.submit_prompt("prompt", "turn-1")
+
+        result = self.recover("turn-1")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertLessEqual(len(result.stdout.encode("utf-8")), 4096)
+        packet = json.loads(result.stdout)
+        self.assertEqual(packet["status"], "INCOMPLETE")
+        self.assertFalse(packet["can_promote"])
+        self.assertTrue(packet["evidence"]["transcript_ref_present"])
+        self.assertIsNone(self.store().load_primary())
+
+    def test_recover_rejects_mismatched_session_or_turn(self):
+        self.submit_prompt("prompt", "turn-1")
+
+        wrong_turn = self.recover("turn-2")
+        wrong_session = self.recover("turn-1", session_id="other-session")
+
+        self.assertNotEqual(wrong_turn.returncode, 0)
+        self.assertNotEqual(wrong_session.returncode, 0)
+        self.assertNotIn(str(self.transcript), wrong_turn.stderr + wrong_session.stderr)
 
 
 if __name__ == "__main__":
