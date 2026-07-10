@@ -86,6 +86,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tests/test-render-runtime-placeholders.py"
   python3 -m py_compile "$ROOT/shared/hooks/managed/codex_context_continuity.py"
   python3 -m py_compile "$ROOT/shared/hooks/managed/codex_context_model.py"
+  python3 -m py_compile "$ROOT/tests/test-codex-context-continuity.py"
   python3 -m py_compile "$ROOT/shared/hooks/managed/codex_subagent_dispatch_guard.py"
   python3 -m py_compile "$ROOT/tools/community/validate_context_contract.py"
   python3 -m py_compile "$ROOT/tools/community/recover_context.py"

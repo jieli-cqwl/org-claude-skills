@@ -200,10 +200,10 @@ Add the new Python file to `run_bash_syntax_checks`, then add this `tests/gate-p
 Run:
 
 ```bash
-python3 tools/community/gate_plan.py validate --plan tests/gate-plan.json
+python3 tools/community/gate_plan.py --repo-root . --mode quick --list --format json
 ```
 
-Expected: gate plan validation passes.
+Expected: the quick gate list includes `codex-context-continuity-model`.
 
 - [ ] **Step 6: Commit Task 1**
 

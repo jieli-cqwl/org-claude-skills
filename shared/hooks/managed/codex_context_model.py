@@ -70,6 +70,15 @@ _SNAPSHOT_STRING_FIELDS = {
     "created_at",
     "updated_at",
 }
+_RUNTIME_IDENTITY_FIELDS = {
+    "session_id",
+    "turn_id",
+    "revision",
+    "base_revision",
+    "cwd",
+    "git_head",
+    "last_user_prompt_hash",
+}
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -104,11 +113,18 @@ def canonical_json_bytes(value: object) -> bytes:
 
 
 def _add_missing_and_unknown_errors(
-    payload: dict[str, Any], expected_fields: set[str], errors: dict[str, str]
+    payload: dict[Any, Any],
+    expected_fields: set[str],
+    errors: dict[str, str],
+    *,
+    key_error_field: str = "keys",
 ) -> None:
-    for field in sorted(expected_fields - set(payload)):
+    string_keys = {key for key in payload if isinstance(key, str)}
+    if len(string_keys) != len(payload):
+        errors[key_error_field] = "must contain only string keys"
+    for field in sorted(expected_fields - string_keys):
         errors[field] = "is required"
-    for field in sorted(set(payload) - expected_fields):
+    for field in sorted(string_keys - expected_fields):
         errors[field] = "is not allowed"
 
 
@@ -117,6 +133,8 @@ def _validate_string(
 ) -> None:
     if not isinstance(value, str):
         errors[field] = "must be a string"
+    elif any(0xD800 <= ord(character) <= 0xDFFF for character in value):
+        errors[field] = "must not contain Unicode surrogate code points"
     elif not allow_empty and not value.strip():
         errors[field] = "must not be empty"
 
@@ -128,6 +146,8 @@ def _validate_string_list(field: str, value: object, errors: dict[str, str]) -> 
     for index, item in enumerate(value):
         if not isinstance(item, str):
             errors[f"{field}[{index}]"] = "must be a string"
+        elif any(0xD800 <= ord(character) <= 0xDFFF for character in item):
+            errors[f"{field}[{index}]"] = "must not contain Unicode surrogate code points"
 
 
 def _validate_completed_items(value: object, errors: dict[str, str]) -> None:
@@ -141,6 +161,11 @@ def _validate_completed_items(value: object, errors: dict[str, str]) -> None:
             errors[item_field] = "must be an object"
             continue
         expected = {"item", "evidence_refs", "no_external_evidence"}
+        item_keys = {key for key in item if isinstance(key, str)}
+        if len(item_keys) != len(item):
+            errors[f"{item_field}.keys"] = "must contain only string keys"
+        for key in sorted(item_keys - expected):
+            errors[f"{item_field}.{key}"] = "is not allowed"
         if "item" not in item:
             errors[f"{item_field}.item"] = "is required"
         else:
@@ -161,8 +186,6 @@ def _validate_completed_items(value: object, errors: dict[str, str]) -> None:
             errors[f"{item_field}.evidence_refs"] = (
                 "must not be empty without no_external_evidence=true"
             )
-        for key in sorted(set(item) - expected):
-            errors[f"{item_field}.{key}"] = "is not allowed"
 
 
 def _validate_task_fields(payload: object, errors: dict[str, str]) -> dict[str, object] | None:
@@ -197,7 +220,7 @@ def _validate_task_fields(payload: object, errors: dict[str, str]) -> dict[str, 
 def _add_size_error(value: object, errors: dict[str, str]) -> None:
     try:
         size = len(canonical_json_bytes(value))
-    except (TypeError, ValueError):
+    except Exception:
         errors["snapshot"] = "must be JSON-serializable"
         return
     if size > MAX_SNAPSHOT_BYTES:
@@ -268,7 +291,10 @@ def build_snapshot(
         "created_at": created_at,
         "updated_at": updated_at,
     }
-    snapshot["snapshot_sha256"] = _snapshot_hash(snapshot)
+    try:
+        snapshot["snapshot_sha256"] = _snapshot_hash(snapshot)
+    except Exception:
+        errors["snapshot"] = "must be JSON-serializable"
     _add_size_error(snapshot, errors)
     if errors:
         raise SnapshotValidationError(errors)
@@ -306,9 +332,13 @@ def verify_snapshot(snapshot: object) -> dict[str, object]:
     errors: dict[str, str] = {}
     _validate_full_snapshot(snapshot, errors)
     if isinstance(snapshot, dict) and isinstance(snapshot.get("snapshot_sha256"), str):
-        expected_hash = _snapshot_hash(snapshot)
-        if not hmac.compare_digest(snapshot["snapshot_sha256"], expected_hash):
-            errors["snapshot_sha256"] = "does not match canonical snapshot content"
+        try:
+            expected_hash = _snapshot_hash(snapshot)
+        except Exception:
+            errors.setdefault("snapshot", "must be JSON-serializable")
+        else:
+            if not hmac.compare_digest(snapshot["snapshot_sha256"], expected_hash):
+                errors["snapshot_sha256"] = "does not match canonical snapshot content"
     if errors:
         raise SnapshotValidationError(errors)
     return dict(snapshot) if isinstance(snapshot, dict) else {}
@@ -327,19 +357,41 @@ def evaluate_snapshot(
     if not isinstance(runtime_identity, dict):
         return RecoveryStatus.UNRECOVERABLE, "runtime identity must be an object"
 
-    identity_fields = {
-        "session_id",
-        "turn_id",
+    identity_errors: dict[str, str] = {}
+    _add_missing_and_unknown_errors(
+        runtime_identity,
+        _RUNTIME_IDENTITY_FIELDS,
+        identity_errors,
+        key_error_field="runtime_identity.keys",
+    )
+    for field in _RUNTIME_IDENTITY_FIELDS - {
         "revision",
         "base_revision",
-        "cwd",
-        "git_head",
         "last_user_prompt_hash",
-    }
-    supplied_fields = identity_fields & set(runtime_identity)
-    if not supplied_fields:
-        return RecoveryStatus.UNRECOVERABLE, "runtime identity has no comparable fields"
-    for field in sorted(supplied_fields):
+    }:
+        if field in runtime_identity:
+            _validate_string(field, runtime_identity[field], identity_errors)
+            if (
+                isinstance(runtime_identity[field], str)
+                and runtime_identity[field].strip().casefold() == "unknown"
+            ):
+                identity_errors[field] = "must be known"
+    for field in ("revision", "base_revision"):
+        if field in runtime_identity:
+            _validate_nonnegative_int(field, runtime_identity[field], identity_errors)
+    if "last_user_prompt_hash" in runtime_identity:
+        value = runtime_identity["last_user_prompt_hash"]
+        if not isinstance(value, str) or not _SHA256_RE.fullmatch(value):
+            identity_errors["last_user_prompt_hash"] = (
+                "must be a lowercase SHA-256 hex digest"
+            )
+    if identity_errors:
+        reason = "; ".join(
+            f"{field}: {message}" for field, message in sorted(identity_errors.items())
+        )
+        return RecoveryStatus.UNRECOVERABLE, reason
+
+    for field in sorted(_RUNTIME_IDENTITY_FIELDS):
         if runtime_identity[field] != verified[field]:
             return RecoveryStatus.STALE, f"snapshot {field} does not match runtime identity"
     return RecoveryStatus.READY, "snapshot matches runtime identity"
@@ -350,15 +402,15 @@ def estimate_tokens(text: str) -> int:
     tokens = 0
     ascii_run = 0
     for character in text:
-        if character.isspace():
+        if ord(character) >= 128:
             ascii_run = 0
-        elif ord(character) < 128:
+            tokens += 1
+        elif character.isspace():
+            ascii_run = 0
+        else:
             ascii_run += 1
             if ascii_run % 3 == 1:
                 tokens += 1
-        else:
-            ascii_run = 0
-            tokens += 1
     return tokens
 
 
@@ -375,15 +427,15 @@ def bounded_text(text: str, byte_limit: int, token_limit: int) -> tuple[str, boo
         character_bytes = len(character.encode("utf-8"))
         next_ascii_run = ascii_run
         next_tokens = tokens_used
-        if character.isspace():
+        if ord(character) >= 128:
             next_ascii_run = 0
-        elif ord(character) < 128:
+            next_tokens += 1
+        elif character.isspace():
+            next_ascii_run = 0
+        else:
             next_ascii_run += 1
             if next_ascii_run % 3 == 1:
                 next_tokens += 1
-        else:
-            next_ascii_run = 0
-            next_tokens += 1
         if bytes_used + character_bytes > byte_limit or next_tokens > token_limit:
             break
         bytes_used += character_bytes
