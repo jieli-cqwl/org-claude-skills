@@ -80,6 +80,7 @@ _RUNTIME_IDENTITY_FIELDS = {
     "last_user_prompt_hash",
 }
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_CANONICALIZATION_ERRORS = (TypeError, ValueError, UnicodeError, RecursionError)
 
 
 class RecoveryStatus(str, Enum):
@@ -152,6 +153,13 @@ def _validate_string_list(field: str, value: object, errors: dict[str, str]) -> 
             errors[f"{field}[{index}]"] = "must not be empty"
 
 
+def _validate_task_status(value: object, errors: dict[str, str]) -> None:
+    if not isinstance(value, str):
+        errors["task_status"] = "must be a string"
+    elif value not in TASK_STATUSES:
+        errors["task_status"] = "must be one of active, blocked, complete"
+
+
 def _validate_completed_items(value: object, errors: dict[str, str]) -> None:
     field = "completed_items"
     if not isinstance(value, list):
@@ -178,13 +186,19 @@ def _validate_completed_items(value: object, errors: dict[str, str]) -> None:
             _validate_string_list(
                 f"{item_field}.evidence_refs", item["evidence_refs"], errors
             )
-        has_no_external_evidence = item.get("no_external_evidence")
-        if has_no_external_evidence is not None and not isinstance(
-            has_no_external_evidence, bool
-        ):
-            errors[f"{item_field}.no_external_evidence"] = "must be a boolean"
+        has_no_external_evidence = False
+        if "no_external_evidence" in item:
+            no_external_evidence = item["no_external_evidence"]
+            if not isinstance(no_external_evidence, bool):
+                errors[f"{item_field}.no_external_evidence"] = "must be a boolean"
+            else:
+                has_no_external_evidence = no_external_evidence
         evidence_refs = item.get("evidence_refs")
-        if evidence_refs == [] and has_no_external_evidence is not True:
+        if (
+            isinstance(evidence_refs, list)
+            and not evidence_refs
+            and has_no_external_evidence is not True
+        ):
             errors[f"{item_field}.evidence_refs"] = (
                 "must not be empty without no_external_evidence=true"
             )
@@ -211,10 +225,19 @@ def _validate_task_fields(payload: object, errors: dict[str, str]) -> dict[str, 
             _validate_string_list(field, payload[field], errors)
     if "completed_items" in payload:
         _validate_completed_items(payload["completed_items"], errors)
-    if payload.get("task_status") not in TASK_STATUSES:
-        errors["task_status"] = "must be one of active, blocked, complete"
-    if payload.get("task_status") == "blocked" and not payload.get("blockers"):
-        errors["blockers"] = "must contain at least one blocker when task_status is blocked"
+    if "task_status" in payload:
+        task_status = payload["task_status"]
+        _validate_task_status(task_status, errors)
+        blockers = payload.get("blockers")
+        if (
+            isinstance(task_status, str)
+            and task_status == "blocked"
+            and isinstance(blockers, list)
+            and not blockers
+        ):
+            errors["blockers"] = (
+                "must contain at least one blocker when task_status is blocked"
+            )
 
     return dict(payload)
 
@@ -222,7 +245,7 @@ def _validate_task_fields(payload: object, errors: dict[str, str]) -> dict[str, 
 def _add_size_error(value: object, errors: dict[str, str]) -> None:
     try:
         size = len(canonical_json_bytes(value))
-    except Exception:
+    except _CANONICALIZATION_ERRORS:
         errors["snapshot"] = "must be JSON-serializable"
         return
     if size > MAX_SNAPSHOT_BYTES:
@@ -295,7 +318,7 @@ def build_snapshot(
     }
     try:
         snapshot["snapshot_sha256"] = _snapshot_hash(snapshot)
-    except Exception:
+    except _CANONICALIZATION_ERRORS:
         errors["snapshot"] = "must be JSON-serializable"
     _add_size_error(snapshot, errors)
     if errors:
@@ -315,8 +338,11 @@ def _validate_full_snapshot(snapshot: object, errors: dict[str, str]) -> dict[st
     for field in _SNAPSHOT_STRING_FIELDS:
         if field in snapshot:
             _validate_string(field, snapshot[field], errors)
-    if "schema_version" in snapshot and snapshot["schema_version"] != SCHEMA_VERSION:
-        errors["schema_version"] = f"must equal {SCHEMA_VERSION}"
+    if "schema_version" in snapshot:
+        schema_version = snapshot["schema_version"]
+        _validate_string("schema_version", schema_version, errors)
+        if isinstance(schema_version, str) and schema_version != SCHEMA_VERSION:
+            errors["schema_version"] = f"must equal {SCHEMA_VERSION}"
     for field in ("revision", "base_revision"):
         if field in snapshot:
             _validate_nonnegative_int(field, snapshot[field], errors)
@@ -340,7 +366,7 @@ def verify_snapshot(snapshot: object) -> dict[str, object]:
     ):
         try:
             expected_hash = _snapshot_hash(snapshot)
-        except Exception:
+        except _CANONICALIZATION_ERRORS:
             errors.setdefault("snapshot", "must be JSON-serializable")
         else:
             if not hmac.compare_digest(snapshot["snapshot_sha256"], expected_hash):

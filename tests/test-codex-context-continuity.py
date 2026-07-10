@@ -74,7 +74,88 @@ def valid_runtime_identity(**overrides: object) -> dict[str, object]:
     return identity
 
 
+WRONG_JSON_SCALAR_TYPES = (
+    ("null", None),
+    ("boolean", True),
+    ("number", 1),
+    ("list", []),
+    ("object", {}),
+)
+WRONG_JSON_LIST_CONTAINERS = WRONG_JSON_SCALAR_TYPES[:-2] + (
+    ("string", "value"),
+    ("object", {}),
+)
+WRONG_NONNEGATIVE_INTEGERS = (
+    ("null", None),
+    ("boolean", True),
+    ("negative", -1),
+    ("fractional", 1.5),
+    ("string", "1"),
+    ("list", []),
+    ("object", {}),
+)
+
+
+def rehash_snapshot(snapshot: dict[str, object]) -> None:
+    unhashed = {
+        key: value for key, value in snapshot.items() if key != "snapshot_sha256"
+    }
+    snapshot["snapshot_sha256"] = hashlib.sha256(
+        canonical_json_bytes(unhashed)
+    ).hexdigest()
+
+
 class SchemaTests(unittest.TestCase):
+    def assert_task_field_invalid_across_public_paths(
+        self, field: str, value: object, error_field: str | None = None
+    ) -> None:
+        expected_error = error_field or field
+        task = valid_task_payload(**{field: value})
+
+        with self.assertRaises(SnapshotValidationError) as validation_error:
+            validate_task_payload(task)
+        self.assertIn(expected_error, validation_error.exception.field_errors)
+
+        with self.assertRaises(SnapshotValidationError) as build_error:
+            build_snapshot(
+                task,
+                valid_runtime(),
+                revision=1,
+                created_at="2026-07-09T00:00:00Z",
+                updated_at="2026-07-09T00:00:00Z",
+            )
+        self.assertIn(expected_error, build_error.exception.field_errors)
+
+        snapshot = build_valid_snapshot()
+        snapshot[field] = value
+        rehash_snapshot(snapshot)
+        with self.assertRaises(SnapshotValidationError) as verification_error:
+            verify_snapshot(snapshot)
+        self.assertIn(expected_error, verification_error.exception.field_errors)
+        self.assertEqual(
+            evaluate_snapshot(snapshot, valid_runtime_identity())[0],
+            RecoveryStatus.CORRUPT,
+        )
+
+    def assert_task_field_valid_across_public_paths(
+        self, field: str, value: object
+    ) -> None:
+        task = valid_task_payload(**{field: value})
+        self.assertEqual(validate_task_payload(task)[field], value)
+
+        snapshot = build_snapshot(
+            task,
+            valid_runtime(),
+            revision=1,
+            created_at="2026-07-09T00:00:00Z",
+            updated_at="2026-07-09T00:00:00Z",
+        )
+        self.assertEqual(verify_snapshot(snapshot)[field], value)
+        self.assertEqual(
+            evaluate_snapshot(snapshot, valid_runtime_identity())[0],
+            RecoveryStatus.READY,
+        )
+
     def test_empty_and_partial_updates_are_rejected(self):
         for payload in ({}, {"active_goal": "goal"}):
             with self.subTest(payload=payload):
@@ -191,6 +272,135 @@ class SchemaTests(unittest.TestCase):
 
         self.assertIn("completed_items[0].evidence_refs[0]", raised.exception.field_errors)
 
+    def test_task_scalar_string_type_matrix_is_total_across_public_paths(self):
+        fields = (
+            "active_goal",
+            "scope_boundary",
+            "latest_user_correction",
+            "current_phase",
+            "next_action",
+        )
+        for field in fields:
+            for type_name, value in WRONG_JSON_SCALAR_TYPES:
+                with self.subTest(field=field, type=type_name):
+                    self.assert_task_field_invalid_across_public_paths(field, value)
+
+    def test_task_status_type_matrix_is_total_across_public_paths(self):
+        invalid_statuses = WRONG_JSON_SCALAR_TYPES + (("unknown", "paused"),)
+        for type_name, value in invalid_statuses:
+            with self.subTest(type=type_name):
+                self.assert_task_field_invalid_across_public_paths(
+                    "task_status", value
+                )
+
+    def test_task_list_matrix_is_total_across_public_paths(self):
+        fields = ("non_goals", "current_plan", "pending_items", "blockers")
+        invalid_entries = WRONG_JSON_SCALAR_TYPES + (("blank", "   "),)
+
+        for field in fields:
+            with self.subTest(field=field, case="empty"):
+                self.assert_task_field_valid_across_public_paths(field, [])
+            for type_name, value in WRONG_JSON_LIST_CONTAINERS:
+                with self.subTest(field=field, container=type_name):
+                    self.assert_task_field_invalid_across_public_paths(field, value)
+            for type_name, value in invalid_entries:
+                with self.subTest(field=field, entry=type_name):
+                    self.assert_task_field_invalid_across_public_paths(
+                        field, [value], f"{field}[0]"
+                    )
+
+    def test_completed_item_matrix_is_total_across_public_paths(self):
+        self.assert_task_field_valid_across_public_paths("completed_items", [])
+
+        for type_name, value in WRONG_JSON_LIST_CONTAINERS:
+            with self.subTest(container=type_name):
+                self.assert_task_field_invalid_across_public_paths(
+                    "completed_items", value
+                )
+
+        invalid_items = WRONG_JSON_LIST_CONTAINERS[:-1] + (("list", []),)
+        for type_name, value in invalid_items:
+            with self.subTest(item=type_name):
+                self.assert_task_field_invalid_across_public_paths(
+                    "completed_items", [value], "completed_items[0]"
+                )
+
+        for type_name, value in WRONG_JSON_SCALAR_TYPES + (("blank", "   "),):
+            completed_items = [{"item": value, "evidence_refs": ["test:1"]}]
+            with self.subTest(item_field=type_name):
+                self.assert_task_field_invalid_across_public_paths(
+                    "completed_items", completed_items, "completed_items[0].item"
+                )
+
+        for type_name, value in WRONG_JSON_LIST_CONTAINERS:
+            completed_items = [{"item": "done", "evidence_refs": value}]
+            with self.subTest(evidence_container=type_name):
+                self.assert_task_field_invalid_across_public_paths(
+                    "completed_items",
+                    completed_items,
+                    "completed_items[0].evidence_refs",
+                )
+
+        for type_name, value in WRONG_JSON_SCALAR_TYPES + (("blank", "   "),):
+            completed_items = [{"item": "done", "evidence_refs": [value]}]
+            with self.subTest(evidence_entry=type_name):
+                self.assert_task_field_invalid_across_public_paths(
+                    "completed_items",
+                    completed_items,
+                    "completed_items[0].evidence_refs[0]",
+                )
+
+    def test_no_external_evidence_distinguishes_absence_from_explicit_null(self):
+        valid_items = (
+            {"item": "done", "evidence_refs": ["test:1"]},
+            {
+                "item": "done",
+                "evidence_refs": ["test:1"],
+                "no_external_evidence": False,
+            },
+            {"item": "done", "evidence_refs": [], "no_external_evidence": True},
+        )
+        for item in valid_items:
+            with self.subTest(valid=item):
+                self.assert_task_field_valid_across_public_paths(
+                    "completed_items", [item]
+                )
+
+        invalid_values = (
+            ("null", None),
+            ("string", "true"),
+            ("number", 1),
+            ("list", []),
+            ("object", {}),
+        )
+        for type_name, value in invalid_values:
+            item = {
+                "item": "done",
+                "evidence_refs": ["test:1"],
+                "no_external_evidence": value,
+            }
+            with self.subTest(type=type_name):
+                self.assert_task_field_invalid_across_public_paths(
+                    "completed_items",
+                    [item],
+                    "completed_items[0].no_external_evidence",
+                )
+
+        for item in (
+            {"item": "done", "evidence_refs": []},
+            {
+                "item": "done",
+                "evidence_refs": [],
+                "no_external_evidence": False,
+            },
+        ):
+            with self.subTest(empty_evidence=item):
+                self.assert_task_field_invalid_across_public_paths(
+                    "completed_items",
+                    [item],
+                    "completed_items[0].evidence_refs",
+                )
+
     def test_canonical_json_is_sorted_compact_utf8(self):
         self.assertEqual(
             canonical_json_bytes({"z": "x", "a": "\u4f60\u597d"}),
@@ -303,6 +513,152 @@ class SchemaTests(unittest.TestCase):
         self.assertEqual(
             evaluate_snapshot(snapshot, valid_runtime_identity())[0], RecoveryStatus.CORRUPT
         )
+
+    def test_build_snapshot_runtime_scalar_matrix_raises_validation_error(self):
+        runtime_string_fields = ("session_id", "turn_id", "cwd", "git_head")
+        for field in runtime_string_fields:
+            for type_name, value in WRONG_JSON_SCALAR_TYPES:
+                with self.subTest(field=field, type=type_name):
+                    with self.assertRaises(SnapshotValidationError) as raised:
+                        build_snapshot(
+                            valid_task_payload(),
+                            valid_runtime(**{field: value}),
+                            revision=1,
+                            created_at="2026-07-09T00:00:00Z",
+                            updated_at="2026-07-09T00:00:00Z",
+                        )
+                    self.assertIn(field, raised.exception.field_errors)
+
+        for type_name, value in WRONG_NONNEGATIVE_INTEGERS:
+            with self.subTest(field="base_revision", type=type_name):
+                with self.assertRaises(SnapshotValidationError) as raised:
+                    build_snapshot(
+                        valid_task_payload(),
+                        valid_runtime(base_revision=value),
+                        revision=1,
+                        created_at="2026-07-09T00:00:00Z",
+                        updated_at="2026-07-09T00:00:00Z",
+                    )
+                self.assertIn("base_revision", raised.exception.field_errors)
+
+            with self.subTest(field="revision", type=type_name):
+                with self.assertRaises(SnapshotValidationError) as raised:
+                    build_snapshot(
+                        valid_task_payload(),
+                        valid_runtime(),
+                        revision=value,
+                        created_at="2026-07-09T00:00:00Z",
+                        updated_at="2026-07-09T00:00:00Z",
+                    )
+                self.assertIn("revision", raised.exception.field_errors)
+
+        invalid_hashes = WRONG_JSON_SCALAR_TYPES + (("format", "not-a-digest"),)
+        for type_name, value in invalid_hashes:
+            with self.subTest(field="last_user_prompt_hash", type=type_name):
+                with self.assertRaises(SnapshotValidationError) as raised:
+                    build_snapshot(
+                        valid_task_payload(),
+                        valid_runtime(last_user_prompt_hash=value),
+                        revision=1,
+                        created_at="2026-07-09T00:00:00Z",
+                        updated_at="2026-07-09T00:00:00Z",
+                    )
+                self.assertIn("last_user_prompt_hash", raised.exception.field_errors)
+
+        for field in ("created_at", "updated_at"):
+            for type_name, value in WRONG_JSON_SCALAR_TYPES:
+                kwargs = {
+                    "revision": 1,
+                    "created_at": "2026-07-09T00:00:00Z",
+                    "updated_at": "2026-07-09T00:00:00Z",
+                    field: value,
+                }
+                with self.subTest(field=field, type=type_name):
+                    with self.assertRaises(SnapshotValidationError) as raised:
+                        build_snapshot(
+                            valid_task_payload(), valid_runtime(), **kwargs
+                        )
+                    self.assertIn(field, raised.exception.field_errors)
+
+    def test_snapshot_identity_scalar_matrix_is_corrupt(self):
+        string_fields = (
+            "session_id",
+            "turn_id",
+            "cwd",
+            "git_head",
+            "created_at",
+            "updated_at",
+        )
+        cases = [
+            (field, type_name, value)
+            for field in string_fields
+            for type_name, value in WRONG_JSON_SCALAR_TYPES
+        ]
+        cases.extend(
+            ("schema_version", type_name, value)
+            for type_name, value in WRONG_JSON_SCALAR_TYPES + (("unknown", "1.0"),)
+        )
+        cases.extend(
+            (field, type_name, value)
+            for field in ("revision", "base_revision")
+            for type_name, value in WRONG_NONNEGATIVE_INTEGERS
+        )
+        cases.extend(
+            (field, type_name, value)
+            for field in ("last_user_prompt_hash", "snapshot_sha256")
+            for type_name, value in WRONG_JSON_SCALAR_TYPES
+            + (("format", "not-a-digest"),)
+        )
+
+        for field, type_name, value in cases:
+            with self.subTest(field=field, type=type_name):
+                snapshot = build_valid_snapshot()
+                snapshot[field] = value
+                if field != "snapshot_sha256":
+                    rehash_snapshot(snapshot)
+
+                with self.assertRaises(SnapshotValidationError) as raised:
+                    verify_snapshot(snapshot)
+                self.assertIn(field, raised.exception.field_errors)
+                self.assertEqual(
+                    evaluate_snapshot(snapshot, valid_runtime_identity())[0],
+                    RecoveryStatus.CORRUPT,
+                )
+
+    def test_runtime_identity_scalar_matrix_is_unrecoverable(self):
+        snapshot = build_valid_snapshot()
+        string_fields = ("session_id", "turn_id", "cwd", "git_head")
+        cases = [
+            (field, type_name, value)
+            for field in string_fields
+            for type_name, value in WRONG_JSON_SCALAR_TYPES
+            + (("unknown", "unknown"),)
+        ]
+        cases.extend(
+            (field, type_name, value)
+            for field in ("revision", "base_revision")
+            for type_name, value in WRONG_NONNEGATIVE_INTEGERS
+        )
+        cases.extend(
+            ("last_user_prompt_hash", type_name, value)
+            for type_name, value in WRONG_JSON_SCALAR_TYPES
+            + (("format", "not-a-digest"),)
+        )
+
+        for field, type_name, value in cases:
+            with self.subTest(field=field, type=type_name):
+                identity = valid_runtime_identity(**{field: value})
+                self.assertEqual(
+                    evaluate_snapshot(snapshot, identity)[0],
+                    RecoveryStatus.UNRECOVERABLE,
+                )
+
+        for type_name, value in WRONG_JSON_LIST_CONTAINERS[:-1]:
+            with self.subTest(container=type_name):
+                self.assertEqual(
+                    evaluate_snapshot(snapshot, value)[0],
+                    RecoveryStatus.UNRECOVERABLE,
+                )
 
     def test_token_estimation_and_bounded_text_honor_both_limits(self):
         self.assertEqual(estimate_tokens("abcdef"), 2)
