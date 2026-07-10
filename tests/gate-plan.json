@@ -691,6 +691,22 @@
       "timeout_sec": 60
     },
     {
+      "id": "codex-context-continuity-model",
+      "command": [
+        "python3",
+        "tests/test-codex-context-continuity.py"
+      ],
+      "area": "codex-runtime",
+      "tier": "quick",
+      "tags": [
+        "canary",
+        "codex-context-continuity",
+        "python"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 90
+    },
+    {
       "id": "consistency-audit-canonical-agent",
       "command": [
         "bash",
