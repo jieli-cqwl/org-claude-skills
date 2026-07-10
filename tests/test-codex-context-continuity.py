@@ -5,9 +5,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import stat
 import sys
+import tempfile
+import time
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest import mock
 
 
 MANAGED_HOOKS = Path(__file__).resolve().parents[1] / "shared" / "hooks" / "managed"
@@ -24,6 +30,16 @@ from codex_context_model import (  # noqa: E402
     evaluate_snapshot,
     validate_task_payload,
     verify_snapshot,
+)
+import codex_context_store  # noqa: E402
+from codex_context_store import (  # noqa: E402
+    IntegrityError,
+    LockTimeout,
+    RetentionPolicy,
+    RevisionConflict,
+    SessionStore,
+    StoreError,
+    prune_state_root,
 )
 
 
@@ -676,6 +692,625 @@ class SchemaTests(unittest.TestCase):
                 bounded, truncated = bounded_text(text, byte_limit=10, token_limit=2)
                 self.assertEqual(bounded, expected)
                 self.assertTrue(truncated)
+
+
+class StoreTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._temporary_directory = tempfile.TemporaryDirectory()
+        self.root = Path(self._temporary_directory.name) / "state"
+
+    def tearDown(self) -> None:
+        self._temporary_directory.cleanup()
+
+    def new_store(self, session_id: str) -> SessionStore:
+        return SessionStore(self.root, session_id)
+
+    def runtime(self, session_id: str, turn_id: str, base_revision: int) -> dict[str, object]:
+        return valid_runtime(
+            session_id=session_id,
+            turn_id=turn_id,
+            base_revision=base_revision,
+            cwd=str(self.root.parent.resolve()),
+        )
+
+    def ready_store(self, session_id: str = "ready") -> SessionStore:
+        store = self.new_store(session_id)
+        store.commit_snapshot(
+            valid_task_payload(), self.runtime(session_id, "turn-1", 0), 0
+        )
+        return store
+
+    def age_session(self, store: SessionStore, updated_at: datetime) -> None:
+        snapshot = store.load_primary()
+        assert snapshot is not None
+        timestamp = updated_at.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+        snapshot["created_at"] = timestamp
+        snapshot["updated_at"] = timestamp
+        rehash_snapshot(snapshot)
+        store.primary_path.write_bytes(canonical_json_bytes(snapshot))
+        os.chmod(store.primary_path, 0o600)
+
+    def policy(self, **overrides: object) -> RetentionPolicy:
+        values: dict[str, object] = {
+            "inactive_days": 30,
+            "max_inactive_sessions": 200,
+            "max_total_bytes": 50 * 1024 * 1024,
+            "max_full_generations": 3,
+            "cleanup_interval_seconds": 24 * 60 * 60,
+            "lock_timeout_seconds": 0.2,
+        }
+        values.update(overrides)
+        return RetentionPolicy(**values)
+
+    def test_commit_uses_compare_and_swap_revision(self):
+        store = self.new_store("cas")
+        first = store.commit_snapshot(
+            valid_task_payload(), self.runtime("cas", "turn-1", 0), 0
+        )
+
+        self.assertEqual(first["revision"], 1)
+        with self.assertRaises(RevisionConflict):
+            store.commit_snapshot(
+                valid_task_payload(), self.runtime("cas", "turn-1", 0), 0
+            )
+        self.assertEqual(store.load_primary(), first)
+
+    def test_commit_rejects_runtime_and_argument_base_revision_mismatch(self):
+        store = self.new_store("cas-runtime")
+
+        with self.assertRaises(RevisionConflict):
+            store.commit_snapshot(
+                valid_task_payload(), self.runtime("cas-runtime", "turn-1", 9), 0
+            )
+
+        self.assertFalse(store.primary_path.exists())
+
+    def test_commit_reopens_canonical_snapshot_with_private_permissions(self):
+        store = self.ready_store("permissions")
+        snapshot = store.load_primary()
+
+        self.assertIsNotNone(snapshot)
+        self.assertEqual(store.primary_path.read_bytes(), canonical_json_bytes(snapshot))
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(self.root.stat().st_mode), 0o700)
+            self.assertEqual(stat.S_IMODE(store.session_dir.stat().st_mode), 0o700)
+            self.assertEqual(stat.S_IMODE(store.primary_path.stat().st_mode), 0o600)
+
+    def test_managed_snapshot_read_rejects_semantically_valid_noncanonical_bytes(self):
+        store = self.ready_store("noncanonical-primary")
+        snapshot = store.load_primary()
+        store.primary_path.write_text(
+            json.dumps(snapshot, ensure_ascii=False, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+
+        with self.assertRaises(IntegrityError):
+            store.load_primary()
+
+    def test_managed_checkpoint_read_marks_noncanonical_bytes_corrupt(self):
+        store = self.ready_store("noncanonical-checkpoint")
+        checkpoint = store.seal_checkpoint(
+            "auto", self.runtime("noncanonical-checkpoint", "turn-1", 0)
+        )
+        store.latest_checkpoint_path.write_text(
+            json.dumps(checkpoint, ensure_ascii=False, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+
+        pair = store.load_recovery_pair()
+
+        self.assertEqual(pair.status, RecoveryStatus.CORRUPT)
+        self.assertIsNone(pair.latest_checkpoint)
+
+    def test_store_rejects_managed_file_with_non_private_permissions(self):
+        if os.name != "posix":
+            self.skipTest("POSIX mode bits are required for this assertion")
+        store = self.ready_store("broad-permissions")
+        os.chmod(store.primary_path, 0o644)
+
+        with self.assertRaises(IntegrityError):
+            store.load_primary()
+
+    def test_session_identifier_cannot_escape_or_collide_with_metadata(self):
+        for session_id in ("../escape", "a/b", ".", "..", ".cleanup", "cleanup.meta.json"):
+            with self.subTest(session_id=session_id):
+                with self.assertRaises(StoreError):
+                    SessionStore(self.root, session_id)
+
+    def test_store_fails_closed_on_root_or_owned_file_symlink(self):
+        target = Path(self._temporary_directory.name) / "target"
+        target.mkdir()
+        root_link = Path(self._temporary_directory.name) / "root-link"
+        root_link.symlink_to(target, target_is_directory=True)
+        with self.assertRaises(StoreError):
+            SessionStore(root_link, "session")
+
+        store = self.new_store("linked-primary")
+        external = Path(self._temporary_directory.name) / "external.json"
+        external.write_text("{}", encoding="utf-8")
+        store.primary_path.symlink_to(external)
+        with self.assertRaises(IntegrityError):
+            store.load_primary()
+
+        broken = self.new_store("broken-link")
+        broken.primary_path.symlink_to(
+            Path(self._temporary_directory.name) / "missing.json"
+        )
+        with self.assertRaises(IntegrityError):
+            broken.load_recovery_pair()
+
+    def test_lock_timeout_is_distinct_from_stale_lock_file_presence(self):
+        store = self.new_store("locking")
+        store.lock_path.touch(mode=0o600)
+        old = time.time() - 86400
+        os.utime(store.lock_path, (old, old))
+        store.commit_snapshot(
+            valid_task_payload(), self.runtime("locking", "turn-1", 0), 0
+        )
+
+        with store._locked(timeout_seconds=0.2):
+            with self.assertRaises(LockTimeout):
+                store.commit_snapshot(
+                    valid_task_payload(), self.runtime("locking", "turn-2", 1), 1
+                )
+
+    def test_lock_file_payload_is_bounded(self):
+        store = self.ready_store("oversized-lock")
+        store.lock_path.write_bytes(b"not-control-plane-overhead")
+
+        with self.assertRaises(IntegrityError):
+            store.load_primary()
+
+    def test_failed_replace_preserves_primary_and_cleans_unique_temp(self):
+        store = self.ready_store("replace-failure")
+        original = store.primary_path.read_bytes()
+        with mock.patch.object(codex_context_store.os, "replace", side_effect=OSError("boom")):
+            with self.assertRaises(StoreError):
+                store.commit_snapshot(
+                    valid_task_payload(active_goal="new"),
+                    self.runtime("replace-failure", "turn-2", 1),
+                    1,
+                )
+
+        self.assertEqual(store.primary_path.read_bytes(), original)
+        self.assertEqual(list(store.session_dir.glob("*.tmp")), [])
+        self.assertEqual(list(store.session_dir.glob(".*.tmp")), [])
+
+    def test_failed_file_fsync_cleans_temp_without_publishing(self):
+        store = self.new_store("fsync-failure")
+        with mock.patch.object(codex_context_store.os, "fsync", side_effect=OSError("boom")):
+            with self.assertRaises(StoreError):
+                store.commit_snapshot(
+                    valid_task_payload(), self.runtime("fsync-failure", "turn-1", 0), 0
+                )
+
+        self.assertFalse(store.primary_path.exists())
+        self.assertEqual(list(store.session_dir.glob("*.tmp")), [])
+        self.assertEqual(list(store.session_dir.glob(".*.tmp")), [])
+
+    def test_checkpoint_rotation_keeps_exactly_three_full_generations(self):
+        store = self.ready_store("rotation")
+        first = store.seal_checkpoint("auto", self.runtime("rotation", "turn-1", 0))
+        store.commit_snapshot(
+            valid_task_payload(active_goal="second"),
+            self.runtime("rotation", "turn-2", 1),
+            1,
+        )
+        second = store.seal_checkpoint("auto", self.runtime("rotation", "turn-2", 1))
+        store.commit_snapshot(
+            valid_task_payload(active_goal="third"),
+            self.runtime("rotation", "turn-3", 2),
+            2,
+        )
+        third = store.seal_checkpoint("manual", self.runtime("rotation", "turn-3", 2))
+
+        pair = store.load_recovery_pair()
+        self.assertEqual(pair.latest_checkpoint, third)
+        self.assertEqual(pair.previous_checkpoint, second)
+        self.assertNotEqual(pair.previous_checkpoint["checkpoint_sha256"], first["checkpoint_sha256"])
+        self.assertEqual(
+            sorted(path.name for path in store.session_dir.glob("*.json")),
+            ["checkpoint.latest.json", "checkpoint.previous.json", "primary.json"],
+        )
+
+    def test_interrupted_checkpoint_rotation_retains_a_verified_fallback(self):
+        store = self.ready_store("rotation-failure")
+        first = store.seal_checkpoint(
+            "auto", self.runtime("rotation-failure", "turn-1", 0)
+        )
+        store.commit_snapshot(
+            valid_task_payload(active_goal="second"),
+            self.runtime("rotation-failure", "turn-2", 1),
+            1,
+        )
+        real_replace = codex_context_store.os.replace
+
+        def fail_latest(source: object, destination: object) -> None:
+            if Path(destination) == store.latest_checkpoint_path:
+                raise OSError("interrupted")
+            real_replace(source, destination)
+
+        with mock.patch.object(codex_context_store.os, "replace", side_effect=fail_latest):
+            with self.assertRaises(StoreError):
+                store.seal_checkpoint(
+                    "auto", self.runtime("rotation-failure", "turn-2", 1)
+                )
+
+        pair = store.load_recovery_pair()
+        self.assertEqual(pair.previous_checkpoint, first)
+
+    def test_previous_only_checkpoint_survives_failed_latest_publish(self):
+        store = self.ready_store("previous-only-failure")
+        fallback = store.seal_checkpoint(
+            "auto", self.runtime("previous-only-failure", "turn-1", 0)
+        )
+        os.replace(store.latest_checkpoint_path, store.previous_checkpoint_path)
+        store.commit_snapshot(
+            valid_task_payload(active_goal="second"),
+            self.runtime("previous-only-failure", "turn-2", 1),
+            1,
+        )
+        real_replace = codex_context_store.os.replace
+
+        def fail_latest(source: object, destination: object) -> None:
+            if Path(destination) == store.latest_checkpoint_path:
+                raise OSError("interrupted")
+            real_replace(source, destination)
+
+        with mock.patch.object(codex_context_store.os, "replace", side_effect=fail_latest):
+            with self.assertRaises(StoreError):
+                store.seal_checkpoint(
+                    "auto", self.runtime("previous-only-failure", "turn-2", 1)
+                )
+
+        pair = store.load_recovery_pair()
+        self.assertEqual(pair.previous_checkpoint, fallback)
+
+    def test_surrogate_checkpoint_trigger_is_store_error_without_mutation(self):
+        store = self.ready_store("surrogate-trigger")
+        checkpoint = store.seal_checkpoint(
+            "auto", self.runtime("surrogate-trigger", "turn-1", 0)
+        )
+        generations = {
+            path.name: path.read_bytes() for path in store.session_dir.glob("*.json")
+        }
+
+        with self.assertRaises(StoreError) as raised:
+            store.seal_checkpoint(
+                "bad-\ud800-trigger", self.runtime("surrogate-trigger", "turn-1", 0)
+            )
+
+        self.assertNotIsInstance(raised.exception, UnicodeEncodeError)
+        self.assertEqual(
+            {path.name: path.read_bytes() for path in store.session_dir.glob("*.json")},
+            generations,
+        )
+        self.assertEqual(store.load_recovery_pair().latest_checkpoint, checkpoint)
+        self.assertEqual(list(store.session_dir.glob(".*.tmp")), [])
+
+    def test_checkpoint_serialization_failure_is_store_error_without_mutation(self):
+        store = self.ready_store("checkpoint-serialization")
+        checkpoint = store.seal_checkpoint(
+            "auto", self.runtime("checkpoint-serialization", "turn-1", 0)
+        )
+        generations = {
+            path.name: path.read_bytes() for path in store.session_dir.glob("*.json")
+        }
+
+        with mock.patch.object(
+            codex_context_store,
+            "canonical_json_bytes",
+            side_effect=ValueError("not serializable"),
+        ):
+            with self.assertRaises(StoreError):
+                store.seal_checkpoint(
+                    "manual",
+                    self.runtime("checkpoint-serialization", "turn-1", 0),
+                )
+
+        self.assertEqual(
+            {path.name: path.read_bytes() for path in store.session_dir.glob("*.json")},
+            generations,
+        )
+        self.assertEqual(store.load_recovery_pair().latest_checkpoint, checkpoint)
+        self.assertEqual(list(store.session_dir.glob(".*.tmp")), [])
+
+    def test_corrupt_primary_restores_from_valid_checkpoint(self):
+        store = self.ready_store("fallback")
+        checkpoint = store.seal_checkpoint("auto", self.runtime("fallback", "turn-1", 0))
+        store.primary_path.write_text("{broken", encoding="utf-8")
+
+        pair = store.load_recovery_pair()
+        self.assertEqual(pair.status, RecoveryStatus.CORRUPT)
+        restored = store.restore_primary(pair.latest_checkpoint)
+
+        self.assertEqual(restored["snapshot_sha256"], checkpoint["snapshot_sha256"])
+        self.assertEqual(store.load_primary(), restored)
+
+    def test_invalid_checkpoint_timestamps_fail_before_primary_mutation(self):
+        store = self.ready_store("invalid-checkpoint-time")
+        checkpoint = store.seal_checkpoint(
+            "auto", self.runtime("invalid-checkpoint-time", "turn-1", 0)
+        )
+        snapshot = dict(checkpoint["snapshot"])
+        snapshot["created_at"] = "not-a-time"
+        rehash_snapshot(snapshot)
+        checkpoint["snapshot"] = snapshot
+        checkpoint["snapshot_sha256"] = snapshot["snapshot_sha256"]
+        checkpoint["checkpoint_sha256"] = codex_context_store._checkpoint_hash(
+            checkpoint
+        )
+        store.primary_path.write_text("{broken", encoding="utf-8")
+        corrupt_primary = store.primary_path.read_bytes()
+
+        with self.assertRaises(IntegrityError):
+            store.restore_primary(checkpoint)
+
+        self.assertEqual(store.primary_path.read_bytes(), corrupt_primary)
+
+    def test_conflicting_valid_primary_and_checkpoint_is_not_auto_selected(self):
+        store = self.ready_store("conflict")
+        store.seal_checkpoint("auto", self.runtime("conflict", "turn-1", 0))
+        conflicting = build_snapshot(
+            valid_task_payload(active_goal="contradiction"),
+            self.runtime("conflict", "turn-1", 0),
+            revision=1,
+            created_at="2026-07-09T00:00:00Z",
+            updated_at="2026-07-09T00:00:00Z",
+        )
+        store.primary_path.write_bytes(canonical_json_bytes(conflicting))
+
+        with self.assertRaises(IntegrityError):
+            store.load_recovery_pair()
+
+    def test_primary_newer_than_latest_checkpoint_is_stale_not_ready(self):
+        store = self.ready_store("stale-checkpoint")
+        store.seal_checkpoint(
+            "auto", self.runtime("stale-checkpoint", "turn-1", 0)
+        )
+        store.commit_snapshot(
+            valid_task_payload(active_goal="newer primary"),
+            self.runtime("stale-checkpoint", "turn-2", 1),
+            1,
+        )
+
+        pair = store.load_recovery_pair()
+
+        self.assertEqual(pair.status, RecoveryStatus.STALE)
+        self.assertIn("older", pair.reason)
+
+    def test_empty_filesystem_has_deterministic_incomplete_status(self):
+        pair = self.new_store("empty").load_recovery_pair()
+
+        self.assertEqual(pair.status, RecoveryStatus.INCOMPLETE)
+        self.assertEqual(pair.reason, "no primary or checkpoint generation exists")
+
+    def test_malformed_content_is_reported_without_raw_json_error(self):
+        store = self.new_store("malformed")
+        store.primary_path.write_text("{", encoding="utf-8")
+
+        with self.assertRaises(IntegrityError) as raised:
+            store.load_primary()
+        self.assertNotIsInstance(raised.exception.__cause__, json.JSONDecodeError)
+        self.assertEqual(store.load_recovery_pair().status, RecoveryStatus.CORRUPT)
+
+    def test_retention_prunes_sessions_older_than_thirty_days(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        old = self.ready_store("old")
+        recent = self.ready_store("recent")
+        self.age_session(old, now - timedelta(days=31))
+        self.age_session(recent, now - timedelta(days=29))
+
+        result = prune_state_root(self.root, "active", self.policy(), now)
+
+        self.assertFalse(old.primary_path.exists())
+        self.assertTrue(recent.primary_path.exists())
+        self.assertEqual(result.deleted_sessions, 1)
+
+    def test_retention_prunes_oldest_inactive_sessions_to_limit(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        stores = [self.ready_store(f"session-{index}") for index in range(4)]
+        for index, store in enumerate(stores):
+            self.age_session(store, now - timedelta(days=4 - index))
+
+        prune_state_root(
+            self.root,
+            "active",
+            self.policy(inactive_days=365, max_inactive_sessions=2),
+            now,
+        )
+
+        self.assertFalse(stores[0].primary_path.exists())
+        self.assertFalse(stores[1].primary_path.exists())
+        self.assertTrue(stores[2].primary_path.exists())
+        self.assertTrue(stores[3].primary_path.exists())
+
+    def test_retention_prunes_by_small_byte_limit_without_allocating_fifty_mib(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        old = self.ready_store("byte-old")
+        new = self.ready_store("byte-new")
+        self.age_session(old, now - timedelta(days=2))
+        self.age_session(new, now - timedelta(days=1))
+        one_size = new.primary_path.stat().st_size
+
+        result = prune_state_root(
+            self.root,
+            "active",
+            self.policy(inactive_days=365, max_total_bytes=one_size + 8),
+            now,
+        )
+
+        self.assertFalse(old.primary_path.exists())
+        self.assertTrue(new.primary_path.exists())
+        self.assertLessEqual(result.remaining_bytes, one_size + 8)
+
+    def test_retention_never_deletes_active_session(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        active = self.ready_store("active")
+        inactive = self.ready_store("inactive")
+        self.age_session(active, now - timedelta(days=100))
+        self.age_session(inactive, now - timedelta(days=99))
+
+        result = prune_state_root(
+            self.root,
+            "active",
+            self.policy(inactive_days=1, max_inactive_sessions=1),
+            now,
+        )
+
+        self.assertTrue(active.primary_path.exists())
+        self.assertFalse(inactive.primary_path.exists())
+        self.assertTrue(result.skipped_active_session)
+
+    def test_cleanup_runs_once_per_cadence_and_metadata_is_bounded(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        first = self.ready_store("first-old")
+        self.age_session(first, now - timedelta(days=31))
+        prune_state_root(self.root, "active", self.policy(), now)
+        second = self.ready_store("second-old")
+        self.age_session(second, now - timedelta(days=31))
+
+        result = prune_state_root(self.root, "active", self.policy(), now)
+
+        self.assertEqual(result.deleted_sessions, 0)
+        self.assertTrue(second.primary_path.exists())
+        metadata = self.root / "cleanup.meta.json"
+        self.assertLess(metadata.stat().st_size, 4096)
+        self.assertNotIn("second-old", metadata.read_text(encoding="utf-8"))
+
+    def test_cleanup_removes_only_exact_abandoned_metadata_temps(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        prune_state_root(self.root, "active", self.policy(), now)
+        abandoned = self.root / (".cleanup.meta.json." + "a" * 32 + ".tmp")
+        abandoned.write_text("partial", encoding="utf-8")
+        os.chmod(abandoned, 0o600)
+        unrelated = self.root / ".cleanup.meta.json.not-owned.tmp"
+        unrelated.write_text("keep", encoding="utf-8")
+
+        prune_state_root(self.root, "active", self.policy(), now + timedelta(days=1))
+
+        self.assertFalse(abandoned.exists())
+        self.assertTrue(unrelated.exists())
+
+    def test_cleanup_removes_owned_root_temp_even_when_cadence_skips(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        prune_state_root(self.root, "active", self.policy(), now)
+        abandoned = self.root / (".cleanup.meta.json." + "b" * 32 + ".tmp")
+        abandoned.write_bytes(b"x" * 512)
+        os.chmod(abandoned, 0o600)
+        unrelated = self.root / ".cleanup.meta.json.not-owned.tmp"
+        unrelated.write_bytes(b"keep")
+
+        result = prune_state_root(
+            self.root,
+            "active",
+            self.policy(max_total_bytes=1),
+            now,
+        )
+
+        self.assertFalse(abandoned.exists())
+        self.assertTrue(unrelated.exists())
+        self.assertEqual(result.deleted_files, 1)
+        self.assertEqual(result.deleted_bytes, 512)
+        self.assertEqual(result.remaining_bytes, 0)
+
+    def test_corrupt_cleanup_metadata_forces_cleanup_and_canonical_rewrite(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        prune_state_root(self.root, "active", self.policy(), now)
+        old = self.ready_store("metadata-corrupt-old")
+        self.age_session(old, now - timedelta(days=31))
+        metadata = self.root / "cleanup.meta.json"
+        metadata.write_text("{broken", encoding="utf-8")
+
+        prune_state_root(self.root, "active", self.policy(), now)
+
+        self.assertFalse(old.primary_path.exists())
+        parsed = json.loads(metadata.read_text(encoding="utf-8"))
+        self.assertEqual(metadata.read_bytes(), canonical_json_bytes(parsed))
+
+    def test_retention_does_not_unlink_a_held_session_lock(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        store = self.ready_store("held-retention-lock")
+        self.age_session(store, now - timedelta(days=31))
+        lock_inode = store.lock_path.stat().st_ino
+
+        with store._locked():
+            with self.assertRaises(LockTimeout):
+                prune_state_root(
+                    self.root,
+                    "active",
+                    self.policy(lock_timeout_seconds=0.05),
+                    now,
+                )
+
+        self.assertTrue(store.primary_path.exists())
+        self.assertEqual(store.lock_path.stat().st_ino, lock_inode)
+
+    def test_retention_leaves_only_fixed_lock_overhead_for_pruned_session(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        store = self.ready_store("pruned-lock-overhead")
+        self.age_session(store, now - timedelta(days=31))
+        lock_inode = store.lock_path.stat().st_ino
+
+        result = prune_state_root(self.root, "active", self.policy(), now)
+
+        self.assertEqual([path.name for path in store.session_dir.iterdir()], [".session.lock"])
+        self.assertEqual(store.lock_path.stat().st_ino, lock_inode)
+        self.assertLessEqual(store.lock_path.stat().st_size, 1)
+        self.assertEqual(result.remaining_sessions, 0)
+        self.assertEqual(result.remaining_bytes, 0)
+
+    def test_future_cleanup_metadata_cannot_disable_retention(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        prune_state_root(self.root, "active", self.policy(), now + timedelta(days=1))
+        old = self.ready_store("clock-rollback-old")
+        self.age_session(old, now - timedelta(days=31))
+
+        prune_state_root(self.root, "active", self.policy(), now)
+
+        self.assertFalse(old.primary_path.exists())
+
+    def test_cleanup_only_removes_exact_owned_patterns(self):
+        now = datetime(2026, 7, 9, tzinfo=timezone.utc)
+        store = self.ready_store("owned")
+        self.age_session(store, now - timedelta(days=31))
+        unrelated = store.session_dir / "primary.json.backup"
+        unrelated.write_text("keep", encoding="utf-8")
+        root_unrelated = self.root / "notes.txt"
+        root_unrelated.write_text("keep", encoding="utf-8")
+
+        prune_state_root(self.root, "active", self.policy(), now)
+
+        self.assertFalse(store.primary_path.exists())
+        self.assertTrue(unrelated.exists())
+        self.assertTrue(root_unrelated.exists())
+
+    def test_invalid_policy_and_environment_values_fail_visibly(self):
+        defaults = RetentionPolicy()
+        self.assertEqual(defaults.inactive_days, 30)
+        self.assertEqual(defaults.max_inactive_sessions, 200)
+        self.assertEqual(defaults.max_total_bytes, 50 * 1024 * 1024)
+        self.assertEqual(defaults.max_full_generations, 3)
+        self.assertEqual(defaults.cleanup_interval_seconds, 24 * 60 * 60)
+        self.assertEqual(defaults.lock_timeout_seconds, 2.0)
+
+        for values in (
+            {"inactive_days": 0},
+            {"max_inactive_sessions": 0},
+            {"max_total_bytes": 0},
+            {"max_full_generations": 2},
+            {"max_full_generations": 3.0},
+            {"cleanup_interval_seconds": 0},
+            {"lock_timeout_seconds": 0},
+        ):
+            with self.subTest(values=values):
+                with self.assertRaises(StoreError):
+                    self.policy(**values)
+
+        with self.assertRaises(StoreError):
+            RetentionPolicy.from_environment(
+                {"CODEX_CONTEXT_STORE_MAX_TOTAL_BYTES": "unlimited"}
+            )
 
 
 if __name__ == "__main__":
