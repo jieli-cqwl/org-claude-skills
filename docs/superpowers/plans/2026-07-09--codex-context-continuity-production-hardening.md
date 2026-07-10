@@ -777,7 +777,7 @@ Expected: zero failures; hostile transcript, corruption, locking, retention, sta
 
 - [ ] **Step 2: Request independent code review**
 
-Dispatch one read-only reviewer for state/concurrency/integrity and one for runtime contracts/tests. Give each the design path, this plan, base commit `29cdcd63`, current HEAD, and require Critical/Important/Minor findings with file:line evidence. Fix all valid Critical and Important findings through new red-green tests before continuing.
+Dispatch one read-only reviewer for state/concurrency/integrity and one for runtime contracts/tests. Give each the design path, this plan, the branch-start commit recorded in the SDD progress ledger, current HEAD, and require Critical/Important/Minor findings with file:line evidence. Fix all valid Critical and Important findings through new red-green tests before continuing.
 
 - [ ] **Step 3: Run quick and full repository gates**
 
@@ -839,7 +839,7 @@ Then compare the recovered goal, scope, latest correction, completed evidence, p
 ```bash
 git status --short
 git diff --check
-git log --oneline 29cdcd63..HEAD
+git log --oneline "$(git merge-base main HEAD)"..HEAD
 bash tools/dev/probe-codex-hooks.sh "$PWD"
 ```
 
