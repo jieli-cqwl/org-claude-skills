@@ -15,7 +15,7 @@ while [ "$#" -gt 0 ]; do
       ;;
     -h|--help)
       cat <<'USAGE'
-Usage: bash tests/test-install-runtime-quick-canary.sh [--group all|codex-install|codex-context-continuity|claude-hook-launcher|hook-checks]
+Usage: bash tests/test-install-runtime-quick-canary.sh [--group all|codex-install|claude-hook-launcher|hook-checks]
 USAGE
       exit 0
       ;;
@@ -26,7 +26,7 @@ USAGE
 done
 
 case "$GROUP" in
-  all|codex-install|codex-context-continuity|claude-hook-launcher|hook-checks) ;;
+  all|codex-install|claude-hook-launcher|hook-checks) ;;
   *) install_test_fail "unknown runtime quick canary group: $GROUP" ;;
 esac
 
@@ -49,22 +49,39 @@ if [ "$GROUP" = "all" ] || [ "$GROUP" = "codex-install" ]; then
   install_test_case_pass "runtime-quick-canary: codex install exposes managed runtime entry"
 fi
 
-if [ "$GROUP" = "all" ] || [ "$GROUP" = "codex-context-continuity" ]; then
-  install_test_case_start "runtime-quick-canary: codex context continuity opt-in probe"
+if [ "$GROUP" = "all" ] || [ "$GROUP" = "codex-install" ]; then
+  install_test_case_start "runtime-quick-canary: remove retired codex context continuity runtime"
   home_dir="$(install_test_new_home runtime-quick-canary-context-continuity)"
-  (
-    export ORG_CODEX_CONTEXT_CONTINUITY_ENABLED=1
-    install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-quick-canary-context-continuity-install)" --target codex --check quick
-  )
-  install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "context continuity should install when explicitly enabled"
-  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-install)" "context continuity ready probe passed" "opt-in install should prove ready recovery"
-  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-install)" "context continuity incomplete probe passed" "opt-in install should prove degraded recovery"
-  install_test_assert_file_exists "$home_dir/.org-skills-state/codex/context-continuity-enabled" "context continuity opt-in should persist after enabled install"
-  install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-quick-canary-context-continuity-reinstall)" --target codex --check quick
-  install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "context continuity should remain enabled on later installs without env"
-  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-reinstall)" "context continuity ready probe passed" "persisted opt-in install should prove ready recovery"
-  install_test_assert_file_contains "$(install_test_log_path runtime-quick-canary-context-continuity-reinstall)" "context continuity incomplete probe passed" "persisted opt-in install should prove degraded recovery"
-  install_test_case_pass "runtime-quick-canary: codex context continuity opt-in probe"
+  mkdir -p "$home_dir/.codex/hooks/managed"
+  mkdir -p "$home_dir/.codex/hooks/state/context-continuity"
+  mkdir -p "$home_dir/.org-skills-state/codex"
+  printf 'retired hook\n' >"$home_dir/.codex/hooks/managed/codex_context_continuity.py"
+  printf '{}\n' >"$home_dir/.codex/hooks/state/context-continuity/stale.json"
+  printf 'enabled\n' >"$home_dir/.org-skills-state/codex/context-continuity-enabled"
+  cat >"$home_dir/.codex/hooks.json" <<JSON
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $home_dir/.codex/hooks/managed/codex_context_continuity.py --event Stop"
+          }
+        ]
+      }
+    ]
+  }
+}
+JSON
+  install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-quick-canary-context-continuity-install)" --target codex --force --check quick
+  install_test_assert_path_absent "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "retired context continuity script should be removed"
+  install_test_assert_path_absent "$home_dir/.codex/hooks/managed/codex_context_model.py" "retired context model should be removed"
+  install_test_assert_path_absent "$home_dir/.codex/hooks/managed/codex_context_store.py" "retired context store should be removed"
+  install_test_assert_path_absent "$home_dir/.codex/hooks/state/context-continuity" "retired context continuity state should be removed"
+  install_test_assert_path_absent "$home_dir/.org-skills-state/codex/context-continuity-enabled" "retired context continuity opt-in marker should be removed"
+  install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "codex_context_continuity.py" "retired context continuity hooks should not be registered"
+  install_test_case_pass "runtime-quick-canary: remove retired codex context continuity runtime"
 fi
 
 if [ "$GROUP" = "all" ] || [ "$GROUP" = "claude-hook-launcher" ]; then

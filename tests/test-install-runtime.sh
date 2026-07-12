@@ -239,7 +239,8 @@ install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.code
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_user_prompt_submit.py" "managed active-skill tracker should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_subagent_dispatch_guard.py" "managed subagent dispatch guard should be installed"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_stop_dispatch.py" "managed stop dispatcher should be installed"
-install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "context continuity hook should not install by default"
+install_test_assert_file_not_contains "$home_dir/.codex/hooks.json" "codex_context_continuity.py" "retired context continuity hook should not install"
+install_test_assert_path_absent "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "retired context continuity script should not install"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PostToolUse"' "supported Codex PostToolUse should be present"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"matcher": "Write|Edit"' "Codex PostToolUse should match Write/Edit edits"
 install_test_assert_file_contains "$home_dir/.codex/hooks.json" '"PostCompact"' "supported Codex PostCompact should be present"
@@ -274,119 +275,6 @@ if f"{home}/bin/notify.sh" not in stop_commands:
     raise SystemExit("user Stop hook should still be preserved")
 PY
 install_test_case_pass "runtime: codex install cleans stale probes and keeps supported user hooks"
-
-install_test_case_start "runtime: codex context continuity is opt-in and metadata-only"
-home_dir="$(install_test_new_home runtime-codex-context-continuity)"
-(
-  export ORG_CODEX_CONTEXT_CONTINUITY_ENABLED=1
-  install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-codex-context-continuity-install)" --target codex --force --check quick
-)
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "context continuity hook should install only when explicitly enabled"
-install_test_assert_file_exists "$home_dir/.org-skills-state/codex/context-continuity-enabled" "context continuity opt-in should persist after enabled install"
-install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path runtime-codex-context-continuity-reinstall)" --target codex --force --check quick
-install_test_assert_file_contains "$home_dir/.codex/hooks.json" "$home_dir/.codex/hooks/managed/codex_context_continuity.py" "persisted context continuity opt-in should survive reinstall without env"
-install_test_assert_file_contains "$(install_test_log_path runtime-codex-context-continuity-reinstall)" "context continuity ready probe passed" "persisted context continuity opt-in should prove ready recovery"
-install_test_assert_file_contains "$(install_test_log_path runtime-codex-context-continuity-reinstall)" "context continuity incomplete probe passed" "persisted context continuity opt-in should prove degraded recovery"
-for event in UserPromptSubmit Stop PreCompact PostCompact; do
-  jq -e --arg event "$event" --arg script "$home_dir/.codex/hooks/managed/codex_context_continuity.py" '
-    any(.hooks[$event][]?;
-      any(.hooks[]?; (.command | contains($script + " --event " + $event)))
-    )
-  ' "$home_dir/.codex/hooks.json" >/dev/null 2>&1 || install_test_fail "context continuity should register $event hook when enabled"
-done
-jq -e --arg script "$home_dir/.codex/hooks/managed/codex_context_continuity.py" '
-  any(.hooks.SessionStart[]?;
-    (.matcher == "compact")
-    and any(.hooks[]?; (.command | contains($script + " --event SessionStart --source compact")))
-  )
-' "$home_dir/.codex/hooks.json" >/dev/null 2>&1 || install_test_fail "context continuity should register SessionStart compact hook when enabled"
-
-context_prompt='不对，这里核心不是迁移，而是 LLM 上下文窗口治理'
-context_payload="$(jq -nc \
-  --arg sid "codex-context-runtime" \
-  --arg tid "turn-1" \
-  --arg prompt "$context_prompt" \
-  --arg cwd "$home_dir/project" \
-  --arg transcript "$home_dir/project/context-transcript.jsonl" \
-  '{session_id: $sid, turn_id: $tid, hook_event_name: "UserPromptSubmit", user_prompt: $prompt, cwd: $cwd, transcript_path: $transcript}')"
-printf '%s' "$context_payload" | HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py" >/dev/null \
-  || install_test_fail "context continuity should record latest user correction"
-context_state_update="$(jq -nc \
-  --arg sid "codex-context-runtime" \
-  --arg tid "turn-1" \
-  --arg prompt "$context_prompt" \
-  '{
-    session_id: $sid,
-    turn_id: $tid,
-    base_revision: 0,
-    task: {
-      task_status: "active",
-      active_goal: "prove installed context continuity recovery",
-      scope_boundary: "installed Codex runtime hook state only",
-      non_goals: [],
-      latest_user_correction: $prompt,
-      current_phase: "runtime verification",
-      current_plan: ["record state", "seal compact", "recover"],
-      completed_items: [{item: "prompt metadata recorded", evidence_refs: ["tests/test-install-runtime.sh"]}],
-      pending_items: ["session recovery"],
-      blockers: [],
-      next_action: "continue from structured recovery state"
-    }
-  }')"
-HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py" state-update --payload "$context_state_update" >/dev/null \
-  || install_test_fail "context continuity should record runtime recovery state"
-context_precompact="$(jq -nc \
-  --arg sid "codex-context-runtime" \
-  --arg cwd "$home_dir/project" \
-  '{session_id: $sid, hook_event_name: "PreCompact", trigger: "auto", cwd: $cwd}')"
-printf '%s' "$context_precompact" | HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py" >/dev/null \
-  || install_test_fail "context continuity should seal precompact state"
-context_summary='runtime compact summary should not be stored in full by default'
-context_postcompact="$(jq -nc \
-  --arg sid "codex-context-runtime" \
-  --arg cwd "$home_dir/project" \
-  --arg summary "$context_summary" \
-  '{session_id: $sid, hook_event_name: "PostCompact", trigger: "auto", cwd: $cwd, compact_summary: $summary}')"
-context_output="$(printf '%s' "$context_postcompact" | HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py")" \
-  || install_test_fail "context continuity should record PostCompact metadata"
-context_state="$home_dir/.codex/hooks/state/context-continuity/codex-context-runtime.json"
-install_test_assert_file_exists "$context_state" "context continuity should persist task state card"
-[ -z "$context_output" ] || install_test_fail "context continuity PostCompact hook must not emit hook-specific additionalContext"
-printf '%s' "$context_output" | grep -Fq "$context_summary" && install_test_fail "context continuity must not inject compact summary into additionalContext"
-install_test_assert_file_not_contains "$context_state" "$context_summary" "context continuity should not store full compact summary by default"
-jq -e --arg summary "$context_summary" --arg prompt "$context_prompt" '
-  .last_user_prompt_preview == $prompt
-  and (.last_user_prompt_hash | type == "string" and length == 64)
-  and .recovery_status == "READY"
-  and .postcompact.summary_length == ($summary | length)
-  and (.postcompact.summary_sha256 | type == "string" and length == 64)
-  and (.postcompact | has("compact_summary") | not)
-' "$context_state" >/dev/null 2>&1 || install_test_fail "context continuity state should preserve prompt and compact metadata only"
-context_sessionstart="$(jq -nc \
-  --arg sid "codex-context-runtime" \
-  --arg cwd "$home_dir/project" \
-  '{session_id: $sid, hook_event_name: "SessionStart", source: "compact", cwd: $cwd}')"
-context_recovery_output="$(printf '%s' "$context_sessionstart" | HOME="$home_dir" python3 "$home_dir/.codex/hooks/managed/codex_context_continuity.py")" \
-  || install_test_fail "context continuity should emit SessionStart compact recovery context"
-printf '%s' "$context_recovery_output" | jq -e '
-  .hookSpecificOutput.hookEventName == "SessionStart"
-  and (.hookSpecificOutput.additionalContext | contains("task_state_ref:"))
-  and (.hookSpecificOutput.additionalContext | contains("precompact_checkpoint_ref:"))
-  and (.hookSpecificOutput.additionalContext | contains("compact_summary_ref:"))
-  and (.hookSpecificOutput.additionalContext | contains("recovery_status: READY"))
-  and (.hookSpecificOutput.additionalContext | contains("allowed_next_step: CONTINUE_FROM_STATE"))
-  and (.hookSpecificOutput.additionalContext | contains("不要猜测"))
-' >/dev/null 2>&1 || install_test_fail "context continuity should inject recovery context only from SessionStart compact"
-printf '%s' "$context_recovery_output" | grep -Fq "$context_summary" && install_test_fail "context continuity must not inject compact summary from SessionStart"
-jq -e '
-  .last_recovery_injection.hook_event_name == "SessionStart"
-  and .last_recovery_injection.source == "compact"
-  and (.last_recovery_injection.task_state_ref | contains("codex-context-runtime.json"))
-  and (.last_recovery_injection.precompact_checkpoint_ref | contains("latest-precompact-codex-context-runtime.json"))
-  and (.last_recovery_injection.compact_summary_ref | contains("latest-postcompact-codex-context-runtime.json"))
-  and (.last_recovery_injection.additional_context_sha256 | type == "string" and length == 64)
-' "$context_state" >/dev/null 2>&1 || install_test_fail "context continuity should persist SessionStart compact injection evidence"
-install_test_case_pass "runtime: codex context continuity is opt-in and metadata-only"
 
 install_test_case_start "runtime: codex install warns instead of failing on untrusted hooks"
 home_dir="$(install_test_new_home runtime-codex-untrusted-hooks)"

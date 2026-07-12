@@ -330,32 +330,25 @@ assert_hook_registry_renderable() {
     )
   ' "$rendered" >/dev/null 2>&1 || fail "Codex SubagentStart should run managed agent dispatch guard"
 
-  local opt_in_rendered
-  opt_in_rendered="$(mktemp "${TMPDIR:-/tmp}/rendered-hooks-opt-in.XXXXXX")"
+  local removed_feature_rendered
+  removed_feature_rendered="$(mktemp "${TMPDIR:-/tmp}/rendered-hooks-removed-feature.XXXXXX")"
   python3 "$ROOT/tools/community/render_hook_registry.py" codex-hooks \
     --registry "$ROOT/shared/hooks/registry.json" \
     --runtime-home /tmp/runtime \
-    --enable-feature context-continuity > "$opt_in_rendered" || fail "hook registry must render opt-in context continuity hooks for Codex"
-  for event in UserPromptSubmit Stop PreCompact PostCompact; do
-    jq -e --arg event "$event" '
-      any(.hooks[$event][]?;
-        any(.hooks[]?; (.command | contains("codex_context_continuity.py")))
-      )
-    ' "$opt_in_rendered" >/dev/null 2>&1 || fail "Codex context continuity should register opt-in hook for $event"
-  done
+    --enable-feature context-continuity > "$removed_feature_rendered" || fail "removed feature flag should not break hook rendering"
   jq -e '
-    any(.hooks.SessionStart[]?;
-      (.matcher == "compact")
-      and any(.hooks[]?; (.command | contains("codex_context_continuity.py")))
-    )
-  ' "$opt_in_rendered" >/dev/null 2>&1 || fail "Codex context continuity should register opt-in SessionStart compact hook"
-  jq -e '
-    any(.hooks.PreCompact[]?.hooks[]?.command; contains("codex_context_continuity.py --event PreCompact"))
-    and any(.hooks.PostCompact[]?.hooks[]?.command; contains("codex_context_continuity.py --event PostCompact"))
-    and any(.hooks.SessionStart[]?.hooks[]?.command; contains("codex_context_continuity.py --event SessionStart --source compact"))
-  ' "$opt_in_rendered" >/dev/null 2>&1 || fail "context continuity commands should pass explicit event/source args"
+    [
+      .hooks.SessionStart[]?.hooks[]?.command,
+      .hooks.PreCompact[]?.hooks[]?.command,
+      .hooks.PostCompact[]?.hooks[]?.command,
+      .hooks.UserPromptSubmit[]?.hooks[]?.command,
+      .hooks.Stop[]?.hooks[]?.command
+    ]
+    | map(select(contains("codex_context_continuity.py")))
+    | length == 0
+  ' "$removed_feature_rendered" >/dev/null 2>&1 || fail "removed context continuity feature must not register hooks"
   rm -f "$rendered"
-  rm -f "$opt_in_rendered"
+  rm -f "$removed_feature_rendered"
 }
 
 run_hook() {

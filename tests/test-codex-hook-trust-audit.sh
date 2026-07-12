@@ -180,18 +180,6 @@ hooks = [
     hook("subagentStart", "subagent_start:0:0", f"{python_launcher} {codex_home}/hooks/managed/codex_subagent_dispatch_guard.py"),
     hook("stop", "stop:0:0", f"{python_launcher} {codex_home}/hooks/managed/codex_stop_dispatch.py", "managed"),
 ]
-if os.environ.get("ORG_CODEX_CONTEXT_CONTINUITY_ENABLED") == "1":
-    context_command = f"{python_launcher} {codex_home}/hooks/managed/codex_context_continuity.py"
-    hooks.extend(
-        [
-            hook("userPromptSubmit", "user_prompt_submit:1:0", f"{context_command} --event UserPromptSubmit"),
-            hook("stop", "stop:1:0", f"{context_command} --event Stop"),
-            hook("preCompact", "pre_compact:0:0", f"{context_command} --event PreCompact"),
-            hook("postCompact", "post_compact:0:0", f"{context_command} --event PostCompact"),
-            hook("sessionStart", "session_start:1:0", f"{context_command} --event SessionStart --source compact"),
-        ]
-    )
-
 for raw_line in sys.stdin:
     message = json.loads(raw_line)
     method = message.get("method")
@@ -205,8 +193,4 @@ chmod +x "$TMP_DIR/bin/codex"
 PATH="$TMP_DIR/bin:$PATH" CODEX_HOME="/tmp/probe-codex" bash "$ROOT/tools/dev/probe-codex-hooks.sh" /repo >"$TMP_DIR/probe.out" 2>"$TMP_DIR/probe.err" \
   || fail "probe should accept the installer python launcher"
 grep -Fq 'ready=5 not_ready=0 extra_not_ready=0' "$TMP_DIR/probe.out" || fail "probe should audit all managed Codex hooks as ready"
-PATH="$TMP_DIR/bin:$PATH" CODEX_HOME="/tmp/probe-codex" ORG_CODEX_CONTEXT_CONTINUITY_ENABLED=1 bash "$ROOT/tools/dev/probe-codex-hooks.sh" /repo >"$TMP_DIR/probe-context.out" 2>"$TMP_DIR/probe-context.err" \
-  || fail "probe should include opt-in context continuity hooks when enabled"
-grep -Fq 'ready=10 not_ready=0 extra_not_ready=0' "$TMP_DIR/probe-context.out" || fail "probe should audit opt-in context continuity hooks as ready"
-
 echo "[PASS] codex hook trust audit"

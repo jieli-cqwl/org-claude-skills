@@ -62,7 +62,7 @@ Codex 安装会默认完成：
 
 - 托管启用 `~/.codex/config.toml` 中的 `features.hooks = true`，并清理旧版 `features.codex_hooks`
 - 托管配置 `~/.codex/config.toml` 中的 `[agents]` 并注册 first-party sub agents；agent 模型分层写在 `codex/agents/*.toml`
-- 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，保留 Codex 官方 hooks 事件面上的用户 hooks，并清理不在 Codex 事件面内的旧事件；Codex 上下文连续性 hook 默认不注册，需显式 `ORG_CODEX_CONTEXT_CONTINUITY_ENABLED=1` 启用
+- 将仓库管理的 hooks 合并到 `~/.codex/hooks.json`，保留 Codex 官方 hooks 事件面上的用户 hooks，并清理不在 Codex 事件面内的旧事件
 - 将 Codex 用户级 skill 落位到官方路径 `~/.agents/skills/<skill>/SKILL.md`；不安装任何 Superpowers 来源的 `agents/openai.yaml`
 - 归档并清理旧路径 `~/.codex/skills/<skill>` 的非隐藏残留，避免 Codex skill 双路径污染
 
@@ -72,18 +72,6 @@ Codex 0.129+ 会对 enabled hooks 做独立 trust/review。因为 Codex hooks �
 bash install.sh --target all --check quick
 bash tools/dev/probe-codex-hooks.sh ~/org-claude-skills
 ```
-
-### Codex context continuity
-
-Codex context continuity is opt-in:
-
-```bash
-ORG_CODEX_CONTEXT_CONTINUITY_ENABLED=1 bash install.sh --target codex --check quick
-```
-
-首次启用会写入 `~/.org-skills-state/codex/context-continuity-enabled`，后续安装无需重复带环境变量；要关闭则删除该标记后重新安装 Codex runtime。
-
-It records a compact recovery state card and redacted probe metadata. Each `UserPromptSubmit` creates a turn-bound pending record; agents write one complete schema-2 snapshot through `codex_context_continuity.py state-update --payload '<JSON>'`. If a hook-generated retry reaches `Stop` without that pending record, the hook may recover only the matching user input from a bounded transcript tail and still blocks until an explicit state update is submitted. The `Stop` hook blocks until that exact session and turn is `READY`, while `recover --session-id ID --turn-id ID` returns bounded evidence without promoting state. `PreCompact` and `SessionStart --source compact` preserve and restore structured recovery references; `PostCompact` stores only summary metadata. Recovery is fail-closed: incomplete or stale state cannot be treated as ready, and compact summaries are never treated as truth.
 
 组织级无人值守场景应使用 Codex 官方 `requirements.toml` managed hooks：由管理员在系统或云端 requirements 中声明 `[hooks]` 与 `hooks.managed_dir`，并通过 MDM/设备管理分发脚本。本仓库不会把用户级 `~/.codex/hooks.json` 伪装成 managed hooks。
 

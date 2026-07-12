@@ -350,7 +350,7 @@
       },
       "codex": {
         "supported": false,
-        "reason": "Codex context continuity is installed through the explicit context-continuity feature hooks."
+        "reason": "Codex uses its native compaction lifecycle and does not install a custom recovery hook."
       }
     },
     {
@@ -381,92 +381,6 @@
         "event": "UserPromptSubmit",
         "launcher": "python3",
         "command_rel": "hooks/managed/codex_user_prompt_submit.py",
-        "timeout_sec": 10
-      }
-    },
-    {
-      "id": "codex-context-continuity-user-prompt",
-      "intent": "record-latest-user-prompt-for-context-continuity",
-      "claude": {
-        "supported": false,
-        "reason": "Claude uses its native compact hooks and transcript handling."
-      },
-      "codex": {
-        "supported": true,
-        "feature": "context-continuity",
-        "event": "UserPromptSubmit",
-        "launcher": "python3",
-        "command_rel": "hooks/managed/codex_context_continuity.py",
-        "args": ["--event", "UserPromptSubmit"],
-        "timeout_sec": 10
-      }
-    },
-    {
-      "id": "codex-context-continuity-stop",
-      "intent": "checkpoint-stop-metadata-for-context-continuity",
-      "claude": {
-        "supported": false,
-        "reason": "Claude uses its native compact hooks and transcript handling."
-      },
-      "codex": {
-        "supported": true,
-        "feature": "context-continuity",
-        "event": "Stop",
-        "launcher": "python3",
-        "command_rel": "hooks/managed/codex_context_continuity.py",
-        "args": ["--event", "Stop"],
-        "timeout_sec": 10
-      }
-    },
-    {
-      "id": "codex-context-continuity-precompact",
-      "intent": "seal-task-state-before-context-compaction",
-      "claude": {
-        "supported": false,
-        "reason": "Claude uses hooks/post_compact.sh for its native runtime."
-      },
-      "codex": {
-        "supported": true,
-        "feature": "context-continuity",
-        "event": "PreCompact",
-        "launcher": "python3",
-        "command_rel": "hooks/managed/codex_context_continuity.py",
-        "args": ["--event", "PreCompact"],
-        "timeout_sec": 10
-      }
-    },
-    {
-      "id": "codex-context-continuity-postcompact",
-      "intent": "record-context-compaction-metadata",
-      "claude": {
-        "supported": false,
-        "reason": "Claude uses hooks/post_compact.sh for its native runtime."
-      },
-      "codex": {
-        "supported": true,
-        "feature": "context-continuity",
-        "event": "PostCompact",
-        "launcher": "python3",
-        "command_rel": "hooks/managed/codex_context_continuity.py",
-        "args": ["--event", "PostCompact"],
-        "timeout_sec": 10
-      }
-    },
-    {
-      "id": "codex-context-continuity-session-compact",
-      "intent": "inject-context-continuity-after-context-compaction",
-      "claude": {
-        "supported": false,
-        "reason": "Claude uses hooks/post_compact.sh for its native runtime."
-      },
-      "codex": {
-        "supported": true,
-        "feature": "context-continuity",
-        "event": "SessionStart",
-        "matcher": "compact",
-        "launcher": "python3",
-        "command_rel": "hooks/managed/codex_context_continuity.py",
-        "args": ["--event", "SessionStart", "--source", "compact"],
         "timeout_sec": 10
       }
     },

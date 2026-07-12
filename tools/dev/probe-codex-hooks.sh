@@ -35,16 +35,6 @@ AUDIT_ARGS=(
   --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_subagent_dispatch_guard.py" \
   --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_stop_dispatch.py"
 )
-if [ "${ORG_CODEX_CONTEXT_CONTINUITY_ENABLED:-0}" = "1" ]; then
-  AUDIT_ARGS+=(
-    --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_context_continuity.py --event UserPromptSubmit"
-    --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_context_continuity.py --event Stop"
-    --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_context_continuity.py --event PreCompact"
-    --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_context_continuity.py --event PostCompact"
-    --expected-command "$PYTHON_LAUNCHER $CODEX_HOME_DIR/hooks/managed/codex_context_continuity.py --event SessionStart --source compact"
-  )
-fi
-
 set +e
 python3 "${AUDIT_ARGS[@]}"
 AUDIT_RC=$?

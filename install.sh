@@ -490,27 +490,7 @@ render_codex_hooks_payload() {
     "--python-launcher" "$PYTHON_LAUNCHER"
   )
 
-  if codex_context_continuity_enabled; then
-    args+=("--enable-feature" "context-continuity")
-  fi
-
   python3 "$HOOK_RENDERER" "${args[@]}" > "$output"
-}
-
-codex_context_continuity_enabled() {
-  [ "${ORG_CODEX_CONTEXT_CONTINUITY_ENABLED:-0}" = "1" ] || [ -f "$(codex_context_continuity_opt_in_file)" ]
-}
-
-codex_context_continuity_opt_in_file() {
-  printf '%s/context-continuity-enabled\n' "$(target_state_dir codex)"
-}
-
-persist_codex_context_continuity_opt_in() {
-  [ "${ORG_CODEX_CONTEXT_CONTINUITY_ENABLED:-0}" = "1" ] || return 0
-  [ "$DRY_RUN" -eq 0 ] || return 0
-
-  mkdir -p "$(target_state_dir codex)"
-  printf 'enabled\n' > "$(codex_context_continuity_opt_in_file)"
 }
 
 required_codex_hook_commands() {
@@ -521,221 +501,19 @@ $PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_user_prompt_submit.py
 $PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_subagent_dispatch_guard.py
 $PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_stop_dispatch.py
 EOF
-  if codex_context_continuity_enabled; then
-    printf '%s\n' \
-      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event UserPromptSubmit" \
-      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event Stop" \
-      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event PreCompact" \
-      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event PostCompact" \
-      "$PYTHON_LAUNCHER $CODEX_DIR/hooks/managed/codex_context_continuity.py --event SessionStart --source compact"
-  fi
 }
 
-check_codex_context_continuity_probe() {
-  local state_dir script prompt_payload stop_payload precompact_payload postcompact_payload sessionstart_payload state_update_payload output
-
-  codex_context_continuity_enabled || return 0
-  state_dir="$(mktemp -d)"
-  script="$CODEX_DIR/hooks/managed/codex_context_continuity.py"
-
-  prompt_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-incomplete-probe",
-    "turn_id": "turn-1",
-    "hook_event_name": "UserPromptSubmit",
-    "user_prompt": "restore context continuity probe",
-    "cwd": sys.argv[1],
-    "transcript_path": f"{sys.argv[1]}/install-context-continuity-transcript.jsonl",
-}))
-PY
-)"
-  if ! printf '%s' "$prompt_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event UserPromptSubmit >/dev/null; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity incomplete probe 写入 prompt 失败"
+cleanup_retired_codex_context_continuity() {
+  if [ -f "$CODEX_DIR/hooks.json" ]; then
+    cleanup_codex_hooks_json
   fi
-  stop_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-incomplete-probe",
-    "turn_id": "turn-1",
-    "hook_event_name": "Stop",
-    "cwd": sys.argv[1],
-    "transcript_path": f"{sys.argv[1]}/install-context-continuity-transcript.jsonl",
-}))
-PY
-)"
-  if ! printf '%s' "$stop_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event Stop >/dev/null; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity incomplete probe 写入 stop 失败"
-  fi
-  precompact_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-incomplete-probe",
-    "hook_event_name": "PreCompact",
-    "trigger": "auto",
-    "cwd": sys.argv[1],
-}))
-PY
-)"
-  if ! printf '%s' "$precompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event PreCompact >/dev/null; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity incomplete probe 写入 precompact 失败"
-  fi
-  postcompact_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-incomplete-probe",
-    "hook_event_name": "PostCompact",
-    "trigger": "auto",
-    "cwd": sys.argv[1],
-}))
-PY
-)"
-  if ! printf '%s' "$postcompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event PostCompact >/dev/null; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity incomplete probe 写入 postcompact 失败"
-  fi
-  sessionstart_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-incomplete-probe",
-    "hook_event_name": "SessionStart",
-    "source": "compact",
-    "cwd": sys.argv[1],
-}))
-PY
-)"
-  if ! output="$(printf '%s' "$sessionstart_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event SessionStart --source compact)"; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity incomplete probe 恢复输出失败"
-  fi
-  printf '%s' "$output" | grep -Fq 'recovery_status: INCOMPLETE' || {
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity incomplete probe 未输出 INCOMPLETE"
-  }
-  printf '%s' "$output" | grep -Fq 'allowed_next_step: READ_ONLY_RECOVERY' || {
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity incomplete probe 未要求只读恢复"
-  }
-  log "context continuity incomplete probe passed"
-
-  prompt_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-ready-probe",
-    "turn_id": "turn-1",
-    "hook_event_name": "UserPromptSubmit",
-    "user_prompt": "restore context continuity ready probe",
-    "cwd": sys.argv[1],
-    "transcript_path": f"{sys.argv[1]}/install-context-continuity-transcript.jsonl",
-}))
-PY
-)"
-  if ! printf '%s' "$prompt_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event UserPromptSubmit >/dev/null; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity ready probe 写入 prompt 失败"
-  fi
-  state_update_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-ready-probe",
-    "turn_id": "turn-1",
-    "base_revision": 0,
-    "task": {
-        "task_status": "active",
-        "active_goal": "prove context continuity ready recovery",
-        "scope_boundary": "Codex context continuity install quick check",
-        "non_goals": [],
-        "latest_user_correction": "restore context continuity ready probe",
-        "current_phase": "install quick check",
-        "current_plan": ["record state", "seal compact", "recover"],
-        "completed_items": [{"item": "prompt metadata recorded", "evidence_refs": ["install.sh"]}],
-        "pending_items": ["SessionStart compact recovery"],
-        "blockers": [],
-        "next_action": "continue from structured recovery state",
-    },
-}))
-PY
-)"
-  if ! ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" state-update --payload "$state_update_payload" >/dev/null; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity ready probe 写入 StateUpdate 失败"
-  fi
-  precompact_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-ready-probe",
-    "hook_event_name": "PreCompact",
-    "trigger": "auto",
-    "cwd": sys.argv[1],
-}))
-PY
-)"
-  if ! printf '%s' "$precompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event PreCompact >/dev/null; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity ready probe 写入 precompact 失败"
-  fi
-  postcompact_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-ready-probe",
-    "hook_event_name": "PostCompact",
-    "trigger": "auto",
-    "cwd": sys.argv[1],
-    "compact_summary": "summary remains metadata only",
-}))
-PY
-)"
-  if ! printf '%s' "$postcompact_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event PostCompact >/dev/null; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity ready probe 写入 postcompact 失败"
-  fi
-  sessionstart_payload="$("$PYTHON_LAUNCHER" - "$PWD" <<'PY'
-import json
-import sys
-
-print(json.dumps({
-    "session_id": "install-context-continuity-ready-probe",
-    "hook_event_name": "SessionStart",
-    "source": "compact",
-    "cwd": sys.argv[1],
-}))
-PY
-)"
-  if ! output="$(printf '%s' "$sessionstart_payload" | ORG_CODEX_CONTEXT_CONTINUITY_STATE_DIR="$state_dir" "$PYTHON_LAUNCHER" "$script" --event SessionStart --source compact)"; then
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity ready probe 恢复输出失败"
-  fi
-  printf '%s' "$output" | grep -Fq 'recovery_status: READY' || {
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity ready probe 未输出 READY"
-  }
-  printf '%s' "$output" | grep -Fq 'allowed_next_step: CONTINUE_FROM_STATE' || {
-    rm -rf "$state_dir"
-    fail "Quick Check 失败: context continuity ready probe 未允许结构化继续"
-  }
-  rm -rf "$state_dir"
-  log "context continuity ready probe passed"
+  rm -f \
+    "$CODEX_DIR/hooks/managed/codex_context_continuity.py" \
+    "$CODEX_DIR/hooks/managed/codex_context_model.py" \
+    "$CODEX_DIR/hooks/managed/codex_context_store.py"
+  rm -rf "$CODEX_DIR/hooks/state/context-continuity"
+  rm -f "$(target_state_dir codex)/context-continuity-enabled"
+  remove_if_empty "$CODEX_DIR/hooks/state" "$CODEX_DIR"
 }
 
 check_codex_hook_trust() {
@@ -2825,7 +2603,9 @@ runtime_target_complete() {
     [ -f "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
     [ -x "$target_dir/hooks/managed/block_dangerous.sh" ] || return 1
     [ -f "$target_dir/hooks/managed/context_contract_validator.py" ] || return 1
-    [ -f "$target_dir/hooks/managed/codex_context_continuity.py" ] || return 1
+    [ ! -e "$target_dir/hooks/managed/codex_context_continuity.py" ] || return 1
+    [ ! -e "$target_dir/hooks/managed/codex_context_model.py" ] || return 1
+    [ ! -e "$target_dir/hooks/managed/codex_context_store.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_user_prompt_submit.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_subagent_dispatch_guard.py" ] || return 1
     [ -f "$target_dir/hooks/managed/codex_stop_dispatch.py" ] || return 1
@@ -3212,7 +2992,7 @@ uninstall_target() {
   if [ "$name" = "codex" ]; then
     restore_codex_hooks_json_baseline
     rm -rf "$target_dir/hooks/state"
-    rm -f "$(codex_context_continuity_opt_in_file)"
+    cleanup_retired_codex_context_continuity
     restore_codex_hooks_feature
     remove_if_empty "$target_dir/hooks" "$target_dir"
   fi
@@ -3423,7 +3203,11 @@ quick_check() {
     [ -f "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不存在"
     [ -x "$CODEX_DIR/hooks/managed/block_dangerous.sh" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/block_dangerous.sh 不可执行"
     [ -f "$CODEX_DIR/hooks/managed/context_contract_validator.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/context_contract_validator.py 不存在"
-    [ -f "$CODEX_DIR/hooks/managed/codex_context_continuity.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_context_continuity.py 不存在"
+    [ ! -e "$CODEX_DIR/hooks/managed/codex_context_continuity.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_context_continuity.py 已退休，不应存在"
+    [ ! -e "$CODEX_DIR/hooks/managed/codex_context_model.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_context_model.py 已退休，不应存在"
+    [ ! -e "$CODEX_DIR/hooks/managed/codex_context_store.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_context_store.py 已退休，不应存在"
+    [ ! -e "$CODEX_DIR/hooks/state/context-continuity" ] || fail "Quick Check 失败: ~/.codex/hooks/state/context-continuity 已退休，不应存在"
+    [ ! -e "$(target_state_dir codex)/context-continuity-enabled" ] || fail "Quick Check 失败: context continuity 启用标记已退休，不应存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_user_prompt_submit.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_subagent_dispatch_guard.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_subagent_dispatch_guard.py 不存在"
     [ -f "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" ] || fail "Quick Check 失败: ~/.codex/hooks/managed/codex_stop_dispatch.py 不存在"
@@ -3458,11 +3242,7 @@ quick_check() {
     grep -Fq "$CODEX_DIR/hooks/managed/codex_user_prompt_submit.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 active skill tracker"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_subagent_dispatch_guard.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 subagent dispatch guard"
     grep -Fq "$CODEX_DIR/hooks/managed/codex_stop_dispatch.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 stop dispatcher"
-    if codex_context_continuity_enabled; then
-      grep -Fq "$CODEX_DIR/hooks/managed/codex_context_continuity.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 context continuity hook"
-    else
-      ! grep -Fq "$CODEX_DIR/hooks/managed/codex_context_continuity.py" "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 默认不应启用 context continuity hook"
-    fi
+    ! grep -Fq 'codex_context_continuity.py' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 不应注册已退休的 context continuity hook"
     grep -Fq '"SessionStart"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex SessionStart 事件面"
     grep -Fq '"PermissionRequest"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex PermissionRequest 事件面"
     grep -Fq '"PostToolUse"' "$CODEX_DIR/hooks.json" || fail "Quick Check 失败: ~/.codex/hooks.json 缺少 Codex PostToolUse 事件面"
@@ -3475,7 +3255,6 @@ quick_check() {
     if [ -f "$CODEX_DIR/hooks.json" ] && grep -Fq 'codex-hooks-probe.' "$CODEX_DIR/hooks.json"; then
       fail "Quick Check 失败: ~/.codex/hooks.json 不应残留 codex-hooks-probe 临时路径"
     fi
-    check_codex_context_continuity_probe
     check_codex_hook_trust
     runtime_noise_absent "$CODEX_DIR" || fail "Quick Check 失败: ~/.codex 不应包含 __pycache__、*.pyc 或 .DS_Store"
   fi
@@ -3605,7 +3384,7 @@ main() {
   if [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; then
     install_to_target "codex" "$CODEX_DIR" build_staging_codex "$version_tag"
     if [ "$DRY_RUN" -eq 0 ]; then
-      persist_codex_context_continuity_opt_in
+      cleanup_retired_codex_context_continuity
       configure_codex_agents
       enable_codex_hooks_feature
       snapshot_codex_hooks_json_baseline
