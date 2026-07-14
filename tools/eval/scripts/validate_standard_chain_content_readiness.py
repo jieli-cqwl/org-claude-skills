@@ -417,7 +417,15 @@ def canonical_ref_identity(ref: dict[str, Any]) -> bytes:
     return canonical_bytes(
         {
             key: ref[key]
-            for key in ("scope", "source_id", "path", "commit", "blob", "line")
+            for key in (
+                "scope",
+                "source_id",
+                "path",
+                "commit",
+                "blob",
+                "line",
+                "sha256",
+            )
             if key in ref
         }
     )
@@ -610,12 +618,28 @@ def derived_values(
     return content_digest, fact_digest, runtime_digest, starting_digest
 
 
+def business_proxy_fact_keys_are_unique(
+    context: ValidationContext, oracle: dict[str, Any]
+) -> bool:
+    keys = [
+        item.get("fact_key")
+        for item in oracle.get("business_proxy_facts", [])
+        if isinstance(item, dict)
+    ]
+    if len(keys) != len(set(keys)):
+        context.fail("duplicate business proxy fact key")
+        return False
+    return True
+
+
 def validate_runtime_and_derived(
     context: ValidationContext,
     surface: dict[str, Any],
     oracle: dict[str, Any],
     input_manifest: dict[str, Any],
 ) -> tuple[str, str] | None:
+    if not business_proxy_fact_keys_are_unique(context, oracle):
+        return None
     runtime = surface.get("runtime_inheritance")
     if not isinstance(runtime, dict):
         return None
@@ -668,6 +692,8 @@ def validate_business_proxy(
     oracle: dict[str, Any],
     transcripts: list[dict[str, Any]],
 ) -> None:
+    if not business_proxy_fact_keys_are_unique(context, oracle):
+        return
     current = {
         item["fact_key"]: item
         for item in oracle.get("business_proxy_facts", [])
@@ -1282,6 +1308,9 @@ def validate_stage(
         else current_stage
     )
     checked = required_stage or actual
+    if actual == "terminal-run" and checked != "terminal-run":
+        context.fail("terminal-run closure cannot satisfy non-terminal stage")
+        return checked
     if checked == "terminal-run":
         if run.get("lifecycle_status") != "CLOSED" or run.get(
             "closure_validation_stage"
@@ -1404,6 +1433,11 @@ def validate_role_evidence_graph(
         for ref in verdict.get("evidence_refs", [])
         if isinstance(ref, dict)
     }
+    evidence_identities = {
+        canonical_ref_identity(ref)
+        for ref in verdict.get("evidence_refs", [])
+        if isinstance(ref, dict)
+    }
     prefix = f"roles/{role}/"
     required_evidence: set[str] = set()
     if branch == "C":
@@ -1414,6 +1448,7 @@ def validate_role_evidence_graph(
         }
     elif branch == "D":
         required_evidence = {
+            prefix + "surface.json",
             prefix + "content-audit-report.json",
             *(prefix + name for name in REVIEW_ROLE_ARTIFACTS),
         }
@@ -1434,7 +1469,21 @@ def validate_role_evidence_graph(
                 required_evidence.add(
                     f"{prefix}executor-{lane.get('lane_id')}/attempt-{attempts[-1].get('attempt_number')}/replay-attempt.json"
                 )
-    if not required_evidence <= evidence_paths:
+    indexed_internal_identities = {
+        ref_path(ref): canonical_ref_identity(ref)
+        for ref in raw_index
+        if isinstance(ref, dict) and ref.get("scope") == "run"
+    }
+    required_internal_identities = {
+        indexed_internal_identities[path]
+        for path in required_evidence
+        if path in indexed_internal_identities
+    }
+    if (
+        not required_evidence <= evidence_paths
+        or len(required_internal_identities) != len(required_evidence)
+        or not required_internal_identities <= evidence_identities
+    ):
         context.fail("role verdict evidence graph is incomplete")
 
 
@@ -1686,7 +1735,10 @@ def validate_run(
     run = context.load_artifact("run.json")
     if run is None:
         return context, required_stage or "admitted"
+    failures_before_stage = len(context.failures)
     checked_stage = validate_stage(context, run, required_stage)
+    if len(context.failures) > failures_before_stage:
+        return context, checked_stage
     context.validate_refs(run)
     validate_role_ref_index(context, run)
     if run.get("primary_roles") != PRIMARY_ROLES:
@@ -1747,6 +1799,8 @@ def validate_run(
     input_manifest = case_artifacts.get("input")
     oracle = case_artifacts.get("oracle")
     source_manifest = case_artifacts.get("source_classification")
+    if oracle is not None and not business_proxy_fact_keys_are_unique(context, oracle):
+        return context, checked_stage
     if confirmation is not None:
         validate_confirmation(context, confirmation)
     if source_manifest is not None:

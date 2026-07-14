@@ -1087,14 +1087,23 @@ def recompute_derived(run_root: Path) -> None:
 
 
 def command_build(args: argparse.Namespace) -> None:
+    run_root = Path(args.run_root).resolve()
+    runtime_root = Path(args.runtime_root).resolve()
     source_roots = build_run(
         Path(args.repo_root).resolve(),
         Path(args.template).resolve(),
-        Path(args.run_root).resolve(),
-        Path(args.runtime_root).resolve(),
+        run_root,
+        runtime_root,
         Path(args.descriptor).resolve(),
         [Path(path).resolve() for path in args.denominator],
     )
+    for relative in (
+        "roles/product-director/surface.json",
+        "roles/product-director/executor-a/attempt-1/replay-attempt.json",
+    ):
+        shadow = runtime_root / relative
+        shadow.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(run_root / relative, shadow)
     write_json(Path(args.source_roots_output), source_roots)
 
 
@@ -1540,6 +1549,16 @@ def mutate(run_root: Path, name: str) -> None:
         payload = read_json(input_path)
         payload["starting_input_sha256"] = ZERO_SHA
         write_json(input_path, payload)
+    elif name in {"duplicate_proxy_fact_conflict", "duplicate_proxy_fact_exact"}:
+        path = run_root / "case/oracle-manifest.json"
+        oracle = read_json(path)
+        duplicate = copy.deepcopy(oracle["business_proxy_facts"][0])
+        if name == "duplicate_proxy_fact_conflict":
+            duplicate["answer_text"] = "Conflicting duplicate answer."
+            oracle["business_proxy_facts"].insert(0, duplicate)
+        else:
+            oracle["business_proxy_facts"].append(duplicate)
+        write_json(path, oracle)
     elif name == "unresolved_runtime":
         payload = read_json(surface_path)
         payload["runtime_inheritance"]["unresolved_file_inputs"] = [
@@ -1897,6 +1916,18 @@ def mutate(run_root: Path, name: str) -> None:
         ]
         write_json(verdict_path, verdict)
         index_present_product_director_artifacts(run_root)
+    elif name in {"verdict_surface_scope_swap", "verdict_attempt_scope_swap"}:
+        target = {
+            "verdict_surface_scope_swap": "roles/product-director/surface.json",
+            "verdict_attempt_scope_swap": (
+                "roles/product-director/executor-a/attempt-1/replay-attempt.json"
+            ),
+        }[name]
+        verdict = read_json(verdict_path)
+        ref = next(item for item in verdict["evidence_refs"] if item["path"] == target)
+        ref["scope"] = "external_repo"
+        ref["source_id"] = "synthetic-runtime"
+        write_json(verdict_path, verdict)
     elif name in {
         "unavailable_baselines_blocked_evidence",
         "branch_b_admission",

@@ -178,6 +178,79 @@ if value.get("status") != "PASS" or value.get("checked_stage") != sys.argv[2]:
 PY
 }
 
+expect_terminal_stage_isolation() {
+  local mutation="$1"
+  if ! should_run "$mutation"; then
+    return
+  fi
+  local case_root="$tmpdir/terminal-stage-$mutation"
+  local failure_output="$tmpdir/terminal-stage-$mutation-failure.json"
+  local success_output="$tmpdir/terminal-stage-$mutation-success.json"
+  local error="$tmpdir/terminal-stage-$mutation.stderr"
+  cp -R "$run_root" "$case_root"
+  python3 "$BUILDER" mutate --run-root "$case_root" --name "$mutation"
+  refresh_case "$case_root"
+  if python3 "$VALIDATOR" "$case_root" \
+    --require-role product-director \
+    --require-stage role-verdict \
+    --source-root "synthetic-app=$app_root" \
+    --source-root "synthetic-backend=$backend_root" \
+    --source-root "synthetic-runtime=$runtime_root" >"$failure_output" 2>"$error"; then
+    fail "$mutation role-verdict request unexpectedly passed"
+  fi
+  if [[ -s "$error" ]]; then
+    fail "$mutation role-verdict request leaked non-JSON stderr: $(<"$error")"
+  fi
+  if ! python3 "$VALIDATOR" "$case_root" \
+    --require-role product-director \
+    --require-stage terminal-run \
+    --source-root "synthetic-app=$app_root" \
+    --source-root "synthetic-backend=$backend_root" \
+    --source-root "synthetic-runtime=$runtime_root" >"$success_output" 2>"$error"; then
+    fail "$mutation terminal-run request failed: $(<"$success_output") $(<"$error")"
+  fi
+  python3 - "$failure_output" "$success_output" "$mutation" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+failure = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+success = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+expected = "terminal-run closure cannot satisfy non-terminal stage"
+if failure.get("status") != "FAIL" or expected not in json.dumps(failure):
+    raise SystemExit(f"{sys.argv[3]}: non-terminal stage was not isolated: {failure}")
+if success.get("status") != "PASS" or success.get("checked_stage") != "terminal-run":
+    raise SystemExit(f"{sys.argv[3]}: terminal-run did not pass: {success}")
+PY
+}
+
+run_fifth_review_cases() {
+  local failed=0 pid_one pid_two pid_three
+
+  (
+    expect_failure duplicate_proxy_fact_conflict "duplicate business proxy fact key"
+    expect_terminal_stage_isolation branch_b_admission
+    expect_failure verdict_surface_scope_swap "role verdict evidence graph is incomplete"
+  ) &
+  pid_one=$!
+  (
+    expect_failure duplicate_proxy_fact_exact "duplicate business proxy fact key"
+    expect_terminal_stage_isolation branch_b_static
+    expect_failure verdict_attempt_scope_swap "role verdict evidence graph is incomplete"
+  ) &
+  pid_two=$!
+  (expect_terminal_stage_isolation branch_b_diagnostic) &
+  pid_three=$!
+  for pid in "$pid_one" "$pid_two" "$pid_three"; do
+    if ! wait "$pid"; then
+      failed=1
+    fi
+  done
+  if [[ "$failed" -ne 0 ]]; then
+    fail "one or more fifth-review cases failed"
+  fi
+}
+
 expect_divergent_source_failure() {
   if ! should_run "source_divergent_history"; then
     return
@@ -285,15 +358,14 @@ expect_failure stopped_canonical_residue "stopped attempt cannot retain canonica
 expect_failure terminal_empty "terminal-run requires explicit terminal evidence" yes terminal-run
 expect_failure branch_c_no_p0_p1 "Branch C requires blocking P0/P1 evidence"
 
+run_fifth_review_cases
+
 expect_success_variant direct_static_content_fail
 expect_success_variant branch_d_content_fail
 expect_success_variant branch_d_blocked_oracle
 expect_success_variant branch_d_blocked_evidence
 expect_success_variant branch_d_blocked_isolation
-expect_success_variant branch_b_admission terminal-run
 expect_success_variant branch_b_admission_approved_tokens terminal-run
-expect_success_variant branch_b_static terminal-run
-expect_success_variant branch_b_diagnostic terminal-run
 expect_success_variant branch_a_single_lane_triple terminal-run
 expect_success_variant open_static static-audit
 expect_success_variant open_diagnostic diagnostic-replay
