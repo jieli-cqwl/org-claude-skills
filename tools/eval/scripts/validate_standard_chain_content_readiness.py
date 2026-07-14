@@ -118,6 +118,25 @@ def enumerate_source_denominator(
     """Return the shared ancestry-commit and first-parent changed-path denominator."""
     git(source_root, "cat-file", "-e", f"{baseline}^{{commit}}")
     git(source_root, "cat-file", "-e", f"{result}^{{commit}}")
+    ancestor = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(source_root),
+            "merge-base",
+            "--is-ancestor",
+            baseline,
+            result,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    if ancestor.returncode != 0:
+        raise ValueError(
+            "source classification denominator mismatch: baseline is not an ancestor of result"
+        )
     raw_commits = git(
         source_root,
         "rev-list",
@@ -239,7 +258,8 @@ class ValidationContext:
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             self.fail(f"{relative}: artifact load failed: {exc}")
             return None
-        self.schema_validate(payload, path)
+        if not self.schema_validate(payload, path):
+            return None
         self.artifacts[relative] = payload
         return payload
 
@@ -357,6 +377,46 @@ def ref_path(ref: dict[str, Any]) -> str:
 
 def compare_ref_lists(left: list[Any], right: list[Any]) -> bool:
     return canonical_bytes(left) == canonical_bytes(right)
+
+
+def validate_artifact_identity(
+    context: ValidationContext,
+    relative: str,
+    payload: dict[str, Any],
+    case_id: str,
+) -> None:
+    if payload.get("case_id") != case_id:
+        context.fail("artifact identity mismatch")
+    parts = PurePosixPath(relative).parts
+    role: str | None = None
+    lane_id: str | None = None
+    attempt_number: int | None = None
+    if len(parts) >= 2 and parts[0] == "roles":
+        role = parts[1]
+    for part in parts:
+        if part.startswith("executor-"):
+            lane_id = part.removeprefix("executor-")
+        if part.startswith("attempt-"):
+            suffix = part.removeprefix("attempt-")
+            if suffix.isdigit():
+                attempt_number = int(suffix)
+    if role is not None:
+        identity_role = payload.get("role", payload.get("producer_role"))
+        if identity_role is not None and identity_role != role:
+            context.fail("artifact identity mismatch")
+    if lane_id is not None and payload.get("lane_id") is not None:
+        if payload.get("lane_id") != lane_id:
+            context.fail("artifact identity mismatch")
+    if attempt_number is not None and payload.get("attempt_number") is not None:
+        if payload.get("attempt_number") != attempt_number:
+            context.fail("artifact identity mismatch")
+
+
+def validate_loaded_artifact_identities(
+    context: ValidationContext, case_id: str
+) -> None:
+    for relative, payload in context.artifacts.items():
+        validate_artifact_identity(context, relative, payload, case_id)
 
 
 def validate_confirmation(
@@ -619,13 +679,78 @@ def validate_actual_reads(
 ) -> None:
     environment = attempt.get("environment", {})
     staged = environment.get("staged_files", [])
+    root_fields = (
+        "staging_root",
+        "output_root",
+        "pwd",
+        "staging_root_realpath",
+        "output_root_realpath",
+        "resolved_runtime_root",
+    )
+    roots = {
+        field_name: Path(str(environment.get(field_name, "")))
+        for field_name in root_fields
+    }
+    if any(not path.is_absolute() for path in roots.values()):
+        context.fail("attempt environment roots are inconsistent")
+        return
+    staging_root = roots["staging_root"]
+    output_root = roots["output_root"]
+    try:
+        staging_realpath = staging_root.resolve(strict=True)
+        output_realpath = output_root.resolve(strict=True)
+        pwd_realpath = roots["pwd"].resolve(strict=True)
+    except OSError:
+        context.fail("attempt environment roots are inconsistent")
+        return
+    if (
+        staging_realpath != roots["staging_root_realpath"]
+        or output_realpath != roots["output_root_realpath"]
+        or pwd_realpath != staging_realpath
+        or not staging_realpath.is_dir()
+        or not output_realpath.is_dir()
+    ):
+        context.fail("attempt environment roots are inconsistent")
+    inherited_roots = {
+        context.source_roots[ref["source_id"]].resolve()
+        for ref in input_manifest.get("inherited_runtime_refs", [])
+        if isinstance(ref, dict)
+        and ref.get("scope") == "external_repo"
+        and ref.get("source_id") in context.source_roots
+    }
+    if inherited_roots and roots["resolved_runtime_root"].resolve() not in inherited_roots:
+        context.fail("attempt environment roots are inconsistent")
     if staged != sorted(staged, key=lambda item: item.get("path", "")):
         context.fail("lane staged manifest mismatch")
     if environment.get("staged_manifest_digest") != digest(staged):
         context.fail("lane staged manifest mismatch")
-    staged_allowed = {
-        item.get("path"): item.get("sha256") for item in staged if isinstance(item, dict)
-    }
+    staged_allowed: dict[str, str] = {}
+    for item in staged:
+        if not isinstance(item, dict):
+            continue
+        raw_path = item.get("path")
+        pure = PurePosixPath(str(raw_path))
+        if (
+            not isinstance(raw_path, str)
+            or pure.is_absolute()
+            or Path(raw_path).is_absolute()
+            or ".." in pure.parts
+        ):
+            context.fail("staged manifest entry does not match real bytes")
+            continue
+        target = staging_realpath / raw_path
+        try:
+            resolved = target.resolve(strict=True)
+            resolved.relative_to(staging_realpath)
+            raw = resolved.read_bytes()
+        except (OSError, ValueError):
+            context.fail("staged manifest entry does not match real bytes")
+            continue
+        actual_sha = hashlib.sha256(raw).hexdigest()
+        if actual_sha != item.get("sha256") or raw_path in staged_allowed:
+            context.fail("staged manifest entry does not match real bytes")
+            continue
+        staged_allowed[raw_path] = actual_sha
     inherited_allowed: dict[str, str] = {}
     for ref in input_manifest.get("inherited_runtime_refs", []):
         if not isinstance(ref, dict):
@@ -760,23 +885,24 @@ def validate_audit_adapters(
 ) -> None:
     alignment = context.run_root / role_root / "content-audit-alignment.json"
     report = context.run_root / role_root / "content-audit-report.json"
-    context.invoke(
-        "skill-audit-alignment",
-        [
-            sys.executable,
-            str(
-                REPO_ROOT
-                / "shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py"
-            ),
-            str(alignment),
-        ],
-        failure_message="skill audit alignment validator failed",
-    )
     formal_required = verdict is not None and verdict.get("verdict") in {
         "CONTENT_PASS",
         "CONTENT_FAIL",
         "BLOCKED_ISOLATION",
     }
+    if alignment.exists() or formal_required:
+        context.invoke(
+            "skill-audit-alignment",
+            [
+                sys.executable,
+                str(
+                    REPO_ROOT
+                    / "shared/skills/skill-quality-audit/scripts/validate_skill_audit_alignment.py"
+                ),
+                str(alignment),
+            ],
+            failure_message="skill audit alignment validator failed",
+        )
     if report.exists() or formal_required:
         context.invoke(
             "skill-audit-report",
@@ -798,9 +924,10 @@ def validate_attempts(
     input_manifest: dict[str, Any],
     oracle: dict[str, Any],
     inherited_runtime_digest: str,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     lanes: list[dict[str, Any]] = []
     transcripts: list[dict[str, Any]] = []
+    all_attempts: list[dict[str, Any]] = []
     staged_digests: list[str] = []
     starting_inputs: list[str] = []
     lane_ids = ("a", "b")
@@ -826,8 +953,14 @@ def validate_attempts(
             if attempt is None:
                 continue
             attempts.append((attempt, ref))
+            all_attempts.append(attempt)
             if attempt.get("attempt_number") != index or attempt.get("lane_id") != lane_id:
                 context.fail("attempt history must be immutable and contiguous")
+            if (
+                attempt.get("oracle_version") != input_manifest.get("oracle_version")
+                or attempt.get("oracle_version") != oracle.get("oracle_version")
+            ):
+                context.fail("oracle version mismatch")
             starting_inputs.append(str(attempt.get("starting_input_sha256")))
             environment = attempt.get("environment", {})
             staged_digests.append(str(environment.get("staged_manifest_digest")))
@@ -847,6 +980,20 @@ def validate_attempts(
                     or manifest.get("canonical_output_refs") != []
                 ):
                     context.fail("stopped attempt requires blocking fact and empty outputs")
+            elif status == "INFRA_FAILURE":
+                if (
+                    attempt.get("output_refs")
+                    or not isinstance(manifest, dict)
+                    or manifest.get("canonical_output_refs") != []
+                ):
+                    context.fail("infrastructure failure cannot have outputs")
+            elif status == "VOID_CONTAMINATED":
+                if (
+                    attempt.get("output_refs")
+                    or not isinstance(manifest, dict)
+                    or manifest.get("canonical_output_refs") != []
+                ):
+                    context.fail("contaminated attempt cannot have outputs")
             elif status == "COMPLETED" and isinstance(manifest, dict):
                 outputs = manifest.get("canonical_output_refs", [])
                 if not outputs:
@@ -877,10 +1024,16 @@ def validate_attempts(
                     context.fail("contaminated attempt cannot be decisive")
                 if decisive_attempt.get("attempt_status") == "INFRA_FAILURE":
                     context.fail("infrastructure failure cannot be decisive")
-                if decisive_attempt.get("attempt_status") == "INFRA_FAILURE" and decisive_attempt.get("output_refs"):
-                    context.fail("infrastructure failure cannot be decisive")
-        elif decisive is not None:
-            context.fail("attempt history must be immutable and contiguous")
+        else:
+            if decisive is not None:
+                context.fail("attempt history must be immutable and contiguous")
+            statuses = [attempt.get("attempt_status") for attempt, _ in attempts]
+            if lane.get("terminal_condition") == "ALL_CONTAMINATED":
+                if not statuses or any(status != "VOID_CONTAMINATED" for status in statuses):
+                    context.fail("terminal lane evidence mismatch")
+            elif lane.get("terminal_condition") == "UNRECOVERABLE_INFRA_FAILURE":
+                if not statuses or any(status != "INFRA_FAILURE" for status in statuses):
+                    context.fail("terminal lane evidence mismatch")
     if len(set(starting_inputs)) > 1 or any(
         value != input_manifest.get("starting_input_sha256") for value in starting_inputs
     ):
@@ -888,9 +1041,40 @@ def validate_attempts(
     if len(set(staged_digests)) > 1:
         context.fail("lane starting input mismatch")
     if input_manifest.get("inherited_runtime_digest") != inherited_runtime_digest:
-        context.fail("lane starting input mismatch")
+        if inherited_runtime_digest:
+            context.fail("lane starting input mismatch")
     validate_business_proxy(context, oracle, transcripts)
-    return lanes, transcripts
+    return lanes, transcripts, all_attempts
+
+
+def derive_effective_isolation(
+    context: ValidationContext,
+    run: dict[str, Any],
+    surface: dict[str, Any],
+    attempts: list[dict[str, Any]],
+) -> str | None:
+    levels: list[str] = []
+    run_assessment = run.get("isolation_assessment")
+    if isinstance(run_assessment, dict) and isinstance(run_assessment.get("level"), str):
+        levels.append(run_assessment["level"])
+    runtime = surface.get("runtime_inheritance")
+    if isinstance(runtime, dict) and isinstance(runtime.get("evidence_level"), str):
+        levels.append(runtime["evidence_level"])
+    levels.extend(
+        str(attempt["isolation_level"])
+        for attempt in attempts
+        if isinstance(attempt.get("isolation_level"), str)
+    )
+    rank = {"DECLARED_ONLY": 0, "OBSERVED": 1, "ENFORCED": 2}
+    if not levels:
+        return None
+    if any(level not in rank for level in levels):
+        context.fail("effective isolation evidence mismatch")
+        return None
+    effective = min(levels, key=rank.__getitem__)
+    if isinstance(run_assessment, dict) and run_assessment.get("level") != effective:
+        context.fail("effective isolation evidence mismatch")
+    return effective
 
 
 def validate_role_verdict(
@@ -900,10 +1084,21 @@ def validate_role_verdict(
     content_digest: str | None,
     runtime_digest: str | None,
     lanes: list[dict[str, Any]],
+    effective_isolation: str | None,
 ) -> None:
     value = verdict.get("verdict")
     if value == "CONTENT_PASS" and verdict.get("isolation_level") == "DECLARED_ONLY":
         context.fail("CONTENT_PASS requires ENFORCED or OBSERVED")
+    if effective_isolation is not None and verdict.get("isolation_level") != effective_isolation:
+        context.fail("effective isolation evidence mismatch")
+    if value == "CONTENT_PASS" and effective_isolation not in {"ENFORCED", "OBSERVED"}:
+        context.fail("effective isolation requires BLOCKED_ISOLATION")
+    if (
+        effective_isolation == "DECLARED_ONLY"
+        and (lanes or value == "CONTENT_PASS")
+        and value != "BLOCKED_ISOLATION"
+    ):
+        context.fail("effective isolation requires BLOCKED_ISOLATION")
     if value == "CONTENT_PASS" and verdict.get("oracle_bridge_used") is True:
         context.fail("authentic role pass cannot depend on oracle bridge")
     missing: list[str] = []
@@ -944,6 +1139,14 @@ def validate_role_verdict(
     }
     if lanes and lane_decisive != verdict_decisive:
         context.fail("attempt history must be immutable and contiguous")
+    for decisive_path in lane_decisive:
+        decisive_attempt = context.artifacts.get(decisive_path)
+        if (
+            isinstance(decisive_attempt, dict)
+            and effective_isolation is not None
+            and decisive_attempt.get("isolation_level") != effective_isolation
+        ):
+            context.fail("effective isolation evidence mismatch")
     if value == "BLOCKED_ISOLATION" and verdict.get("isolation_level") != "DECLARED_ONLY":
         context.fail("BLOCKED_ISOLATION requires DECLARED_ONLY evidence")
 
@@ -1007,6 +1210,48 @@ def validate_stage(
     elif checked not in STAGE_ORDER:
         context.fail(f"unsupported required stage: {checked}")
     return checked
+
+
+def validate_terminal_run(
+    context: ValidationContext,
+    run: dict[str, Any],
+    role_lanes: dict[str, list[dict[str, Any]]],
+    role_verdicts: dict[str, dict[str, Any]],
+) -> None:
+    if run.get("closure_validation_stage") != "terminal-run":
+        return
+    if role_verdicts or "primary_role_outcome" in run:
+        context.fail("terminal-run cannot fabricate role outcomes")
+    lanes = [lane for values in role_lanes.values() for lane in values]
+    expected_terminal = {
+        "INCONCLUSIVE_CONTAMINATED": "ALL_CONTAMINATED",
+        "BLOCKED_EVIDENCE": "UNRECOVERABLE_INFRA_FAILURE",
+    }.get(run.get("global_state"))
+    if (
+        not lanes
+        or expected_terminal is None
+        or any(lane.get("terminal_condition") != expected_terminal for lane in lanes)
+    ):
+        context.fail("terminal-run requires explicit terminal evidence")
+
+
+def validate_role_global_state(
+    context: ValidationContext,
+    run: dict[str, Any],
+    role_verdicts: dict[str, dict[str, Any]],
+) -> None:
+    expected_global = {
+        "CONTENT_FAIL": "REPAIR_REQUIRED",
+        "BLOCKED_ORACLE": "BLOCKED_ORACLE",
+        "BLOCKED_EVIDENCE": "BLOCKED_EVIDENCE",
+        "BLOCKED_ISOLATION": "BLOCKED_ISOLATION",
+    }
+    if len(role_verdicts) != 1:
+        return
+    verdict = next(iter(role_verdicts.values())).get("verdict")
+    expected = expected_global.get(str(verdict))
+    if expected is not None and run.get("global_state") != expected:
+        context.fail("role verdict/global state mismatch")
 
 
 def validate_role_ref_index(
@@ -1076,16 +1321,23 @@ def validate_run(
         )
     ):
         context.fail("open run cannot contain closure fields")
-    if run.get("lifecycle_status") == "CLOSED" and not all(
-        key in run
-        for key in (
+    if run.get("lifecycle_status") == "CLOSED":
+        common_closure_fields = {
             "global_state",
-            "primary_role_outcome",
             "next_authorized_action",
             "closure_validation_stage",
-        )
-    ):
-        context.fail("closed run requires closure fields")
+        }
+        if not common_closure_fields <= set(run):
+            context.fail("closed run requires closure fields")
+        closure_stage = run.get("closure_validation_stage")
+        if closure_stage == "role-verdict":
+            if "primary_role_outcome" not in run or run.get("current_stage") != "ROLE_VERDICT":
+                context.fail("role-verdict closure requires a proven role-verdict prefix")
+        elif closure_stage == "terminal-run":
+            if run.get("current_stage") != "DIAGNOSTIC_REPLAY":
+                context.fail("terminal-run requires a proven diagnostic prefix")
+        else:
+            context.fail("closed run has an unsupported closure track")
 
     expected_case_paths = {
         "confirmation": "case/confirmation-ref.json",
@@ -1115,6 +1367,7 @@ def validate_run(
         validate_source_denominators(context, source_manifest)
 
     role_verdicts: dict[str, dict[str, Any]] = {}
+    role_lanes: dict[str, list[dict[str, Any]]] = {}
     audit_jobs: list[tuple[str, dict[str, Any] | None]] = []
     roles_to_check = list(run.get("evaluated_roles", []))
     if required_role is not None and required_role not in roles_to_check:
@@ -1152,6 +1405,7 @@ def validate_run(
         content_digest = derived[0] if derived else None
         runtime_digest = derived[1] if derived else None
         lanes: list[dict[str, Any]] = []
+        attempts: list[dict[str, Any]] = []
         has_lanes = all(
             (
                 context.run_root
@@ -1160,19 +1414,40 @@ def validate_run(
             for lane_id in ("a", "b")
         )
         if has_lanes:
-            lanes, _ = validate_attempts(
+            lanes, _, attempts = validate_attempts(
                 context, role, input_manifest, oracle, runtime_digest or ""
             )
         elif checked_stage == "diagnostic-replay":
             context.fail("diagnostic-replay requires two replay lanes")
         if verdict is not None:
+            effective_isolation = derive_effective_isolation(
+                context, run, surface, attempts
+            )
             validate_role_verdict(
-                context, role, verdict, content_digest, runtime_digest, lanes
+                context,
+                role,
+                verdict,
+                content_digest,
+                runtime_digest,
+                lanes,
+                effective_isolation,
             )
             if run.get("primary_role_outcome", {}).get(role) != verdict.get("verdict"):
                 context.fail("run primary role outcome mismatch")
+            if effective_isolation == "DECLARED_ONLY" and lanes and (
+                run.get("primary_role_outcome", {}).get(role) != "BLOCKED_ISOLATION"
+                or run.get("global_state") != "BLOCKED_ISOLATION"
+            ):
+                context.fail("effective isolation requires BLOCKED_ISOLATION")
+        role_lanes[role] = lanes
+    if isinstance(input_manifest, dict) and isinstance(oracle, dict):
+        if input_manifest.get("oracle_version") != oracle.get("oracle_version"):
+            context.fail("oracle version mismatch")
     for artifact in context.artifacts.values():
         context.validate_refs(artifact)
+    validate_loaded_artifact_identities(context, str(run.get("case_id", "")))
+    validate_terminal_run(context, run, role_lanes, role_verdicts)
+    validate_role_global_state(context, run, role_verdicts)
     validate_chain_and_run_state(context, run, role_verdicts)
     if not context.failures:
         for role_root, verdict in audit_jobs:
@@ -1272,7 +1547,7 @@ def main(argv: list[str]) -> int:
             args.require_stage,
             root_failures,
         )
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except Exception as exc:
         emit_result(
             {
                 "status": "FAIL",

@@ -13,6 +13,10 @@ fail() {
   exit 1
 }
 
+should_run() {
+  [[ -z "${SCCR_ONLY:-}" || "${SCCR_ONLY}" == "$1" ]]
+}
+
 tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/standard-chain-content-readiness.XXXXXX")"
 trap 'rm -rf "$tmpdir"' EXIT
 
@@ -102,8 +106,12 @@ refresh_case() {
 }
 
 expect_failure() {
-  local mutation="$1" expected="$2" refresh="${3:-yes}"
+  local mutation="$1" expected="$2" refresh="${3:-yes}" stage="${4:-role-verdict}"
+  if ! should_run "$mutation"; then
+    return
+  fi
   local case_root="$tmpdir/negative-$mutation" output="$tmpdir/negative-$mutation.json"
+  local error="$tmpdir/negative-$mutation.stderr"
   cp -R "$run_root" "$case_root"
   python3 "$BUILDER" mutate --run-root "$case_root" --name "$mutation"
   if [[ "$refresh" == "yes" ]]; then
@@ -111,11 +119,14 @@ expect_failure() {
   fi
   if python3 "$VALIDATOR" "$case_root" \
     --require-role product-director \
-    --require-stage role-verdict \
+    --require-stage "$stage" \
     --source-root "synthetic-app=$app_root" \
     --source-root "synthetic-backend=$backend_root" \
-    --source-root "synthetic-runtime=$runtime_root" >"$output"; then
+    --source-root "synthetic-runtime=$runtime_root" >"$output" 2>"$error"; then
     fail "$mutation unexpectedly passed"
+  fi
+  if [[ -s "$error" ]]; then
+    fail "$mutation leaked non-JSON stderr: $(<"$error")"
   fi
   python3 - "$output" "$expected" "$mutation" <<'PY'
 import json
@@ -138,9 +149,69 @@ if value.get("status") != "FAIL" or expected not in haystack:
 PY
 }
 
+expect_success_variant() {
+  local mutation="$1" stage="${2:-role-verdict}"
+  if ! should_run "$mutation"; then
+    return
+  fi
+  local case_root="$tmpdir/positive-$mutation" output="$tmpdir/positive-$mutation.json"
+  local error="$tmpdir/positive-$mutation.stderr"
+  cp -R "$run_root" "$case_root"
+  python3 "$BUILDER" mutate --run-root "$case_root" --name "$mutation"
+  refresh_case "$case_root"
+  if ! python3 "$VALIDATOR" "$case_root" \
+    --require-role product-director \
+    --require-stage "$stage" \
+    --source-root "synthetic-app=$app_root" \
+    --source-root "synthetic-backend=$backend_root" \
+    --source-root "synthetic-runtime=$runtime_root" >"$output" 2>"$error"; then
+    fail "$mutation legal variant failed: $(<"$output") $(<"$error")"
+  fi
+  python3 - "$output" "$stage" "$mutation" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if value.get("status") != "PASS" or value.get("checked_stage") != sys.argv[2]:
+    raise SystemExit(f"{sys.argv[3]}: legal variant did not pass: {value}")
+PY
+}
+
+expect_divergent_source_failure() {
+  if ! should_run "source_divergent_history"; then
+    return
+  fi
+  local tree divergent output error
+  tree="$(git -C "$app_root" rev-parse "$app_baseline^{tree}")"
+  divergent="$(printf 'divergent fixture root\n' | git -C "$app_root" commit-tree "$tree")"
+  output="$tmpdir/source-divergent-history.json"
+  error="$tmpdir/source-divergent-history.stderr"
+  if python3 "$VALIDATOR" \
+    --emit-source-denominator \
+    --source-id synthetic-app \
+    --source-root "synthetic-app=$app_root" \
+    --baseline "$divergent" \
+    --result "$app_result" >"$output" 2>"$error"; then
+    fail "source_divergent_history unexpectedly passed"
+  fi
+  if [[ -s "$error" ]]; then
+    fail "source_divergent_history leaked non-JSON stderr: $(<"$error")"
+  fi
+  python3 - "$output" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if value.get("status") != "FAIL" or "source classification denominator mismatch" not in json.dumps(value):
+    raise SystemExit(f"divergent source history was not rejected structurally: {value}")
+PY
+}
+
 expect_failure absolute_path "artifact path must be relative"
 expect_failure parent_escape "artifact path must not escape its scope"
-expect_failure wrong_scope "unsupported ref scope"
+expect_failure wrong_scope "schema validation failed"
 expect_failure missing_source_root "missing external_repo source-root mapping"
 expect_failure stale_file_sha "stale file SHA-256" no
 expect_failure stale_approval "stale approval reference"
@@ -152,6 +223,7 @@ expect_failure source_missing_commit "source classification denominator mismatch
 expect_failure source_wrong_parent "source classification denominator mismatch"
 expect_failure source_missing_rename_previous "source classification denominator mismatch"
 expect_failure source_duplicate_atom "source classification denominator mismatch"
+expect_divergent_source_failure
 
 expect_failure lane_starting_input "lane starting input mismatch"
 expect_failure business_answer_drift "business proxy answer drift"
@@ -162,7 +234,9 @@ expect_failure contaminated_decisive "contaminated attempt cannot be decisive"
 expect_failure attempt_limit "attempt limit exceeded"
 expect_failure attempt_history_gap "attempt history must be immutable and contiguous"
 expect_failure infra_decisive "infrastructure failure cannot be decisive"
+expect_failure infra_nondecisive_outputs "infrastructure failure cannot have outputs"
 expect_failure content_pass_declared "CONTENT_PASS requires ENFORCED or OBSERVED"
+expect_failure isolation_spoof_pass "effective isolation requires BLOCKED_ISOLATION"
 expect_failure missing_baseline "missing baseline digest is not legally blocked"
 expect_failure partial_baseline "missing baseline digest is not legally blocked"
 expect_failure bridge_pass "authentic role pass cannot depend on oracle bridge"
@@ -173,6 +247,24 @@ expect_failure early_chain_verdict "chain verdict requires all primary roles"
 expect_failure replay_pass_state_only "CASE_REPLAY_PASS requires six CONTENT_PASS roles, chain verdict, ENFORCED/OBSERVED and no bridge"
 expect_failure unsupported_role_verdict "unsupported verdict"
 expect_failure unsupported_chain_verdict "unsupported verdict"
+expect_failure ghost_staged_file "staged manifest entry does not match real bytes"
+expect_failure relative_staging_root "attempt environment roots are inconsistent"
+expect_failure cross_case_identity "artifact identity mismatch"
+expect_failure cross_role_identity "artifact identity mismatch"
+expect_failure wrong_lane_identity "artifact identity mismatch"
+expect_failure wrong_attempt_identity "artifact identity mismatch"
+expect_failure input_oracle_version_drift "oracle version mismatch"
+expect_failure attempt_oracle_version_drift "oracle version mismatch"
+expect_failure schema_invalid_case_refs "schema validation failed"
+expect_failure not_run_placeholder "schema validation failed"
+expect_failure role_global_mismatch "role verdict/global state mismatch"
+expect_failure terminal_empty "terminal-run requires explicit terminal evidence" yes terminal-run
+
+expect_success_variant direct_static_content_fail
+expect_success_variant unavailable_baselines_blocked_evidence
+expect_success_variant immutable_retry_history
+expect_success_variant terminal_all_contaminated terminal-run
+expect_success_variant terminal_unrecoverable_infra terminal-run
 
 stopped_root="$tmpdir/stopped-run"
 stopped_output="$tmpdir/stopped-output.json"
