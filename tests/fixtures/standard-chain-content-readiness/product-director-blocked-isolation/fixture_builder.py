@@ -1206,6 +1206,37 @@ def make_non_output_attempt(
     write_json(manifest_path, manifest)
 
 
+def append_completed_retry(run_root: Path) -> None:
+    role_root = run_root / "roles/product-director"
+    copy_attempt(run_root, "a", 1, 2)
+    attempt_2_ref = run_ref(
+        "roles/product-director/executor-a/attempt-2/replay-attempt.json"
+    )
+    lane_path = role_root / "executor-a/replay-lane.json"
+    lane = read_json(lane_path)
+    lane["ordered_attempt_refs"].append(copy.deepcopy(attempt_2_ref))
+    lane["decisive_attempt_ref"] = copy.deepcopy(attempt_2_ref)
+    write_json(lane_path, lane)
+
+    verdict_path = role_root / "role-verdict.json"
+    verdict = read_json(verdict_path)
+    verdict["decisive_attempt_refs"][0] = copy.deepcopy(attempt_2_ref)
+    for ref in verdict["evidence_refs"]:
+        if ref["path"] == (
+            "roles/product-director/executor-a/attempt-1/replay-attempt.json"
+        ):
+            ref["path"] = attempt_2_ref["path"]
+    write_json(verdict_path, verdict)
+
+    downstream_path = role_root / "downstream-consumption.json"
+    downstream = read_json(downstream_path)
+    downstream["candidate_results"][0]["evidence_refs"][0]["path"] = (
+        "roles/product-director/executor-a/attempt-2/canonical/brief.json"
+    )
+    write_json(downstream_path, downstream)
+    index_present_product_director_artifacts(run_root)
+
+
 def set_closed_track(
     run_root: Path,
     *,
@@ -1551,6 +1582,15 @@ def mutate(run_root: Path, name: str) -> None:
         write_json(run_root / path, attempt)
         lane["ordered_attempt_refs"].append(run_ref(path))
         write_json(lane_a_path, lane)
+    elif name in {"completed_after_completed", "completed_after_stopped"}:
+        append_completed_retry(run_root)
+        if name == "completed_after_stopped":
+            manifest_path = role_root / "executor-a/attempt-1/artifact-manifest.json"
+            make_non_output_attempt(attempt_a_path, manifest_path, "STOPPED")
+            attempt = read_json(attempt_a_path)
+            attempt["blocking_fact_refs"] = [run_ref("case/oracle-manifest.json")]
+            write_json(attempt_a_path, attempt)
+            remove_tree(role_root / "executor-a/attempt-1/canonical")
     elif name == "infra_decisive":
         payload = read_json(attempt_a_path)
         payload["attempt_status"] = "INFRA_FAILURE"
@@ -1865,6 +1905,7 @@ def mutate(run_root: Path, name: str) -> None:
         "branch_b_missing_typed_evidence",
         "branch_b_admission_isolation_unknown",
         "branch_b_admission_unproven_baseline_spoof",
+        "branch_b_admission_observed_spoof",
     }:
         clear_replay_and_reviews(run_root)
         for relative in (
@@ -1897,8 +1938,8 @@ def mutate(run_root: Path, name: str) -> None:
                 "evidence_refs": [run_ref("case/input-manifest.json")],
             }
             for baseline_type in (
-                "content_digest",
-                "inherited_runtime_digest",
+                "PRODUCT_DIRECTOR_CONTENT",
+                "INHERITED_RUNTIME",
             )
         ]
         verdict["reason_codes"] = ["UNRESOLVED_FILE_INPUT"]
@@ -1922,7 +1963,16 @@ def mutate(run_root: Path, name: str) -> None:
             run_ref("case/input-manifest.json")
         ]
         write_json(run_path, run)
-        if name == "branch_b_admission_isolation_unknown":
+        if name == "branch_b_admission_observed_spoof":
+            run_path = run_root / "run.json"
+            run = read_json(run_path)
+            run["isolation_assessment"]["level"] = "OBSERVED"
+            run["global_state"] = "BLOCKED_EVIDENCE"
+            write_json(run_path, run)
+            verdict = read_json(verdict_path)
+            verdict["isolation_level"] = "OBSERVED"
+            write_json(verdict_path, verdict)
+        elif name == "branch_b_admission_isolation_unknown":
             run_path = run_root / "run.json"
             run = read_json(run_path)
             run.pop("isolation_assessment", None)
@@ -1949,6 +1999,30 @@ def mutate(run_root: Path, name: str) -> None:
             verdict["unavailable_baselines"] = verdict["unavailable_baselines"][:1]
             write_json(verdict_path, verdict)
         index_present_product_director_artifacts(run_root)
+    elif name == "branch_b_admission_approved_tokens":
+        mutate(run_root, "branch_b_admission")
+        verdict = read_json(verdict_path)
+        approved = {
+            "content_digest": "PRODUCT_DIRECTOR_CONTENT",
+            "inherited_runtime_digest": "INHERITED_RUNTIME",
+        }
+        for item in verdict["unavailable_baselines"]:
+            item["baseline_type"] = approved.get(
+                item["baseline_type"], item["baseline_type"]
+            )
+        write_json(verdict_path, verdict)
+    elif name == "branch_b_admission_legacy_tokens":
+        mutate(run_root, "branch_b_admission")
+        verdict = read_json(verdict_path)
+        legacy = {
+            "PRODUCT_DIRECTOR_CONTENT": "content_digest",
+            "INHERITED_RUNTIME": "inherited_runtime_digest",
+        }
+        for item in verdict["unavailable_baselines"]:
+            item["baseline_type"] = legacy.get(
+                item["baseline_type"], item["baseline_type"]
+            )
+        write_json(verdict_path, verdict)
     elif name == "branch_b_static":
         clear_replay_and_reviews(run_root)
         remove_formal_report(run_root)

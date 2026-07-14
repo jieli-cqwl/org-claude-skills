@@ -678,7 +678,7 @@
             "additionalProperties": false,
             "required": ["baseline_type", "reason_code", "evidence_refs"],
             "properties": {
-              "baseline_type": {"type": "string", "enum": ["content_digest", "inherited_runtime_digest"]},
+              "baseline_type": {"type": "string", "enum": ["PRODUCT_DIRECTOR_CONTENT", "INHERITED_RUNTIME"]},
               "reason_code": {"$ref": "#/$defs/non_empty_string"},
               "evidence_refs": {"$ref": "#/$defs/ref_array"}
             }

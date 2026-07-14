@@ -57,6 +57,10 @@ ROLE_VERDICTS = {
     "BLOCKED_EVIDENCE",
     "BLOCKED_ISOLATION",
 }
+UNAVAILABLE_BASELINE_TYPE_BY_FIELD = {
+    "content_digest": "PRODUCT_DIRECTOR_CONTENT",
+    "inherited_runtime_digest": "INHERITED_RUNTIME",
+}
 CANONICAL_FORBIDDEN_FIELDS = {
     "evaluation_only",
     "case_id",
@@ -1058,6 +1062,9 @@ def validate_attempts(
         )
         if sorted(expected_paths) != found_paths:
             context.fail("attempt history must be immutable and contiguous")
+        statuses = [attempt.get("attempt_status") for attempt, _ in attempts]
+        if any(status in {"COMPLETED", "STOPPED"} for status in statuses[:-1]):
+            context.fail("attempt terminality violation")
         decisive = lane.get("decisive_attempt_ref")
         if lane.get("terminal_condition") == "DECISIVE":
             if not isinstance(decisive, dict) or not any(
@@ -1065,6 +1072,11 @@ def validate_attempts(
             ):
                 context.fail("attempt history must be immutable and contiguous")
             else:
+                if ref_path(decisive) != ref_path(attempts[-1][1]) or any(
+                    status not in {"VOID_CONTAMINATED", "INFRA_FAILURE"}
+                    for status in statuses[:-1]
+                ):
+                    context.fail("attempt terminality violation")
                 decisive_attempt = next(
                     attempt
                     for attempt, ref in attempts
@@ -1077,7 +1089,6 @@ def validate_attempts(
         else:
             if decisive is not None:
                 context.fail("attempt history must be immutable and contiguous")
-            statuses = [attempt.get("attempt_status") for attempt, _ in attempts]
             if lane.get("terminal_condition") == "ALL_CONTAMINATED":
                 if not statuses or any(status != "VOID_CONTAMINATED" for status in statuses):
                     context.fail("terminal lane evidence mismatch")
@@ -1103,26 +1114,35 @@ def derive_effective_isolation(
     surface: dict[str, Any],
     attempts: list[dict[str, Any]],
 ) -> str | None:
-    levels: list[str] = []
     run_assessment = run.get("isolation_assessment")
-    if isinstance(run_assessment, dict) and isinstance(run_assessment.get("level"), str):
-        levels.append(run_assessment["level"])
+    assessment_level = (
+        run_assessment.get("level") if isinstance(run_assessment, dict) else None
+    )
+    mechanism_levels: list[str] = []
     runtime = surface.get("runtime_inheritance")
     if isinstance(runtime, dict) and isinstance(runtime.get("evidence_level"), str):
-        levels.append(runtime["evidence_level"])
-    levels.extend(
+        mechanism_levels.append(runtime["evidence_level"])
+    mechanism_levels.extend(
         str(attempt["isolation_level"])
         for attempt in attempts
         if isinstance(attempt.get("isolation_level"), str)
     )
     rank = {"DECLARED_ONLY": 0, "OBSERVED": 1, "ENFORCED": 2}
+    if run.get("current_stage") == "CASE_ADMISSION" and not mechanism_levels:
+        if assessment_level is None:
+            return None
+        effective = "DECLARED_ONLY"
+        if assessment_level != effective:
+            context.fail("effective isolation evidence mismatch")
+        return effective
+    levels = [assessment_level, *mechanism_levels] if assessment_level else mechanism_levels
     if not levels:
         return None
     if any(level not in rank for level in levels):
         context.fail("effective isolation evidence mismatch")
         return None
     effective = min(levels, key=rank.__getitem__)
-    if isinstance(run_assessment, dict) and run_assessment.get("level") != effective:
+    if assessment_level is not None and assessment_level != effective:
         context.fail("effective isolation evidence mismatch")
     return effective
 
@@ -1172,8 +1192,11 @@ def validate_role_verdict(
         and item.get("reason_code")
         and item.get("evidence_refs")
     }
+    missing_types = {
+        UNAVAILABLE_BASELINE_TYPE_BY_FIELD[field_name] for field_name in missing
+    }
     if missing and (
-        value != "BLOCKED_EVIDENCE" or not set(missing) <= unavailable_types
+        value != "BLOCKED_EVIDENCE" or not missing_types <= unavailable_types
     ):
         context.fail("missing baseline digest is not legally blocked")
     if not missing and unavailable:
@@ -1508,13 +1531,17 @@ def validate_branch_state(
                     and item.get("reason_code")
                     and item.get("evidence_refs")
                 }
+                missing_types = {
+                    UNAVAILABLE_BASELINE_TYPE_BY_FIELD[field_name]
+                    for field_name in missing
+                }
                 if run.get("current_stage") == "CASE_ADMISSION":
                     if effective is None:
                         context.fail("Branch B admission requires derivable isolation")
                     unavailable_items = verdict.get("unavailable_baselines", [])
                     required_unavailable = {
-                        "content_digest",
-                        "inherited_runtime_digest",
+                        "PRODUCT_DIRECTOR_CONTENT",
+                        "INHERITED_RUNTIME",
                     }
                     admission_baselines_unavailable = (
                         verdict.get("verdict") == "BLOCKED_EVIDENCE"
@@ -1543,7 +1570,7 @@ def validate_branch_state(
                 if (
                     not verdict.get("reason_codes")
                     or not verdict.get("evidence_refs")
-                    or not missing <= unavailable
+                    or not missing_types <= unavailable
                     or not diagnostic_blockers_complete
                 ):
                     context.fail("Branch B blocker evidence is incomplete")

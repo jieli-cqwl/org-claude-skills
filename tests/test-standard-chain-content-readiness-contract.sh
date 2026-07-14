@@ -233,6 +233,8 @@ expect_failure unauthorized_read "unauthorized executor read"
 expect_failure contaminated_decisive "contaminated attempt cannot be decisive"
 expect_failure attempt_limit "attempt limit exceeded"
 expect_failure attempt_history_gap "attempt history must be immutable and contiguous"
+expect_failure completed_after_completed "attempt terminality violation"
+expect_failure completed_after_stopped "attempt terminality violation"
 expect_failure infra_decisive "infrastructure failure cannot be decisive"
 expect_failure infra_nondecisive_outputs "infrastructure failure cannot have outputs"
 expect_failure content_pass_declared "CONTENT_PASS requires ENFORCED or OBSERVED"
@@ -267,6 +269,7 @@ expect_failure branch_b_missing_typed_evidence "Branch B blocker evidence is inc
 expect_failure branch_b_diagnostic_missing_blocker "Branch B blocker evidence is incomplete" yes terminal-run
 expect_failure branch_b_admission_isolation_unknown "Branch B admission requires derivable isolation" yes terminal-run
 expect_failure branch_b_admission_unproven_baseline_spoof "Branch B admission cannot claim unproven baseline digests" yes terminal-run
+expect_failure branch_b_admission_observed_spoof "effective isolation evidence mismatch" yes terminal-run
 expect_failure open_static_future_artifacts "OPEN stage artifact set mismatch" yes static-audit
 expect_failure open_diagnostic_missing_review "OPEN stage artifact set mismatch" yes diagnostic-replay
 expect_failure open_diagnostic_one_lane "OPEN diagnostic requires two decisive lanes and three reviews" yes diagnostic-replay
@@ -276,6 +279,7 @@ expect_failure duplicate_role_ref "run.role_refs does not match present stage ar
 expect_failure duplicate_decisive_attempt_ref "role verdict contains duplicate refs"
 expect_failure duplicate_verdict_evidence_ref "role verdict contains duplicate refs"
 expect_failure invalid_next_authorized_action "schema validation failed"
+expect_failure branch_b_admission_legacy_tokens "schema validation failed" yes terminal-run
 expect_failure verdict_evidence_incomplete "role verdict evidence graph is incomplete"
 expect_failure stopped_canonical_residue "stopped attempt cannot retain canonical files"
 expect_failure terminal_empty "terminal-run requires explicit terminal evidence" yes terminal-run
@@ -287,6 +291,7 @@ expect_success_variant branch_d_blocked_oracle
 expect_success_variant branch_d_blocked_evidence
 expect_success_variant branch_d_blocked_isolation
 expect_success_variant branch_b_admission terminal-run
+expect_success_variant branch_b_admission_approved_tokens terminal-run
 expect_success_variant branch_b_static terminal-run
 expect_success_variant branch_b_diagnostic terminal-run
 expect_success_variant branch_a_single_lane_triple terminal-run
