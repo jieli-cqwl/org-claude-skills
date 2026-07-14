@@ -265,15 +265,21 @@ expect_failure branch_b_missing_verdict "Branch B requires blocked role verdict 
 expect_failure branch_b_missing_outcome "Branch B requires blocked role verdict and primary outcome" yes terminal-run
 expect_failure branch_b_missing_typed_evidence "Branch B blocker evidence is incomplete" yes terminal-run
 expect_failure branch_b_diagnostic_missing_blocker "Branch B blocker evidence is incomplete" yes terminal-run
+expect_failure branch_b_admission_isolation_unknown "Branch B admission requires derivable isolation" yes terminal-run
+expect_failure branch_b_admission_unproven_baseline_spoof "Branch B admission cannot claim unproven baseline digests" yes terminal-run
 expect_failure open_static_future_artifacts "OPEN stage artifact set mismatch" yes static-audit
 expect_failure open_diagnostic_missing_review "OPEN stage artifact set mismatch" yes diagnostic-replay
 expect_failure open_diagnostic_one_lane "OPEN diagnostic requires two decisive lanes and three reviews" yes diagnostic-replay
 expect_failure branch_d_missing_reviews "Branch D requires two decisive lanes and three reviews"
 expect_failure unindexed_present_artifact "run.role_refs does not match present stage artifacts"
 expect_failure duplicate_role_ref "run.role_refs does not match present stage artifacts"
+expect_failure duplicate_decisive_attempt_ref "role verdict contains duplicate refs"
+expect_failure duplicate_verdict_evidence_ref "role verdict contains duplicate refs"
+expect_failure invalid_next_authorized_action "schema validation failed"
 expect_failure verdict_evidence_incomplete "role verdict evidence graph is incomplete"
 expect_failure stopped_canonical_residue "stopped attempt cannot retain canonical files"
 expect_failure terminal_empty "terminal-run requires explicit terminal evidence" yes terminal-run
+expect_failure branch_c_no_p0_p1 "Branch C requires blocking P0/P1 evidence"
 
 expect_success_variant direct_static_content_fail
 expect_success_variant branch_d_content_fail

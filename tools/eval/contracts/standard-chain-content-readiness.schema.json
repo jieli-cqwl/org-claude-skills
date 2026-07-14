@@ -32,6 +32,14 @@
       "type": "string",
       "enum": ["ENFORCED", "OBSERVED", "DECLARED_ONLY"]
     },
+    "next_authorized_action": {
+      "type": "string",
+      "enum": [
+        "repair design",
+        "isolation harness design",
+        "Oracle/evidence resolution"
+      ]
+    },
     "role_verdict_value": {
       "type": "string",
       "enum": [
@@ -160,7 +168,7 @@
           "type": "object",
           "additionalProperties": {"$ref": "#/$defs/role_verdict_value"}
         },
-        "next_authorized_action": {"$ref": "#/$defs/non_empty_string"},
+        "next_authorized_action": {"$ref": "#/$defs/next_authorized_action"},
         "closure_validation_stage": {
           "type": "string",
           "enum": ["admitted", "static-audit", "diagnostic-replay", "role-verdict", "terminal-run"]

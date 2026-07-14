@@ -886,7 +886,7 @@ def build_run(
         },
         "global_state": "BLOCKED_ISOLATION",
         "primary_role_outcome": {role: "BLOCKED_ISOLATION"},
-        "next_authorized_action": "improve isolation evidence",
+        "next_authorized_action": "isolation harness design",
         "closure_validation_stage": "role-verdict",
     }
     write_json(run_root / "run.json", run_payload)
@@ -1257,7 +1257,13 @@ def set_role_verdict_value(run_root: Path, verdict_value: str) -> None:
         closure_stage="role-verdict",
         global_state="BLOCKED_ISOLATION",
         role_outcome=verdict_value,
-        next_action="resolve the primary role outcome",
+        next_action=(
+            "repair design"
+            if verdict_value == "CONTENT_FAIL"
+            else "isolation harness design"
+            if verdict_value == "BLOCKED_ISOLATION"
+            else "Oracle/evidence resolution"
+        ),
     )
 
 
@@ -1308,6 +1314,87 @@ def remove_formal_report(run_root: Path) -> None:
     role_root = run_root / "roles/product-director"
     for relative in ("content-audit-report.json", "content-audit-summary.md"):
         remove_tree(role_root / relative)
+
+
+def set_branch_c_p1_audit(run_root: Path) -> None:
+    role_root = run_root / "roles/product-director"
+    alignment_path = role_root / "content-audit-alignment.json"
+    alignment = read_json(alignment_path)
+    alignment["capability_match_draft"]["gaps"][0]["status"] = "partial"
+    write_json(alignment_path, alignment)
+
+    evidence_path = (
+        "docs/superpowers/specs/"
+        "2026-07-14--standard-chain-manual-content-readiness-evaluation--approval-record.md"
+    )
+    finding = {
+        "id": "SC-PD-P1-001",
+        "severity": "P1",
+        "title": "Static content readiness defect",
+        "confirmed_gap_refs": ["GAP-001"],
+        "evidence_level": "E2",
+        "evidence": f"{evidence_path}:8 records the approved evaluation boundary.",
+        "evidence_checks": [
+            {
+                "path": evidence_path,
+                "line": 8,
+                "expected_snippet": "批准设计",
+                "claim": "The approved boundary is present at the cited line.",
+            }
+        ],
+        "claim_review": {
+            "required_claims": ["The static defect is inside the approved boundary."],
+            "refutation_check": f"{evidence_path}:8",
+            "status": "supported",
+        },
+        "severity_calibration": {
+            "calibrated_severity": "P1",
+            "team_use_impact": "The role cannot be accepted as content-ready.",
+            "rationale": "The confirmed static gap blocks the bounded role outcome.",
+        },
+        "impact": "The role cannot receive a passing content-readiness verdict.",
+        "repair_target": "Repair the static instruction defect.",
+        "verification_hint": "Repeat the formal static audit after repair.",
+    }
+    report_path = role_root / "content-audit-report.json"
+    report = read_json(report_path)
+    report["verdict"] = "conditional"
+    report["verdict_reason"] = "One blocking P1 static finding remains open."
+    report["findings"] = [finding]
+    report["artifact_paths"] = {
+        "report_json": str(report_path),
+        "summary_markdown": str(role_root / "content-audit-summary.md"),
+    }
+    report["capability_baseline_ref"] = str(alignment_path)
+    report["validation"]["alignment"]["command"] = (
+        f"python3 validate_skill_audit_alignment.py {alignment_path}"
+    )
+    report["validation"]["report"]["command"] = (
+        f"python3 validate_skill_audit_report.py {report_path}"
+    )
+    report["repair_handoff"] = [
+        {
+            "target": "shared/skills/product-director",
+            "action": finding["repair_target"],
+            "owner": "product-director maintainer",
+        }
+    ]
+    write_json(report_path, report)
+    summary = "\n".join(
+        [
+            "# Synthetic Product Director content audit",
+            "",
+            finding["id"],
+            finding["severity"],
+            finding["title"],
+            finding["impact"],
+            finding["repair_target"],
+            finding["verification_hint"],
+            f"{evidence_path}:8",
+            "",
+        ]
+    )
+    (role_root / "content-audit-summary.md").write_text(summary, encoding="utf-8")
 
 
 def set_stopped_attempts(run_root: Path, *, keep_canonical_files: bool) -> None:
@@ -1667,8 +1754,10 @@ def mutate(run_root: Path, name: str) -> None:
         write_json(path, payload)
     elif name == "direct_static_content_fail":
         clear_replay_and_reviews(run_root)
+        set_branch_c_p1_audit(run_root)
         verdict = read_json(verdict_path)
         verdict["verdict"] = "CONTENT_FAIL"
+        verdict["open_p0_p1"] = 1
         verdict["decisive_attempt_refs"] = []
         verdict["reason_codes"] = ["STATIC_AUDIT_CONTENT_DEFECT"]
         verdict["evidence_refs"] = [
@@ -1683,9 +1772,14 @@ def mutate(run_root: Path, name: str) -> None:
             closure_stage="role-verdict",
             global_state="BLOCKED_ISOLATION",
             role_outcome="CONTENT_FAIL",
-            next_action="repair static content defects",
+            next_action="repair design",
         )
         index_present_product_director_artifacts(run_root)
+    elif name == "branch_c_no_p0_p1":
+        mutate(run_root, "direct_static_content_fail")
+        verdict = read_json(verdict_path)
+        verdict["open_p0_p1"] = 0
+        write_json(verdict_path, verdict)
     elif name in {"role_global_mismatch", "declared_global_not_blocked"}:
         mutate(run_root, "direct_static_content_fail")
         path = run_root / "run.json"
@@ -1739,6 +1833,21 @@ def mutate(run_root: Path, name: str) -> None:
             copy.deepcopy(run["role_refs"]["product-director"][0])
         )
         write_json(path, run)
+    elif name == "duplicate_decisive_attempt_ref":
+        verdict = read_json(verdict_path)
+        verdict["decisive_attempt_refs"].append(
+            copy.deepcopy(verdict["decisive_attempt_refs"][0])
+        )
+        write_json(verdict_path, verdict)
+    elif name == "duplicate_verdict_evidence_ref":
+        verdict = read_json(verdict_path)
+        verdict["evidence_refs"].append(copy.deepcopy(verdict["evidence_refs"][0]))
+        write_json(verdict_path, verdict)
+    elif name == "invalid_next_authorized_action":
+        path = run_root / "run.json"
+        run = read_json(path)
+        run["next_authorized_action"] = "arbitrary nonempty action"
+        write_json(path, run)
     elif name == "verdict_evidence_incomplete":
         verdict = read_json(verdict_path)
         verdict["evidence_refs"] = [
@@ -1754,6 +1863,8 @@ def mutate(run_root: Path, name: str) -> None:
         "branch_b_missing_verdict",
         "branch_b_missing_outcome",
         "branch_b_missing_typed_evidence",
+        "branch_b_admission_isolation_unknown",
+        "branch_b_admission_unproven_baseline_spoof",
     }:
         clear_replay_and_reviews(run_root)
         for relative in (
@@ -1803,7 +1914,7 @@ def mutate(run_root: Path, name: str) -> None:
             closure_stage="terminal-run",
             global_state="BLOCKED_ISOLATION",
             role_outcome="BLOCKED_EVIDENCE",
-            next_action="supply unavailable runtime inputs",
+            next_action="Oracle/evidence resolution",
         )
         run_path = run_root / "run.json"
         run = read_json(run_path)
@@ -1811,7 +1922,22 @@ def mutate(run_root: Path, name: str) -> None:
             run_ref("case/input-manifest.json")
         ]
         write_json(run_path, run)
-        if name == "branch_b_missing_verdict":
+        if name == "branch_b_admission_isolation_unknown":
+            run_path = run_root / "run.json"
+            run = read_json(run_path)
+            run.pop("isolation_assessment", None)
+            run["global_state"] = "BLOCKED_EVIDENCE"
+            write_json(run_path, run)
+            verdict = read_json(verdict_path)
+            verdict["isolation_level"] = "OBSERVED"
+            write_json(verdict_path, verdict)
+        elif name == "branch_b_admission_unproven_baseline_spoof":
+            verdict = read_json(verdict_path)
+            verdict["content_digest"] = "f" * 64
+            verdict["inherited_runtime_digest"] = "f" * 64
+            verdict.pop("unavailable_baselines", None)
+            write_json(verdict_path, verdict)
+        elif name == "branch_b_missing_verdict":
             remove_tree(verdict_path)
         elif name == "branch_b_missing_outcome":
             run_path = run_root / "run.json"
@@ -1844,7 +1970,7 @@ def mutate(run_root: Path, name: str) -> None:
             closure_stage="terminal-run",
             global_state="BLOCKED_ISOLATION",
             role_outcome="BLOCKED_ORACLE",
-            next_action="resolve the Business Oracle conflict",
+            next_action="Oracle/evidence resolution",
         )
         index_present_product_director_artifacts(run_root)
     elif name in {
@@ -1891,7 +2017,7 @@ def mutate(run_root: Path, name: str) -> None:
             closure_stage="terminal-run",
             global_state="BLOCKED_ISOLATION",
             role_outcome="BLOCKED_EVIDENCE",
-            next_action="repair replay infrastructure",
+            next_action="Oracle/evidence resolution",
         )
         if name == "branch_b_diagnostic_missing_blocker":
             attempt = read_json(attempt_b_path)
@@ -1924,7 +2050,7 @@ def mutate(run_root: Path, name: str) -> None:
             closure_stage="terminal-run",
             global_state="INCONCLUSIVE_CONTAMINATED",
             role_outcome=None,
-            next_action="replace contaminated evidence",
+            next_action="Oracle/evidence resolution",
         )
         index_present_product_director_artifacts(run_root)
     elif name in {"open_static", "open_static_future_artifacts"}:
@@ -1977,7 +2103,7 @@ def mutate(run_root: Path, name: str) -> None:
         run["closure_validation_stage"] = "terminal-run"
         run["global_state"] = "BLOCKED_EVIDENCE"
         run.pop("primary_role_outcome", None)
-        run["next_authorized_action"] = "provide terminal evidence"
+        run["next_authorized_action"] = "Oracle/evidence resolution"
         write_json(run_path, run)
         set_product_director_role_refs(
             run_root,

@@ -409,6 +409,16 @@ def ref_path(ref: dict[str, Any]) -> str:
     return str(ref.get("path", ""))
 
 
+def canonical_ref_identity(ref: dict[str, Any]) -> bytes:
+    return canonical_bytes(
+        {
+            key: ref[key]
+            for key in ("scope", "source_id", "path", "commit", "blob", "line")
+            if key in ref
+        }
+    )
+
+
 def compare_ref_lists(left: list[Any], right: list[Any]) -> bool:
     return canonical_bytes(left) == canonical_bytes(right)
 
@@ -1127,6 +1137,13 @@ def validate_role_verdict(
     effective_isolation: str | None,
 ) -> None:
     value = verdict.get("verdict")
+    for field_name in ("decisive_attempt_refs", "evidence_refs"):
+        refs = verdict.get(field_name, [])
+        identities = [
+            canonical_ref_identity(ref) for ref in refs if isinstance(ref, dict)
+        ]
+        if len(identities) != len(set(identities)):
+            context.fail("role verdict contains duplicate refs")
     if value == "CONTENT_PASS" and verdict.get("isolation_level") == "DECLARED_ONLY":
         context.fail("CONTENT_PASS requires ENFORCED or OBSERVED")
     if effective_isolation is not None and verdict.get("isolation_level") != effective_isolation:
@@ -1465,6 +1482,7 @@ def validate_branch_state(
         elif closure == "terminal-run":
             branch = "B"
             outcome = run.get("primary_role_outcome", {}).get(role)
+            effective = role_isolation.get(role)
             if (
                 verdict is None
                 and not lanes
@@ -1490,6 +1508,26 @@ def validate_branch_state(
                     and item.get("reason_code")
                     and item.get("evidence_refs")
                 }
+                if run.get("current_stage") == "CASE_ADMISSION":
+                    if effective is None:
+                        context.fail("Branch B admission requires derivable isolation")
+                    unavailable_items = verdict.get("unavailable_baselines", [])
+                    required_unavailable = {
+                        "content_digest",
+                        "inherited_runtime_digest",
+                    }
+                    admission_baselines_unavailable = (
+                        verdict.get("verdict") == "BLOCKED_EVIDENCE"
+                        and "content_digest" not in verdict
+                        and "inherited_runtime_digest" not in verdict
+                        and isinstance(unavailable_items, list)
+                        and len(unavailable_items) == 2
+                        and unavailable == required_unavailable
+                    )
+                    if not admission_baselines_unavailable:
+                        context.fail(
+                            "Branch B admission cannot claim unproven baseline digests"
+                        )
                 diagnostic_blockers_complete = True
                 if run.get("current_stage") == "DIAGNOSTIC_REPLAY":
                     nondecisive_attempts = [
@@ -1531,12 +1569,33 @@ def validate_branch_state(
                 context.fail("Branch D requires two decisive lanes and three reviews")
         else:
             branch = "C"
+            report_path = (
+                context.run_root / f"roles/{role}/content-audit-report.json"
+            )
+            blocking_findings = -1
+            try:
+                report = load_json(report_path)
+                findings = report.get("findings")
+                if isinstance(findings, list):
+                    blocking_findings = sum(
+                        1
+                        for finding in findings
+                        if isinstance(finding, dict)
+                        and finding.get("severity") in {"P0", "P1"}
+                    )
+            except (OSError, ValueError, json.JSONDecodeError):
+                context.fail("Branch C requires blocking P0/P1 evidence")
             if (
                 not isinstance(verdict, dict)
                 or verdict.get("verdict") != "CONTENT_FAIL"
-                or not (context.run_root / f"roles/{role}/content-audit-report.json").exists()
+                or not report_path.exists()
             ):
                 context.fail("Branch C requires formal static CONTENT_FAIL evidence")
+            elif (
+                blocking_findings < 1
+                or verdict.get("open_p0_p1") != blocking_findings
+            ):
+                context.fail("Branch C requires blocking P0/P1 evidence")
         effective = role_isolation.get(role)
         if branch != "A" and effective == "DECLARED_ONLY":
             if run.get("global_state") != "BLOCKED_ISOLATION":
