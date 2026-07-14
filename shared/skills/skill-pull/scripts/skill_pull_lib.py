@@ -28,6 +28,9 @@ UPSTREAM_LOOKUP_RETRIES = 1
 UPSTREAM_LOOKUP_MAX_WORKERS = 8
 GIT_HTTP_LOW_SPEED_LIMIT = 1
 GIT_HTTP_LOW_SPEED_TIME_SECONDS = 20
+SOURCE_REQUIRED_PATHS = {
+    "skills_sh_mattpocock_to_prd": "skills/engineering/to-prd/SKILL.md",
+}
 MANAGED_SOURCE_NAMES = (
     "anthropic_skills",
     "superpowers",
@@ -291,12 +294,17 @@ def _default_branch_candidate(repo: str) -> tuple[str, str]:
     return default_ref, head_ref
 
 
-def _latest_release(repo: str) -> dict[str, Any] | None:
-    """Fetch latest non-prerelease GitHub release metadata."""
+def _github_repo_match(repo: str) -> re.Match[str] | None:
     match = re.match(
         r"https://github\.com/(?P<owner>[A-Za-z0-9_.-]+)/(?P<repo>[A-Za-z0-9_.-]+?)(?:\.git)?$",
         repo,
     )
+    return match
+
+
+def _latest_release(repo: str) -> dict[str, Any] | None:
+    """Fetch latest non-prerelease GitHub release metadata."""
+    match = _github_repo_match(repo)
     if not match:
         return None
     url = f"https://api.github.com/repos/{match.group('owner')}/{match.group('repo')}/releases/latest"
@@ -334,6 +342,70 @@ def _latest_release(repo: str) -> dict[str, Any] | None:
     return payload
 
 
+def _github_path_exists(repo: str, ref: str, path: str) -> bool:
+    """Check whether a GitHub repo ref contains a required source path."""
+    match = _github_repo_match(repo)
+    if not match:
+        raise RuntimeError("required source path checks only support GitHub repos")
+    encoded_path = urllib.parse.quote(path, safe="/")
+    query = urllib.parse.urlencode({"ref": ref})
+    url = (
+        f"https://api.github.com/repos/{match.group('owner')}/{match.group('repo')}"
+        f"/contents/{encoded_path}?{query}"
+    )
+    request = urllib.request.Request(
+        url, headers={"Accept": "application/vnd.github+json"}
+    )
+    last_error: BaseException | None = None
+    for attempt in range(UPSTREAM_LOOKUP_RETRIES + 1):
+        try:
+            with urllib.request.urlopen(
+                request, timeout=UPSTREAM_LOOKUP_TIMEOUT_SECONDS
+            ) as response:  # nosec B310
+                response.read(1)
+            return True
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                return False
+            raise RuntimeError(f"GitHub path lookup failed: HTTP {exc.code}") from exc
+        except (TimeoutError, urllib.error.URLError) as exc:
+            last_error = exc
+            if attempt == UPSTREAM_LOOKUP_RETRIES:
+                reason = getattr(exc, "reason", exc)
+                raise RuntimeError(f"GitHub path lookup failed: {reason}") from exc
+    raise RuntimeError(f"GitHub path lookup failed: {last_error}")
+
+
+def _enforce_required_source_path(
+    lock: SourceLock, candidate: CandidateRef
+) -> CandidateRef:
+    required_path = SOURCE_REQUIRED_PATHS.get(lock.name)
+    if not required_path:
+        return candidate
+    if _github_path_exists(lock.repo, candidate.ref, required_path):
+        return candidate
+    if _github_path_exists(lock.repo, lock.ref, required_path):
+        return CandidateRef(
+            name=lock.name,
+            ref=lock.ref,
+            source="current_contract",
+            summary=(
+                f"{candidate.summary or candidate.source} lacks {required_path}; "
+                "kept locked ref"
+            ),
+        )
+    return CandidateRef(
+        name=lock.name,
+        ref="",
+        source="error",
+        summary=candidate.summary,
+        blocker=(
+            f"candidate and locked refs both lack required source path: "
+            f"{required_path}"
+        ),
+    )
+
+
 def lookup_candidate(lock: SourceLock) -> CandidateRef:
     """Find the latest stable candidate for one GitHub source."""
     try:
@@ -341,10 +413,16 @@ def lookup_candidate(lock: SourceLock) -> CandidateRef:
         if release and release.get("tag_name"):
             tag = str(release["tag_name"])
             ref = _release_tag_ref(lock.repo, tag)
-            return CandidateRef(name=lock.name, ref=ref, source="release", summary=tag)
+            return _enforce_required_source_path(
+                lock,
+                CandidateRef(name=lock.name, ref=ref, source="release", summary=tag),
+            )
         default_ref, ref = _default_branch_candidate(lock.repo)
-        return CandidateRef(
-            name=lock.name, ref=ref, source="default_branch", summary=default_ref
+        return _enforce_required_source_path(
+            lock,
+            CandidateRef(
+                name=lock.name, ref=ref, source="default_branch", summary=default_ref
+            ),
         )
     except (RuntimeError, subprocess.TimeoutExpired) as exc:
         return CandidateRef(name=lock.name, ref="", source="error", blocker=str(exc))

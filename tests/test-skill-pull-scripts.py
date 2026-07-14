@@ -168,6 +168,67 @@ class CandidateLookupTests(TempDirTest):
         self.assertEqual(candidate.ref, "")
         self.assertIn("timed out", candidate.blocker)
 
+    def test_lookup_candidate_keeps_current_ref_when_latest_release_lacks_required_path(self) -> None:
+        lock = self.lib.SourceLock(
+            name="skills_sh_mattpocock_to_prd",
+            repo="https://github.com/mattpocock/skills",
+            ref="old-ref",
+            captured_at="2026-06-18",
+        )
+        original_latest_release = self.lib._latest_release
+        original_release_tag_ref = self.lib._release_tag_ref
+        original_github_path_exists = self.lib._github_path_exists
+        try:
+            self.lib._latest_release = lambda repo: {"tag_name": "v1.1.0"}
+            self.lib._release_tag_ref = lambda repo, tag: "new-ref"
+
+            def fake_github_path_exists(repo: str, ref: str, path: str) -> bool:
+                return (
+                    ref == "old-ref"
+                    and path == "skills/engineering/to-prd/SKILL.md"
+                )
+
+            self.lib._github_path_exists = fake_github_path_exists
+
+            candidate = self.lib.lookup_candidate(lock)
+        finally:
+            self.lib._latest_release = original_latest_release
+            self.lib._release_tag_ref = original_release_tag_ref
+            self.lib._github_path_exists = original_github_path_exists
+
+        self.assertEqual(candidate.name, "skills_sh_mattpocock_to_prd")
+        self.assertEqual(candidate.ref, "old-ref")
+        self.assertEqual(candidate.source, "current_contract")
+        self.assertIn(
+            "v1.1.0 lacks skills/engineering/to-prd/SKILL.md", candidate.summary
+        )
+
+    def test_lookup_candidate_blocks_when_required_path_is_missing_from_current_ref(self) -> None:
+        lock = self.lib.SourceLock(
+            name="skills_sh_mattpocock_to_prd",
+            repo="https://github.com/mattpocock/skills",
+            ref="old-ref",
+            captured_at="2026-06-18",
+        )
+        original_latest_release = self.lib._latest_release
+        original_release_tag_ref = self.lib._release_tag_ref
+        original_github_path_exists = self.lib._github_path_exists
+        try:
+            self.lib._latest_release = lambda repo: {"tag_name": "v1.1.0"}
+            self.lib._release_tag_ref = lambda repo, tag: "new-ref"
+            self.lib._github_path_exists = lambda repo, ref, path: False
+
+            candidate = self.lib.lookup_candidate(lock)
+        finally:
+            self.lib._latest_release = original_latest_release
+            self.lib._release_tag_ref = original_release_tag_ref
+            self.lib._github_path_exists = original_github_path_exists
+
+        self.assertEqual(candidate.name, "skills_sh_mattpocock_to_prd")
+        self.assertEqual(candidate.ref, "")
+        self.assertEqual(candidate.source, "error")
+        self.assertIn("required source path", candidate.blocker)
+
     def test_git_ls_remote_retries_once_after_timeout(self) -> None:
         calls = []
         original_run_command = self.lib.run_command
