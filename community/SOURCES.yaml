@@ -21,8 +21,8 @@ sources:
       - No local overlays, Codex adapters, runtime metadata rewrites, source headers, or local-only skills are allowed under community/superpowers.
   vercel_skills:
     repo: https://github.com/vercel-labs/skills
-    ref: 75e7ea2825230197cf20bfd6fd3762acc2620746
-    captured_at: 2026-07-07
+    ref: cf4a3ea678b7ea5066caa90de94bf2dfacde5538
+    captured_at: 2026-07-13
     scope:
       - community/vercel/skills/find-skills
       - community/vercel/codex/skills/find-skills
@@ -31,8 +31,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   vercel_agent_browser:
     repo: https://github.com/vercel-labs/agent-browser
-    ref: ed2e10598c9064aecfaeb7cf21b540684db4be2c
-    captured_at: 2026-07-04
+    ref: dcbe3522f931d24f85a786ba6ba7f343d86f7294
+    captured_at: 2026-07-13
     scope:
       - community/vercel/skills/agent-browser
       - community/vercel/codex/skills/agent-browser
@@ -52,8 +52,8 @@ sources:
       - Upstream README 声明 MIT，但 GitHub API license 字段为空且根目录未提供独立 LICENSE 文件。
   nextlevelbuilder_ui_ux_pro_max:
     repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
-    ref: 12b486b22e67f5d887962ef8351c1ac863bfaeb9
-    captured_at: 2026-07-07
+    ref: 6142b073958df645d0fb27e682428e69599386dc
+    captured_at: 2026-07-13
     scope:
       - community/nextlevelbuilder/skills/ui-ux-pro-max
       - community/nextlevelbuilder/codex/skills/ui-ux-pro-max
@@ -106,8 +106,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prd:
     repo: https://github.com/github/awesome-copilot
-    ref: cb2a6022d709288f51b499c60bc57b0adaf459a4
-    captured_at: 2026-07-07
+    ref: e353a8cfb8124d44905fc73214d873cea4a0ba3b
+    captured_at: 2026-07-13
     scope:
       - community/open-skills/skills/prd
     notes:
@@ -116,8 +116,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prompt_optimizer:
     repo: https://github.com/github/awesome-copilot
-    ref: cb2a6022d709288f51b499c60bc57b0adaf459a4
-    captured_at: 2026-07-07
+    ref: e353a8cfb8124d44905fc73214d873cea4a0ba3b
+    captured_at: 2026-07-13
     scope:
       - community/open-skills/skills/prompt-optimizer
     notes:
@@ -127,8 +127,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_graphify:
     repo: https://github.com/safishamsi/graphify
-    ref: 80e199defa4a63781f7e846fe7d4f24bfae732b9
-    captured_at: 2026-07-07
+    ref: 961b78e57a10e9c5bb98421ff3e45b40be73542b
+    captured_at: 2026-07-13
     scope:
       - community/open-skills/skills/graphify
     notes:
@@ -192,8 +192,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_othmanadi_planning_with_files:
     repo: https://github.com/OthmanAdi/planning-with-files
-    ref: d71b3be47b62fe49d60fb2ede800e1907ebea3d9
-    captured_at: 2026-07-07
+    ref: f13118cadfd12a48af60106c67c7abf34224c007
+    captured_at: 2026-07-13
     scope:
       - community/open-skills/skills/planning-with-files
     notes:
