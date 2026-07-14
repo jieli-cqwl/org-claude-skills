@@ -84,6 +84,23 @@ ROLE_REF_STAGE = {
     "content-audit-report.json": 3,
     "role-verdict.json": 3,
 }
+STATIC_ROLE_ARTIFACTS = {
+    "surface.json",
+    "decision-atoms.json",
+    "content-audit-alignment.json",
+}
+REPLAY_ROLE_FILENAMES = {
+    "replay-lane.json",
+    "replay-attempt.json",
+    "transcript.json",
+    "artifact-manifest.json",
+}
+REVIEW_ROLE_ARTIFACTS = {
+    "divergence-review.json",
+    "oracle-review.json",
+    "downstream-consumption.json",
+}
+FORMAL_ROLE_ARTIFACTS = {"content-audit-report.json", "role-verdict.json"}
 
 
 def canonical_bytes(value: object) -> bytes:
@@ -217,6 +234,9 @@ class ValidationContext:
     invoked: list[dict[str, Any]] = field(default_factory=list)
     artifacts: dict[str, dict[str, Any]] = field(default_factory=dict)
     canonical_jobs: list[tuple[str, list[dict[str, Any]]]] = field(default_factory=list)
+    ref_targets: dict[bytes, tuple[Path, bytes]] = field(default_factory=dict)
+    validated_ref_objects: set[int] = field(default_factory=set)
+    invalid_artifacts: set[str] = field(default_factory=set)
 
     def fail(self, message: str) -> None:
         if message not in self.failures:
@@ -252,18 +272,25 @@ class ValidationContext:
     def load_artifact(self, relative: str) -> dict[str, Any] | None:
         if relative in self.artifacts:
             return self.artifacts[relative]
+        if relative in self.invalid_artifacts:
+            return None
         path = self.run_root / relative
         try:
             payload = load_json(path)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             self.fail(f"{relative}: artifact load failed: {exc}")
+            self.invalid_artifacts.add(relative)
             return None
         if not self.schema_validate(payload, path):
+            self.invalid_artifacts.add(relative)
             return None
         self.artifacts[relative] = payload
         return payload
 
     def ref_target(self, ref: dict[str, Any]) -> tuple[Path, bytes] | None:
+        cache_key = canonical_bytes(ref)
+        if cache_key in self.ref_targets:
+            return self.ref_targets[cache_key]
         raw_path = ref.get("path")
         if not isinstance(raw_path, str):
             self.fail("artifact path must be relative")
@@ -319,9 +346,16 @@ class ValidationContext:
             return None
         if hashlib.sha256(raw).hexdigest() != ref.get("sha256"):
             self.fail("stale file SHA-256")
-        return root / raw_path, raw
+        target = root / raw_path, raw
+        self.ref_targets[cache_key] = target
+        return target
 
     def validate_refs(self, payload: object) -> None:
+        if isinstance(payload, (dict, list)):
+            marker = id(payload)
+            if marker in self.validated_ref_objects:
+                return
+            self.validated_ref_objects.add(marker)
         if isinstance(payload, dict):
             if {"scope", "path", "sha256"} <= set(payload):
                 self.ref_target(payload)
@@ -980,6 +1014,12 @@ def validate_attempts(
                     or manifest.get("canonical_output_refs") != []
                 ):
                     context.fail("stopped attempt requires blocking fact and empty outputs")
+                canonical_root = (
+                    context.run_root
+                    / f"roles/{role}/executor-{lane_id}/attempt-{index}/canonical"
+                )
+                if canonical_root.exists() and any(canonical_root.rglob("*")):
+                    context.fail("stopped attempt cannot retain canonical files")
             elif status == "INFRA_FAILURE":
                 if (
                     attempt.get("output_refs")
@@ -1093,12 +1133,6 @@ def validate_role_verdict(
         context.fail("effective isolation evidence mismatch")
     if value == "CONTENT_PASS" and effective_isolation not in {"ENFORCED", "OBSERVED"}:
         context.fail("effective isolation requires BLOCKED_ISOLATION")
-    if (
-        effective_isolation == "DECLARED_ONLY"
-        and (lanes or value == "CONTENT_PASS")
-        and value != "BLOCKED_ISOLATION"
-    ):
-        context.fail("effective isolation requires BLOCKED_ISOLATION")
     if value == "CONTENT_PASS" and verdict.get("oracle_bridge_used") is True:
         context.fail("authentic role pass cannot depend on oracle bridge")
     missing: list[str] = []
@@ -1196,14 +1230,24 @@ def validate_stage(
     run: dict[str, Any],
     required_stage: str | None,
 ) -> str:
-    checked = required_stage or str(run.get("closure_validation_stage", "admitted"))
+    current_stage = {
+        "CASE_ADMISSION": "admitted",
+        "STATIC_AUDIT": "static-audit",
+        "DIAGNOSTIC_REPLAY": "diagnostic-replay",
+        "ROLE_VERDICT": "role-verdict",
+    }.get(str(run.get("current_stage")), "admitted")
+    actual = (
+        str(run.get("closure_validation_stage", "admitted"))
+        if run.get("lifecycle_status") == "CLOSED"
+        else current_stage
+    )
+    checked = required_stage or actual
     if checked == "terminal-run":
         if run.get("lifecycle_status") != "CLOSED" or run.get(
             "closure_validation_stage"
         ) != "terminal-run":
             context.fail("terminal-run requires a closed explicit terminal state")
         return checked
-    actual = str(run.get("closure_validation_stage", "admitted"))
     if actual in STAGE_ORDER and checked in STAGE_ORDER:
         if STAGE_ORDER[actual] < STAGE_ORDER[checked]:
             context.fail(f"required stage not reached: {checked}")
@@ -1212,46 +1256,294 @@ def validate_stage(
     return checked
 
 
-def validate_terminal_run(
+def present_role_artifacts(context: ValidationContext, role: str) -> set[str]:
+    role_root = context.run_root / "roles" / role
+    if not role_root.exists():
+        return set()
+    return {
+        str(path.relative_to(context.run_root))
+        for path in role_root.rglob("*")
+        if path.is_file() and path.name in ROLE_REF_STAGE
+    }
+
+
+def indexed_role_artifacts(run: dict[str, Any], role: str) -> set[str]:
+    refs = run.get("role_refs", {}).get(role, [])
+    if not isinstance(refs, list):
+        return set()
+    return {
+        ref_path(ref)
+        for ref in refs
+        if isinstance(ref, dict) and ref.get("scope") == "run"
+    }
+
+
+def lane_attempts(
+    context: ValidationContext, lane: dict[str, Any]
+) -> list[dict[str, Any]]:
+    return [
+        context.artifacts[path]
+        for ref in lane.get("ordered_attempt_refs", [])
+        if isinstance(ref, dict)
+        and (path := ref_path(ref)) in context.artifacts
+    ]
+
+
+def lane_is_decisive(context: ValidationContext, lane: dict[str, Any]) -> bool:
+    decisive = lane.get("decisive_attempt_ref")
+    if lane.get("terminal_condition") != "DECISIVE" or not isinstance(decisive, dict):
+        return False
+    attempt = context.artifacts.get(ref_path(decisive))
+    return isinstance(attempt, dict) and attempt.get("attempt_status") in {
+        "COMPLETED",
+        "STOPPED",
+    }
+
+
+def required_role_paths(
+    context: ValidationContext,
+    role: str,
+    branch: str,
+    current_stage: str,
+) -> set[str]:
+    prefix = f"roles/{role}/"
+    static = {prefix + name for name in STATIC_ROLE_ARTIFACTS}
+    reviews = {prefix + name for name in REVIEW_ROLE_ARTIFACTS}
+    formal = {prefix + name for name in FORMAL_ROLE_ARTIFACTS}
+    replay = {
+        path
+        for path in present_role_artifacts(context, role)
+        if PurePosixPath(path).name in REPLAY_ROLE_FILENAMES
+    }
+    if branch == "OPEN":
+        if current_stage == "CASE_ADMISSION":
+            return set()
+        if current_stage == "STATIC_AUDIT":
+            return static
+        if current_stage == "DIAGNOSTIC_REPLAY":
+            return static | replay | reviews
+        return static | replay | reviews | formal
+    if branch == "A":
+        return static | replay
+    if branch == "B":
+        verdict = {prefix + "role-verdict.json"}
+        if current_stage == "CASE_ADMISSION":
+            return verdict
+        if current_stage == "STATIC_AUDIT":
+            return static | verdict
+        return static | replay | verdict
+    if branch == "C":
+        return static | formal
+    return static | replay | reviews | formal
+
+
+def validate_role_evidence_graph(
+    context: ValidationContext,
+    run: dict[str, Any],
+    role: str,
+    branch: str,
+    lanes: list[dict[str, Any]],
+    verdict: dict[str, Any] | None,
+) -> None:
+    expected = required_role_paths(
+        context, role, branch, str(run.get("current_stage"))
+    )
+    present = present_role_artifacts(context, role)
+    indexed = indexed_role_artifacts(run, role)
+    raw_index = run.get("role_refs", {}).get(role, [])
+    duplicate_index = isinstance(raw_index, list) and len(raw_index) != len(indexed)
+    if present != expected or indexed != expected or duplicate_index:
+        if branch == "OPEN":
+            context.fail("OPEN stage artifact set mismatch")
+        else:
+            context.fail("run.role_refs does not match present stage artifacts")
+    if not isinstance(verdict, dict):
+        return
+    evidence_paths = {
+        ref_path(ref)
+        for ref in verdict.get("evidence_refs", [])
+        if isinstance(ref, dict)
+    }
+    prefix = f"roles/{role}/"
+    required_evidence: set[str] = set()
+    if branch == "C":
+        required_evidence = {
+            prefix + "surface.json",
+            prefix + "decision-atoms.json",
+            prefix + "content-audit-report.json",
+        }
+    elif branch == "D":
+        required_evidence = {
+            prefix + "content-audit-report.json",
+            *(prefix + name for name in REVIEW_ROLE_ARTIFACTS),
+        }
+        required_evidence.update(
+            ref_path(lane["decisive_attempt_ref"])
+            for lane in lanes
+            if isinstance(lane.get("decisive_attempt_ref"), dict)
+        )
+    elif branch == "B" and run.get("current_stage") == "DIAGNOSTIC_REPLAY":
+        for lane in lanes:
+            if lane_is_decisive(context, lane):
+                continue
+            required_evidence.add(
+                f"{prefix}executor-{lane.get('lane_id')}/replay-lane.json"
+            )
+            attempts = lane_attempts(context, lane)
+            if attempts:
+                required_evidence.add(
+                    f"{prefix}executor-{lane.get('lane_id')}/attempt-{attempts[-1].get('attempt_number')}/replay-attempt.json"
+                )
+    if not required_evidence <= evidence_paths:
+        context.fail("role verdict evidence graph is incomplete")
+
+
+def validate_branch_state(
     context: ValidationContext,
     run: dict[str, Any],
     role_lanes: dict[str, list[dict[str, Any]]],
     role_verdicts: dict[str, dict[str, Any]],
+    role_isolation: dict[str, str | None],
 ) -> None:
-    if run.get("closure_validation_stage") != "terminal-run":
-        return
-    if role_verdicts or "primary_role_outcome" in run:
-        context.fail("terminal-run cannot fabricate role outcomes")
-    lanes = [lane for values in role_lanes.values() for lane in values]
-    expected_terminal = {
-        "INCONCLUSIVE_CONTAMINATED": "ALL_CONTAMINATED",
-        "BLOCKED_EVIDENCE": "UNRECOVERABLE_INFRA_FAILURE",
-    }.get(run.get("global_state"))
-    if (
-        not lanes
-        or expected_terminal is None
-        or any(lane.get("terminal_condition") != expected_terminal for lane in lanes)
-    ):
-        context.fail("terminal-run requires explicit terminal evidence")
-
-
-def validate_role_global_state(
-    context: ValidationContext,
-    run: dict[str, Any],
-    role_verdicts: dict[str, dict[str, Any]],
-) -> None:
-    expected_global = {
-        "CONTENT_FAIL": "REPAIR_REQUIRED",
-        "BLOCKED_ORACLE": "BLOCKED_ORACLE",
-        "BLOCKED_EVIDENCE": "BLOCKED_EVIDENCE",
-        "BLOCKED_ISOLATION": "BLOCKED_ISOLATION",
-    }
-    if len(role_verdicts) != 1:
-        return
-    verdict = next(iter(role_verdicts.values())).get("verdict")
-    expected = expected_global.get(str(verdict))
-    if expected is not None and run.get("global_state") != expected:
-        context.fail("role verdict/global state mismatch")
+    for role in run.get("evaluated_roles", []):
+        if role not in PRIMARY_ROLES:
+            continue
+        lanes = role_lanes.get(role, [])
+        verdict = role_verdicts.get(role)
+        if run.get("lifecycle_status") == "OPEN":
+            branch = "OPEN"
+            if run.get("current_stage") == "DIAGNOSTIC_REPLAY" and (
+                len(lanes) != 2
+                or not all(lane_is_decisive(context, lane) for lane in lanes)
+                or not all(
+                    (context.run_root / f"roles/{role}/{name}").exists()
+                    for name in REVIEW_ROLE_ARTIFACTS
+                )
+            ):
+                context.fail(
+                    "OPEN diagnostic requires two decisive lanes and three reviews"
+                )
+            validate_role_evidence_graph(
+                context, run, role, branch, lanes, verdict
+            )
+            continue
+        closure = run.get("closure_validation_stage")
+        contaminated_lanes = [
+            lane for lane in lanes if lane.get("terminal_condition") == "ALL_CONTAMINATED"
+        ]
+        if closure == "terminal-run" and contaminated_lanes:
+            branch = "A"
+            legal_contamination_history = any(
+                len(attempts := lane_attempts(context, lane)) == 3
+                and all(
+                    attempt.get("attempt_status") == "VOID_CONTAMINATED"
+                    for attempt in attempts
+                )
+                for lane in contaminated_lanes
+            )
+            complete_contamination_evidence = any(
+                len(attempts := lane_attempts(context, lane)) == 3
+                and all(
+                    attempt.get("attempt_status") == "VOID_CONTAMINATED"
+                    and bool(attempt.get("contamination_findings"))
+                    for attempt in attempts
+                )
+                for lane in contaminated_lanes
+            )
+            if not legal_contamination_history:
+                context.fail(
+                    "Branch A requires exactly three contaminated attempts in one lane"
+                )
+            elif not complete_contamination_evidence:
+                context.fail("Branch A contamination evidence is incomplete")
+            if (
+                verdict is not None
+                or "primary_role_outcome" in run
+                or run.get("global_state") != "INCONCLUSIVE_CONTAMINATED"
+            ):
+                context.fail("Branch A cannot contain a role verdict or outcome")
+        elif closure == "terminal-run":
+            branch = "B"
+            outcome = run.get("primary_role_outcome", {}).get(role)
+            if (
+                verdict is None
+                and not lanes
+                and run.get("current_stage") == "DIAGNOSTIC_REPLAY"
+            ):
+                context.fail("terminal-run requires explicit terminal evidence")
+            if (
+                not isinstance(verdict, dict)
+                or verdict.get("verdict") not in {"BLOCKED_ORACLE", "BLOCKED_EVIDENCE"}
+                or outcome != verdict.get("verdict")
+            ):
+                context.fail("Branch B requires blocked role verdict and primary outcome")
+            if isinstance(verdict, dict):
+                missing = {
+                    field
+                    for field in ("content_digest", "inherited_runtime_digest")
+                    if field not in verdict
+                }
+                unavailable = {
+                    item.get("baseline_type")
+                    for item in verdict.get("unavailable_baselines", [])
+                    if isinstance(item, dict)
+                    and item.get("reason_code")
+                    and item.get("evidence_refs")
+                }
+                diagnostic_blockers_complete = True
+                if run.get("current_stage") == "DIAGNOSTIC_REPLAY":
+                    nondecisive_attempts = [
+                        attempts[-1]
+                        for lane in lanes
+                        if not lane_is_decisive(context, lane)
+                        and (attempts := lane_attempts(context, lane))
+                    ]
+                    diagnostic_blockers_complete = bool(nondecisive_attempts) and all(
+                        attempt.get("blocking_fact_refs")
+                        for attempt in nondecisive_attempts
+                    )
+                if (
+                    not verdict.get("reason_codes")
+                    or not verdict.get("evidence_refs")
+                    or not missing <= unavailable
+                    or not diagnostic_blockers_complete
+                ):
+                    context.fail("Branch B blocker evidence is incomplete")
+        elif lanes:
+            branch = "D"
+            if (
+                len(lanes) != 2
+                or not all(lane_is_decisive(context, lane) for lane in lanes)
+                or not all(
+                    (context.run_root / f"roles/{role}/{name}").exists()
+                    for name in REVIEW_ROLE_ARTIFACTS
+                )
+                or not (context.run_root / f"roles/{role}/content-audit-report.json").exists()
+                or not isinstance(verdict, dict)
+                or verdict.get("verdict")
+                not in {
+                    "CONTENT_FAIL",
+                    "BLOCKED_ORACLE",
+                    "BLOCKED_EVIDENCE",
+                    "BLOCKED_ISOLATION",
+                }
+            ):
+                context.fail("Branch D requires two decisive lanes and three reviews")
+        else:
+            branch = "C"
+            if (
+                not isinstance(verdict, dict)
+                or verdict.get("verdict") != "CONTENT_FAIL"
+                or not (context.run_root / f"roles/{role}/content-audit-report.json").exists()
+            ):
+                context.fail("Branch C requires formal static CONTENT_FAIL evidence")
+        effective = role_isolation.get(role)
+        if branch != "A" and effective == "DECLARED_ONLY":
+            if run.get("global_state") != "BLOCKED_ISOLATION":
+                context.fail(
+                    "DECLARED_ONLY run requires BLOCKED_ISOLATION global state"
+                )
+        validate_role_evidence_graph(context, run, role, branch, lanes, verdict)
 
 
 def validate_role_ref_index(
@@ -1281,7 +1573,11 @@ def validate_role_ref_index(
             if required_level is None:
                 context.fail("run.role_refs contains an unknown evaluation artifact")
                 continue
-            if required_level > current_level:
+            enforce_stage_ceiling = (
+                run.get("lifecycle_status") == "OPEN"
+                or run.get("closure_validation_stage") != "terminal-run"
+            )
+            if enforce_stage_ceiling and required_level > current_level:
                 context.fail("run.role_refs contains a future artifact ref")
             if PurePosixPath(path).name not in {
                 "content-audit-alignment.json",
@@ -1334,8 +1630,12 @@ def validate_run(
             if "primary_role_outcome" not in run or run.get("current_stage") != "ROLE_VERDICT":
                 context.fail("role-verdict closure requires a proven role-verdict prefix")
         elif closure_stage == "terminal-run":
-            if run.get("current_stage") != "DIAGNOSTIC_REPLAY":
-                context.fail("terminal-run requires a proven diagnostic prefix")
+            if run.get("current_stage") not in {
+                "CASE_ADMISSION",
+                "STATIC_AUDIT",
+                "DIAGNOSTIC_REPLAY",
+            }:
+                context.fail("terminal-run requires a proven branch prefix")
         else:
             context.fail("closed run has an unsupported closure track")
 
@@ -1368,6 +1668,7 @@ def validate_run(
 
     role_verdicts: dict[str, dict[str, Any]] = {}
     role_lanes: dict[str, list[dict[str, Any]]] = {}
+    role_isolation: dict[str, str | None] = {}
     audit_jobs: list[tuple[str, dict[str, Any] | None]] = []
     roles_to_check = list(run.get("evaluated_roles", []))
     if required_role is not None and required_role not in roles_to_check:
@@ -1378,8 +1679,18 @@ def validate_run(
             context.fail(f"unsupported role: {role}")
             continue
         role_root = f"roles/{role}"
-        surface = context.load_artifact(f"{role_root}/surface.json")
-        decision_atoms = context.load_artifact(f"{role_root}/decision-atoms.json")
+        surface_path = context.run_root / role_root / "surface.json"
+        decision_path = context.run_root / role_root / "decision-atoms.json"
+        surface = (
+            context.load_artifact(f"{role_root}/surface.json")
+            if surface_path.exists()
+            else None
+        )
+        decision_atoms = (
+            context.load_artifact(f"{role_root}/decision-atoms.json")
+            if decision_path.exists()
+            else None
+        )
         for payload in (surface, decision_atoms):
             if payload is not None:
                 context.validate_refs(payload)
@@ -1399,30 +1710,39 @@ def validate_run(
             } and not isinstance(verdict.get("audit_report_ref"), dict):
                 context.fail("formal role verdict requires an audit report")
         audit_jobs.append((role_root, verdict))
-        if not isinstance(surface, dict) or not isinstance(input_manifest, dict) or not isinstance(oracle, dict):
-            continue
-        derived = validate_runtime_and_derived(context, surface, oracle, input_manifest)
+        derived = (
+            validate_runtime_and_derived(context, surface, oracle, input_manifest)
+            if isinstance(surface, dict)
+            and isinstance(input_manifest, dict)
+            and isinstance(oracle, dict)
+            else None
+        )
         content_digest = derived[0] if derived else None
         runtime_digest = derived[1] if derived else None
         lanes: list[dict[str, Any]] = []
         attempts: list[dict[str, Any]] = []
-        has_lanes = all(
+        has_lanes = any(
             (
                 context.run_root
                 / f"{role_root}/executor-{lane_id}/replay-lane.json"
             ).exists()
             for lane_id in ("a", "b")
         )
-        if has_lanes:
+        if (
+            has_lanes
+            and isinstance(input_manifest, dict)
+            and isinstance(oracle, dict)
+        ):
             lanes, _, attempts = validate_attempts(
                 context, role, input_manifest, oracle, runtime_digest or ""
             )
         elif checked_stage == "diagnostic-replay":
             context.fail("diagnostic-replay requires two replay lanes")
+        effective_isolation = derive_effective_isolation(
+            context, run, surface if isinstance(surface, dict) else {}, attempts
+        )
+        role_isolation[role] = effective_isolation
         if verdict is not None:
-            effective_isolation = derive_effective_isolation(
-                context, run, surface, attempts
-            )
             validate_role_verdict(
                 context,
                 role,
@@ -1434,11 +1754,6 @@ def validate_run(
             )
             if run.get("primary_role_outcome", {}).get(role) != verdict.get("verdict"):
                 context.fail("run primary role outcome mismatch")
-            if effective_isolation == "DECLARED_ONLY" and lanes and (
-                run.get("primary_role_outcome", {}).get(role) != "BLOCKED_ISOLATION"
-                or run.get("global_state") != "BLOCKED_ISOLATION"
-            ):
-                context.fail("effective isolation requires BLOCKED_ISOLATION")
         role_lanes[role] = lanes
     if isinstance(input_manifest, dict) and isinstance(oracle, dict):
         if input_manifest.get("oracle_version") != oracle.get("oracle_version"):
@@ -1446,8 +1761,9 @@ def validate_run(
     for artifact in context.artifacts.values():
         context.validate_refs(artifact)
     validate_loaded_artifact_identities(context, str(run.get("case_id", "")))
-    validate_terminal_run(context, run, role_lanes, role_verdicts)
-    validate_role_global_state(context, run, role_verdicts)
+    validate_branch_state(
+        context, run, role_lanes, role_verdicts, role_isolation
+    )
     validate_chain_and_run_state(context, run, role_verdicts)
     if not context.failures:
         for role_root, verdict in audit_jobs:

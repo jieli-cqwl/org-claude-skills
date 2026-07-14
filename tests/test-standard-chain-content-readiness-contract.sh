@@ -257,14 +257,36 @@ expect_failure input_oracle_version_drift "oracle version mismatch"
 expect_failure attempt_oracle_version_drift "oracle version mismatch"
 expect_failure schema_invalid_case_refs "schema validation failed"
 expect_failure not_run_placeholder "schema validation failed"
-expect_failure role_global_mismatch "role verdict/global state mismatch"
+expect_failure role_global_mismatch "DECLARED_ONLY run requires BLOCKED_ISOLATION global state"
+expect_failure branch_a_one_contaminated "Branch A requires exactly three contaminated attempts in one lane" yes terminal-run
+expect_failure branch_a_two_contaminated "Branch A requires exactly three contaminated attempts in one lane" yes terminal-run
+expect_failure branch_a_missing_contamination_evidence "Branch A contamination evidence is incomplete" yes terminal-run
+expect_failure branch_b_missing_verdict "Branch B requires blocked role verdict and primary outcome" yes terminal-run
+expect_failure branch_b_missing_outcome "Branch B requires blocked role verdict and primary outcome" yes terminal-run
+expect_failure branch_b_missing_typed_evidence "Branch B blocker evidence is incomplete" yes terminal-run
+expect_failure branch_b_diagnostic_missing_blocker "Branch B blocker evidence is incomplete" yes terminal-run
+expect_failure open_static_future_artifacts "OPEN stage artifact set mismatch" yes static-audit
+expect_failure open_diagnostic_missing_review "OPEN stage artifact set mismatch" yes diagnostic-replay
+expect_failure open_diagnostic_one_lane "OPEN diagnostic requires two decisive lanes and three reviews" yes diagnostic-replay
+expect_failure branch_d_missing_reviews "Branch D requires two decisive lanes and three reviews"
+expect_failure unindexed_present_artifact "run.role_refs does not match present stage artifacts"
+expect_failure duplicate_role_ref "run.role_refs does not match present stage artifacts"
+expect_failure verdict_evidence_incomplete "role verdict evidence graph is incomplete"
+expect_failure stopped_canonical_residue "stopped attempt cannot retain canonical files"
 expect_failure terminal_empty "terminal-run requires explicit terminal evidence" yes terminal-run
 
 expect_success_variant direct_static_content_fail
-expect_success_variant unavailable_baselines_blocked_evidence
+expect_success_variant branch_d_content_fail
+expect_success_variant branch_d_blocked_oracle
+expect_success_variant branch_d_blocked_evidence
+expect_success_variant branch_d_blocked_isolation
+expect_success_variant branch_b_admission terminal-run
+expect_success_variant branch_b_static terminal-run
+expect_success_variant branch_b_diagnostic terminal-run
+expect_success_variant branch_a_single_lane_triple terminal-run
+expect_success_variant open_static static-audit
+expect_success_variant open_diagnostic diagnostic-replay
 expect_success_variant immutable_retry_history
-expect_success_variant terminal_all_contaminated terminal-run
-expect_success_variant terminal_unrecoverable_infra terminal-run
 
 stopped_root="$tmpdir/stopped-run"
 stopped_output="$tmpdir/stopped-output.json"

@@ -10,7 +10,7 @@ import json
 import os
 import shutil
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 PRIMARY_ROLES = [
@@ -21,6 +21,20 @@ PRIMARY_ROLES = [
     "tech-lead",
     "delivery-owner",
 ]
+ROLE_EVALUATION_FILENAMES = {
+    "surface.json",
+    "decision-atoms.json",
+    "content-audit-alignment.json",
+    "content-audit-report.json",
+    "replay-lane.json",
+    "replay-attempt.json",
+    "transcript.json",
+    "artifact-manifest.json",
+    "divergence-review.json",
+    "oracle-review.json",
+    "downstream-consumption.json",
+    "role-verdict.json",
+}
 ZERO_SHA = "0" * 64
 ZERO_COMMIT = "0" * 40
 
@@ -813,8 +827,11 @@ def build_run(
             "reason_codes": ["DECLARED_ONLY_RUNTIME"],
             "evidence_refs": [
                 run_ref(f"roles/{role}/surface.json"),
+                run_ref(f"roles/{role}/content-audit-report.json"),
+                *copy.deepcopy(decisive_refs),
                 run_ref(f"roles/{role}/divergence-review.json"),
                 run_ref(f"roles/{role}/oracle-review.json"),
+                run_ref(f"roles/{role}/downstream-consumption.json"),
             ],
             "claim_boundaries": [
                 "Synthetic fixture only.",
@@ -833,6 +850,12 @@ def build_run(
         f"roles/{role}/content-audit-report.json",
         f"roles/{role}/executor-a/replay-lane.json",
         f"roles/{role}/executor-b/replay-lane.json",
+        f"roles/{role}/executor-a/attempt-1/replay-attempt.json",
+        f"roles/{role}/executor-a/attempt-1/transcript.json",
+        f"roles/{role}/executor-a/attempt-1/artifact-manifest.json",
+        f"roles/{role}/executor-b/attempt-1/replay-attempt.json",
+        f"roles/{role}/executor-b/attempt-1/transcript.json",
+        f"roles/{role}/executor-b/attempt-1/artifact-manifest.json",
         f"roles/{role}/divergence-review.json",
         f"roles/{role}/oracle-review.json",
         f"roles/{role}/downstream-consumption.json",
@@ -870,11 +893,31 @@ def build_run(
 
     source_roots = {key: Path(value["root"]) for key, value in sources.items()}
     source_roots["synthetic-runtime"] = runtime_root
-    refresh_refs(repo_root, run_root, source_roots)
+    immutable_bytes_cache: dict[bytes, bytes] = {}
+    blob_cache: dict[tuple[str, str, str], str] = {}
+    refresh_refs(
+        repo_root,
+        run_root,
+        source_roots,
+        immutable_bytes_cache,
+        blob_cache,
+    )
     recompute_derived(run_root)
-    refresh_refs(repo_root, run_root, source_roots)
+    refresh_refs(
+        repo_root,
+        run_root,
+        source_roots,
+        immutable_bytes_cache,
+        blob_cache,
+    )
     recompute_derived(run_root)
-    refresh_refs(repo_root, run_root, source_roots)
+    refresh_refs(
+        repo_root,
+        run_root,
+        source_roots,
+        immutable_bytes_cache,
+        blob_cache,
+    )
     return {key: str(value) for key, value in source_roots.items()}
 
 
@@ -894,6 +937,7 @@ def ref_bytes(
     run_root: Path,
     source_roots: dict[str, Path],
     ref: dict[str, Any],
+    immutable_bytes_cache: dict[bytes, bytes] | None = None,
 ) -> bytes:
     scope = ref["scope"]
     if scope == "repo":
@@ -904,19 +948,40 @@ def ref_bytes(
         root = source_roots[ref["source_id"]]
     else:
         raise ValueError(f"unsupported scope in fixture: {scope}")
+    cache_key = canonical_bytes(
+        {
+            key: ref[key]
+            for key in ("scope", "source_id", "path", "commit", "blob", "line")
+            if key in ref
+        }
+    )
+    if scope != "run" and immutable_bytes_cache is not None:
+        cached = immutable_bytes_cache.get(cache_key)
+        if cached is not None:
+            return cached
     if "commit" in ref:
-        return subprocess.check_output(
+        raw = subprocess.check_output(
             ["git", "-C", str(root), "show", f"{ref['commit']}:{ref['path']}"],
             stderr=subprocess.DEVNULL,
         )
-    return (root / ref["path"]).read_bytes()
+    else:
+        raw = (root / ref["path"]).read_bytes()
+    if scope != "run" and immutable_bytes_cache is not None:
+        immutable_bytes_cache[cache_key] = raw
+    return raw
 
 
 def refresh_refs(
     repo_root: Path,
     run_root: Path,
     source_roots: dict[str, Path],
+    immutable_bytes_cache: dict[bytes, bytes] | None = None,
+    blob_cache: dict[tuple[str, str, str], str] | None = None,
 ) -> None:
+    immutable_bytes_cache = (
+        {} if immutable_bytes_cache is None else immutable_bytes_cache
+    )
+    blob_cache = {} if blob_cache is None else blob_cache
     paths = sorted(run_root.rglob("*.json"))
     for _ in range(32):
         changed = False
@@ -925,7 +990,13 @@ def refresh_refs(
             before = canonical_bytes(payload)
             for ref in iter_refs(payload):
                 try:
-                    raw = ref_bytes(repo_root, run_root, source_roots, ref)
+                    raw = ref_bytes(
+                        repo_root,
+                        run_root,
+                        source_roots,
+                        ref,
+                        immutable_bytes_cache,
+                    )
                 except (KeyError, OSError, ValueError, subprocess.SubprocessError):
                     # Negative cases deliberately leave one malformed leaf ref. The
                     # fixture refresher still updates owning artifact refs so the
@@ -938,7 +1009,12 @@ def refresh_refs(
                         if ref["scope"] == "repo"
                         else source_roots[ref["source_id"]]
                     )
-                    ref["blob"] = git_blob(root, ref["commit"], ref["path"])
+                    blob_key = (str(root), ref["commit"], ref["path"])
+                    if blob_key not in blob_cache:
+                        blob_cache[blob_key] = git_blob(
+                            root, ref["commit"], ref["path"]
+                        )
+                    ref["blob"] = blob_cache[blob_key]
             if before != canonical_bytes(payload):
                 write_json(path, payload)
                 changed = True
@@ -1052,6 +1128,18 @@ def set_product_director_role_refs(
     write_json(run_path, run)
 
 
+def index_present_product_director_artifacts(run_root: Path) -> None:
+    role_root = run_root / "roles/product-director"
+    relative_paths = sorted(
+        str(path.relative_to(role_root))
+        for path in role_root.rglob("*")
+        if path.is_file()
+        and path.name in ROLE_EVALUATION_FILENAMES
+        and "canonical" not in path.parts
+    )
+    set_product_director_role_refs(run_root, relative_paths)
+
+
 def clear_replay_and_reviews(run_root: Path) -> None:
     role_root = run_root / "roles/product-director"
     for relative in (
@@ -1116,6 +1204,140 @@ def make_non_output_attempt(
     manifest = read_json(manifest_path)
     manifest["canonical_output_refs"] = []
     write_json(manifest_path, manifest)
+
+
+def set_closed_track(
+    run_root: Path,
+    *,
+    current_stage: str,
+    closure_stage: str,
+    global_state: str,
+    role_outcome: str | None,
+    next_action: str,
+) -> None:
+    path = run_root / "run.json"
+    run = read_json(path)
+    run["lifecycle_status"] = "CLOSED"
+    run["current_stage"] = current_stage
+    run["closure_validation_stage"] = closure_stage
+    run["global_state"] = global_state
+    run["next_authorized_action"] = next_action
+    if role_outcome is None:
+        run.pop("primary_role_outcome", None)
+    else:
+        run["primary_role_outcome"] = {"product-director": role_outcome}
+    write_json(path, run)
+
+
+def set_open_track(run_root: Path, current_stage: str) -> None:
+    path = run_root / "run.json"
+    run = read_json(path)
+    run["lifecycle_status"] = "OPEN"
+    run["current_stage"] = current_stage
+    for field in (
+        "global_state",
+        "primary_role_outcome",
+        "next_authorized_action",
+        "closure_validation_stage",
+    ):
+        run.pop(field, None)
+    write_json(path, run)
+
+
+def set_role_verdict_value(run_root: Path, verdict_value: str) -> None:
+    role_root = run_root / "roles/product-director"
+    path = role_root / "role-verdict.json"
+    verdict = read_json(path)
+    verdict["verdict"] = verdict_value
+    verdict["reason_codes"] = [f"SYNTHETIC_{verdict_value}"]
+    write_json(path, verdict)
+    set_closed_track(
+        run_root,
+        current_stage="ROLE_VERDICT",
+        closure_stage="role-verdict",
+        global_state="BLOCKED_ISOLATION",
+        role_outcome=verdict_value,
+        next_action="resolve the primary role outcome",
+    )
+
+
+def make_lane_contaminated_history(
+    run_root: Path, lane_id: str, attempt_count: int
+) -> None:
+    role_root = run_root / "roles/product-director"
+    for number in range(2, attempt_count + 1):
+        copy_attempt(run_root, lane_id, 1, number)
+    ordered_refs = []
+    for number in range(1, attempt_count + 1):
+        attempt_root = role_root / f"executor-{lane_id}/attempt-{number}"
+        make_non_output_attempt(
+            attempt_root / "replay-attempt.json",
+            attempt_root / "artifact-manifest.json",
+            "VOID_CONTAMINATED",
+        )
+        attempt = read_json(attempt_root / "replay-attempt.json")
+        attempt["contamination_findings"] = [
+            "Synthetic unauthorized read contamination."
+        ]
+        write_json(attempt_root / "replay-attempt.json", attempt)
+        remove_tree(attempt_root / "canonical")
+        ordered_refs.append(
+            run_ref(
+                f"roles/product-director/executor-{lane_id}/attempt-{number}/replay-attempt.json"
+            )
+        )
+    lane_path = role_root / f"executor-{lane_id}/replay-lane.json"
+    lane = read_json(lane_path)
+    lane["ordered_attempt_refs"] = ordered_refs
+    lane["terminal_condition"] = "ALL_CONTAMINATED"
+    lane.pop("decisive_attempt_ref", None)
+    write_json(lane_path, lane)
+
+
+def clear_branch_d_reviews(run_root: Path) -> None:
+    role_root = run_root / "roles/product-director"
+    for relative in (
+        "divergence-review.json",
+        "oracle-review.json",
+        "downstream-consumption.json",
+    ):
+        remove_tree(role_root / relative)
+
+
+def remove_formal_report(run_root: Path) -> None:
+    role_root = run_root / "roles/product-director"
+    for relative in ("content-audit-report.json", "content-audit-summary.md"):
+        remove_tree(role_root / relative)
+
+
+def set_stopped_attempts(run_root: Path, *, keep_canonical_files: bool) -> None:
+    role_root = run_root / "roles/product-director"
+    for lane_id in ("a", "b"):
+        attempt_root = role_root / f"executor-{lane_id}/attempt-1"
+        attempt_path = attempt_root / "replay-attempt.json"
+        manifest_path = attempt_root / "artifact-manifest.json"
+        attempt = read_json(attempt_path)
+        attempt["attempt_status"] = "STOPPED"
+        attempt["output_refs"] = []
+        attempt["blocking_fact_refs"] = [run_ref("case/oracle-manifest.json")]
+        write_json(attempt_path, attempt)
+        manifest = read_json(manifest_path)
+        manifest["canonical_output_refs"] = []
+        write_json(manifest_path, manifest)
+        if not keep_canonical_files:
+            remove_tree(attempt_root / "canonical")
+    downstream_path = role_root / "downstream-consumption.json"
+    downstream = read_json(downstream_path)
+    for candidate in downstream["candidate_results"]:
+        lane_id = candidate["lane_id"]
+        candidate["input_status"] = "BLOCKED_UPSTREAM"
+        candidate["consumer_action"] = "Wait for the blocking fact to be resolved."
+        candidate["evidence_refs"] = [
+            run_ref(
+                f"roles/product-director/executor-{lane_id}/attempt-1/replay-attempt.json"
+            )
+        ]
+    write_json(downstream_path, downstream)
 
 
 def mutate(run_root: Path, name: str) -> None:
@@ -1260,6 +1482,11 @@ def mutate(run_root: Path, name: str) -> None:
         write_json(lane_a_path, lane)
         verdict = read_json(verdict_path)
         verdict["decisive_attempt_refs"][0] = copy.deepcopy(attempt_2_ref)
+        for ref in verdict["evidence_refs"]:
+            if ref["path"] == (
+                "roles/product-director/executor-a/attempt-1/replay-attempt.json"
+            ):
+                ref["path"] = attempt_2_ref["path"]
         write_json(verdict_path, verdict)
         downstream_path = role_root / "downstream-consumption.json"
         downstream = read_json(downstream_path)
@@ -1267,6 +1494,7 @@ def mutate(run_root: Path, name: str) -> None:
             "roles/product-director/executor-a/attempt-2/canonical/brief.json"
         )
         write_json(downstream_path, downstream)
+        index_present_product_director_artifacts(run_root)
     elif name == "immutable_retry_history":
         copy_attempt(run_root, "a", 1, 3)
         attempt_2_path, _, manifest_2_path = copy_attempt(run_root, "a", 1, 2)
@@ -1293,6 +1521,11 @@ def mutate(run_root: Path, name: str) -> None:
         verdict["decisive_attempt_refs"][0] = copy.deepcopy(
             lane["decisive_attempt_ref"]
         )
+        for ref in verdict["evidence_refs"]:
+            if ref["path"] == (
+                "roles/product-director/executor-a/attempt-1/replay-attempt.json"
+            ):
+                ref["path"] = lane["decisive_attempt_ref"]["path"]
         write_json(verdict_path, verdict)
         downstream_path = role_root / "downstream-consumption.json"
         downstream = read_json(downstream_path)
@@ -1300,6 +1533,7 @@ def mutate(run_root: Path, name: str) -> None:
             "roles/product-director/executor-a/attempt-3/canonical/brief.json"
         )
         write_json(downstream_path, downstream)
+        index_present_product_director_artifacts(run_root)
     elif name == "content_pass_declared":
         payload = read_json(verdict_path)
         payload["verdict"] = "CONTENT_PASS"
@@ -1440,43 +1674,96 @@ def mutate(run_root: Path, name: str) -> None:
         verdict["evidence_refs"] = [
             run_ref("roles/product-director/surface.json"),
             run_ref("roles/product-director/decision-atoms.json"),
+            run_ref("roles/product-director/content-audit-report.json"),
         ]
         write_json(verdict_path, verdict)
-        run_path = run_root / "run.json"
-        run = read_json(run_path)
-        run["global_state"] = "REPAIR_REQUIRED"
-        run["primary_role_outcome"]["product-director"] = "CONTENT_FAIL"
-        run["next_authorized_action"] = "repair static content defects"
-        write_json(run_path, run)
-        set_product_director_role_refs(
+        set_closed_track(
             run_root,
-            [
-                "surface.json",
-                "decision-atoms.json",
-                "content-audit-alignment.json",
-                "content-audit-report.json",
-                "role-verdict.json",
-            ],
+            current_stage="ROLE_VERDICT",
+            closure_stage="role-verdict",
+            global_state="BLOCKED_ISOLATION",
+            role_outcome="CONTENT_FAIL",
+            next_action="repair static content defects",
         )
-    elif name == "role_global_mismatch":
+        index_present_product_director_artifacts(run_root)
+    elif name in {"role_global_mismatch", "declared_global_not_blocked"}:
         mutate(run_root, "direct_static_content_fail")
         path = run_root / "run.json"
         payload = read_json(path)
-        payload["global_state"] = "BLOCKED_EVIDENCE"
+        payload["global_state"] = "REPAIR_REQUIRED"
         write_json(path, payload)
-    elif name == "unavailable_baselines_blocked_evidence":
-        clear_replay_and_reviews(run_root)
-        surface = read_json(surface_path)
-        runtime = surface["runtime_inheritance"]
-        runtime["unresolved_file_inputs"] = [
-            {"input_id": "HOME-RULES", "reason": "Runtime input is unavailable."}
+    elif name.startswith("branch_d_") and name not in {
+        "branch_d_missing_reviews",
+    }:
+        verdict_value = {
+            "branch_d_content_fail": "CONTENT_FAIL",
+            "branch_d_blocked_oracle": "BLOCKED_ORACLE",
+            "branch_d_blocked_evidence": "BLOCKED_EVIDENCE",
+            "branch_d_blocked_isolation": "BLOCKED_ISOLATION",
+        }.get(name)
+        if verdict_value is None:
+            raise ValueError(f"unknown Branch D mutation: {name}")
+        set_role_verdict_value(run_root, verdict_value)
+        index_present_product_director_artifacts(run_root)
+    elif name == "branch_d_missing_reviews":
+        clear_branch_d_reviews(run_root)
+        verdict = read_json(verdict_path)
+        verdict["evidence_refs"] = [
+            ref
+            for ref in verdict["evidence_refs"]
+            if PurePosixPath(ref["path"]).name
+            not in {
+                "divergence-review.json",
+                "oracle-review.json",
+                "downstream-consumption.json",
+            }
         ]
-        runtime.pop("inherited_runtime_digest", None)
-        runtime["inherited_runtime_unavailable"] = {
-            "reason_code": "UNRESOLVED_FILE_INPUT",
-            "evidence_refs": [run_ref("case/input-manifest.json")],
-        }
-        write_json(surface_path, surface)
+        write_json(verdict_path, verdict)
+        index_present_product_director_artifacts(run_root)
+    elif name == "unindexed_present_artifact":
+        index_present_product_director_artifacts(run_root)
+        path = run_root / "run.json"
+        run = read_json(path)
+        run["role_refs"]["product-director"] = [
+            ref
+            for ref in run["role_refs"]["product-director"]
+            if ref["path"]
+            != "roles/product-director/executor-a/attempt-1/transcript.json"
+        ]
+        write_json(path, run)
+    elif name == "duplicate_role_ref":
+        index_present_product_director_artifacts(run_root)
+        path = run_root / "run.json"
+        run = read_json(path)
+        run["role_refs"]["product-director"].append(
+            copy.deepcopy(run["role_refs"]["product-director"][0])
+        )
+        write_json(path, run)
+    elif name == "verdict_evidence_incomplete":
+        verdict = read_json(verdict_path)
+        verdict["evidence_refs"] = [
+            ref
+            for ref in verdict["evidence_refs"]
+            if PurePosixPath(ref["path"]).name != "downstream-consumption.json"
+        ]
+        write_json(verdict_path, verdict)
+        index_present_product_director_artifacts(run_root)
+    elif name in {
+        "unavailable_baselines_blocked_evidence",
+        "branch_b_admission",
+        "branch_b_missing_verdict",
+        "branch_b_missing_outcome",
+        "branch_b_missing_typed_evidence",
+    }:
+        clear_replay_and_reviews(run_root)
+        for relative in (
+            "surface.json",
+            "decision-atoms.json",
+            "content-audit-alignment.json",
+            "content-audit-report.json",
+            "content-audit-summary.md",
+        ):
+            remove_tree(role_root / relative)
         input_manifest = read_json(input_path)
         for field in (
             "product_director_content_digest",
@@ -1506,88 +1793,175 @@ def mutate(run_root: Path, name: str) -> None:
         verdict["reason_codes"] = ["UNRESOLVED_FILE_INPUT"]
         verdict["evidence_refs"] = [
             run_ref("case/input-manifest.json"),
-            run_ref("roles/product-director/surface.json"),
+            run_ref("case/oracle-manifest.json"),
         ]
+        verdict.pop("audit_report_ref", None)
         write_json(verdict_path, verdict)
+        set_closed_track(
+            run_root,
+            current_stage="CASE_ADMISSION",
+            closure_stage="terminal-run",
+            global_state="BLOCKED_ISOLATION",
+            role_outcome="BLOCKED_EVIDENCE",
+            next_action="supply unavailable runtime inputs",
+        )
         run_path = run_root / "run.json"
         run = read_json(run_path)
-        run["global_state"] = "BLOCKED_EVIDENCE"
-        run["primary_role_outcome"]["product-director"] = "BLOCKED_EVIDENCE"
-        run["next_authorized_action"] = "supply unavailable runtime inputs"
+        run["isolation_assessment"]["evidence_refs"] = [
+            run_ref("case/input-manifest.json")
+        ]
         write_json(run_path, run)
-        set_product_director_role_refs(
+        if name == "branch_b_missing_verdict":
+            remove_tree(verdict_path)
+        elif name == "branch_b_missing_outcome":
+            run_path = run_root / "run.json"
+            run = read_json(run_path)
+            run.pop("primary_role_outcome", None)
+            write_json(run_path, run)
+        elif name == "branch_b_missing_typed_evidence":
+            verdict = read_json(verdict_path)
+            verdict["unavailable_baselines"] = verdict["unavailable_baselines"][:1]
+            write_json(verdict_path, verdict)
+        index_present_product_director_artifacts(run_root)
+    elif name == "branch_b_static":
+        clear_replay_and_reviews(run_root)
+        remove_formal_report(run_root)
+        verdict = read_json(verdict_path)
+        verdict["verdict"] = "BLOCKED_ORACLE"
+        verdict["decisive_attempt_refs"] = []
+        verdict["reason_codes"] = ["BUSINESS_ORACLE_CONFLICT"]
+        verdict["evidence_refs"] = [
+            run_ref("case/oracle-manifest.json"),
+            run_ref("roles/product-director/surface.json"),
+            run_ref("roles/product-director/decision-atoms.json"),
+            run_ref("roles/product-director/content-audit-alignment.json"),
+        ]
+        verdict.pop("audit_report_ref", None)
+        write_json(verdict_path, verdict)
+        set_closed_track(
             run_root,
-            [
-                "surface.json",
-                "decision-atoms.json",
-                "content-audit-alignment.json",
-                "content-audit-report.json",
-                "role-verdict.json",
-            ],
+            current_stage="STATIC_AUDIT",
+            closure_stage="terminal-run",
+            global_state="BLOCKED_ISOLATION",
+            role_outcome="BLOCKED_ORACLE",
+            next_action="resolve the Business Oracle conflict",
         )
+        index_present_product_director_artifacts(run_root)
     elif name in {
-        "terminal_all_contaminated",
+        "branch_b_diagnostic",
+        "branch_b_diagnostic_missing_blocker",
         "terminal_unrecoverable_infra",
     }:
-        terminal = (
-            "ALL_CONTAMINATED"
-            if name == "terminal_all_contaminated"
-            else "UNRECOVERABLE_INFRA_FAILURE"
-        )
-        status = (
-            "VOID_CONTAMINATED"
-            if name == "terminal_all_contaminated"
-            else "INFRA_FAILURE"
-        )
-        for lane_id in ("a", "b"):
-            attempt_path = (
-                role_root / f"executor-{lane_id}/attempt-1/replay-attempt.json"
+        clear_branch_d_reviews(run_root)
+        remove_formal_report(run_root)
+        attempt = read_json(attempt_b_path)
+        attempt["attempt_status"] = "INFRA_FAILURE"
+        attempt["output_refs"] = []
+        attempt["blocking_fact_refs"] = [run_ref("case/input-manifest.json")]
+        write_json(attempt_b_path, attempt)
+        manifest_path = role_root / "executor-b/attempt-1/artifact-manifest.json"
+        manifest = read_json(manifest_path)
+        manifest["canonical_output_refs"] = []
+        write_json(manifest_path, manifest)
+        remove_tree(role_root / "executor-b/attempt-1/canonical")
+        lane_b = read_json(lane_b_path)
+        lane_b["terminal_condition"] = "UNRECOVERABLE_INFRA_FAILURE"
+        lane_b.pop("decisive_attempt_ref", None)
+        write_json(lane_b_path, lane_b)
+        verdict = read_json(verdict_path)
+        verdict["verdict"] = "BLOCKED_EVIDENCE"
+        verdict["decisive_attempt_refs"] = [
+            run_ref(
+                "roles/product-director/executor-a/attempt-1/replay-attempt.json"
             )
-            manifest_path = (
-                role_root / f"executor-{lane_id}/attempt-1/artifact-manifest.json"
-            )
-            make_non_output_attempt(attempt_path, manifest_path, status)
-            remove_tree(role_root / f"executor-{lane_id}/attempt-1/canonical")
-            lane_path = role_root / f"executor-{lane_id}/replay-lane.json"
-            lane = read_json(lane_path)
-            lane["terminal_condition"] = terminal
-            lane.pop("decisive_attempt_ref", None)
-            write_json(lane_path, lane)
-        for relative in (
-            "divergence-review.json",
-            "oracle-review.json",
-            "downstream-consumption.json",
-            "role-verdict.json",
-            "content-audit-alignment.json",
-            "content-audit-report.json",
-            "content-audit-summary.md",
-        ):
-            remove_tree(role_root / relative)
-        run_path = run_root / "run.json"
-        run = read_json(run_path)
-        run["current_stage"] = "DIAGNOSTIC_REPLAY"
-        run["closure_validation_stage"] = "terminal-run"
-        run["global_state"] = (
-            "INCONCLUSIVE_CONTAMINATED"
-            if terminal == "ALL_CONTAMINATED"
-            else "BLOCKED_EVIDENCE"
-        )
-        run.pop("primary_role_outcome", None)
-        run["next_authorized_action"] = (
-            "replace contaminated evidence"
-            if terminal == "ALL_CONTAMINATED"
-            else "repair replay infrastructure"
-        )
-        write_json(run_path, run)
-        set_product_director_role_refs(
+        ]
+        verdict["reason_codes"] = ["UNRECOVERABLE_INFRASTRUCTURE"]
+        verdict["evidence_refs"] = [
+            run_ref("roles/product-director/executor-b/replay-lane.json"),
+            run_ref(
+                "roles/product-director/executor-b/attempt-1/replay-attempt.json"
+            ),
+            run_ref("case/input-manifest.json"),
+        ]
+        verdict.pop("audit_report_ref", None)
+        write_json(verdict_path, verdict)
+        set_closed_track(
             run_root,
-            [
-                "surface.json",
-                "decision-atoms.json",
-                "executor-a/replay-lane.json",
-                "executor-b/replay-lane.json",
-            ],
+            current_stage="DIAGNOSTIC_REPLAY",
+            closure_stage="terminal-run",
+            global_state="BLOCKED_ISOLATION",
+            role_outcome="BLOCKED_EVIDENCE",
+            next_action="repair replay infrastructure",
         )
+        if name == "branch_b_diagnostic_missing_blocker":
+            attempt = read_json(attempt_b_path)
+            attempt.pop("blocking_fact_refs", None)
+            write_json(attempt_b_path, attempt)
+        index_present_product_director_artifacts(run_root)
+    elif name in {
+        "terminal_all_contaminated",
+        "branch_a_single_lane_triple",
+        "branch_a_one_contaminated",
+        "branch_a_two_contaminated",
+        "branch_a_missing_contamination_evidence",
+    }:
+        attempt_count = {
+            "branch_a_one_contaminated": 1,
+            "branch_a_two_contaminated": 2,
+        }.get(name, 3)
+        make_lane_contaminated_history(run_root, "a", attempt_count)
+        if name == "branch_a_missing_contamination_evidence":
+            path = role_root / "executor-a/attempt-3/replay-attempt.json"
+            attempt = read_json(path)
+            attempt["contamination_findings"] = []
+            write_json(path, attempt)
+        clear_branch_d_reviews(run_root)
+        remove_tree(verdict_path)
+        remove_formal_report(run_root)
+        set_closed_track(
+            run_root,
+            current_stage="DIAGNOSTIC_REPLAY",
+            closure_stage="terminal-run",
+            global_state="INCONCLUSIVE_CONTAMINATED",
+            role_outcome=None,
+            next_action="replace contaminated evidence",
+        )
+        index_present_product_director_artifacts(run_root)
+    elif name in {"open_static", "open_static_future_artifacts"}:
+        if name == "open_static":
+            clear_replay_and_reviews(run_root)
+        remove_tree(verdict_path)
+        remove_formal_report(run_root)
+        set_open_track(run_root, "STATIC_AUDIT")
+        index_present_product_director_artifacts(run_root)
+    elif name in {
+        "open_diagnostic",
+        "open_diagnostic_missing_review",
+        "open_diagnostic_one_lane",
+    }:
+        remove_tree(verdict_path)
+        remove_formal_report(run_root)
+        set_open_track(run_root, "DIAGNOSTIC_REPLAY")
+        if name == "open_diagnostic_missing_review":
+            remove_tree(role_root / "downstream-consumption.json")
+        elif name == "open_diagnostic_one_lane":
+            remove_tree(role_root / "executor-b")
+            divergence_path = role_root / "divergence-review.json"
+            divergence = read_json(divergence_path)
+            divergence["lane_refs"] = divergence["lane_refs"][:1]
+            divergence["comparisons"][0]["lane_evidence_refs"] = (
+                divergence["comparisons"][0]["lane_evidence_refs"][:1]
+            )
+            write_json(divergence_path, divergence)
+            oracle_review_path = role_root / "oracle-review.json"
+            oracle_review = read_json(oracle_review_path)
+            oracle_review["lane_refs"] = oracle_review["lane_refs"][:1]
+            write_json(oracle_review_path, oracle_review)
+            downstream_path = role_root / "downstream-consumption.json"
+            downstream = read_json(downstream_path)
+            downstream["candidate_results"] = downstream["candidate_results"][:1]
+            write_json(downstream_path, downstream)
+        index_present_product_director_artifacts(run_root)
     elif name == "terminal_empty":
         clear_replay_and_reviews(run_root)
         remove_tree(verdict_path)
@@ -1612,25 +1986,11 @@ def mutate(run_root: Path, name: str) -> None:
                 "decision-atoms.json",
             ],
         )
-    elif name == "stopped_attempts":
-        for lane_id in ("a", "b"):
-            attempt_path = (
-                role_root
-                / f"executor-{lane_id}/attempt-1/replay-attempt.json"
-            )
-            manifest_path = (
-                role_root / f"executor-{lane_id}/attempt-1/artifact-manifest.json"
-            )
-            attempt = read_json(attempt_path)
-            attempt["attempt_status"] = "STOPPED"
-            attempt["output_refs"] = []
-            attempt["blocking_fact_refs"] = [
-                run_ref("case/oracle-manifest.json")
-            ]
-            write_json(attempt_path, attempt)
-            manifest = read_json(manifest_path)
-            manifest["canonical_output_refs"] = []
-            write_json(manifest_path, manifest)
+    elif name in {"stopped_attempts", "stopped_canonical_residue"}:
+        set_stopped_attempts(
+            run_root, keep_canonical_files=name == "stopped_canonical_residue"
+        )
+        index_present_product_director_artifacts(run_root)
     else:
         raise ValueError(f"unknown mutation: {name}")
 
