@@ -1838,6 +1838,22 @@
       "timeout_sec": 180
     },
     {
+      "id": "standard-chain-content-readiness-contract",
+      "command": [
+        "bash",
+        "tests/test-standard-chain-content-readiness-contract.sh"
+      ],
+      "area": "standard-chain",
+      "tier": "quick",
+      "tags": [
+        "contract",
+        "content-readiness",
+        "evaluation"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
       "id": "standard-chain-hard-gate-boundary-contract",
       "command": [
         "bash",

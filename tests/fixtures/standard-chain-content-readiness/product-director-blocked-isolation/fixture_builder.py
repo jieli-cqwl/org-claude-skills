@@ -1,0 +1,1288 @@
+#!/usr/bin/env python3
+"""Build and mutate the portable content-readiness contract fixture."""
+
+from __future__ import annotations
+
+import argparse
+import copy
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Any
+
+PRIMARY_ROLES = [
+    "product-director",
+    "product-manager",
+    "design",
+    "test-design",
+    "tech-lead",
+    "delivery-owner",
+]
+ZERO_SHA = "0" * 64
+ZERO_COMMIT = "0" * 40
+
+
+def canonical_bytes(value: object) -> bytes:
+    return json.dumps(
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+
+
+def digest(value: object) -> str:
+    return hashlib.sha256(canonical_bytes(value)).hexdigest()
+
+
+def file_digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def read_json(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"{path}: expected JSON object")
+    return value
+
+
+def write_json(path: Path, value: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+
+
+def run_git(repo: Path, *args: str) -> str:
+    return subprocess.check_output(
+        ["git", "-C", str(repo), *args], text=True, stderr=subprocess.STDOUT
+    ).strip()
+
+
+def init_source_repo(path: Path, label: str) -> dict[str, str]:
+    path.mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", "-b", "main", str(path)], check=True)
+    run_git(path, "config", "user.name", "Synthetic Fixture")
+    run_git(path, "config", "user.email", "fixture@example.invalid")
+
+    (path / "base.txt").write_text(f"{label} baseline\n", encoding="utf-8")
+    (path / "rename-me.txt").write_text(f"{label} rename source\n", encoding="utf-8")
+    run_git(path, "add", ".")
+    run_git(path, "commit", "-q", "-m", "baseline")
+    baseline = run_git(path, "rev-parse", "HEAD")
+
+    (path / "base.txt").write_text(f"{label} normal change\n", encoding="utf-8")
+    run_git(path, "add", "base.txt")
+    run_git(path, "commit", "-q", "-m", "normal change")
+    normal = run_git(path, "rev-parse", "HEAD")
+
+    run_git(path, "checkout", "-q", "-b", "side")
+    run_git(path, "mv", "rename-me.txt", "renamed.txt")
+    run_git(path, "commit", "-q", "-m", "rename on side")
+    side = run_git(path, "rev-parse", "HEAD")
+
+    run_git(path, "checkout", "-q", "main")
+    (path / "main-only.txt").write_text(f"{label} main parent\n", encoding="utf-8")
+    run_git(path, "add", "main-only.txt")
+    run_git(path, "commit", "-q", "-m", "main parent")
+    run_git(path, "merge", "-q", "--no-ff", "side", "-m", "two parent merge")
+    merge = run_git(path, "rev-parse", "HEAD")
+
+    (path / "result.txt").write_text(f"{label} result\n", encoding="utf-8")
+    run_git(path, "add", "result.txt")
+    run_git(path, "commit", "-q", "-m", "result")
+    result = run_git(path, "rev-parse", "HEAD")
+    return {
+        "root": str(path.resolve()),
+        "baseline": baseline,
+        "normal": normal,
+        "side": side,
+        "merge": merge,
+        "result": result,
+    }
+
+
+def command_init_sources(args: argparse.Namespace) -> None:
+    root = Path(args.output_root).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "synthetic-app": init_source_repo(root / "synthetic-app", "app"),
+        "synthetic-backend": init_source_repo(
+            root / "synthetic-backend", "backend"
+        ),
+    }
+    write_json(Path(args.descriptor), payload)
+
+
+def scoped_ref(
+    scope: str,
+    path: str,
+    *,
+    source_id: str | None = None,
+    commit: str | None = None,
+    blob: str | None = None,
+    line: int | None = None,
+) -> dict[str, Any]:
+    value: dict[str, Any] = {"scope": scope, "path": path, "sha256": ZERO_SHA}
+    if source_id is not None:
+        value["source_id"] = source_id
+    if commit is not None:
+        value["commit"] = commit
+    if blob is not None:
+        value["blob"] = blob
+    if line is not None:
+        value["line"] = line
+    return value
+
+
+def run_ref(path: str) -> dict[str, Any]:
+    return scoped_ref("run", path)
+
+
+def repo_ref(
+    path: str,
+    *,
+    commit: str | None = None,
+    blob: str | None = None,
+    line: int | None = None,
+) -> dict[str, Any]:
+    return scoped_ref("repo", path, commit=commit, blob=blob, line=line)
+
+
+def external_ref(
+    source_id: str,
+    path: str,
+    *,
+    commit: str | None = None,
+    blob: str | None = None,
+    line: int | None = None,
+) -> dict[str, Any]:
+    return scoped_ref(
+        "external_repo",
+        path,
+        source_id=source_id,
+        commit=commit,
+        blob=blob,
+        line=line,
+    )
+
+
+def git_blob(repo: Path, commit: str, path: str) -> str:
+    return run_git(repo, "rev-parse", f"{commit}:{path}")
+
+
+def build_canonical_artifacts(
+    template: dict[str, Any], run_root: Path, lane_id: str
+) -> list[dict[str, Any]]:
+    feature = f"qft-qmi-pc-001-executor-{lane_id}"
+    relative_root = f"roles/product-director/executor-{lane_id}/attempt-1/canonical"
+    output_root = run_root / relative_root
+    business = copy.deepcopy(template["canonical_business"])
+    produced_at = "2026-07-14T12:00:00Z"
+    registry_digest = "sha256:" + hashlib.sha256(b"synthetic-registry").hexdigest()
+
+    def add_envelope(
+        payload: dict[str, Any],
+        artifact_type: str,
+        artifact_id: str,
+        authority_scope: str,
+        fields: list[str],
+    ) -> None:
+        locked_fields = {field: payload[field] for field in fields}
+        payload.update(
+            {
+                "artifact_type": artifact_type,
+                "artifact_id": artifact_id,
+                "schema_version": "1.0.0",
+                "producer": "product-director",
+                "produced_at": produced_at,
+                "chain_version": "standard-chain/v1",
+                "chain_registry_digest": registry_digest,
+                "authority_scope": authority_scope,
+                "authoritative_fields": [f"$.{field}" for field in fields]
+                + ["$.director_confirmation"],
+                "director_confirmation": {
+                    "status": "passed",
+                    "confirmed_at": produced_at,
+                    "locked_field_digest": "sha256:" + digest(locked_fields),
+                    "locked_fields": locked_fields,
+                },
+            }
+        )
+
+    brief_fields = [
+        "root_problem",
+        "user_profile",
+        "business_goals",
+        "appetite",
+        "scope_boundaries",
+        "non_goals",
+        "feasibility_constraints",
+        "risks_and_unknowns",
+        "decision_rationale",
+        "delivery_plan",
+    ]
+    brief = {field: business[field] for field in brief_fields}
+    phase_fields = ["phase_goal", "entry_conditions", "exit_conditions"]
+    phase = {field: business[field] for field in phase_fields}
+    add_envelope(brief, "brief", f"{feature}.brief", "feature", brief_fields)
+    add_envelope(
+        phase, "phase-prd", f"{feature}.phase-1.prd", "phase", phase_fields
+    )
+
+    steps = [
+        "问题澄清",
+        "目标、成功标准与投入边界",
+        "业务语义收口",
+        "范围、本期不做、可行性约束与决策理由",
+        "风险与未知项",
+        "Phase 规划",
+        "Director Finalization",
+    ]
+    summaries = [
+        "Root problem confirmed because split inventory records cause 4 missed exceptions per week.",
+        "Success standard confirmed: reduce 4 weekly misses to zero in a 30-day observation window with a single focused investment phase.",
+        "Business semantics set the inventory desk as owner of the daily exception review.",
+        "Scope includes daily visibility and explicitly excludes supplier automation.",
+        "Risk confirmed: daily export cadence remains bounded to the Phase 1 baseline.",
+        "Phase confirmed as one 10-day daily exception-review value slice.",
+        "Director Finalization accepts the synthetic brief and phase result as the handoff baseline.",
+    ]
+    confirmations = []
+    for index, (step, summary) in enumerate(zip(steps, summaries), start=1):
+        confirmations.append(
+            {
+                "checkpoint_id": f"SYN-PD-{index:02d}",
+                "step": step,
+                "subject_ref": f"{feature}:{step}",
+                "confirmed_at": f"2026-07-14T12:{index:02d}:00Z",
+                "decision_summary": summary,
+                "source_refs": [f"docs/{feature}/brief.json"],
+                "output_refs": [
+                    f"docs/{feature}/brief.json",
+                    f"docs/{feature}/phase-1/phase-prd.json",
+                ],
+            }
+        )
+    ledger = {
+        "artifact_type": "co-creation-ledger",
+        "schema_version": "1.0.0",
+        "producer": "product-director",
+        "scope_ref": f"docs/{feature}",
+        "current_state": {
+            "summary": "Synthetic Director baseline finalized for inventory review",
+            "source_refs": [f"docs/{feature}/brief.json"],
+            "next_step": "ready for downstream detail work",
+        },
+        "latest_checkpoint_id": confirmations[-1]["checkpoint_id"],
+        "confirmations": confirmations,
+        "open_questions": [],
+        "supersedes": [],
+        "handoff_refs": [
+            f"docs/{feature}/brief.json",
+            f"docs/{feature}/phase-1/phase-prd.json",
+        ],
+        "finalization_basis": {
+            "status": "confirmed",
+            "confirmed_at": produced_at,
+            "summary": "All synthetic Director checkpoints were accepted",
+            "accepted_checkpoint_ids": [
+                item["checkpoint_id"] for item in confirmations
+            ],
+        },
+    }
+
+    paths = {
+        "brief.json": brief,
+        "phase-1/phase-prd.json": phase,
+        "product-director-ledger.json": ledger,
+    }
+    refs = []
+    for relative, payload in paths.items():
+        write_json(output_root / relative, payload)
+        refs.append(run_ref(f"{relative_root}/{relative}"))
+    return refs
+
+
+def prepare_audit_artifacts(repo_root: Path, run_root: Path) -> None:
+    role_root = run_root / "roles/product-director"
+    alignment_path = role_root / "content-audit-alignment.json"
+    report_path = role_root / "content-audit-report.json"
+    summary_path = role_root / "content-audit-summary.md"
+    alignment = read_json(
+        repo_root / "tests/fixtures/skill-quality-audit/alignments/valid-alignment.json"
+    )
+    report = read_json(
+        repo_root / "shared/skills/skill-quality-audit/evals/fixtures/reports/valid-report.json"
+    )
+
+    alignment["target_skill"] = "shared/skills/product-director"
+    for claim in alignment["target_capability_claims"]:
+        claim["target_capability_id"] = "SC-CAP-PD-001"
+        claim["label"] = "Synthetic Product Director case-bounded capability"
+        claim["refs"] = [
+            "docs/superpowers/specs/2026-07-14--standard-chain-manual-content-readiness-evaluation--design.md:36"
+        ]
+    alignment["capability_match_draft"]["gaps"][0][
+        "target_capability_id"
+    ] = "SC-CAP-PD-001"
+    alignment["user_confirmation"]["confirmed_target_capability_ids"] = [
+        "SC-CAP-PD-001"
+    ]
+    standard = alignment["capability_effectiveness_standard"]
+    standard["target_capability_ids"] = ["SC-CAP-PD-001"]
+    standard["confirmation_evidence"] = {
+        "status": "recorded_user_confirmation",
+        "ref": "docs/superpowers/specs/2026-07-14--standard-chain-manual-content-readiness-evaluation--approval-record.md:8",
+        "path": "docs/superpowers/specs/2026-07-14--standard-chain-manual-content-readiness-evaluation--approval-record.md",
+        "line": 8,
+        "expected_snippet": "批准设计",
+        "claim": "The immutable approval record confirms the capability baseline.",
+    }
+    write_json(alignment_path, alignment)
+
+    report["target_skill"] = "shared/skills/product-director"
+    report["artifact_paths"] = {
+        "report_json": str(report_path),
+        "summary_markdown": str(summary_path),
+    }
+    report["capability_baseline_ref"] = str(alignment_path)
+    report["confirmed_target_capability_ids"] = ["SC-CAP-PD-001"]
+    for item in report["content_behavior_audit"]:
+        item["target_capability_id"] = "SC-CAP-PD-001"
+    report["validation"] = {
+        "status": "PASS",
+        "alignment": {
+            "status": "PASS",
+            "command": f"python3 validate_skill_audit_alignment.py {alignment_path}",
+            "output": "[PASS] skill audit alignment valid",
+        },
+        "report": {
+            "status": "PASS",
+            "command": f"python3 validate_skill_audit_report.py {report_path}",
+            "output": "[PASS] skill audit report valid",
+        },
+    }
+    write_json(report_path, report)
+    summary_path.write_text(
+        "# Synthetic Product Director content audit\n\nEvaluation fixture only.\n",
+        encoding="utf-8",
+    )
+
+
+def build_run(
+    repo_root: Path,
+    template_path: Path,
+    run_root: Path,
+    runtime_root: Path,
+    descriptor_path: Path,
+    denominators: list[Path],
+) -> dict[str, str]:
+    template = read_json(template_path)
+    sources = read_json(descriptor_path)
+    if run_root.exists():
+        shutil.rmtree(run_root)
+    run_root.mkdir(parents=True)
+    runtime_root.mkdir(parents=True, exist_ok=True)
+    (runtime_root / "mandatory-runtime.md").write_text(
+        "synthetic inherited runtime contract\n", encoding="utf-8"
+    )
+    (runtime_root / "harness.txt").write_text(
+        "synthetic harness descriptor evidence\n", encoding="utf-8"
+    )
+    prepare_audit_artifacts(repo_root, run_root)
+
+    head = run_git(repo_root, "rev-parse", "HEAD")
+    approval_commit = "d7efad0923136d5cf7c9390a2d38a22cb6a71ff2"
+    design_commit = "293f624455eb9570f9426b457fadfbb946351049"
+    approval_path = "docs/superpowers/specs/2026-07-14--standard-chain-manual-content-readiness-evaluation--approval-record.md"
+    design_path = "docs/superpowers/specs/2026-07-14--standard-chain-manual-content-readiness-evaluation--design.md"
+    approval_ref = repo_ref(
+        approval_path,
+        commit=approval_commit,
+        blob=git_blob(repo_root, approval_commit, approval_path),
+        line=8,
+    )
+    design_ref = repo_ref(
+        design_path,
+        commit=design_commit,
+        blob=git_blob(repo_root, design_commit, design_path),
+        line=36,
+    )
+    case_id = template["case_id"]
+    role = template["role"]
+
+    write_json(
+        run_root / "case/confirmation-ref.json",
+        {
+            "artifact_type": "confirmation-ref",
+            "schema_version": 1,
+            "case_id": case_id,
+            "design_ref": design_ref,
+            "approval_ref": approval_ref,
+            "approval_line": 8,
+            "capability_line": 18,
+            "approved_capability_ids": [template["capability_id"]],
+            "approved_oracle_atom_ids": [
+                atom["atom_id"] for atom in template["oracle_atoms"]
+            ],
+            "approved_scope_lines": [8, 18],
+            "stale_if": [
+                "the approved design commit changes",
+                "the approval record no longer contains the capability id",
+            ],
+        },
+    )
+
+    runtime_ref = external_ref("synthetic-runtime", "mandatory-runtime.md")
+    harness_ref = external_ref("synthetic-runtime", "harness.txt")
+    surface_file_ref = repo_ref(
+        "shared/skills/product-director/SKILL.md",
+        commit=head,
+        blob=git_blob(repo_root, head, "shared/skills/product-director/SKILL.md"),
+        line=1,
+    )
+    source_ref = copy.deepcopy(surface_file_ref)
+
+    denominator_sources = []
+    for denominator_path in denominators:
+        denominator = read_json(denominator_path)["source"]
+        for atom in denominator["source_atoms"]:
+            atom["classification"] = "relevant"
+            atom["reason"] = "Synthetic changed-path atom is in the fixture denominator."
+            atom["oracle_atom_ids"] = [template["oracle_atoms"][0]["atom_id"]]
+        denominator_sources.append(denominator)
+    write_json(
+        run_root / "case/source-classification.json",
+        {
+            "artifact_type": "source-classification",
+            "schema_version": 1,
+            "case_id": case_id,
+            "path_diff_policy": "first_parent",
+            "sources": denominator_sources,
+        },
+    )
+
+    first_source_id = "synthetic-app"
+    first_source = sources[first_source_id]
+    baseline_ref = external_ref(
+        first_source_id,
+        "base.txt",
+        commit=first_source["baseline"],
+        blob=git_blob(Path(first_source["root"]), first_source["baseline"], "base.txt"),
+        line=1,
+    )
+    oracle_atoms = []
+    for atom in template["oracle_atoms"]:
+        oracle_atoms.append(
+            {
+                **copy.deepcopy(atom),
+                "approval_ref": copy.deepcopy(approval_ref),
+                "design_line": 36,
+                "historical_support_refs": [copy.deepcopy(baseline_ref)],
+            }
+        )
+    proxy_facts = []
+    for fact in template["business_proxy_facts"]:
+        proxy_facts.append(
+            {
+                **copy.deepcopy(fact),
+                "authority_refs": [copy.deepcopy(approval_ref)],
+            }
+        )
+    write_json(
+        run_root / "case/oracle-manifest.json",
+        {
+            "artifact_type": "oracle-manifest",
+            "schema_version": 1,
+            "case_id": case_id,
+            "oracle_version": template["oracle_version"],
+            "authority_ref": copy.deepcopy(approval_ref),
+            "atoms": oracle_atoms,
+            "business_proxy_facts": proxy_facts,
+        },
+    )
+
+    write_json(
+        run_root / "case/input-manifest.json",
+        {
+            "artifact_type": "input-manifest",
+            "schema_version": 1,
+            "case_id": case_id,
+            "starting_clue": "A synthetic inventory desk misses stock-exception follow-ups.",
+            "executor_visible": [copy.deepcopy(surface_file_ref), copy.deepcopy(baseline_ref)],
+            "reviewer_only": [run_ref("case/oracle-manifest.json")],
+            "forbidden_to_executor": [run_ref("case/source-classification.json")],
+            "baseline_code_view": [copy.deepcopy(baseline_ref)],
+            "oracle_version": template["oracle_version"],
+            "product_director_content_digest": ZERO_SHA,
+            "inherited_runtime_digest": ZERO_SHA,
+            "inherited_runtime_refs": [copy.deepcopy(runtime_ref)],
+            "authorized_business_proxy_fact_key_digest": ZERO_SHA,
+            "starting_input_sha256": ZERO_SHA,
+        },
+    )
+
+    surface = {
+        "artifact_type": "role-surface",
+        "schema_version": 1,
+        "case_id": case_id,
+        "role": role,
+        "repo_revision": head,
+        "files": [
+            {
+                "ref": copy.deepcopy(surface_file_ref),
+                "surface_class": "skill",
+                "in_scope_reason": "Synthetic fixture exercises the current role package.",
+                "consumer_refs": ["standard-chain:product-manager"],
+            }
+        ],
+        "dependency_edges": [
+            {
+                "from": "shared/skills/product-director/SKILL.md",
+                "to": "standard-chain:product-manager",
+                "relation": "canonical-handoff",
+            }
+        ],
+        "scope_surfaces": ["SKILL.md", "runtime inheritance", "completion gate"],
+        "runtime_inheritance": {
+            "probe_prompt": "List mandatory inherited runtime inputs.",
+            "probe_response": "One synthetic runtime file and one harness descriptor.",
+            "declared_mandatory_refs": [copy.deepcopy(runtime_ref)],
+            "harness_descriptor": {
+                "runner": "synthetic-local",
+                "version": "1",
+                "descriptor_ref": harness_ref,
+            },
+            "unresolved_file_inputs": [],
+            "unobservable_nonfile_injections": ["system instructions"],
+            "system_injection_observable": False,
+            "evidence_level": "DECLARED_ONLY",
+            "inherited_runtime_digest": ZERO_SHA,
+        },
+    }
+    write_json(run_root / f"roles/{role}/surface.json", surface)
+
+    decision_atom = {
+        "atom_id": "SYN-PD-ATOM-001",
+        "sentence_class": "required-action",
+        "source_ref": source_ref,
+        "trigger": "A root problem clue is supplied.",
+        "fact_source": "business proxy response",
+        "decision_owner": "product-director",
+        "action_mode": "required",
+        "action": "Clarify the root problem and success standard.",
+        "artifact_or_state_change": "Update the synthetic Director baseline.",
+        "completion_evidence": "Canonical brief and phase outputs pass their gates.",
+        "failure_conflict_unknown_route": "Stop and request the missing business decision.",
+        "downstream_consumer": "product-manager",
+        "validator_or_harness": "Product Director completion gate",
+        "static_assessment": "The instruction is traceable but isolation remains declared-only.",
+    }
+    write_json(
+        run_root / f"roles/{role}/decision-atoms.json",
+        {
+            "artifact_type": "decision-atom-register",
+            "schema_version": 1,
+            "case_id": case_id,
+            "role": role,
+            "target_capability_id": template["capability_id"],
+            "atoms": [decision_atom],
+        },
+    )
+
+    fact = proxy_facts[0]
+    public_answer = {
+        "fact_key": fact["fact_key"],
+        "fact_class": fact["fact_class"],
+        "answer_text": fact["answer_text"],
+    }
+    lane_refs = []
+    decisive_refs = []
+    for lane_id in ("a", "b"):
+        lane_base = f"roles/{role}/executor-{lane_id}"
+        attempt_base = f"{lane_base}/attempt-1"
+        staging_root = run_root.parent / f"staging-{lane_id}"
+        output_root = run_root.parent / f"output-{lane_id}"
+        staging_root.mkdir(parents=True, exist_ok=True)
+        output_root.mkdir(parents=True, exist_ok=True)
+        (staging_root / "input.txt").write_text(
+            "synthetic identical starting input\n", encoding="utf-8"
+        )
+        staged_files = [
+            {"path": "input.txt", "sha256": file_digest(staging_root / "input.txt")}
+        ]
+        canonical_refs = build_canonical_artifacts(template, run_root, lane_id)
+        write_json(
+            run_root / f"{attempt_base}/transcript.json",
+            {
+                "artifact_type": "transcript",
+                "schema_version": 1,
+                "case_id": case_id,
+                "role": role,
+                "lane_id": lane_id,
+                "attempt_number": 1,
+                "turns": [
+                    {
+                        "turn_number": 1,
+                        "actor": "executor",
+                        "message": "Who owns the daily exception review?",
+                        "visible_fact_keys": [],
+                        "state_before": "root-problem-clue",
+                        "state_after": "owner-question-open",
+                    },
+                    {
+                        "turn_number": 2,
+                        "actor": "business-proxy",
+                        "message": canonical_bytes([public_answer]).decode("utf-8"),
+                        "visible_fact_keys": [fact["fact_key"]],
+                        "state_before": "owner-question-open",
+                        "state_after": "owner-confirmed",
+                        "answers": [copy.deepcopy(public_answer)],
+                        "answer_authority_refs": [
+                            {
+                                "fact_key": fact["fact_key"],
+                                "authority_refs": copy.deepcopy(fact["authority_refs"]),
+                            }
+                        ],
+                    },
+                ],
+            },
+        )
+        write_json(
+            run_root / f"{attempt_base}/artifact-manifest.json",
+            {
+                "artifact_type": "artifact-manifest",
+                "schema_version": 1,
+                "case_id": case_id,
+                "role": role,
+                "lane_id": lane_id,
+                "attempt_number": 1,
+                "evaluation_only": True,
+                "canonical_output_refs": canonical_refs,
+            },
+        )
+        attempt_path = f"{attempt_base}/replay-attempt.json"
+        write_json(
+            run_root / attempt_path,
+            {
+                "artifact_type": "replay-attempt",
+                "schema_version": 1,
+                "case_id": case_id,
+                "role": role,
+                "lane_id": lane_id,
+                "attempt_number": 1,
+                "starting_input_sha256": ZERO_SHA,
+                "oracle_version": template["oracle_version"],
+                "isolation_level": "DECLARED_ONLY",
+                "attempt_status": "COMPLETED",
+                "environment": {
+                    "staging_root": str(staging_root.resolve()),
+                    "output_root": str(output_root.resolve()),
+                    "pwd": str(staging_root.resolve()),
+                    "staging_root_realpath": str(staging_root.resolve()),
+                    "output_root_realpath": str(output_root.resolve()),
+                    "resolved_runtime_root": str(runtime_root.resolve()),
+                    "tool_versions": {"python": "synthetic-3"},
+                    "staged_files": staged_files,
+                    "staged_manifest_digest": digest(staged_files),
+                },
+                "actual_read_declaration": [
+                    {
+                        "path": "input.txt",
+                        "sha256": staged_files[0]["sha256"],
+                        "authorization_result": "AUTHORIZED_STAGED",
+                    },
+                    {
+                        "path": str((runtime_root / "mandatory-runtime.md").resolve()),
+                        "sha256": file_digest(runtime_root / "mandatory-runtime.md"),
+                        "authorization_result": "AUTHORIZED_INHERITED",
+                    },
+                ],
+                "commands": ["read staged input", "write canonical output"],
+                "business_fact_keys_received": [fact["fact_key"]],
+                "output_refs": [
+                    run_ref(f"{attempt_base}/transcript.json"),
+                    run_ref(f"{attempt_base}/artifact-manifest.json"),
+                ],
+                "continue_stop_return": "return",
+                "contamination_findings": [],
+            },
+        )
+        lane_path = f"{lane_base}/replay-lane.json"
+        write_json(
+            run_root / lane_path,
+            {
+                "artifact_type": "replay-lane",
+                "schema_version": 1,
+                "case_id": case_id,
+                "role": role,
+                "lane_id": lane_id,
+                "ordered_attempt_refs": [run_ref(attempt_path)],
+                "terminal_condition": "DECISIVE",
+                "decisive_attempt_ref": run_ref(attempt_path),
+            },
+        )
+        lane_refs.append(run_ref(lane_path))
+        decisive_refs.append(run_ref(attempt_path))
+
+    write_json(
+        run_root / f"roles/{role}/divergence-review.json",
+        {
+            "artifact_type": "divergence-review",
+            "schema_version": 1,
+            "case_id": case_id,
+            "role": role,
+            "lane_refs": copy.deepcopy(lane_refs),
+            "comparisons": [
+                {
+                    "subject": "root problem and success standard",
+                    "classification": "ALLOWED_VARIATION",
+                    "lane_evidence_refs": [
+                        run_ref(f"roles/{role}/executor-a/attempt-1/transcript.json"),
+                        run_ref(f"roles/{role}/executor-b/attempt-1/transcript.json"),
+                    ],
+                    "impact": "No decision-changing drift.",
+                    "owner": "evaluation-reviewer",
+                }
+            ],
+            "blocking_findings": [],
+        },
+    )
+    write_json(
+        run_root / f"roles/{role}/oracle-review.json",
+        {
+            "artifact_type": "oracle-review",
+            "schema_version": 1,
+            "case_id": case_id,
+            "role": role,
+            "lane_refs": copy.deepcopy(lane_refs),
+            "field_checks": [
+                {
+                    "artifact_field_ref": "brief.json:$.root_problem",
+                    "oracle_atom_ids": [template["oracle_atoms"][0]["atom_id"]],
+                    "fact_class": "fact",
+                    "result": "MATCH",
+                    "evidence_refs": [copy.deepcopy(approval_ref)],
+                }
+            ],
+            "historical_implementation_boundary": "Synthetic history supports shape only and owns no business truth.",
+        },
+    )
+    write_json(
+        run_root / f"roles/{role}/downstream-consumption.json",
+        {
+            "artifact_type": "downstream-consumption",
+            "schema_version": 1,
+            "case_id": case_id,
+            "producer_role": role,
+            "consumer_role": "product-manager",
+            "candidate_results": [
+                {
+                    "lane_id": lane_id,
+                    "input_status": "CANONICAL_HANDOFF",
+                    "consumer_action": "Consume the synthetic Director baseline.",
+                    "checks": ["single source", "confirmed facts", "unknowns"],
+                    "evidence_refs": [
+                        run_ref(
+                            f"roles/{role}/executor-{lane_id}/attempt-1/canonical/brief.json"
+                        )
+                    ],
+                }
+                for lane_id in ("a", "b")
+            ],
+        },
+    )
+
+    verdict_path = f"roles/{role}/role-verdict.json"
+    write_json(
+        run_root / verdict_path,
+        {
+            "artifact_type": "role-verdict",
+            "schema_version": 1,
+            "case_id": case_id,
+            "role": role,
+            "verdict_scope": "case_bounded_content_readiness",
+            "skill_revision": head,
+            "audit_report_ref": run_ref(f"roles/{role}/content-audit-report.json"),
+            "decisive_attempt_refs": decisive_refs,
+            "isolation_level": "DECLARED_ONLY",
+            "oracle_bridge_used": False,
+            "open_p0_p1": 0,
+            "verdict": "BLOCKED_ISOLATION",
+            "reason_codes": ["DECLARED_ONLY_RUNTIME"],
+            "evidence_refs": [
+                run_ref(f"roles/{role}/surface.json"),
+                run_ref(f"roles/{role}/divergence-review.json"),
+                run_ref(f"roles/{role}/oracle-review.json"),
+            ],
+            "claim_boundaries": [
+                "Synthetic fixture only.",
+                "Declared-only isolation cannot support content pass.",
+            ],
+            "next_decision": "Provide observed or enforced isolation before pass.",
+            "content_digest": ZERO_SHA,
+            "inherited_runtime_digest": ZERO_SHA,
+        },
+    )
+
+    role_ref_paths = [
+        f"roles/{role}/surface.json",
+        f"roles/{role}/decision-atoms.json",
+        f"roles/{role}/content-audit-alignment.json",
+        f"roles/{role}/content-audit-report.json",
+        f"roles/{role}/executor-a/replay-lane.json",
+        f"roles/{role}/executor-b/replay-lane.json",
+        f"roles/{role}/divergence-review.json",
+        f"roles/{role}/oracle-review.json",
+        f"roles/{role}/downstream-consumption.json",
+        verdict_path,
+    ]
+    run_payload = {
+        "artifact_type": "run",
+        "schema_version": 1,
+        "run_id": "SYNTHETIC-PD-RUN-001",
+        "case_id": case_id,
+        "evaluation_only": True,
+        "lifecycle_status": "CLOSED",
+        "current_stage": "ROLE_VERDICT",
+        "active_role": role,
+        "primary_roles": PRIMARY_ROLES,
+        "evaluated_roles": [role],
+        "case_refs": {
+            "confirmation": run_ref("case/confirmation-ref.json"),
+            "input": run_ref("case/input-manifest.json"),
+            "oracle": run_ref("case/oracle-manifest.json"),
+            "source_classification": run_ref("case/source-classification.json"),
+        },
+        "role_refs": {role: [run_ref(path) for path in role_ref_paths]},
+        "isolation_assessment": {
+            "level": "DECLARED_ONLY",
+            "reason_codes": ["UNOBSERVABLE_SYSTEM_INJECTION"],
+            "evidence_refs": [run_ref(f"roles/{role}/surface.json")],
+        },
+        "global_state": "BLOCKED_ISOLATION",
+        "primary_role_outcome": {role: "BLOCKED_ISOLATION"},
+        "next_authorized_action": "improve isolation evidence",
+        "closure_validation_stage": "role-verdict",
+    }
+    write_json(run_root / "run.json", run_payload)
+
+    source_roots = {key: Path(value["root"]) for key, value in sources.items()}
+    source_roots["synthetic-runtime"] = runtime_root
+    refresh_refs(repo_root, run_root, source_roots)
+    recompute_derived(run_root)
+    refresh_refs(repo_root, run_root, source_roots)
+    recompute_derived(run_root)
+    refresh_refs(repo_root, run_root, source_roots)
+    return {key: str(value) for key, value in source_roots.items()}
+
+
+def iter_refs(value: object):
+    if isinstance(value, dict):
+        if {"scope", "path", "sha256"} <= set(value):
+            yield value
+        for child in value.values():
+            yield from iter_refs(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from iter_refs(child)
+
+
+def ref_bytes(
+    repo_root: Path,
+    run_root: Path,
+    source_roots: dict[str, Path],
+    ref: dict[str, Any],
+) -> bytes:
+    scope = ref["scope"]
+    if scope == "repo":
+        root = repo_root
+    elif scope == "run":
+        root = run_root
+    elif scope == "external_repo":
+        root = source_roots[ref["source_id"]]
+    else:
+        raise ValueError(f"unsupported scope in fixture: {scope}")
+    if "commit" in ref:
+        return subprocess.check_output(
+            ["git", "-C", str(root), "show", f"{ref['commit']}:{ref['path']}"],
+            stderr=subprocess.DEVNULL,
+        )
+    return (root / ref["path"]).read_bytes()
+
+
+def refresh_refs(
+    repo_root: Path,
+    run_root: Path,
+    source_roots: dict[str, Path],
+) -> None:
+    paths = sorted(run_root.rglob("*.json"))
+    for _ in range(32):
+        changed = False
+        for path in paths:
+            payload = read_json(path)
+            before = canonical_bytes(payload)
+            for ref in iter_refs(payload):
+                try:
+                    raw = ref_bytes(repo_root, run_root, source_roots, ref)
+                except (KeyError, OSError, ValueError, subprocess.SubprocessError):
+                    # Negative cases deliberately leave one malformed leaf ref. The
+                    # fixture refresher still updates owning artifact refs so the
+                    # production validator, not test setup, owns that rejection.
+                    continue
+                ref["sha256"] = hashlib.sha256(raw).hexdigest()
+                if "commit" in ref:
+                    root = (
+                        repo_root
+                        if ref["scope"] == "repo"
+                        else source_roots[ref["source_id"]]
+                    )
+                    ref["blob"] = git_blob(root, ref["commit"], ref["path"])
+            if before != canonical_bytes(payload):
+                write_json(path, payload)
+                changed = True
+        if not changed:
+            return
+    raise RuntimeError("fixture refs did not reach a stable digest state")
+
+
+def recompute_derived(run_root: Path) -> None:
+    surface_path = run_root / "roles/product-director/surface.json"
+    oracle_path = run_root / "case/oracle-manifest.json"
+    input_path = run_root / "case/input-manifest.json"
+    verdict_path = run_root / "roles/product-director/role-verdict.json"
+    surface = read_json(surface_path)
+    oracle = read_json(oracle_path)
+    input_manifest = read_json(input_path)
+    runtime = surface["runtime_inheritance"]
+    content_projection = sorted(
+        (item["ref"] for item in surface["files"]),
+        key=lambda item: canonical_bytes(item),
+    )
+    proxy_projection = {
+        item["fact_key"]: {
+            "fact_class": item["fact_class"],
+            "answer_text": item["answer_text"],
+            "authority_refs": item["authority_refs"],
+        }
+        for item in sorted(
+            oracle["business_proxy_facts"], key=lambda item: item["fact_key"]
+        )
+    }
+    runtime_projection = {
+        "declared_mandatory_refs": sorted(
+            runtime["declared_mandatory_refs"], key=lambda item: canonical_bytes(item)
+        ),
+        "harness_descriptor": runtime["harness_descriptor"],
+    }
+    content_digest = digest(content_projection)
+    fact_digest = digest(proxy_projection)
+    runtime_digest = digest(runtime_projection)
+    input_manifest["product_director_content_digest"] = content_digest
+    input_manifest["authorized_business_proxy_fact_key_digest"] = fact_digest
+    input_manifest["inherited_runtime_digest"] = runtime_digest
+    starting_projection = {
+        "starting_clue": input_manifest["starting_clue"],
+        "product_director_content_digest": content_digest,
+        "inherited_runtime_digest": runtime_digest,
+        "oracle_version": input_manifest["oracle_version"],
+        "authorized_business_proxy_fact_key_digest": fact_digest,
+    }
+    input_manifest["starting_input_sha256"] = digest(starting_projection)
+    write_json(input_path, input_manifest)
+    runtime["inherited_runtime_digest"] = runtime_digest
+    write_json(surface_path, surface)
+    verdict = read_json(verdict_path)
+    verdict["content_digest"] = content_digest
+    verdict["inherited_runtime_digest"] = runtime_digest
+    write_json(verdict_path, verdict)
+    for lane_id in ("a", "b"):
+        attempt_path = (
+            run_root
+            / f"roles/product-director/executor-{lane_id}/attempt-1/replay-attempt.json"
+        )
+        attempt = read_json(attempt_path)
+        attempt["starting_input_sha256"] = input_manifest["starting_input_sha256"]
+        attempt["environment"]["staged_manifest_digest"] = digest(
+            attempt["environment"]["staged_files"]
+        )
+        write_json(attempt_path, attempt)
+
+
+def command_build(args: argparse.Namespace) -> None:
+    source_roots = build_run(
+        Path(args.repo_root).resolve(),
+        Path(args.template).resolve(),
+        Path(args.run_root).resolve(),
+        Path(args.runtime_root).resolve(),
+        Path(args.descriptor).resolve(),
+        [Path(path).resolve() for path in args.denominator],
+    )
+    write_json(Path(args.source_roots_output), source_roots)
+
+
+def load_source_roots(path: Path) -> dict[str, Path]:
+    return {key: Path(value) for key, value in read_json(path).items()}
+
+
+def command_refresh(args: argparse.Namespace) -> None:
+    refresh_refs(
+        Path(args.repo_root).resolve(),
+        Path(args.run_root).resolve(),
+        load_source_roots(Path(args.source_roots).resolve()),
+    )
+
+
+def mutate(run_root: Path, name: str) -> None:
+    role_root = run_root / "roles/product-director"
+    input_path = run_root / "case/input-manifest.json"
+    surface_path = role_root / "surface.json"
+    verdict_path = role_root / "role-verdict.json"
+    attempt_a_path = role_root / "executor-a/attempt-1/replay-attempt.json"
+    attempt_b_path = role_root / "executor-b/attempt-1/replay-attempt.json"
+    lane_a_path = role_root / "executor-a/replay-lane.json"
+    lane_b_path = role_root / "executor-b/replay-lane.json"
+    transcript_b_path = role_root / "executor-b/attempt-1/transcript.json"
+
+    if name == "absolute_path":
+        payload = read_json(input_path)
+        payload["executor_visible"][0]["path"] = "/tmp/forbidden"
+        write_json(input_path, payload)
+    elif name == "parent_escape":
+        payload = read_json(input_path)
+        payload["executor_visible"][0]["path"] = "../forbidden"
+        write_json(input_path, payload)
+    elif name == "wrong_scope":
+        payload = read_json(input_path)
+        payload["executor_visible"][0]["scope"] = "mystery"
+        write_json(input_path, payload)
+    elif name == "missing_source_root":
+        payload = read_json(input_path)
+        payload["executor_visible"][0] = external_ref("unmapped-source", "x.txt")
+        write_json(input_path, payload)
+    elif name == "stale_file_sha":
+        payload = read_json(input_path)
+        payload["executor_visible"][0]["sha256"] = ZERO_SHA
+        write_json(input_path, payload)
+    elif name == "stale_approval":
+        path = run_root / "case/confirmation-ref.json"
+        payload = read_json(path)
+        payload["approval_ref"]["line"] = 999
+        write_json(path, payload)
+    elif name.startswith("source_"):
+        path = run_root / "case/source-classification.json"
+        payload = read_json(path)
+        source = payload["sources"][0]
+        if name == "source_missing_commit":
+            source["ancestry_commits"].pop()
+        elif name == "source_wrong_parent":
+            source["source_atoms"][0]["parent_commit"] = ZERO_COMMIT
+        elif name == "source_missing_rename_previous":
+            rename = next(
+                atom
+                for atom in source["source_atoms"]
+                if atom["change_status"].startswith("R")
+            )
+            rename.pop("previous_path", None)
+        elif name == "source_duplicate_atom":
+            source["source_atoms"].append(copy.deepcopy(source["source_atoms"][0]))
+        write_json(path, payload)
+    elif name == "lane_starting_input":
+        payload = read_json(attempt_b_path)
+        payload["starting_input_sha256"] = ZERO_SHA
+        write_json(attempt_b_path, payload)
+    elif name in {"business_answer_drift", "business_message_drift"}:
+        payload = read_json(transcript_b_path)
+        proxy_turn = payload["turns"][1]
+        if name == "business_answer_drift":
+            proxy_turn["answers"][0]["answer_text"] = "A different owner."
+            proxy_turn["message"] = canonical_bytes(proxy_turn["answers"]).decode(
+                "utf-8"
+            )
+        else:
+            proxy_turn["message"] = "{}"
+        write_json(transcript_b_path, payload)
+    elif name == "stale_proxy_digest":
+        path = run_root / "case/oracle-manifest.json"
+        payload = read_json(path)
+        payload["business_proxy_facts"][0]["answer_text"] = "Changed baseline."
+        write_json(path, payload)
+    elif name == "stale_runtime_digest":
+        payload = read_json(surface_path)
+        payload["runtime_inheritance"]["harness_descriptor"]["version"] = "2"
+        write_json(surface_path, payload)
+    elif name == "stale_starting_input":
+        payload = read_json(input_path)
+        payload["starting_input_sha256"] = ZERO_SHA
+        write_json(input_path, payload)
+    elif name == "unresolved_runtime":
+        payload = read_json(surface_path)
+        payload["runtime_inheritance"]["unresolved_file_inputs"] = [
+            {
+                "input_id": "HOME-RULES",
+                "reason": "Synthetic unresolved inherited file.",
+            }
+        ]
+        write_json(surface_path, payload)
+    elif name == "unauthorized_read":
+        payload = read_json(attempt_a_path)
+        payload["actual_read_declaration"].append(
+            {
+                "path": "/tmp/not-authorized.txt",
+                "sha256": ZERO_SHA,
+                "authorization_result": "AUTHORIZED_STAGED",
+            }
+        )
+        write_json(attempt_a_path, payload)
+    elif name == "contaminated_decisive":
+        payload = read_json(attempt_a_path)
+        payload["attempt_status"] = "VOID_CONTAMINATED"
+        write_json(attempt_a_path, payload)
+    elif name == "attempt_limit":
+        lane = read_json(lane_a_path)
+        original = read_json(attempt_a_path)
+        for number in (2, 3, 4):
+            attempt = copy.deepcopy(original)
+            attempt["attempt_number"] = number
+            path = f"roles/product-director/executor-a/attempt-{number}/replay-attempt.json"
+            write_json(run_root / path, attempt)
+            lane["ordered_attempt_refs"].append(run_ref(path))
+        lane["decisive_attempt_ref"] = copy.deepcopy(lane["ordered_attempt_refs"][-1])
+        write_json(lane_a_path, lane)
+    elif name == "attempt_history_gap":
+        lane = read_json(lane_a_path)
+        attempt = read_json(attempt_a_path)
+        attempt["attempt_number"] = 3
+        path = "roles/product-director/executor-a/attempt-3/replay-attempt.json"
+        write_json(run_root / path, attempt)
+        lane["ordered_attempt_refs"].append(run_ref(path))
+        write_json(lane_a_path, lane)
+    elif name == "infra_decisive":
+        payload = read_json(attempt_a_path)
+        payload["attempt_status"] = "INFRA_FAILURE"
+        write_json(attempt_a_path, payload)
+    elif name == "content_pass_declared":
+        payload = read_json(verdict_path)
+        payload["verdict"] = "CONTENT_PASS"
+        write_json(verdict_path, payload)
+    elif name == "missing_baseline":
+        payload = read_json(verdict_path)
+        payload.pop("content_digest")
+        write_json(verdict_path, payload)
+    elif name == "partial_baseline":
+        payload = read_json(verdict_path)
+        payload["content_digest"] = "partial"
+        write_json(verdict_path, payload)
+    elif name == "bridge_pass":
+        payload = read_json(verdict_path)
+        payload["verdict"] = "CONTENT_PASS"
+        payload["isolation_level"] = "OBSERVED"
+        payload["oracle_bridge_used"] = True
+        write_json(verdict_path, payload)
+    elif name == "canonical_metadata":
+        path = role_root / "executor-a/attempt-1/canonical/brief.json"
+        payload = read_json(path)
+        payload["evaluation_only"] = True
+        write_json(path, payload)
+    elif name == "child_report_failure":
+        path = role_root / "content-audit-report.json"
+        payload = read_json(path)
+        payload["overall_score"] = 99
+        write_json(path, payload)
+    elif name == "child_alignment_failure":
+        path = role_root / "content-audit-alignment.json"
+        payload = read_json(path)
+        payload["stage"] = "draft"
+        write_json(path, payload)
+    elif name == "early_chain_verdict":
+        write_json(
+            run_root / "chain-verdict.json",
+            {
+                "artifact_type": "chain-verdict",
+                "schema_version": 1,
+                "case_id": read_json(run_root / "run.json")["case_id"],
+                "role_verdict_refs": [run_ref(str(verdict_path.relative_to(run_root)))],
+                "isolation_level": "OBSERVED",
+                "oracle_bridge_used": False,
+                "verdict": "CASE_REPLAY_PASS",
+                "evidence_refs": [run_ref(str(verdict_path.relative_to(run_root)))],
+            },
+        )
+    elif name == "replay_pass_state_only":
+        path = run_root / "run.json"
+        payload = read_json(path)
+        payload["global_state"] = "CASE_REPLAY_PASS"
+        write_json(path, payload)
+    elif name == "unsupported_role_verdict":
+        payload = read_json(verdict_path)
+        payload["verdict"] = "READY_FOR_BEHAVIOR_EVAL"
+        write_json(verdict_path, payload)
+    elif name == "unsupported_chain_verdict":
+        mutate(run_root, "early_chain_verdict")
+        path = run_root / "chain-verdict.json"
+        payload = read_json(path)
+        payload["verdict"] = "READY_FOR_BEHAVIOR_EVAL"
+        write_json(path, payload)
+    elif name == "stopped_attempts":
+        for lane_id in ("a", "b"):
+            attempt_path = (
+                role_root
+                / f"executor-{lane_id}/attempt-1/replay-attempt.json"
+            )
+            manifest_path = (
+                role_root / f"executor-{lane_id}/attempt-1/artifact-manifest.json"
+            )
+            attempt = read_json(attempt_path)
+            attempt["attempt_status"] = "STOPPED"
+            attempt["output_refs"] = []
+            attempt["blocking_fact_refs"] = [
+                run_ref("case/oracle-manifest.json")
+            ]
+            write_json(attempt_path, attempt)
+            manifest = read_json(manifest_path)
+            manifest["canonical_output_refs"] = []
+            write_json(manifest_path, manifest)
+    else:
+        raise ValueError(f"unknown mutation: {name}")
+
+
+def command_mutate(args: argparse.Namespace) -> None:
+    mutate(Path(args.run_root).resolve(), args.name)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    init_parser = subparsers.add_parser("init-sources")
+    init_parser.add_argument("--output-root", required=True)
+    init_parser.add_argument("--descriptor", required=True)
+    init_parser.set_defaults(func=command_init_sources)
+
+    build_parser = subparsers.add_parser("build")
+    build_parser.add_argument("--repo-root", required=True)
+    build_parser.add_argument("--template", required=True)
+    build_parser.add_argument("--run-root", required=True)
+    build_parser.add_argument("--runtime-root", required=True)
+    build_parser.add_argument("--descriptor", required=True)
+    build_parser.add_argument("--denominator", action="append", required=True)
+    build_parser.add_argument("--source-roots-output", required=True)
+    build_parser.set_defaults(func=command_build)
+
+    refresh_parser = subparsers.add_parser("refresh")
+    refresh_parser.add_argument("--repo-root", required=True)
+    refresh_parser.add_argument("--run-root", required=True)
+    refresh_parser.add_argument("--source-roots", required=True)
+    refresh_parser.set_defaults(func=command_refresh)
+
+    mutate_parser = subparsers.add_parser("mutate")
+    mutate_parser.add_argument("--run-root", required=True)
+    mutate_parser.add_argument("--name", required=True)
+    mutate_parser.set_defaults(func=command_mutate)
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    parsed = parse_args()
+    parsed.func(parsed)

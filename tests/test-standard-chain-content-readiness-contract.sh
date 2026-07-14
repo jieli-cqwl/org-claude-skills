@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+# File role: prove the evaluation-only content-readiness contract fails closed.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+VALIDATOR="$ROOT/tools/eval/scripts/validate_standard_chain_content_readiness.py"
+FIXTURE="$ROOT/tests/fixtures/standard-chain-content-readiness/product-director-blocked-isolation"
+BUILDER="$FIXTURE/fixture_builder.py"
+TEMPLATE="$FIXTURE/fixture-template.json"
+
+fail() {
+  printf '[FAIL] %s\n' "$*" >&2
+  exit 1
+}
+
+tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/standard-chain-content-readiness.XXXXXX")"
+trap 'rm -rf "$tmpdir"' EXIT
+
+descriptor="$tmpdir/source-descriptor.json"
+python3 "$BUILDER" init-sources \
+  --output-root "$tmpdir/sources" \
+  --descriptor "$descriptor"
+
+read_descriptor() {
+  python3 - "$descriptor" "$1" "$2" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+print(value[sys.argv[2]][sys.argv[3]])
+PY
+}
+
+app_root="$(read_descriptor synthetic-app root)"
+app_baseline="$(read_descriptor synthetic-app baseline)"
+app_result="$(read_descriptor synthetic-app result)"
+backend_root="$(read_descriptor synthetic-backend root)"
+backend_baseline="$(read_descriptor synthetic-backend baseline)"
+backend_result="$(read_descriptor synthetic-backend result)"
+
+# The first RED reaches this boundary after creating portable source histories.
+# Before implementation it must fail only because the validator is absent.
+python3 "$VALIDATOR" \
+  --emit-source-denominator \
+  --source-id synthetic-app \
+  --source-root "synthetic-app=$app_root" \
+  --baseline "$app_baseline" \
+  --result "$app_result" >"$tmpdir/app-denominator.json"
+python3 "$VALIDATOR" \
+  --emit-source-denominator \
+  --source-id synthetic-backend \
+  --source-root "synthetic-backend=$backend_root" \
+  --baseline "$backend_baseline" \
+  --result "$backend_result" >"$tmpdir/backend-denominator.json"
+
+run_root="$tmpdir/valid-run"
+runtime_root="$tmpdir/inherited-runtime"
+source_roots="$tmpdir/source-roots.json"
+python3 "$BUILDER" build \
+  --repo-root "$ROOT" \
+  --template "$TEMPLATE" \
+  --run-root "$run_root" \
+  --runtime-root "$runtime_root" \
+  --descriptor "$descriptor" \
+  --denominator "$tmpdir/app-denominator.json" \
+  --denominator "$tmpdir/backend-denominator.json" \
+  --source-roots-output "$source_roots"
+
+validator_args=(
+  "$VALIDATOR"
+  "$run_root"
+  --require-role product-director
+  --require-stage role-verdict
+  --source-root "synthetic-app=$app_root"
+  --source-root "synthetic-backend=$backend_root"
+  --source-root "synthetic-runtime=$runtime_root"
+)
+
+positive_output="$tmpdir/positive.json"
+python3 "${validator_args[@]}" >"$positive_output"
+python3 - "$positive_output" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if value.get("status") != "PASS":
+    raise SystemExit(f"positive fixture did not pass: {value}")
+if value.get("checked_stage") != "role-verdict":
+    raise SystemExit(f"wrong checked stage: {value.get('checked_stage')}")
+if value.get("failures") != []:
+    raise SystemExit(f"positive fixture has failures: {value.get('failures')}")
+PY
+
+refresh_case() {
+  local case_root="$1"
+  python3 "$BUILDER" refresh \
+    --repo-root "$ROOT" \
+    --run-root "$case_root" \
+    --source-roots "$source_roots"
+}
+
+expect_failure() {
+  local mutation="$1" expected="$2" refresh="${3:-yes}"
+  local case_root="$tmpdir/negative-$mutation" output="$tmpdir/negative-$mutation.json"
+  cp -R "$run_root" "$case_root"
+  python3 "$BUILDER" mutate --run-root "$case_root" --name "$mutation"
+  if [[ "$refresh" == "yes" ]]; then
+    refresh_case "$case_root"
+  fi
+  if python3 "$VALIDATOR" "$case_root" \
+    --require-role product-director \
+    --require-stage role-verdict \
+    --source-root "synthetic-app=$app_root" \
+    --source-root "synthetic-backend=$backend_root" \
+    --source-root "synthetic-runtime=$runtime_root" >"$output"; then
+    fail "$mutation unexpectedly passed"
+  fi
+  python3 - "$output" "$expected" "$mutation" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+expected = sys.argv[2]
+haystack = json.dumps(
+    {
+        "failures": value.get("failures", []),
+        "invoked_validators": value.get("invoked_validators", []),
+    },
+    ensure_ascii=False,
+)
+if value.get("status") != "FAIL" or expected not in haystack:
+    raise SystemExit(
+        f"{sys.argv[3]}: expected rejection {expected!r}, observed {value}"
+    )
+PY
+}
+
+expect_failure absolute_path "artifact path must be relative"
+expect_failure parent_escape "artifact path must not escape its scope"
+expect_failure wrong_scope "unsupported ref scope"
+expect_failure missing_source_root "missing external_repo source-root mapping"
+expect_failure stale_file_sha "stale file SHA-256" no
+expect_failure stale_approval "stale approval reference"
+expect_failure stale_proxy_digest "stale business proxy baseline digest"
+expect_failure stale_runtime_digest "stale inherited runtime digest"
+expect_failure stale_starting_input "stale starting input digest"
+
+expect_failure source_missing_commit "source classification denominator mismatch"
+expect_failure source_wrong_parent "source classification denominator mismatch"
+expect_failure source_missing_rename_previous "source classification denominator mismatch"
+expect_failure source_duplicate_atom "source classification denominator mismatch"
+
+expect_failure lane_starting_input "lane starting input mismatch"
+expect_failure business_answer_drift "business proxy answer drift"
+expect_failure business_message_drift "business proxy answer drift"
+expect_failure unresolved_runtime "unresolved runtime input cannot claim complete digest"
+expect_failure unauthorized_read "unauthorized executor read"
+expect_failure contaminated_decisive "contaminated attempt cannot be decisive"
+expect_failure attempt_limit "attempt limit exceeded"
+expect_failure attempt_history_gap "attempt history must be immutable and contiguous"
+expect_failure infra_decisive "infrastructure failure cannot be decisive"
+expect_failure content_pass_declared "CONTENT_PASS requires ENFORCED or OBSERVED"
+expect_failure missing_baseline "missing baseline digest is not legally blocked"
+expect_failure partial_baseline "missing baseline digest is not legally blocked"
+expect_failure bridge_pass "authentic role pass cannot depend on oracle bridge"
+expect_failure canonical_metadata "canonical artifact contains evaluation metadata"
+expect_failure child_report_failure "skill audit report validator failed"
+expect_failure child_alignment_failure "skill audit alignment validator failed"
+expect_failure early_chain_verdict "chain verdict requires all primary roles"
+expect_failure replay_pass_state_only "CASE_REPLAY_PASS requires six CONTENT_PASS roles, chain verdict, ENFORCED/OBSERVED and no bridge"
+expect_failure unsupported_role_verdict "unsupported verdict"
+expect_failure unsupported_chain_verdict "unsupported verdict"
+
+stopped_root="$tmpdir/stopped-run"
+stopped_output="$tmpdir/stopped-output.json"
+cp -R "$run_root" "$stopped_root"
+python3 "$BUILDER" mutate --run-root "$stopped_root" --name stopped_attempts
+refresh_case "$stopped_root"
+python3 "$VALIDATOR" "$stopped_root" \
+  --require-role product-director \
+  --require-stage role-verdict \
+  --source-root "synthetic-app=$app_root" \
+  --source-root "synthetic-backend=$backend_root" \
+  --source-root "synthetic-runtime=$runtime_root" >"$stopped_output"
+python3 - "$stopped_output" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if value.get("status") != "PASS":
+    raise SystemExit(f"correctly stopped attempts must pass: {value}")
+names = [item.get("name", "") for item in value.get("invoked_validators", [])]
+if any(name.startswith("product-director-canonical-") for name in names):
+    raise SystemExit(f"stopped attempt invoked canonical gates: {names}")
+PY
+
+duplicate_output="$tmpdir/duplicate-source-root.json"
+if python3 "$VALIDATOR" "$run_root" \
+  --source-root "synthetic-app=$app_root" \
+  --source-root "synthetic-app=$app_root" >"$duplicate_output"; then
+  fail "duplicate source-root IDs unexpectedly passed"
+fi
+python3 - "$duplicate_output" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if "duplicate --source-root ID" not in json.dumps(value.get("failures", [])):
+    raise SystemExit(f"duplicate source-root error not surfaced: {value}")
+PY
+
+printf '[PASS] standard-chain content-readiness evaluation contract\n'

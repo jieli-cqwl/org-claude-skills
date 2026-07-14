@@ -1,0 +1,108 @@
+{
+  "fixture_id": "product-director-blocked-isolation",
+  "case_id": "SYNTHETIC-PD-BLOCKED-ISOLATION-001",
+  "role": "product-director",
+  "capability_id": "SC-CAP-PD-001",
+  "oracle_version": "synthetic-oracle-v1",
+  "oracle_atoms": [
+    {
+      "atom_id": "SYN-ORACLE-001",
+      "business_invariant": "The inventory desk owns the daily exception review before supplier outreach.",
+      "observable_assertion": "Every flagged stock exception appears in one daily review queue with an owner acknowledgement state.",
+      "scope": "Synthetic inventory exception review only.",
+      "exclusions": [
+        "No supplier messaging automation",
+        "No reorder policy changes"
+      ],
+      "business_proxy_fact_keys": [
+        "inventory.review-owner"
+      ]
+    }
+  ],
+  "business_proxy_facts": [
+    {
+      "fact_key": "inventory.review-owner",
+      "fact_class": "fact",
+      "answer_text": "The inventory desk owns the daily stock-exception review."
+    }
+  ],
+  "canonical_business": {
+    "root_problem": "Inventory desk coordinators miss daily stock exceptions because counts are split across exports and chat, causing delayed supplier follow-up and repeated reconciliation work.",
+    "user_profile": [
+      {
+        "who": "inventory desk coordinator",
+        "scenario": "reviewing stock exceptions each morning before supplier follow-up",
+        "current_workaround": "compare a daily export with chat acknowledgements",
+        "workaround_cost": "4 missed stock exceptions per week and repeated reconciliation work"
+      }
+    ],
+    "business_goals": [
+      "reduce missed stock exceptions from 4 per week to zero during the first 30-day observation window",
+      "make daily exception ownership visible before supplier outreach"
+    ],
+    "appetite": {
+      "investment_scale": "single focused phase",
+      "complexity_ceiling": "reuse the daily inventory export and owner directory",
+      "trim_first": "supplier messaging, reorder policy changes, and analytics"
+    },
+    "scope_boundaries": [
+      "identify stock exceptions from the daily inventory export",
+      "show one daily exception queue",
+      "record owner acknowledgement"
+    ],
+    "non_goals": [
+      "do not change reorder rules",
+      "do not send supplier messages",
+      "do not build cross-site analytics"
+    ],
+    "feasibility_constraints": [
+      {
+        "type": "data",
+        "constraint": "the inventory export is available once per business day",
+        "impact_scope": "phase-1 queue freshness",
+        "handling": "limit the phase to daily visibility"
+      }
+    ],
+    "risks_and_unknowns": [
+      {
+        "item": "daily export cadence",
+        "impact": "the cadence bounds the phase baseline",
+        "mitigation": "return to scope review if the cadence changes",
+        "status": "RESOLVED"
+      }
+    ],
+    "decision_rationale": [
+      {
+        "decision": "start with a daily exception queue",
+        "choice": "focus on visibility and acknowledgement",
+        "rationale": "this closes the missed-review loop before automation",
+        "excluded_options": "supplier messaging, reorder policy changes, and analytics"
+      }
+    ],
+    "delivery_plan": [
+      {
+        "phase_id": "phase-1",
+        "goal": "deliver a daily stock-exception review baseline",
+        "iteration_timebox_days": 10
+      }
+    ],
+    "phase_goal": "deliver a daily stock-exception review baseline",
+    "entry_conditions": [
+      "the inventory desk owns the daily exception review",
+      "the daily inventory export remains available",
+      "the owner directory is available"
+    ],
+    "exit_conditions": [
+      "the inventory desk can review every flagged exception in one daily queue",
+      "the inventory desk can see owner acknowledgement for every exception",
+      "weekly reconciliation can count missed reviews from queue evidence"
+    ]
+  },
+  "expected_terminal_facts": {
+    "isolation_level": "DECLARED_ONLY",
+    "role_verdict": "BLOCKED_ISOLATION",
+    "global_state": "BLOCKED_ISOLATION",
+    "oracle_bridge_used": false,
+    "evaluation_only": true
+  }
+}

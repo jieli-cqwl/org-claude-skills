@@ -1,0 +1,697 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qft.local/schemas/standard-chain-content-readiness.schema.json",
+  "schema_version": 1,
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "primary_role": {
+      "type": "string",
+      "enum": [
+        "product-director",
+        "product-manager",
+        "design",
+        "test-design",
+        "tech-lead",
+        "delivery-owner"
+      ]
+    },
+    "isolation_level": {
+      "type": "string",
+      "enum": ["ENFORCED", "OBSERVED", "DECLARED_ONLY"]
+    },
+    "role_verdict_value": {
+      "type": "string",
+      "enum": [
+        "CONTENT_PASS",
+        "CONTENT_FAIL",
+        "BLOCKED_ORACLE",
+        "BLOCKED_EVIDENCE",
+        "BLOCKED_ISOLATION"
+      ]
+    },
+    "scoped_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "path", "sha256"],
+      "properties": {
+        "scope": {
+          "type": "string",
+          "enum": ["repo", "run", "external_repo"]
+        },
+        "path": {"$ref": "#/$defs/non_empty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "source_id": {"$ref": "#/$defs/non_empty_string"},
+        "commit": {"$ref": "#/$defs/commit"},
+        "blob": {"$ref": "#/$defs/commit"},
+        "line": {"type": "integer", "minimum": 1}
+      }
+    },
+    "ref_array": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/scoped_ref"}
+    },
+    "string_array": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"}
+    },
+    "typed_unavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason_code", "evidence_refs"],
+      "properties": {
+        "reason_code": {"$ref": "#/$defs/non_empty_string"},
+        "evidence_refs": {"$ref": "#/$defs/ref_array"}
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "schema_version",
+        "run_id",
+        "case_id",
+        "evaluation_only",
+        "lifecycle_status",
+        "current_stage",
+        "active_role",
+        "primary_roles",
+        "evaluated_roles",
+        "case_refs",
+        "role_refs"
+      ],
+      "properties": {
+        "artifact_type": {"const": "run"},
+        "schema_version": {"const": 1},
+        "run_id": {"$ref": "#/$defs/non_empty_string"},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "evaluation_only": {"const": true},
+        "lifecycle_status": {"type": "string", "enum": ["OPEN", "CLOSED"]},
+        "current_stage": {
+          "type": "string",
+          "enum": ["CASE_ADMISSION", "STATIC_AUDIT", "DIAGNOSTIC_REPLAY", "ROLE_VERDICT"]
+        },
+        "active_role": {"$ref": "#/$defs/primary_role"},
+        "primary_roles": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/primary_role"}
+        },
+        "evaluated_roles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/primary_role"}
+        },
+        "case_refs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["confirmation", "input", "oracle", "source_classification"],
+          "properties": {
+            "confirmation": {"$ref": "#/$defs/scoped_ref"},
+            "input": {"$ref": "#/$defs/scoped_ref"},
+            "oracle": {"$ref": "#/$defs/scoped_ref"},
+            "source_classification": {"$ref": "#/$defs/scoped_ref"}
+          }
+        },
+        "role_refs": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/scoped_ref"}
+          }
+        },
+        "isolation_assessment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "reason_codes", "evidence_refs"],
+          "properties": {
+            "level": {"$ref": "#/$defs/isolation_level"},
+            "reason_codes": {"$ref": "#/$defs/string_array"},
+            "evidence_refs": {"$ref": "#/$defs/ref_array"}
+          }
+        },
+        "global_state": {
+          "type": "string",
+          "enum": [
+            "REPAIR_REQUIRED",
+            "BLOCKED_ORACLE",
+            "BLOCKED_EVIDENCE",
+            "BLOCKED_ISOLATION",
+            "INCONCLUSIVE_CONTAMINATED",
+            "CASE_REPLAY_PASS"
+          ]
+        },
+        "primary_role_outcome": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/role_verdict_value"}
+        },
+        "next_authorized_action": {"$ref": "#/$defs/non_empty_string"},
+        "closure_validation_stage": {
+          "type": "string",
+          "enum": ["admitted", "static-audit", "diagnostic-replay", "role-verdict", "terminal-run"]
+        }
+      }
+    },
+    "confirmation_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type", "schema_version", "case_id", "design_ref", "approval_ref",
+        "approval_line", "capability_line", "approved_capability_ids",
+        "approved_oracle_atom_ids", "approved_scope_lines", "stale_if"
+      ],
+      "properties": {
+        "artifact_type": {"const": "confirmation-ref"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "design_ref": {"$ref": "#/$defs/scoped_ref"},
+        "approval_ref": {"$ref": "#/$defs/scoped_ref"},
+        "approval_line": {"type": "integer", "minimum": 1},
+        "capability_line": {"type": "integer", "minimum": 1},
+        "approved_capability_ids": {"$ref": "#/$defs/string_array"},
+        "approved_oracle_atom_ids": {"$ref": "#/$defs/string_array"},
+        "approved_scope_lines": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+        "stale_if": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "input_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type", "schema_version", "case_id", "starting_clue", "executor_visible",
+        "reviewer_only", "forbidden_to_executor", "baseline_code_view", "oracle_version"
+      ],
+      "properties": {
+        "artifact_type": {"const": "input-manifest"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "starting_clue": {"$ref": "#/$defs/non_empty_string"},
+        "executor_visible": {"$ref": "#/$defs/ref_array"},
+        "reviewer_only": {"$ref": "#/$defs/ref_array"},
+        "forbidden_to_executor": {"$ref": "#/$defs/ref_array"},
+        "baseline_code_view": {"$ref": "#/$defs/ref_array"},
+        "oracle_version": {"$ref": "#/$defs/non_empty_string"},
+        "product_director_content_digest": {"$ref": "#/$defs/sha256"},
+        "inherited_runtime_digest": {"$ref": "#/$defs/sha256"},
+        "inherited_runtime_refs": {"$ref": "#/$defs/ref_array"},
+        "authorized_business_proxy_fact_key_digest": {"$ref": "#/$defs/sha256"},
+        "starting_input_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "oracle_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "oracle_version", "authority_ref", "atoms", "business_proxy_facts"],
+      "properties": {
+        "artifact_type": {"const": "oracle-manifest"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "oracle_version": {"$ref": "#/$defs/non_empty_string"},
+        "authority_ref": {"$ref": "#/$defs/scoped_ref"},
+        "supplement_ref": {"$ref": "#/$defs/scoped_ref"},
+        "atoms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["atom_id", "business_invariant", "observable_assertion", "scope", "exclusions", "approval_ref", "design_line", "historical_support_refs", "business_proxy_fact_keys"],
+            "properties": {
+              "atom_id": {"$ref": "#/$defs/non_empty_string"},
+              "business_invariant": {"$ref": "#/$defs/non_empty_string"},
+              "observable_assertion": {"$ref": "#/$defs/non_empty_string"},
+              "scope": {"$ref": "#/$defs/non_empty_string"},
+              "exclusions": {"$ref": "#/$defs/string_array"},
+              "approval_ref": {"$ref": "#/$defs/scoped_ref"},
+              "design_line": {"type": "integer", "minimum": 1},
+              "historical_support_refs": {"$ref": "#/$defs/ref_array"},
+              "business_proxy_fact_keys": {"$ref": "#/$defs/string_array"}
+            }
+          }
+        },
+        "business_proxy_facts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["fact_key", "fact_class", "answer_text", "authority_refs"],
+            "properties": {
+              "fact_key": {"$ref": "#/$defs/non_empty_string"},
+              "fact_class": {"type": "string", "enum": ["fact", "inference", "assumption", "unknown"]},
+              "answer_text": {"$ref": "#/$defs/non_empty_string"},
+              "authority_refs": {"$ref": "#/$defs/ref_array"}
+            }
+          }
+        }
+      }
+    },
+    "source_classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "path_diff_policy", "sources"],
+      "properties": {
+        "artifact_type": {"const": "source-classification"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "path_diff_policy": {"const": "first_parent"},
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source_id", "baseline_commit", "result_commit", "ancestry_commits", "source_atoms"],
+            "properties": {
+              "source_id": {"$ref": "#/$defs/non_empty_string"},
+              "baseline_commit": {"$ref": "#/$defs/commit"},
+              "result_commit": {"$ref": "#/$defs/commit"},
+              "ancestry_commits": {"type": "array", "items": {"$ref": "#/$defs/commit"}},
+              "source_atoms": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["commit", "parent_commit", "change_status", "path", "classification", "reason", "oracle_atom_ids"],
+                  "properties": {
+                    "commit": {"$ref": "#/$defs/commit"},
+                    "parent_commit": {"$ref": "#/$defs/commit"},
+                    "change_status": {"$ref": "#/$defs/non_empty_string"},
+                    "path": {"$ref": "#/$defs/non_empty_string"},
+                    "previous_path": {"$ref": "#/$defs/non_empty_string"},
+                    "classification": {"type": "string", "enum": ["relevant", "supporting", "unrelated"]},
+                    "reason": {"$ref": "#/$defs/non_empty_string"},
+                    "oracle_atom_ids": {"$ref": "#/$defs/string_array"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "role_surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role", "repo_revision", "files", "dependency_edges", "scope_surfaces", "runtime_inheritance"],
+      "properties": {
+        "artifact_type": {"const": "role-surface"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/primary_role"},
+        "repo_revision": {"$ref": "#/$defs/commit"},
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ref", "surface_class", "in_scope_reason", "consumer_refs"],
+            "properties": {
+              "ref": {"$ref": "#/$defs/scoped_ref"},
+              "surface_class": {"$ref": "#/$defs/non_empty_string"},
+              "in_scope_reason": {"$ref": "#/$defs/non_empty_string"},
+              "consumer_refs": {"$ref": "#/$defs/string_array"}
+            }
+          }
+        },
+        "dependency_edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "relation"],
+            "properties": {
+              "from": {"$ref": "#/$defs/non_empty_string"},
+              "to": {"$ref": "#/$defs/non_empty_string"},
+              "relation": {"$ref": "#/$defs/non_empty_string"}
+            }
+          }
+        },
+        "scope_surfaces": {"$ref": "#/$defs/string_array"},
+        "runtime_inheritance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["probe_prompt", "probe_response", "declared_mandatory_refs", "harness_descriptor", "unresolved_file_inputs", "unobservable_nonfile_injections", "system_injection_observable", "evidence_level"],
+          "properties": {
+            "probe_prompt": {"$ref": "#/$defs/non_empty_string"},
+            "probe_response": {"$ref": "#/$defs/non_empty_string"},
+            "declared_mandatory_refs": {"$ref": "#/$defs/ref_array"},
+            "harness_descriptor": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["runner", "version", "descriptor_ref"],
+              "properties": {
+                "runner": {"$ref": "#/$defs/non_empty_string"},
+                "version": {"$ref": "#/$defs/non_empty_string"},
+                "descriptor_ref": {"$ref": "#/$defs/scoped_ref"}
+              }
+            },
+            "unresolved_file_inputs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["input_id", "reason"],
+                "properties": {
+                  "input_id": {"$ref": "#/$defs/non_empty_string"},
+                  "reason": {"$ref": "#/$defs/non_empty_string"}
+                }
+              }
+            },
+            "unobservable_nonfile_injections": {"$ref": "#/$defs/string_array"},
+            "system_injection_observable": {"const": false},
+            "evidence_level": {"const": "DECLARED_ONLY"},
+            "inherited_runtime_digest": {"$ref": "#/$defs/sha256"},
+            "inherited_runtime_unavailable": {"$ref": "#/$defs/typed_unavailable"}
+          }
+        }
+      }
+    },
+    "decision_atom_register": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role", "target_capability_id", "atoms"],
+      "properties": {
+        "artifact_type": {"const": "decision-atom-register"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/primary_role"},
+        "target_capability_id": {"$ref": "#/$defs/non_empty_string"},
+        "atoms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["atom_id", "sentence_class", "source_ref", "trigger", "fact_source", "decision_owner", "action_mode", "action", "artifact_or_state_change", "completion_evidence", "failure_conflict_unknown_route", "downstream_consumer", "validator_or_harness", "static_assessment"],
+            "properties": {
+              "atom_id": {"$ref": "#/$defs/non_empty_string"},
+              "sentence_class": {"$ref": "#/$defs/non_empty_string"},
+              "source_ref": {"$ref": "#/$defs/scoped_ref"},
+              "trigger": {"$ref": "#/$defs/non_empty_string"},
+              "fact_source": {"$ref": "#/$defs/non_empty_string"},
+              "decision_owner": {"$ref": "#/$defs/non_empty_string"},
+              "action_mode": {"type": "string", "enum": ["required", "allowed", "forbidden"]},
+              "action": {"$ref": "#/$defs/non_empty_string"},
+              "artifact_or_state_change": {"$ref": "#/$defs/non_empty_string"},
+              "completion_evidence": {"$ref": "#/$defs/non_empty_string"},
+              "failure_conflict_unknown_route": {"$ref": "#/$defs/non_empty_string"},
+              "downstream_consumer": {"$ref": "#/$defs/non_empty_string"},
+              "validator_or_harness": {"$ref": "#/$defs/non_empty_string"},
+              "static_assessment": {"$ref": "#/$defs/non_empty_string"},
+              "finding_ref": {"$ref": "#/$defs/scoped_ref"}
+            }
+          }
+        }
+      }
+    },
+    "replay_lane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role", "lane_id", "ordered_attempt_refs", "terminal_condition"],
+      "properties": {
+        "artifact_type": {"const": "replay-lane"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/primary_role"},
+        "lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "ordered_attempt_refs": {"$ref": "#/$defs/ref_array"},
+        "terminal_condition": {"type": "string", "enum": ["DECISIVE", "ALL_CONTAMINATED", "UNRECOVERABLE_INFRA_FAILURE"]},
+        "decisive_attempt_ref": {"$ref": "#/$defs/scoped_ref"}
+      }
+    },
+    "replay_attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role", "lane_id", "attempt_number", "starting_input_sha256", "oracle_version", "isolation_level", "attempt_status", "environment", "actual_read_declaration", "commands", "business_fact_keys_received", "output_refs", "continue_stop_return", "contamination_findings"],
+      "properties": {
+        "artifact_type": {"const": "replay-attempt"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/primary_role"},
+        "lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "attempt_number": {"type": "integer", "minimum": 1},
+        "starting_input_sha256": {"$ref": "#/$defs/sha256"},
+        "oracle_version": {"$ref": "#/$defs/non_empty_string"},
+        "isolation_level": {"$ref": "#/$defs/isolation_level"},
+        "attempt_status": {"type": "string", "enum": ["COMPLETED", "STOPPED", "VOID_CONTAMINATED", "INFRA_FAILURE"]},
+        "environment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["staging_root", "output_root", "pwd", "staging_root_realpath", "output_root_realpath", "resolved_runtime_root", "tool_versions", "staged_files", "staged_manifest_digest"],
+          "properties": {
+            "staging_root": {"$ref": "#/$defs/non_empty_string"},
+            "output_root": {"$ref": "#/$defs/non_empty_string"},
+            "pwd": {"$ref": "#/$defs/non_empty_string"},
+            "staging_root_realpath": {"$ref": "#/$defs/non_empty_string"},
+            "output_root_realpath": {"$ref": "#/$defs/non_empty_string"},
+            "resolved_runtime_root": {"$ref": "#/$defs/non_empty_string"},
+            "tool_versions": {"type": "object", "additionalProperties": {"$ref": "#/$defs/non_empty_string"}},
+            "staged_files": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "sha256"],
+                "properties": {"path": {"$ref": "#/$defs/non_empty_string"}, "sha256": {"$ref": "#/$defs/sha256"}}
+              }
+            },
+            "staged_manifest_digest": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "actual_read_declaration": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256", "authorization_result"],
+            "properties": {
+              "path": {"$ref": "#/$defs/non_empty_string"},
+              "sha256": {"$ref": "#/$defs/sha256"},
+              "authorization_result": {"type": "string", "enum": ["AUTHORIZED_STAGED", "AUTHORIZED_INHERITED", "UNAUTHORIZED"]}
+            }
+          }
+        },
+        "commands": {"$ref": "#/$defs/string_array"},
+        "business_fact_keys_received": {"$ref": "#/$defs/string_array"},
+        "output_refs": {"$ref": "#/$defs/ref_array"},
+        "continue_stop_return": {"type": "string", "enum": ["continue", "stop", "return"]},
+        "contamination_findings": {"$ref": "#/$defs/string_array"},
+        "blocking_fact_refs": {"$ref": "#/$defs/ref_array"}
+      }
+    },
+    "transcript": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role", "lane_id", "attempt_number", "turns"],
+      "properties": {
+        "artifact_type": {"const": "transcript"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/primary_role"},
+        "lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "attempt_number": {"type": "integer", "minimum": 1},
+        "turns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["turn_number", "actor", "message", "visible_fact_keys", "state_before", "state_after"],
+            "properties": {
+              "turn_number": {"type": "integer", "minimum": 1},
+              "actor": {"type": "string", "enum": ["executor", "business-proxy", "system"]},
+              "message": {"$ref": "#/$defs/non_empty_string"},
+              "visible_fact_keys": {"$ref": "#/$defs/string_array"},
+              "state_before": {"$ref": "#/$defs/non_empty_string"},
+              "state_after": {"$ref": "#/$defs/non_empty_string"},
+              "answers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["fact_key", "fact_class", "answer_text"],
+                  "properties": {
+                    "fact_key": {"$ref": "#/$defs/non_empty_string"},
+                    "fact_class": {"type": "string", "enum": ["fact", "inference", "assumption", "unknown"]},
+                    "answer_text": {"$ref": "#/$defs/non_empty_string"}
+                  }
+                }
+              },
+              "answer_authority_refs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["fact_key", "authority_refs"],
+                  "properties": {"fact_key": {"$ref": "#/$defs/non_empty_string"}, "authority_refs": {"$ref": "#/$defs/ref_array"}}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "artifact_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role", "lane_id", "attempt_number", "evaluation_only", "canonical_output_refs"],
+      "properties": {
+        "artifact_type": {"const": "artifact-manifest"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/primary_role"},
+        "lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "attempt_number": {"type": "integer", "minimum": 1},
+        "evaluation_only": {"const": true},
+        "canonical_output_refs": {"$ref": "#/$defs/ref_array"}
+      }
+    },
+    "divergence_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role", "lane_refs", "comparisons", "blocking_findings"],
+      "properties": {
+        "artifact_type": {"const": "divergence-review"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/primary_role"},
+        "lane_refs": {"$ref": "#/$defs/ref_array"},
+        "comparisons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["subject", "classification", "lane_evidence_refs", "impact", "owner"],
+            "properties": {
+              "subject": {"$ref": "#/$defs/non_empty_string"},
+              "classification": {"type": "string", "enum": ["ALLOWED_VARIATION", "ALLOWED_TRADE_OFF", "CORRECT_UNCERTAINTY_HANDLING", "MODEL_BEHAVIOR_SIGNAL", "CONTENT_AMBIGUITY", "SHARED_REASONING_DEFECT", "HIGH_RISK_DIVERGENCE"]},
+              "lane_evidence_refs": {"$ref": "#/$defs/ref_array"},
+              "impact": {"$ref": "#/$defs/non_empty_string"},
+              "owner": {"$ref": "#/$defs/non_empty_string"}
+            }
+          }
+        },
+        "blocking_findings": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "oracle_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role", "lane_refs", "field_checks", "historical_implementation_boundary"],
+      "properties": {
+        "artifact_type": {"const": "oracle-review"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/primary_role"},
+        "lane_refs": {"$ref": "#/$defs/ref_array"},
+        "field_checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["artifact_field_ref", "oracle_atom_ids", "fact_class", "result", "evidence_refs"],
+            "properties": {
+              "artifact_field_ref": {"$ref": "#/$defs/non_empty_string"},
+              "oracle_atom_ids": {"$ref": "#/$defs/string_array"},
+              "fact_class": {"type": "string", "enum": ["fact", "inference", "assumption", "unknown"]},
+              "result": {"$ref": "#/$defs/non_empty_string"},
+              "evidence_refs": {"$ref": "#/$defs/ref_array"}
+            }
+          }
+        },
+        "historical_implementation_boundary": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "downstream_consumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "producer_role", "consumer_role", "candidate_results"],
+      "properties": {
+        "artifact_type": {"const": "downstream-consumption"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "producer_role": {"$ref": "#/$defs/primary_role"},
+        "consumer_role": {"$ref": "#/$defs/primary_role"},
+        "candidate_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["lane_id", "input_status", "consumer_action", "checks", "evidence_refs"],
+            "properties": {
+              "lane_id": {"$ref": "#/$defs/non_empty_string"},
+              "input_status": {"type": "string", "enum": ["CANONICAL_HANDOFF", "BLOCKED_UPSTREAM"]},
+              "consumer_action": {"$ref": "#/$defs/non_empty_string"},
+              "checks": {"$ref": "#/$defs/string_array"},
+              "evidence_refs": {"$ref": "#/$defs/ref_array"}
+            }
+          }
+        }
+      }
+    },
+    "role_verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role", "verdict_scope", "skill_revision", "decisive_attempt_refs", "isolation_level", "oracle_bridge_used", "open_p0_p1", "verdict", "reason_codes", "evidence_refs", "claim_boundaries", "next_decision"],
+      "properties": {
+        "artifact_type": {"const": "role-verdict"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"$ref": "#/$defs/primary_role"},
+        "verdict_scope": {"const": "case_bounded_content_readiness"},
+        "skill_revision": {"$ref": "#/$defs/commit"},
+        "audit_report_ref": {"$ref": "#/$defs/scoped_ref"},
+        "decisive_attempt_refs": {"$ref": "#/$defs/ref_array"},
+        "isolation_level": {"$ref": "#/$defs/isolation_level"},
+        "oracle_bridge_used": {"type": "boolean"},
+        "open_p0_p1": {"type": "integer", "minimum": 0},
+        "verdict": {"$ref": "#/$defs/role_verdict_value"},
+        "reason_codes": {"$ref": "#/$defs/string_array"},
+        "evidence_refs": {"$ref": "#/$defs/ref_array"},
+        "claim_boundaries": {"$ref": "#/$defs/string_array"},
+        "next_decision": {"$ref": "#/$defs/non_empty_string"},
+        "content_digest": {"$ref": "#/$defs/sha256"},
+        "inherited_runtime_digest": {"$ref": "#/$defs/sha256"},
+        "unavailable_baselines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["baseline_type", "reason_code", "evidence_refs"],
+            "properties": {
+              "baseline_type": {"type": "string", "enum": ["content_digest", "inherited_runtime_digest"]},
+              "reason_code": {"$ref": "#/$defs/non_empty_string"},
+              "evidence_refs": {"$ref": "#/$defs/ref_array"}
+            }
+          }
+        }
+      }
+    },
+    "chain_verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_type", "schema_version", "case_id", "role_verdict_refs", "isolation_level", "oracle_bridge_used", "verdict", "evidence_refs"],
+      "properties": {
+        "artifact_type": {"const": "chain-verdict"},
+        "schema_version": {"const": 1},
+        "case_id": {"$ref": "#/$defs/non_empty_string"},
+        "role_verdict_refs": {"$ref": "#/$defs/ref_array"},
+        "isolation_level": {"$ref": "#/$defs/isolation_level"},
+        "oracle_bridge_used": {"type": "boolean"},
+        "verdict": {"const": "CASE_REPLAY_PASS"},
+        "evidence_refs": {"$ref": "#/$defs/ref_array"}
+      }
+    }
+  }
+}
