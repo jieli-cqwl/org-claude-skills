@@ -158,21 +158,29 @@ def enumerate_source_denominator(
         raise ValueError(
             "source classification denominator mismatch: baseline is not an ancestor of result"
         )
-    raw_commits = git(
+    raw_commit_rows = git(
         source_root,
         "rev-list",
+        "--parents",
         "--ancestry-path",
         "--reverse",
         "--topo-order",
         f"{baseline}..{result}",
     )
-    commits = [line for line in raw_commits.splitlines() if line]
+    commits: list[str] = []
+    first_parents: dict[str, str] = {}
+    for line in raw_commit_rows.splitlines():
+        if not line:
+            continue
+        row = line.split()
+        commit = row[0]
+        if len(row) < 2:
+            raise ValueError(f"source commit has no first parent: {commit}")
+        commits.append(commit)
+        first_parents[commit] = row[1]
     atoms: list[dict[str, str]] = []
     for commit in commits:
-        parents = git(source_root, "rev-list", "--parents", "-n", "1", commit).split()
-        if len(parents) < 2:
-            raise ValueError(f"source commit has no first parent: {commit}")
-        parent = parents[1]
+        parent = first_parents[commit]
         changed = git(
             source_root,
             "diff-tree",

@@ -932,6 +932,28 @@ def iter_refs(value: object):
             yield from iter_refs(child)
 
 
+def refresh_run_refs_in_owner(
+    run_root: Path, owner_relative: str, target_relatives: list[str]
+) -> None:
+    owner_path = run_root / owner_relative
+    owner = read_json(owner_path)
+    target_digests = {
+        relative: file_digest(run_root / relative) for relative in target_relatives
+    }
+    matched: set[str] = set()
+    for ref in iter_refs(owner):
+        relative = ref.get("path")
+        if ref.get("scope") == "run" and relative in target_digests:
+            ref["sha256"] = target_digests[relative]
+            matched.add(relative)
+    missing = set(target_relatives) - matched
+    if missing:
+        raise ValueError(
+            f"{owner_relative}: missing owner refs for {sorted(missing)}"
+        )
+    write_json(owner_path, owner)
+
+
 def ref_bytes(
     repo_root: Path,
     run_root: Path,
@@ -989,6 +1011,11 @@ def refresh_refs(
             payload = read_json(path)
             before = canonical_bytes(payload)
             for ref in iter_refs(payload):
+                # Cases mutate only the run tree. Re-reading frozen repo/external
+                # refs would waste a Git process per ref, while refreshing a
+                # deliberately malformed immutable ref would hide the negative.
+                if ref["scope"] != "run" and ref.get("sha256") != ZERO_SHA:
+                    continue
                 try:
                     raw = ref_bytes(
                         repo_root,
@@ -1003,7 +1030,7 @@ def refresh_refs(
                     # production validator, not test setup, owns that rejection.
                     continue
                 ref["sha256"] = hashlib.sha256(raw).hexdigest()
-                if "commit" in ref:
+                if "commit" in ref and "blob" not in ref:
                     root = (
                         repo_root
                         if ref["scope"] == "repo"
@@ -1559,6 +1586,16 @@ def mutate(run_root: Path, name: str) -> None:
         else:
             oracle["business_proxy_facts"].append(duplicate)
         write_json(path, oracle)
+        refresh_run_refs_in_owner(
+            run_root,
+            "case/input-manifest.json",
+            ["case/oracle-manifest.json"],
+        )
+        refresh_run_refs_in_owner(
+            run_root,
+            "run.json",
+            ["case/oracle-manifest.json", "case/input-manifest.json"],
+        )
     elif name == "unresolved_runtime":
         payload = read_json(surface_path)
         payload["runtime_inheritance"]["unresolved_file_inputs"] = [
@@ -1928,6 +1965,11 @@ def mutate(run_root: Path, name: str) -> None:
         ref["scope"] = "external_repo"
         ref["source_id"] = "synthetic-runtime"
         write_json(verdict_path, verdict)
+        refresh_run_refs_in_owner(
+            run_root,
+            "run.json",
+            ["roles/product-director/role-verdict.json"],
+        )
     elif name in {
         "unavailable_baselines_blocked_evidence",
         "branch_b_admission",

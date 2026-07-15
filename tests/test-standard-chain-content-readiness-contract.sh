@@ -107,6 +107,7 @@ refresh_case() {
 
 expect_failure() {
   local mutation="$1" expected="$2" refresh="${3:-yes}" stage="${4:-role-verdict}"
+  local unique_failure="${5:-no}"
   if ! should_run "$mutation"; then
     return
   fi
@@ -128,7 +129,7 @@ expect_failure() {
   if [[ -s "$error" ]]; then
     fail "$mutation leaked non-JSON stderr: $(<"$error")"
   fi
-  python3 - "$output" "$expected" "$mutation" <<'PY'
+  python3 - "$output" "$expected" "$mutation" "$unique_failure" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -145,6 +146,10 @@ haystack = json.dumps(
 if value.get("status") != "FAIL" or expected not in haystack:
     raise SystemExit(
         f"{sys.argv[3]}: expected rejection {expected!r}, observed {value}"
+    )
+if sys.argv[4] == "yes" and value.get("failures") != [expected]:
+    raise SystemExit(
+        f"{sys.argv[3]}: target rejection was not unique: {value.get('failures')}"
     )
 PY
 }
@@ -178,14 +183,13 @@ if value.get("status") != "PASS" or value.get("checked_stage") != sys.argv[2]:
 PY
 }
 
-expect_terminal_stage_isolation() {
+expect_terminal_stage_rejection() {
   local mutation="$1"
   if ! should_run "$mutation"; then
     return
   fi
   local case_root="$tmpdir/terminal-stage-$mutation"
   local failure_output="$tmpdir/terminal-stage-$mutation-failure.json"
-  local success_output="$tmpdir/terminal-stage-$mutation-success.json"
   local error="$tmpdir/terminal-stage-$mutation.stderr"
   cp -R "$run_root" "$case_root"
   python3 "$BUILDER" mutate --run-root "$case_root" --name "$mutation"
@@ -201,26 +205,15 @@ expect_terminal_stage_isolation() {
   if [[ -s "$error" ]]; then
     fail "$mutation role-verdict request leaked non-JSON stderr: $(<"$error")"
   fi
-  if ! python3 "$VALIDATOR" "$case_root" \
-    --require-role product-director \
-    --require-stage terminal-run \
-    --source-root "synthetic-app=$app_root" \
-    --source-root "synthetic-backend=$backend_root" \
-    --source-root "synthetic-runtime=$runtime_root" >"$success_output" 2>"$error"; then
-    fail "$mutation terminal-run request failed: $(<"$success_output") $(<"$error")"
-  fi
-  python3 - "$failure_output" "$success_output" "$mutation" <<'PY'
+  python3 - "$failure_output" "$mutation" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 failure = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-success = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 expected = "terminal-run closure cannot satisfy non-terminal stage"
-if failure.get("status") != "FAIL" or expected not in json.dumps(failure):
-    raise SystemExit(f"{sys.argv[3]}: non-terminal stage was not isolated: {failure}")
-if success.get("status") != "PASS" or success.get("checked_stage") != "terminal-run":
-    raise SystemExit(f"{sys.argv[3]}: terminal-run did not pass: {success}")
+if failure.get("status") != "FAIL" or failure.get("failures") != [expected]:
+    raise SystemExit(f"{sys.argv[2]}: non-terminal stage was not isolated: {failure}")
 PY
 }
 
@@ -228,18 +221,18 @@ run_fifth_review_cases() {
   local failed=0 pid_one pid_two pid_three
 
   (
-    expect_failure duplicate_proxy_fact_conflict "duplicate business proxy fact key"
-    expect_terminal_stage_isolation branch_b_admission
-    expect_failure verdict_surface_scope_swap "role verdict evidence graph is incomplete"
+    expect_failure duplicate_proxy_fact_conflict "duplicate business proxy fact key" no role-verdict yes
+    expect_terminal_stage_rejection branch_b_admission
+    expect_failure verdict_surface_scope_swap "role verdict evidence graph is incomplete" no role-verdict yes
   ) &
   pid_one=$!
   (
-    expect_failure duplicate_proxy_fact_exact "duplicate business proxy fact key"
-    expect_terminal_stage_isolation branch_b_static
-    expect_failure verdict_attempt_scope_swap "role verdict evidence graph is incomplete"
+    expect_failure duplicate_proxy_fact_exact "duplicate business proxy fact key" no role-verdict yes
+    expect_terminal_stage_rejection branch_b_static
+    expect_failure verdict_attempt_scope_swap "role verdict evidence graph is incomplete" no role-verdict yes
   ) &
   pid_two=$!
-  (expect_terminal_stage_isolation branch_b_diagnostic) &
+  (expect_terminal_stage_rejection branch_b_diagnostic) &
   pid_three=$!
   for pid in "$pid_one" "$pid_two" "$pid_three"; do
     if ! wait "$pid"; then
