@@ -184,12 +184,13 @@ PY
 }
 
 expect_terminal_stage_rejection() {
-  local mutation="$1"
+  local mutation="$1" require_success="${2:-no}"
   if ! should_run "$mutation"; then
     return
   fi
   local case_root="$tmpdir/terminal-stage-$mutation"
   local failure_output="$tmpdir/terminal-stage-$mutation-failure.json"
+  local success_output="$tmpdir/terminal-stage-$mutation-success.json"
   local error="$tmpdir/terminal-stage-$mutation.stderr"
   cp -R "$run_root" "$case_root"
   python3 "$BUILDER" mutate --run-root "$case_root" --name "$mutation"
@@ -205,7 +206,15 @@ expect_terminal_stage_rejection() {
   if [[ -s "$error" ]]; then
     fail "$mutation role-verdict request leaked non-JSON stderr: $(<"$error")"
   fi
-  python3 - "$failure_output" "$mutation" <<'PY'
+  if [[ "$require_success" == "yes" ]] && ! python3 "$VALIDATOR" "$case_root" \
+    --require-role product-director \
+    --require-stage terminal-run \
+    --source-root "synthetic-app=$app_root" \
+    --source-root "synthetic-backend=$backend_root" \
+    --source-root "synthetic-runtime=$runtime_root" >"$success_output" 2>"$error"; then
+    fail "$mutation terminal-run request failed: $(<"$success_output") $(<"$error")"
+  fi
+  python3 - "$failure_output" "$success_output" "$mutation" "$require_success" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -213,7 +222,11 @@ from pathlib import Path
 failure = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 expected = "terminal-run closure cannot satisfy non-terminal stage"
 if failure.get("status") != "FAIL" or failure.get("failures") != [expected]:
-    raise SystemExit(f"{sys.argv[2]}: non-terminal stage was not isolated: {failure}")
+    raise SystemExit(f"{sys.argv[3]}: non-terminal stage was not isolated: {failure}")
+if sys.argv[4] == "yes":
+    success = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+    if success.get("status") != "PASS" or success.get("checked_stage") != "terminal-run":
+        raise SystemExit(f"{sys.argv[3]}: terminal-run did not pass: {success}")
 PY
 }
 
@@ -228,11 +241,11 @@ run_fifth_review_cases() {
   pid_one=$!
   (
     expect_failure duplicate_proxy_fact_exact "duplicate business proxy fact key" no role-verdict yes
-    expect_terminal_stage_rejection branch_b_static
+    expect_terminal_stage_rejection branch_b_static yes
     expect_failure verdict_attempt_scope_swap "role verdict evidence graph is incomplete" no role-verdict yes
   ) &
   pid_two=$!
-  (expect_terminal_stage_rejection branch_b_diagnostic) &
+  (expect_terminal_stage_rejection branch_b_diagnostic yes) &
   pid_three=$!
   for pid in "$pid_one" "$pid_two" "$pid_three"; do
     if ! wait "$pid"; then
