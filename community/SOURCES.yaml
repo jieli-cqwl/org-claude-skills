@@ -1,8 +1,8 @@
 sources:
   anthropic_skills:
     repo: https://github.com/anthropics/skills
-    ref: 9d2f1ae187231d8199c64b5b762e1bdf2244733d
-    captured_at: 2026-07-04
+    ref: fa0fa64bdc967915dc8399e803be67759e1e62b8
+    captured_at: 2026-07-16
     scope:
       - community/anthropic/skills
       - community/anthropic/codex/skills
@@ -21,8 +21,8 @@ sources:
       - No local overlays, Codex adapters, runtime metadata rewrites, source headers, or local-only skills are allowed under community/superpowers.
   vercel_skills:
     repo: https://github.com/vercel-labs/skills
-    ref: cf4a3ea678b7ea5066caa90de94bf2dfacde5538
-    captured_at: 2026-07-13
+    ref: 777599e1159e401b11ce4c8a57c20f09a8f1596e
+    captured_at: 2026-07-16
     scope:
       - community/vercel/skills/find-skills
       - community/vercel/codex/skills/find-skills
@@ -31,8 +31,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   vercel_agent_browser:
     repo: https://github.com/vercel-labs/agent-browser
-    ref: dcbe3522f931d24f85a786ba6ba7f343d86f7294
-    captured_at: 2026-07-13
+    ref: 2b202640ee89dc7aadb5e8c9d600e089e9056985
+    captured_at: 2026-07-16
     scope:
       - community/vercel/skills/agent-browser
       - community/vercel/codex/skills/agent-browser
@@ -106,8 +106,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prd:
     repo: https://github.com/github/awesome-copilot
-    ref: e353a8cfb8124d44905fc73214d873cea4a0ba3b
-    captured_at: 2026-07-13
+    ref: 5668f70312061448262d3160d2ab8b7b105ab4db
+    captured_at: 2026-07-16
     scope:
       - community/open-skills/skills/prd
     notes:
@@ -116,8 +116,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prompt_optimizer:
     repo: https://github.com/github/awesome-copilot
-    ref: e353a8cfb8124d44905fc73214d873cea4a0ba3b
-    captured_at: 2026-07-13
+    ref: 5668f70312061448262d3160d2ab8b7b105ab4db
+    captured_at: 2026-07-16
     scope:
       - community/open-skills/skills/prompt-optimizer
     notes:
@@ -127,8 +127,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_graphify:
     repo: https://github.com/safishamsi/graphify
-    ref: 961b78e57a10e9c5bb98421ff3e45b40be73542b
-    captured_at: 2026-07-13
+    ref: ecf1416a7e0ef3a2273a2ad9c796c4e573ca8037
+    captured_at: 2026-07-16
     scope:
       - community/open-skills/skills/graphify
     notes:
@@ -192,8 +192,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_othmanadi_planning_with_files:
     repo: https://github.com/OthmanAdi/planning-with-files
-    ref: f13118cadfd12a48af60106c67c7abf34224c007
-    captured_at: 2026-07-13
+    ref: f90780c92f0506d21c5f6c4865ce95517a8b1964
+    captured_at: 2026-07-16
     scope:
       - community/open-skills/skills/planning-with-files
     notes:
