@@ -64,31 +64,28 @@ def remove_retired_agent_sections(lines: list[str]) -> None:
 
 
 def remove_legacy_managed_agent_settings(lines: list[str]) -> None:
-    """Remove the complete tuning fingerprint written by older installers."""
-    start, end = section_bounds(lines, "agents")
-    if start is None or end is None:
-        return
-
+    """Remove tuning values known to have been written by older installers."""
     for key, expected_value in LEGACY_MANAGED_AGENT_SETTINGS.items():
+        start, end = section_bounds(lines, "agents")
+        if start is None or end is None:
+            return
         idx = key_line_index(lines, start, end, key)
         if idx is None:
-            return
+            continue
         actual_value = strip_toml_comment(lines[idx]).split("=", 1)[1].strip()
-        if actual_value != expected_value:
-            return
-
-    for key in LEGACY_MANAGED_AGENT_SETTINGS:
-        remove_key_from_sections(lines, lambda section: section == "agents", key)
+        if actual_value == expected_value:
+            remove_key_from_sections(lines, lambda section: section == "agents", key)
 
 
-def ensure_codex_agent_config(config_path: Path) -> None:
+def ensure_codex_agent_config(config_path: Path, *, migrate_legacy_settings: bool = False) -> None:
     """Install managed Codex agent config while pruning retired feature flags."""
     lines = read_toml_lines(config_path)
 
     set_toml_key(lines, "features", "multi_agent", "true")
     remove_removed_feature_flags(lines)
     remove_retired_agent_sections(lines)
-    remove_legacy_managed_agent_settings(lines)
+    if migrate_legacy_settings:
+        remove_legacy_managed_agent_settings(lines)
     for key in INHERITED_AGENT_CONFIG_KEYS:
         remove_key_from_sections(lines, lambda section: agent_section_role(section) in MANAGED_AGENT_ROLE_NAMES, key)
 

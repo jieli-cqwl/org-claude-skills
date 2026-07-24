@@ -566,6 +566,10 @@ codex_hooks_baseline_file() {
   printf '%s/codex-hooks-baseline.json\n' "$(target_state_dir codex)"
 }
 
+codex_agent_tuning_migration_state_file() {
+  printf '%s/agent-tuning-migration-v1\n' "$(target_state_dir codex)"
+}
+
 enable_codex_hooks_feature() {
   local config_file="$CODEX_DIR/config.toml"
   local state_file
@@ -577,10 +581,19 @@ enable_codex_hooks_feature() {
 }
 
 configure_codex_agents() {
+  local had_prior_managed_install="${1:-0}"
   local config_file="$CODEX_DIR/config.toml"
+  local migration_state_file
+  local -a args=(configure-agents --config "$config_file")
+  migration_state_file="$(codex_agent_tuning_migration_state_file)"
 
-  python3 "$CODEX_RUNTIME_MANAGER" configure-agents \
-    --config "$config_file"
+  if [ "$had_prior_managed_install" -eq 1 ] && [ ! -f "$migration_state_file" ]; then
+    args+=(--migrate-legacy-settings)
+  fi
+
+  python3 "$CODEX_RUNTIME_MANAGER" "${args[@]}"
+  mkdir -p "$(dirname "$migration_state_file")"
+  : > "$migration_state_file"
 }
 
 restore_codex_hooks_feature() {
@@ -2994,6 +3007,7 @@ uninstall_target() {
     rm -rf "$target_dir/hooks/state"
     cleanup_retired_codex_context_continuity
     restore_codex_hooks_feature
+    rm -f "$(codex_agent_tuning_migration_state_file)"
     remove_if_empty "$target_dir/hooks" "$target_dir"
   fi
 
@@ -3219,6 +3233,7 @@ quick_check() {
     [ ! -e "$CODEX_DIR/.org-installed-version" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-installed-version"
     [ ! -e "$CODEX_DIR/.org-backups" ] || fail "Quick Check 失败: ~/.codex 不应残留 .org-backups"
     [ -f "$(target_state_dir codex)/installed-version" ] || fail "Quick Check 失败: ~/.org-skills-state/codex/installed-version 不存在"
+    [ -f "$(codex_agent_tuning_migration_state_file)" ] || fail "Quick Check 失败: Codex agent tuning 迁移状态不存在"
     [ -f "$CODEX_DIR/hooks.json" ] || fail "Quick Check 失败: ~/.codex/hooks.json 不存在"
     grep -Fq 'hooks = true' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 未启用 hooks feature"
     ! grep -Eq '^[[:space:]]*codex_hooks[[:space:]]*=' "$CODEX_DIR/config.toml" || fail "Quick Check 失败: ~/.codex/config.toml 不应保留已弃用的 codex_hooks feature"
@@ -3378,10 +3393,14 @@ main() {
   fi
 
   if [ "$TARGET" = "codex" ] || [ "$TARGET" = "all" ]; then
+    local codex_had_managed_install=0
+    if [ -f "$(target_state_dir codex)/installed-version" ] || [ -f "$CODEX_DIR/.org-installed-version" ]; then
+      codex_had_managed_install=1
+    fi
     install_to_target "codex" "$CODEX_DIR" build_staging_codex "$version_tag"
     if [ "$DRY_RUN" -eq 0 ]; then
       cleanup_retired_codex_context_continuity
-      configure_codex_agents
+      configure_codex_agents "$codex_had_managed_install"
       enable_codex_hooks_feature
       snapshot_codex_hooks_json_baseline
       merge_codex_hooks_json

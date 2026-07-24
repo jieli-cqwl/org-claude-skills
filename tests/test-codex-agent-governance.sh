@@ -278,13 +278,35 @@ from pathlib import Path
 from codex_runtime_agents import ensure_codex_agent_config
 
 config_path = Path(sys.argv[1])
-ensure_codex_agent_config(config_path)
+ensure_codex_agent_config(config_path, migrate_legacy_settings=True)
 text = config_path.read_text(encoding="utf-8")
 
 assert "max_concurrent_threads_per_session = 32" in text
 assert "max_threads" not in text
 assert "max_depth" not in text
 assert "job_max_runtime_seconds" not in text
+PY
+
+cat >"$TMP_DIR/user-owned-config.toml" <<'TOML'
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 1800
+TOML
+
+PYTHONPATH="$ROOT/tools/community" python3 - "$TMP_DIR/user-owned-config.toml" <<'PY'
+import sys
+from pathlib import Path
+
+from codex_runtime_agents import ensure_codex_agent_config
+
+config_path = Path(sys.argv[1])
+ensure_codex_agent_config(config_path)
+text = config_path.read_text(encoding="utf-8")
+
+assert "max_threads = 6" in text
+assert "max_depth = 1" in text
+assert "job_max_runtime_seconds = 1800" in text
 PY
 
 echo "[PASS] codex agent governance"

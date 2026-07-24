@@ -39,6 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     configure_agents = subparsers.add_parser("configure-agents")
     configure_agents.add_argument("--config", required=True)
+    configure_agents.add_argument("--migrate-legacy-settings", action="store_true")
     return parser
 
 
@@ -85,7 +86,10 @@ def run_cleanup_hooks(args: argparse.Namespace) -> None:
 
 def run_configure_agents(args: argparse.Namespace) -> None:
     """Write managed Codex multi-agent settings into config.toml."""
-    ensure_codex_agent_config(Path(args.config))
+    ensure_codex_agent_config(
+        Path(args.config),
+        migrate_legacy_settings=args.migrate_legacy_settings,
+    )
 
 
 if __name__ == "__main__":

@@ -195,6 +195,8 @@ if should_run_group codex-agent-model-config || should_run_group codex-agent-con
 
   install_test_case_start "core: same-version codex reinstall repairs stale agent model config and retires code-reviewer"
   home_dir="$(install_test_clone_baseline_home core-codex-agent-config)"
+  state_root="$(install_test_state_root "$home_dir")"
+  rm -f "$state_root/codex/agent-tuning-migration-v1"
   install_test_refresh_installed_version "$home_dir" codex
   config_file="$home_dir/.codex/config.toml"
   python3 - "$config_file" <<'PY'
@@ -234,6 +236,7 @@ PY
   install_test_assert_file_not_contains "$config_file" "max_threads = 6" "legacy installer-owned max_threads should be removed"
   install_test_assert_file_not_contains "$config_file" "max_depth = 1" "legacy installer-owned max_depth should be removed"
   install_test_assert_file_not_contains "$config_file" "job_max_runtime_seconds = 1800" "legacy installer-owned runtime limit should be removed"
+  install_test_assert_file_exists "$state_root/codex/agent-tuning-migration-v1" "legacy agent tuning migration should run only once"
   install_test_assert_file_not_contains "$config_file" "[agents.code-reviewer]" "retired code-reviewer agent section should be removed"
   install_test_assert_file_not_contains "$config_file" "[agents.codex-doc-reviewer]" "retired codex-doc-reviewer agent section should be removed"
   install_test_assert_file_not_contains "$config_file" 'config_file = "./agents/code-reviewer.toml"' "retired code-reviewer config_file should be removed"
