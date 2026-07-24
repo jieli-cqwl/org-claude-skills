@@ -210,7 +210,14 @@ text = text.replace(
 )
 text = text.replace(
     "[agents.consistency-auditor]\n",
-    '[agents.consistency-auditor]\nmodel = "gpt-5.4"\nmodel_reasoning_effort = "high"\n',
+    '[agents]\n'
+    'max_concurrent_threads_per_session = 32\n'
+    'max_threads = 6\n'
+    'max_depth = 1\n'
+    'job_max_runtime_seconds = 1800\n\n'
+    '[agents.consistency-auditor]\n'
+    'model = "gpt-5.4"\n'
+    'model_reasoning_effort = "high"\n',
     1,
 )
 text += '\n[agents.code-reviewer]\ndescription = "retired reviewer"\nconfig_file = "./agents/code-reviewer.toml"\nmodel = "gpt-5.4"\nmodel_reasoning_effort = "high"\n'
@@ -223,6 +230,10 @@ PY
   install_test_assert_file_not_contains "$config_file" 'model = "gpt-5.4-mini"' "developer agent config should inherit global model"
   install_test_assert_file_not_contains "$config_file" 'model = "gpt-5.4"' "managed agent config should inherit global model and retired code-reviewer should be removed"
   install_test_assert_file_not_contains "$config_file" 'model_reasoning_effort = "high"' "agent config should inherit global reasoning effort"
+  install_test_assert_file_contains "$config_file" "max_concurrent_threads_per_session = 32" "user-owned canonical thread setting should be preserved"
+  install_test_assert_file_not_contains "$config_file" "max_threads = 6" "legacy installer-owned max_threads should be removed"
+  install_test_assert_file_not_contains "$config_file" "max_depth = 1" "legacy installer-owned max_depth should be removed"
+  install_test_assert_file_not_contains "$config_file" "job_max_runtime_seconds = 1800" "legacy installer-owned runtime limit should be removed"
   install_test_assert_file_not_contains "$config_file" "[agents.code-reviewer]" "retired code-reviewer agent section should be removed"
   install_test_assert_file_not_contains "$config_file" "[agents.codex-doc-reviewer]" "retired codex-doc-reviewer agent section should be removed"
   install_test_assert_file_not_contains "$config_file" 'config_file = "./agents/code-reviewer.toml"' "retired code-reviewer config_file should be removed"

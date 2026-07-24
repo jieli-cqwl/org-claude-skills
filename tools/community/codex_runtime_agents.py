@@ -7,14 +7,17 @@ from pathlib import Path
 from codex_runtime_common import toml_string
 from codex_runtime_features import remove_removed_feature_flags
 from codex_runtime_toml import (
+    key_line_index,
     matching_section_bounds,
     read_toml_lines,
     remove_key_from_sections,
+    section_bounds,
     set_toml_key,
+    strip_toml_comment,
     write_toml_lines,
 )
 
-AGENT_GLOBAL_SETTINGS = {
+LEGACY_MANAGED_AGENT_SETTINGS = {
     "max_threads": "6",
     "max_depth": "1",
     "job_max_runtime_seconds": "1800",
@@ -60,6 +63,24 @@ def remove_retired_agent_sections(lines: list[str]) -> None:
         del lines[start:end]
 
 
+def remove_legacy_managed_agent_settings(lines: list[str]) -> None:
+    """Remove the complete tuning fingerprint written by older installers."""
+    start, end = section_bounds(lines, "agents")
+    if start is None or end is None:
+        return
+
+    for key, expected_value in LEGACY_MANAGED_AGENT_SETTINGS.items():
+        idx = key_line_index(lines, start, end, key)
+        if idx is None:
+            return
+        actual_value = strip_toml_comment(lines[idx]).split("=", 1)[1].strip()
+        if actual_value != expected_value:
+            return
+
+    for key in LEGACY_MANAGED_AGENT_SETTINGS:
+        remove_key_from_sections(lines, lambda section: section == "agents", key)
+
+
 def ensure_codex_agent_config(config_path: Path) -> None:
     """Install managed Codex agent config while pruning retired feature flags."""
     lines = read_toml_lines(config_path)
@@ -67,11 +88,9 @@ def ensure_codex_agent_config(config_path: Path) -> None:
     set_toml_key(lines, "features", "multi_agent", "true")
     remove_removed_feature_flags(lines)
     remove_retired_agent_sections(lines)
+    remove_legacy_managed_agent_settings(lines)
     for key in INHERITED_AGENT_CONFIG_KEYS:
         remove_key_from_sections(lines, lambda section: agent_section_role(section) in MANAGED_AGENT_ROLE_NAMES, key)
-
-    for key, value in AGENT_GLOBAL_SETTINGS.items():
-        set_toml_key(lines, "agents", key, value, before="agents.")
 
     for role, description, config_file in MANAGED_AGENT_ROLES:
         section = f"agents.{role}"
