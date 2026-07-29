@@ -1,0 +1,2 @@
+openpyxl
+PyMySQL>=1.1,<2

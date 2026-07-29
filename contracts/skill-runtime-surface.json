@@ -270,6 +270,11 @@
       "owner": "first-party",
       "reason": "Product manager work requires frozen director inputs."
     },
+    "qft-group-chat-export": {
+      "mode": "manual",
+      "owner": "first-party",
+      "reason": "全房通客服机器人群对话导出会读取内部数据库并写入分析文件，必须由用户显式触发。"
+    },
     "qft-branch-flow": {
       "mode": "manual",
       "owner": "first-party",

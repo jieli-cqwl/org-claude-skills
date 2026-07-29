@@ -9,7 +9,7 @@ GROUP="all"
 
 usage() {
   cat <<'USAGE'
-Usage: bash tests/test-install-safety.sh [--group all|backup-and-conflict|external-codex|external-claude|rollback|codex-hooks|state-cleanup|preserve-backup]
+Usage: bash tests/test-install-safety.sh [--group all|backup-and-conflict|external-codex|external-claude|adopt-managed-skill|rollback|codex-hooks|state-cleanup|preserve-backup]
 USAGE
 }
 
@@ -31,7 +31,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$GROUP" in
-  all|backup-and-conflict|external-codex|external-claude|rollback|codex-hooks|state-cleanup|preserve-backup) ;;
+  all|backup-and-conflict|external-codex|external-claude|adopt-managed-skill|rollback|codex-hooks|state-cleanup|preserve-backup) ;;
   *) install_test_fail "未知 install-safety group: $GROUP" ;;
 esac
 
@@ -132,6 +132,46 @@ install_test_run_install "$home_dir" "$(install_test_log_path safety-claude-exte
 install_test_assert_file_contains "$home_dir/.claude/skills/cc/SKILL.md" "External QFT command panel" "external claude skill should survive org uninstall"
 install_test_assert_file_contains "$home_dir/.claude/skills/cc/references/cc-routes.md" "external routes" "external claude skill child file should survive org uninstall"
 install_test_case_pass "safety: claude external runtime skill survives reinstall"
+fi
+
+if should_run_group adopt-managed-skill; then
+  install_test_case_start "safety: codex adopts matching unmanaged qft skill"
+home_dir="$(install_test_new_home safety-codex-adopt-qft-matching)"
+state_root="$(install_test_state_root "$home_dir")"
+manifest="$state_root/codex/installed-manifest"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-codex-adopt-qft-matching-1)" --target codex --force --check quick
+grep -avF "$home_dir/.agents/skills/qft-group-chat-export/" "$manifest" > "$manifest.tmp" || true
+mv "$manifest.tmp" "$manifest"
+rm -f "$state_root/codex/installed-version"
+cp "$ROOT/shared/skills/qft-group-chat-export/SKILL.md" "$home_dir/.agents/skills/qft-group-chat-export/SKILL.md"
+printf '{"db":"local"}\n' > "$home_dir/.agents/skills/qft-group-chat-export/config.local.json"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-codex-adopt-qft-matching-2)" --target codex --check quick
+install_test_assert_file_contains "$manifest" "$home_dir/.agents/skills/qft-group-chat-export/SKILL.md" "adopted qft SKILL.md should be recorded as managed"
+install_test_assert_file_contains "$manifest" "$home_dir/.agents/skills/qft-group-chat-export/agents/openai.yaml" "generated qft OpenAI policy should be recorded as managed"
+install_test_assert_file_contains "$home_dir/.agents/skills/qft-group-chat-export/SKILL.md" "disable-model-invocation: true" "adopted qft skill should get manual runtime marker"
+install_test_assert_file_contains "$home_dir/.agents/skills/qft-group-chat-export/agents/openai.yaml" "allow_implicit_invocation: false" "adopted qft OpenAI policy should disable implicit invocation"
+install_test_assert_file_contains "$home_dir/.agents/skills/qft-group-chat-export/config.local.json" '{"db":"local"}' "qft local config should remain local-only"
+install_test_assert_file_not_contains "$manifest" "$home_dir/.agents/skills/qft-group-chat-export/config.local.json" "qft local config should not become managed"
+install_test_case_pass "safety: codex adopts matching unmanaged qft skill"
+
+install_test_case_start "safety: codex rejects drifted unmanaged qft skill"
+home_dir="$(install_test_new_home safety-codex-adopt-qft-drift)"
+state_root="$(install_test_state_root "$home_dir")"
+manifest="$state_root/codex/installed-manifest"
+install_test_run_install_fake_openspec "$home_dir" "$(install_test_log_path safety-codex-adopt-qft-drift-1)" --target codex --force --check quick
+grep -avF "$home_dir/.agents/skills/qft-group-chat-export/" "$manifest" > "$manifest.tmp" || true
+mv "$manifest.tmp" "$manifest"
+rm -f "$state_root/codex/installed-version"
+printf '\n# local drift\n' >> "$home_dir/.agents/skills/qft-group-chat-export/SKILL.md"
+log_file="$(install_test_log_path safety-codex-adopt-qft-drift-2)"
+set +e
+install_test_run_install_fake_openspec_allow_failure "$home_dir" "$log_file" --target codex --check quick
+rc=$?
+set -e
+install_test_assert_failure "$rc" "codex install should reject drifted unmanaged qft skill"
+install_test_assert_file_contains "$log_file" "$home_dir/.agents/skills/qft-group-chat-export/SKILL.md" "drifted qft conflict should be reported"
+install_test_assert_file_contains "$home_dir/.agents/skills/qft-group-chat-export/SKILL.md" "# local drift" "drifted qft skill should remain unchanged"
+install_test_case_pass "safety: codex rejects drifted unmanaged qft skill"
 fi
 
 if should_run_group rollback; then

@@ -2046,6 +2046,57 @@ is_in_manifest() {
   grep -Fxq "$path" "$manifest_file"
 }
 
+adoptable_repo_managed_runtime_skill() {
+  local skill="$1"
+
+  case "$skill" in
+    qft-group-chat-export) return 0 ;;
+  esac
+
+  return 1
+}
+
+repo_skill_source_for_stage_rel() {
+  local rel="$1"
+  local skill subpath source_path
+
+  case "$rel" in
+    skills/*/*)
+      skill="${rel#skills/}"
+      skill="${skill%%/*}"
+      subpath="${rel#skills/"$skill"/}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  adoptable_repo_managed_runtime_skill "$skill" || return 1
+  source_path="$SHARED_SOURCE/skills/$skill/$subpath"
+  [ -f "$source_path" ] || return 1
+  printf '%s\n' "$source_path"
+}
+
+unmanaged_runtime_file_can_be_adopted() {
+  local staging="$1"
+  local rel="$2"
+  local dst="$3"
+  local src="$staging/$rel"
+  local source_path
+
+  [ -f "$src" ] || return 1
+  [ -f "$dst" ] || return 1
+  [ ! -L "$dst" ] || return 1
+
+  if cmp -s "$dst" "$src"; then
+    return 0
+  fi
+
+  source_path="$(repo_skill_source_for_stage_rel "$rel" || true)"
+  [ -n "$source_path" ] || return 1
+  cmp -s "$dst" "$source_path"
+}
+
 codex_skill_rel() {
   local name="$1"
   local rel="$2"
@@ -2159,6 +2210,9 @@ check_conflicts() {
     dst="$(dst_for_stage_rel "$name" "$target_dir" "$rel")"
     if [ -e "$dst" ] || [ -L "$dst" ]; then
       if is_in_manifest "$prev_manifest" "$dst"; then
+        continue
+      fi
+      if unmanaged_runtime_file_can_be_adopted "$staging" "$rel" "$dst"; then
         continue
       fi
       printf '%s\n' "$dst" >> "$conflicts_file"

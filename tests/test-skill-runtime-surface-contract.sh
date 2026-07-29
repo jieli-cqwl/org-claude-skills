@@ -222,6 +222,7 @@ for manual_name in [
     "overview",
     "planning-with-files",
     "prompt",
+    "qft-group-chat-export",
     "refactor",
     "review",
     "research",
@@ -232,6 +233,7 @@ for manual_name in [
         raise SystemExit(f"{manual_name} should be manual-only")
 
 source_skill_files = []
+source_roots = {}
 for root_dir in [
     "shared/skills",
     "community/superpowers/skills",
@@ -245,7 +247,9 @@ for root_dir in [
 ]:
     base = root / root_dir
     if base.exists():
-        source_skill_files.extend(base.glob("*/SKILL.md"))
+        for source_skill_file in base.glob("*/SKILL.md"):
+            source_skill_files.append(source_skill_file)
+            source_roots[source_skill_file] = root_dir
 
 for skill_file in source_skill_files:
     text = skill_file.read_text(encoding="utf-8")
@@ -256,10 +260,17 @@ for skill_file in source_skill_files:
     if skill_file.parent.name in source_dirs and skill_name != source_dirs[skill_file.parent.name]:
         raise SystemExit(f"{skill_file}: source_dir maps to {source_dirs[skill_file.parent.name]}, got {skill_name}")
     entry = skills.get(skill_name) or skills.get(skill_file.parent.name)
-    if entry and entry.get("mode") == "auto":
+    repo_owned_source = source_roots.get(skill_file) in {"shared/skills", "claude/skills"}
+    if entry and entry.get("mode") == "auto" and repo_owned_source:
         frontmatter = text.split("---\n", 2)[1]
         if re.search(r"^hidden:\s*true\s*$", frontmatter, re.MULTILINE):
             raise SystemExit(f"{skill_file}: auto skill source must not declare hidden=true")
+
+qft_skill = root / "shared/skills/qft-group-chat-export/SKILL.md"
+if not qft_skill.is_file():
+    raise SystemExit("shared/skills/qft-group-chat-export/SKILL.md should be repo-managed")
+if (root / "shared/skills/qft-group-chat-export/config.local.json").exists():
+    raise SystemExit("shared/skills/qft-group-chat-export/config.local.json must stay local-only")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
 retired_refs = [

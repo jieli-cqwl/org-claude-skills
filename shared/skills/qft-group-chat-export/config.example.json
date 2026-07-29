@@ -1,0 +1,23 @@
+{
+  "database": {
+    "host": "rm-example.mysql.rds.aliyuncs.com",
+    "port": 3306,
+    "user": "readonly_user",
+    "password": "put-local-password-here",
+    "database": "qft_ai",
+    "connect_timeout": 10,
+    "read_timeout": 60
+  },
+  "bots": {
+    "测试环境": "1688855768655786",
+    "测试机器人": "1688855768655786",
+    "监控机器人": "1688857366689794",
+    "全房通小智": "1688857003746946",
+    "小智": "1688857003746946"
+  },
+  "defaults": {
+    "output_dir": "~/Downloads",
+    "page_size": 5000,
+    "max_rows": 100000
+  }
+}

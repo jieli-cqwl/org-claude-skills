@@ -1,8 +1,8 @@
 sources:
   anthropic_skills:
     repo: https://github.com/anthropics/skills
-    ref: fa0fa64bdc967915dc8399e803be67759e1e62b8
-    captured_at: 2026-07-16
+    ref: b29e7cf65e5cb78a5ac33d582270551bc74a14eb
+    captured_at: 2026-07-28
     scope:
       - community/anthropic/skills
       - community/anthropic/codex/skills
@@ -12,8 +12,8 @@ sources:
       - "`skill-creator` 在仓库中保持 upstream 镜像，并安装到 Claude 与 Codex 用户运行面；Codex 隐藏 system 资源不作为 Skill 真源。"
   superpowers:
     repo: https://github.com/obra/superpowers
-    ref: d884ae04edebef577e82ff7c4e143debd0bbec99
-    captured_at: 2026-07-04
+    ref: 3dcbd5c4b48e02263fbf4a3c01e3fe4f81d584d9
+    captured_at: 2026-07-28
     scope:
       - community/superpowers/skills
     notes:
@@ -21,8 +21,8 @@ sources:
       - No local overlays, Codex adapters, runtime metadata rewrites, source headers, or local-only skills are allowed under community/superpowers.
   vercel_skills:
     repo: https://github.com/vercel-labs/skills
-    ref: 777599e1159e401b11ce4c8a57c20f09a8f1596e
-    captured_at: 2026-07-16
+    ref: c042b919289e113a419da93d4c0db9b4c91fe368
+    captured_at: 2026-07-28
     scope:
       - community/vercel/skills/find-skills
       - community/vercel/codex/skills/find-skills
@@ -31,8 +31,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   vercel_agent_browser:
     repo: https://github.com/vercel-labs/agent-browser
-    ref: 2b202640ee89dc7aadb5e8c9d600e089e9056985
-    captured_at: 2026-07-16
+    ref: 6dcea79b4b567a5671f1e1164807204f69542a5c
+    captured_at: 2026-07-28
     scope:
       - community/vercel/skills/agent-browser
       - community/vercel/codex/skills/agent-browser
@@ -41,8 +41,8 @@ sources:
       - Codex `agents/openai.yaml` 为本地生成适配层，受此锁文件约束。
   alchaincyf_darwin_skill:
     repo: https://github.com/alchaincyf/darwin-skill
-    ref: 7c7b7909b630dc3b5cbb91bd4bcb1b10bfb1f894
-    captured_at: 2026-06-19
+    ref: 2fbaf4171e453d5c66fc8109a296ae89c4772bc3
+    captured_at: 2026-07-28
     scope:
       - community/alchaincyf/skills/darwin-skill
       - community/alchaincyf/codex/skills/darwin-skill
@@ -52,8 +52,8 @@ sources:
       - Upstream README 声明 MIT，但 GitHub API license 字段为空且根目录未提供独立 LICENSE 文件。
   nextlevelbuilder_ui_ux_pro_max:
     repo: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
-    ref: 6142b073958df645d0fb27e682428e69599386dc
-    captured_at: 2026-07-13
+    ref: 4857a2c5ef989794751a0f66b8545a4a49566286
+    captured_at: 2026-07-28
     scope:
       - community/nextlevelbuilder/skills/ui-ux-pro-max
       - community/nextlevelbuilder/codex/skills/ui-ux-pro-max
@@ -106,8 +106,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prd:
     repo: https://github.com/github/awesome-copilot
-    ref: 5668f70312061448262d3160d2ab8b7b105ab4db
-    captured_at: 2026-07-16
+    ref: b34ac0918c43351500b7953bedec6611c3071643
+    captured_at: 2026-07-28
     scope:
       - community/open-skills/skills/prd
     notes:
@@ -116,8 +116,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_github_prompt_optimizer:
     repo: https://github.com/github/awesome-copilot
-    ref: 5668f70312061448262d3160d2ab8b7b105ab4db
-    captured_at: 2026-07-16
+    ref: b34ac0918c43351500b7953bedec6611c3071643
+    captured_at: 2026-07-28
     scope:
       - community/open-skills/skills/prompt-optimizer
     notes:
@@ -127,8 +127,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_graphify:
     repo: https://github.com/safishamsi/graphify
-    ref: ecf1416a7e0ef3a2273a2ad9c796c4e573ca8037
-    captured_at: 2026-07-16
+    ref: 0b2bd938c4a48e91d27f0ba09b96409e0a36c78a
+    captured_at: 2026-07-28
     scope:
       - community/open-skills/skills/graphify
     notes:
@@ -192,8 +192,8 @@ sources:
       - Upstream root LICENSE declares MIT.
   skills_sh_othmanadi_planning_with_files:
     repo: https://github.com/OthmanAdi/planning-with-files
-    ref: f90780c92f0506d21c5f6c4865ce95517a8b1964
-    captured_at: 2026-07-16
+    ref: b04ffd9c8f9f93919649d197e5d4ec1bfc06fa14
+    captured_at: 2026-07-28
     scope:
       - community/open-skills/skills/planning-with-files
     notes:

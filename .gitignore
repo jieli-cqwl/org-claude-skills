@@ -20,6 +20,9 @@ __pycache__/
 claude-code-engineering/
 qft-cc-core/
 
+# local-only skill credentials
+shared/skills/qft-group-chat-export/config.local.json
+
 # eval runtime artifacts
 tools/eval/results/**/_workspaces/
 tools/eval/results/**/*.log
