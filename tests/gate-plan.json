@@ -599,6 +599,21 @@
       "timeout_sec": 60
     },
     {
+      "id": "rule-runtime-eval-runner",
+      "command": [
+        "bash",
+        "tests/test-rule-runtime-eval-runner.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "quick",
+      "tags": [
+        "runtime-surface",
+        "eval-contract"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 120
+    },
+    {
       "id": "codex-hook-trust-audit",
       "command": [
         "bash",
