@@ -56,9 +56,11 @@ git clone -q "$ROOT" "$REPO"
 test -f "$UNKNOWN_SCENE_FIXTURE" || fail "missing unknown scene fixture"
 
 DRY_RUN_HOME="$TMP_ROOT/dry-run-home"
+DRY_OUTPUT_ROOT="tools/eval/results/rule-runtime-eval-dry-run-no-evidence"
 mkdir "$DRY_RUN_HOME"
-HOME="$DRY_RUN_HOME" run_dry >"$TMP_ROOT/resolution.json"
+HOME="$DRY_RUN_HOME" run_dry --output-root "$DRY_OUTPUT_ROOT" >"$TMP_ROOT/resolution.json"
 test -z "$(find "$DRY_RUN_HOME" -mindepth 1 -print -quit)" || fail "dry-run mutated HOME"
+test ! -e "$REPO/$DRY_OUTPUT_ROOT" || fail "dry-run created result evidence"
 python3 - "$TMP_ROOT/resolution.json" <<'PY' || fail "focused dry-run resolution is invalid"
 import json
 import sys
@@ -112,6 +114,7 @@ test ! -s "$TMP_ROOT/stdout" || fail "missing baseline mapping produced dry-run 
 expect_contract_error baseline_ref_duplicate run_dry --baseline-ref assistant-entry=f9cbf552
 expect_contract_error baseline_ref_unknown run_dry --baseline-ref unknown=f9cbf552
 expect_contract_error baseline_ref_malformed run_dry --baseline-ref assistant-entry
+expect_contract_error output_root_outside_repo run_dry --output-root "$TMP_ROOT/outside-results"
 expect_contract_error baseline_ref_unresolved python3 "$RUNNER" \
   --repo-root "$REPO" \
   --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
@@ -244,6 +247,9 @@ RESULT_ROOT="tools/eval/results/rule-runtime-eval-test"
 RESULT_KEEP_ROOT="tools/eval/results/rule-runtime-eval-test-keep"
 FAKE_INSTALL_LOG="$TMP_ROOT/fake-install.log"
 mkdir -p "$SOURCE_CODEX_HOME/rules" "$EVALUATOR_TMP"
+FOREIGN_PREFIXED_ROOT="$EVALUATOR_TMP/rule-runtime-eval-foreign"
+mkdir "$FOREIGN_PREFIXED_ROOT"
+printf 'foreign workspace marker\n' > "$FOREIGN_PREFIXED_ROOT/marker"
 printf 'placeholder-auth-secret\n' > "$SOURCE_CODEX_HOME/auth.json"
 printf 'placeholder-config-secret\n' > "$SOURCE_CODEX_HOME/config.toml"
 printf 'forbidden global instruction\n' > "$SOURCE_CODEX_HOME/AGENTS.md"
@@ -266,13 +272,14 @@ run_workspace_prepare() {
     "$@"
 }
 
-run_workspace_prepare > "$TMP_ROOT/workspace-summary.json"
-python3 - "$TMP_ROOT/workspace-summary.json" "$TMP_ROOT/fake-install.log" "$REPO" "$EVALUATOR_TMP" "$RESULT_ROOT" "$SOURCE_CODEX_HOME" <<'PY' || fail "workspace isolation evidence is invalid"
+FAKE_INSTALL_STDERR="credential=deliberately-sensitive-token source=$SOURCE_CODEX_HOME/auth.json temp=$EVALUATOR_TMP" \
+  run_workspace_prepare > "$TMP_ROOT/workspace-summary.json"
+python3 - "$TMP_ROOT/workspace-summary.json" "$TMP_ROOT/fake-install.log" "$REPO" "$EVALUATOR_TMP" "$RESULT_ROOT" "$SOURCE_CODEX_HOME" "$FOREIGN_PREFIXED_ROOT" <<'PY' || fail "workspace isolation evidence is invalid"
 import json
 import sys
 from pathlib import Path
 
-summary_path, log_path, repo, evaluator_tmp, result_root, source_home = map(Path, sys.argv[1:])
+summary_path, log_path, repo, evaluator_tmp, result_root, source_home, foreign_root = map(Path, sys.argv[1:])
 summary = json.loads(summary_path.read_text(encoding="utf-8"))
 repo = repo.resolve()
 result_root = repo / result_root
@@ -329,12 +336,22 @@ for baseline in baselines:
     if Path(record["CWD"]).resolve() == repo:
         raise SystemExit("baseline installer used the candidate worktree")
 
-if list(evaluator_tmp.glob("rule-runtime-eval-*")):
+if not foreign_root.is_dir() or not (foreign_root / "marker").is_file():
+    raise SystemExit("default cleanup removed a foreign prefixed root")
+if [path for path in evaluator_tmp.glob("rule-runtime-eval-*") if path != foreign_root]:
     raise SystemExit("default cleanup retained evaluator workspace roots")
 for path in result_root.rglob("*"):
     if path.is_file():
         payload = path.read_text(encoding="utf-8", errors="replace")
-        if "placeholder-auth-secret" in payload or str(source_home / "auth.json") in payload:
+        if any(
+            forbidden in payload
+            for forbidden in (
+                "placeholder-auth-secret",
+                "deliberately-sensitive-token",
+                str(source_home / "auth.json"),
+                str(evaluator_tmp),
+            )
+        ):
             raise SystemExit("sensitive auth data leaked through persisted evidence")
 PY
 
@@ -352,11 +369,11 @@ TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
   --installer-bin "$FAKE_INSTALLER" \
   --source-codex-home "$SOURCE_CODEX_HOME" \
   --keep-workspaces > "$TMP_ROOT/keep-summary.json"
-python3 - "$EVALUATOR_TMP" <<'PY' || fail "keep-workspaces did not retain exactly evaluator-owned roots"
+python3 - "$EVALUATOR_TMP" "$FOREIGN_PREFIXED_ROOT" <<'PY' || fail "keep-workspaces did not retain exactly evaluator-owned roots"
 import sys
 from pathlib import Path
 
-roots = list(Path(sys.argv[1]).glob("rule-runtime-eval-*"))
+roots = [path for path in Path(sys.argv[1]).glob("rule-runtime-eval-*") if path != Path(sys.argv[2])]
 if len(roots) != 1 or not roots[0].is_dir():
     raise SystemExit("expected one retained evaluator workspace root")
 PY
@@ -388,7 +405,7 @@ if any(item.get("live_execution_status") != "INFRA_BLOCKED" for item in summary[
 PY
 
 set +e
-PYTHONPATH="$ROOT/tools/eval/scripts" python3 - "$TMP_ROOT/outside" "$EVALUATOR_TMP" <<'PY'
+PYTHONPATH="$ROOT/tools/eval/scripts" python3 - "$FOREIGN_PREFIXED_ROOT" "$EVALUATOR_TMP" <<'PY'
 import sys
 from pathlib import Path
 
@@ -403,6 +420,72 @@ raise SystemExit(1)
 PY
 cleanup_status=$?
 set -e
-test "$cleanup_status" -eq 0 || fail "cleanup accepted a non-evaluator path"
+test "$cleanup_status" -eq 0 || fail "cleanup accepted a foreign prefixed path"
+test -f "$FOREIGN_PREFIXED_ROOT/marker" || fail "cleanup removed a foreign prefixed path"
+
+PYTHONPATH="$ROOT/tools/eval/scripts" python3 - "$REPO" "$EVALUATOR_TMP" <<'PY' || fail "baseline cleanup did not handle validation failures"
+import subprocess
+import sys
+from pathlib import Path
+
+import rule_runtime_eval.workspace as workspace
+
+candidate_root = Path(sys.argv[1]).resolve()
+workspace_root = Path(sys.argv[2]) / "baseline-validation-failure"
+workspace_root.mkdir()
+commit = subprocess.check_output(
+    ["git", "-C", str(candidate_root), "rev-parse", "HEAD"], text=True
+).strip()
+snapshot = workspace_root / "baselines" / commit
+original_git_output = workspace._git_output
+
+def fail_validation(repo_root, args, code):
+    if args[:1] == ["rev-parse"]:
+        raise workspace.WorkspaceError("baseline_ref_unresolved", "forced validation failure")
+    return original_git_output(repo_root, args, code)
+
+workspace._git_output = fail_validation
+try:
+    try:
+        workspace._materialize_baseline(candidate_root, workspace_root, commit)
+    except workspace.WorkspaceError as exc:
+        if exc.code != "baseline_ref_unresolved":
+            raise SystemExit(f"unexpected materialization failure: {exc.code}")
+    else:
+        raise SystemExit("forced baseline validation failure did not occur")
+finally:
+    workspace._git_output = original_git_output
+
+if snapshot.exists():
+    raise SystemExit("baseline snapshot survived a validation failure")
+worktrees = subprocess.check_output(
+    ["git", "-C", str(candidate_root), "worktree", "list", "--porcelain"], text=True
+)
+if f"worktree {snapshot}" in worktrees:
+    raise SystemExit("Git still tracks the failed baseline worktree")
+
+attempted = []
+original_remove = workspace._remove_baseline
+
+def fail_remove(_, target):
+    attempted.append(target)
+    raise workspace.WorkspaceError("baseline_cleanup_failed", "forced cleanup failure")
+
+first = workspace_root / "first"
+second = workspace_root / "second"
+workspace._remove_baseline = fail_remove
+try:
+    try:
+        workspace._cleanup_baselines(candidate_root, [first, second])
+    except workspace.WorkspaceError:
+        pass
+    else:
+        raise SystemExit("forced baseline cleanup failure did not occur")
+finally:
+    workspace._remove_baseline = original_remove
+
+if attempted != [second, first]:
+    raise SystemExit("baseline cleanup stopped after its first failure")
+PY
 
 printf '[PASS] rule runtime evaluator contract loading and dry-run resolution\n'

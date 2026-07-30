@@ -106,9 +106,7 @@ def main(argv: list[str] | None = None) -> int:
         resolution = resolve_dry_run(args)
         if args.dry_run:
             if args.output_root is not None:
-                output_root = _repo_path(args.repo_root.resolve(), args.output_root, "output_root_outside_repo")
-                output_root.mkdir(parents=True, exist_ok=True)
-                write_json(output_root / "resolution.json", resolution)
+                _repo_path(args.repo_root.resolve(), args.output_root, "output_root_outside_repo")
             print(json.dumps(resolution, ensure_ascii=False, sort_keys=True, indent=2))
             return 0
         if args.output_root is None:

@@ -20,3 +20,7 @@ printf 'HOME=%s\tCODEX_HOME=%s\tCWD=%s\tCOMMIT=%s\tARGS=%s\tAUTH=%s\tCONFIG=%s\t
   >> "$FAKE_INSTALL_LOG"
 
 printf 'installed\n' > "$CODEX_HOME/installed-marker"
+
+if [[ -n "${FAKE_INSTALL_STDERR:-}" ]]; then
+  printf '%s\n' "$FAKE_INSTALL_STDERR" >&2
+fi

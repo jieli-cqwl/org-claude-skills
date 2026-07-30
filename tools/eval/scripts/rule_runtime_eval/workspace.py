@@ -15,6 +15,7 @@ from rule_runtime_eval.common import CommandResult, run_command, sha256_file, wr
 
 
 _WORKSPACE_PREFIX = "rule-runtime-eval-"
+_CREATED_WORKSPACE_ROOTS: set[Path] = set()
 
 
 class WorkspaceError(RuntimeError):
@@ -61,13 +62,22 @@ def cleanup_workspace_root(root: Path, parent: Path) -> None:
 
     resolved_root = root.resolve()
     resolved_parent = parent.resolve()
-    if resolved_root.parent != resolved_parent or not resolved_root.name.startswith(_WORKSPACE_PREFIX):
+    if resolved_root.parent != resolved_parent or resolved_root not in _CREATED_WORKSPACE_ROOTS:
         raise WorkspaceError(
             "workspace_cleanup_outside_parent",
             "cleanup target is not an evaluator-created workspace root",
         )
-    if resolved_root.exists():
-        shutil.rmtree(resolved_root)
+    try:
+        if resolved_root.exists():
+            shutil.rmtree(resolved_root)
+    finally:
+        _CREATED_WORKSPACE_ROOTS.discard(resolved_root)
+
+
+def _create_workspace_root(parent: Path) -> Path:
+    root = Path(tempfile.mkdtemp(prefix=_WORKSPACE_PREFIX, dir=parent)).resolve()
+    _CREATED_WORKSPACE_ROOTS.add(root)
+    return root
 
 
 def prepare_runtime_workspaces(
@@ -87,7 +97,7 @@ def prepare_runtime_workspaces(
 
     candidate_root = repo_root.resolve()
     workspace_parent = Path(tempfile.gettempdir()).resolve()
-    workspace_root = Path(tempfile.mkdtemp(prefix=_WORKSPACE_PREFIX, dir=workspace_parent))
+    workspace_root = _create_workspace_root(workspace_parent)
     snapshots: list[Path] = []
     try:
         candidate = _create_runtime_workspace(
@@ -140,10 +150,19 @@ def prepare_runtime_workspaces(
             "workspace_retained": keep_workspaces,
         }
     finally:
-        for snapshot in reversed(snapshots):
-            _remove_baseline(candidate_root, snapshot)
+        cleanup_error: WorkspaceError | None = None
+        try:
+            _cleanup_baselines(candidate_root, snapshots)
+        except WorkspaceError as exc:
+            cleanup_error = exc
         if not keep_workspaces:
-            cleanup_workspace_root(workspace_root, workspace_parent)
+            try:
+                cleanup_workspace_root(workspace_root, workspace_parent)
+            except WorkspaceError as exc:
+                if cleanup_error is None:
+                    cleanup_error = exc
+        if cleanup_error is not None:
+            raise cleanup_error
 
 
 def _create_runtime_workspace(
@@ -190,7 +209,7 @@ def _prepare_configuration(
         },
         "context": context,
         "runtime_source_hashes": _runtime_source_hashes(workspace.repo_root, acceptance_pack),
-        "install": _install_evidence(result, workspace.home, source_codex_home),
+        "install": _install_evidence(result),
         "live_execution_status": "READY" if context["auth_available"] else "INFRA_BLOCKED",
     }
     write_json(output_root / "runtime-manifests" / f"{workspace.id}.json", manifest)
@@ -231,19 +250,22 @@ def _materialize_baseline(candidate_root: Path, workspace_root: Path, commit: st
     )
     if completed.returncode != 0:
         raise WorkspaceError("baseline_materialization_failed", "baseline snapshot could not be materialized")
-    resolved = _git_output(snapshot, ["rev-parse", "--verify", "HEAD^{commit}"], "baseline_ref_unresolved")
-    if resolved != commit:
-        _remove_baseline(candidate_root, snapshot)
-        raise WorkspaceError("baseline_ref_unresolved", "baseline snapshot did not resolve to requested commit")
-    if _git_output(snapshot, ["status", "--porcelain=v1"], "baseline_dirty_check_failed"):
-        _remove_baseline(candidate_root, snapshot)
-        raise WorkspaceError("baseline_snapshot_dirty", "baseline snapshot must be clean")
-    return snapshot
+    try:
+        resolved = _git_output(snapshot, ["rev-parse", "--verify", "HEAD^{commit}"], "baseline_ref_unresolved")
+        if resolved != commit:
+            raise WorkspaceError("baseline_ref_unresolved", "baseline snapshot did not resolve to requested commit")
+        if _git_output(snapshot, ["status", "--porcelain=v1"], "baseline_dirty_check_failed"):
+            raise WorkspaceError("baseline_snapshot_dirty", "baseline snapshot must be clean")
+        return snapshot
+    except Exception as validation_error:
+        try:
+            _cleanup_baselines(candidate_root, [snapshot])
+        except WorkspaceError as cleanup_error:
+            raise cleanup_error from validation_error
+        raise
 
 
 def _remove_baseline(candidate_root: Path, snapshot: Path) -> None:
-    if not snapshot.exists():
-        return
     completed = subprocess.run(
         ["git", "-C", str(candidate_root), "worktree", "remove", "--force", str(snapshot)],
         capture_output=True,
@@ -253,6 +275,18 @@ def _remove_baseline(candidate_root: Path, snapshot: Path) -> None:
     )
     if completed.returncode != 0:
         raise WorkspaceError("baseline_cleanup_failed", "baseline snapshot could not be removed")
+
+
+def _cleanup_baselines(candidate_root: Path, snapshots: list[Path]) -> None:
+    failure: WorkspaceError | None = None
+    for snapshot in reversed(snapshots):
+        try:
+            _remove_baseline(candidate_root, snapshot)
+        except WorkspaceError as exc:
+            if failure is None:
+                failure = exc
+    if failure is not None:
+        raise failure
 
 
 def _git_output(repo_root: Path, args: list[str], code: str) -> str:
@@ -311,11 +345,7 @@ def _runtime_source_hashes(repo_root: Path, acceptance_pack: Path) -> list[dict[
     return hashes
 
 
-def _install_evidence(
-    result: CommandResult,
-    workspace_home: Path,
-    source_codex_home: Path,
-) -> dict[str, object]:
+def _install_evidence(result: CommandResult) -> dict[str, object]:
     return {
         "args": result.args,
         "returncode": result.returncode,
@@ -323,15 +353,5 @@ def _install_evidence(
         "started_at": result.started_at,
         "ended_at": result.ended_at,
         "duration_seconds": result.duration_seconds,
-        "stderr": _redact_stderr(result.stderr, workspace_home, source_codex_home),
+        "stderr": "[installer stderr withheld]" if result.stderr else "",
     }
-
-
-def _redact_stderr(stderr: str, workspace_home: Path, source_codex_home: Path) -> str:
-    redacted: list[str] = []
-    for line in stderr.splitlines():
-        if "auth" in line.casefold() or str(source_codex_home) in line:
-            redacted.append("[redacted sensitive installer stderr]")
-            continue
-        redacted.append(line.replace(str(workspace_home), "<workspace-home>"))
-    return "\n".join(redacted)
