@@ -98,8 +98,9 @@ def project_suite_decision(profile: Mapping[str, object], pairs: list[Mapping[st
     """Project the focused-suite rule without turning it into a promotion decision."""
 
     complete = [pair for pair in pairs if pair.get("state") == "COMPLETE"]
+    evidence_incomplete = len(pairs) != 8 or len(complete) != 8
     blockers: list[str] = []
-    if len(complete) != 8:
+    if evidence_incomplete:
         blockers.append("focused suite requires 8 complete candidate/baseline pairs")
     if any(pair.get("candidate_outcome") not in {"pass", "route_pass_behavior_fail"} for pair in complete):
         blockers.append("candidate route evidence did not pass every complete case")
@@ -107,21 +108,30 @@ def project_suite_decision(profile: Mapping[str, object], pairs: list[Mapping[st
         blockers.append("candidate blocking failure observed")
     average = _candidate_anchor_average(complete)
     threshold = profile.get("anchor_threshold")
-    if not isinstance(threshold, (float, int)) or average is None or average < float(threshold):
+    if not isinstance(threshold, (float, int)):
+        evidence_incomplete = True
+        blockers.append("focused profile anchor threshold is invalid")
+    elif average is None:
+        evidence_incomplete = True
+        blockers.append("candidate expected-anchor evidence is incomplete")
+    elif average < float(threshold):
         blockers.append("candidate expected-anchor average is below profile threshold")
     marginal_case = profile.get("marginal_effect_case")
     marginal = next((pair for pair in complete if pair.get("case") == marginal_case), None)
     if marginal is None or not isinstance(marginal.get("marginal_effect"), dict):
+        evidence_incomplete = True
         blockers.append("named SQL marginal-effect case is incomplete")
     lightness = _lightness_projection(profile.get("lightness_policy"), complete)
     if lightness["state"] == "INCOMPLETE":
+        evidence_incomplete = True
         blockers.append("lightness case is incomplete")
     elif lightness["state"] == "INVALID_POLICY":
+        evidence_incomplete = True
         blockers.append("focused profile lightness policy is invalid")
     elif lightness["material_regression"]:
         blockers.append("candidate has a material lightness regression")
     return {
-        "verdict": "PASS" if not blockers else "FAIL",
+        "verdict": "INFRA_BLOCKED" if evidence_incomplete else ("PASS" if not blockers else "FAIL"),
         "scope": profile.get("id"),
         "blockers": blockers,
         "complete_pairs": len(complete),

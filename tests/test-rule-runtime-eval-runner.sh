@@ -360,9 +360,50 @@ for path in result_root.rglob("*"):
             raise SystemExit("sensitive auth data leaked through persisted evidence")
 PY
 
+PYTHONPATH="$ROOT/tools/eval/scripts" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 - "$TMP_ROOT" "$FAKE_INSTALLER" <<'PY' || fail "default installer path evidence is not redacted"
+import json
+import shutil
+import stat
+import sys
+import tempfile
+from pathlib import Path
+
+from rule_runtime_eval.common import run_command
+from rule_runtime_eval.workspace import RuntimeWorkspace, _install_evidence, _installer_command, _installer_env
+
+tmp, fake_installer = map(Path, sys.argv[1:])
+repo = tmp / "default-installer"
+repo.mkdir()
+installer = repo / "install.sh"
+shutil.copyfile(fake_installer, installer)
+installer.chmod(installer.stat().st_mode | stat.S_IXUSR)
+workspace = RuntimeWorkspace(
+    "default-installer",
+    repo,
+    "test",
+    repo / "runtime" / "home",
+    repo / "runtime" / "home" / ".codex",
+    repo / "runtime" / "home" / ".org-skills-state",
+    repo / "runtime" / "home" / ".agents" / "skills",
+    (),
+)
+workspace.codex_home.mkdir(parents=True)
+command = _installer_command(repo, None)
+result = run_command(command, cwd=repo, env=_installer_env(workspace), timeout_seconds=5)
+evidence = _install_evidence(result, tmp / "source-codex-home", workspace)
+if result.returncode != 0 or command[1] != str(installer.resolve()):
+    raise SystemExit("default installer was not executed")
+serialized = json.dumps(evidence, ensure_ascii=False)
+for forbidden in (str(repo.resolve()), str(Path(tempfile.gettempdir()).resolve())):
+    if forbidden in serialized:
+        raise SystemExit(f"default installer path leaked through persisted args: {forbidden}")
+if evidence["args"][0] != "bash" or evidence["args"][-2:] != ["--target", "codex"]:
+    raise SystemExit("redacted default installer command lost its stable identity")
+PY
+
 : > "$FAKE_INSTALL_LOG"
 PYTHON_USER_SITE="$(python3 -c 'import site; print(site.getusersitepackages())')"
-INSTALL_STDOUT="$(printf 'FATAL: PyYAML not installed\nAuthorization: Bearer deliberately-sensitive-token\ntoken=deliberately-sensitive-token\nauth body=placeholder-auth-secret\nsource=%s/auth.json\ntemp=%s\n' "$SOURCE_CODEX_HOME" "$EVALUATOR_TMP")"
+INSTALL_STDOUT="$(printf 'FATAL: PyYAML not installed\nAuthorization: Bearer deliberately-sensitive-token\ntoken=deliberately-sensitive-token\nauth body=placeholder-auth-secret\npassword=deliberately-sensitive-password\napi_key=deliberately-sensitive-api-key\nBearer deliberately-sensitive-bearer\ncookie=deliberately-sensitive-cookie\nsession=deliberately-sensitive-session\nsource=%s/auth.json\ntemp=%s\n' "$SOURCE_CODEX_HOME" "$EVALUATOR_TMP")"
 FAKE_INSTALL_REQUIRED_PYTHON_USER_SITE="$PYTHON_USER_SITE" \
 FAKE_INSTALL_STDOUT="$INSTALL_STDOUT" \
   TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
@@ -398,6 +439,11 @@ for manifest_path in (result_root / "runtime-manifests").glob("*.json"):
         "Authorization",
         "deliberately-sensitive-token",
         "placeholder-auth-secret",
+        "deliberately-sensitive-password",
+        "deliberately-sensitive-api-key",
+        "deliberately-sensitive-bearer",
+        "deliberately-sensitive-cookie",
+        "deliberately-sensitive-session",
         str(source_home),
         str(evaluator_tmp),
     ):
@@ -1020,6 +1066,8 @@ if incomplete_decision["lightness"].get("state") != "INCOMPLETE":
     raise SystemExit("incomplete lightness evidence was not classified as incomplete")
 if "lightness case is incomplete" not in incomplete_decision.get("blockers", []):
     raise SystemExit("incomplete lightness evidence did not remain a visible blocker")
+if incomplete_decision["verdict"] != "INFRA_BLOCKED":
+    raise SystemExit("incomplete required lightness evidence was projected as a behavioral failure")
 
 coverage = coverage_projection(
     ("shared/rules/code-changes.md", "shared/rules/completion-claims.md"),

@@ -370,7 +370,7 @@ def _install_evidence(
         Path(tempfile.gettempdir()).resolve(),
     )
     return {
-        "args": result.args,
+        "args": [_redact_installer_paths(arg, hidden_paths) for arg in result.args],
         "returncode": result.returncode,
         "timed_out": result.timed_out,
         "started_at": result.started_at,
@@ -381,7 +381,10 @@ def _install_evidence(
     }
 
 
-_INSTALLER_SENSITIVE_LINE = re.compile(r"\b(?:auth(?:entication|orization)?|token|credential|secret)\b", re.IGNORECASE)
+_INSTALLER_SENSITIVE_LINE = re.compile(
+    r"\b(?:auth(?:entication|orization)?|token|credential|secret|password|api[_-]?key|bearer|cookie|session)\b",
+    re.IGNORECASE,
+)
 
 
 def _redact_installer_stdout(value: str, hidden_paths: tuple[Path, ...]) -> str:
@@ -392,7 +395,11 @@ def _redact_installer_stdout(value: str, hidden_paths: tuple[Path, ...]) -> str:
         if _INSTALLER_SENSITIVE_LINE.search(line):
             redacted.append("[redacted]")
             continue
-        for path in hidden_paths:
-            line = line.replace(str(path), "[redacted path]")
-        redacted.append(line)
+        redacted.append(_redact_installer_paths(line, hidden_paths))
     return "\n".join(redacted)
+
+
+def _redact_installer_paths(value: str, hidden_paths: tuple[Path, ...]) -> str:
+    for path in hidden_paths:
+        value = value.replace(str(path), "[redacted path]")
+    return value
