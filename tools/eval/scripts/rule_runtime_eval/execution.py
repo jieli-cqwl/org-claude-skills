@@ -76,6 +76,11 @@ def run_executor(
         stdout = exc.stdout or b""
         stderr = exc.stderr or b""
         timed_out = True
+    except OSError as exc:
+        returncode = 127
+        stdout = b""
+        stderr = f"executor launch failed: {exc.__class__.__name__}"
+        timed_out = False
     ended_at = datetime.now(UTC)
     (run_dir / "executor.jsonl").write_bytes(_as_bytes(stdout))
     (run_dir / "executor.log").write_text(
@@ -110,19 +115,21 @@ def extract_final_agent_message(events: list[dict]) -> str:
     return response
 
 
-def classify_execution_state(result: CommandResult, events: list[dict], response_path: Path) -> str:
-    """Classify process and output failures before route or semantic interpretation."""
+def classify_execution_state(
+    result: CommandResult, events: list[dict] | None, response_path: Path
+) -> str:
+    """Classify execution boundaries in timeout, process, output, then event order."""
 
     if result.timed_out:
         return "INFRA_BLOCKED_TIMEOUT"
     if result.returncode != 0:
         return "INFRA_BLOCKED_PROCESS"
-    if not extract_final_agent_message(events):
-        return "INFRA_BLOCKED_MISSING_OUTPUT"
     try:
         if not response_path.is_file() or not response_path.read_text(encoding="utf-8").strip():
             return "INFRA_BLOCKED_MISSING_OUTPUT"
     except OSError:
+        return "INFRA_BLOCKED_MISSING_OUTPUT"
+    if events is not None and not extract_final_agent_message(events):
         return "INFRA_BLOCKED_MISSING_OUTPUT"
     return "EXECUTOR_OK"
 

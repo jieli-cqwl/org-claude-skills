@@ -194,6 +194,11 @@ def _execute_cases(
             result = run_executor(case, workspace, run_dir, settings)
             jsonl_path = run_dir / "executor.jsonl"
             response_path = run_dir / "outputs" / "response.md"
+            state = classify_execution_state(result, None, response_path)
+            if state != "EXECUTOR_OK":
+                _write_execution(run_dir, workspace, case, state, result=result)
+                records.append({"configuration": workspace.id, "case": f"{case.pack_id}:{case.id}", "state": state})
+                continue
             try:
                 events = load_jsonl(jsonl_path)
             except ValueError:
@@ -201,9 +206,13 @@ def _execute_cases(
                 records.append({"configuration": workspace.id, "case": f"{case.pack_id}:{case.id}", "state": "INFRA_BLOCKED_EVENT_SHAPE"})
                 continue
             state = classify_execution_state(result, events, response_path)
+            if state != "EXECUTOR_OK":
+                _write_execution(run_dir, workspace, case, state, result=result)
+                records.append({"configuration": workspace.id, "case": f"{case.pack_id}:{case.id}", "state": state})
+                continue
             expected_contracts = _expected_contracts(acceptance, case)
             route = classify_route_reads(events, expected_contracts, workspace.codex_home)
-            if state not in {"INFRA_BLOCKED_TIMEOUT", "INFRA_BLOCKED_PROCESS"} and not route.route_evidence_available:
+            if not route.route_evidence_available:
                 state = "INFRA_BLOCKED_EVENT_SHAPE"
             _write_execution(run_dir, workspace, case, state, result=result, route=route)
             records.append({"configuration": workspace.id, "case": f"{case.pack_id}:{case.id}", "state": state})

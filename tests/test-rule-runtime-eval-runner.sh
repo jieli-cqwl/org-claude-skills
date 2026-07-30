@@ -540,6 +540,18 @@ compound[0] = dict(compound[0], item=dict(compound[0]["item"], command=f"cat {ru
 compound_route = classify_route_reads(compound, (scene,), runtime_home)
 if compound_route.route_evidence_available or compound_route.route_pass:
     raise SystemExit("compound reader command did not fail closed")
+
+awk_begin = [dict(event) for event in passed_events]
+awk_begin[0] = dict(
+    awk_begin[0],
+    item=dict(
+        awk_begin[0]["item"],
+        command=f"awk 'BEGIN {{ print \"ok\"; exit }}' {runtime_home}/reference/协作判断.md",
+    ),
+)
+awk_begin_route = classify_route_reads(awk_begin, (scene,), runtime_home)
+if awk_begin_route.route_evidence_available or awk_begin_route.route_pass:
+    raise SystemExit("awk BEGIN program was accepted without consuming the runtime target")
 PY
 
 EXECUTION_ROOT="tools/eval/results/rule-runtime-eval-execution-test"
@@ -662,5 +674,78 @@ if evidence.get("state") != "INFRA_BLOCKED_EVENT_SHAPE":
 if evidence.get("route", {}).get("route_evidence_available") is not False:
     raise SystemExit("unknown event shape was accepted as route evidence")
 PY
+
+for mode in timeout_malformed process_malformed missing_output_malformed; do
+  PRECEDENCE_ROOT="tools/eval/results/rule-runtime-eval-$mode-test"
+  FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE="$mode" python3 "$RUNNER" \
+    --repo-root "$REPO" \
+    --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+    --profile focused-v1 \
+    --case-source candidate \
+    --baseline-ref assistant-entry=f9cbf552 \
+    --baseline-ref sql-schema-comments=68abd950 \
+    --model gpt-5 \
+    --reasoning-effort high \
+    --output-root "$PRECEDENCE_ROOT" \
+    --installer-bin "$FAKE_INSTALLER" \
+    --codex-bin "$FAKE_CODEX" \
+    --timeout-sec 1 \
+    --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/$mode-summary.json"
+  python3 - "$REPO" "$PRECEDENCE_ROOT" "$mode" <<'PY' || fail "execution-state precedence is invalid"
+import json
+import sys
+from pathlib import Path
+
+repo, result_root, mode = sys.argv[1:]
+expected = {
+    "timeout_malformed": "INFRA_BLOCKED_TIMEOUT",
+    "process_malformed": "INFRA_BLOCKED_PROCESS",
+    "missing_output_malformed": "INFRA_BLOCKED_MISSING_OUTPUT",
+}[mode]
+records = list((Path(repo) / result_root / "runs").glob("*/*/*/execution.json"))
+if not records:
+    raise SystemExit("runner did not write execution records")
+for path in records:
+    evidence = json.loads(path.read_text(encoding="utf-8"))
+    if evidence.get("state") != expected:
+        raise SystemExit(f"{path}: expected {expected}, got {evidence.get('state')}")
+PY
+done
+
+NON_EXECUTABLE_CODEX="$TMP_ROOT/non-executable-codex"
+printf '#!/usr/bin/env python3\n' > "$NON_EXECUTABLE_CODEX"
+for codex_bin in "$TMP_ROOT/missing-codex" "$NON_EXECUTABLE_CODEX"; do
+  launch_name="$(basename "$codex_bin")"
+  LAUNCH_FAILURE_ROOT="tools/eval/results/rule-runtime-eval-$launch_name-test"
+  FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
+    --repo-root "$REPO" \
+    --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+    --profile focused-v1 \
+    --case-source candidate \
+    --baseline-ref assistant-entry=f9cbf552 \
+    --baseline-ref sql-schema-comments=68abd950 \
+    --model gpt-5 \
+    --reasoning-effort high \
+    --output-root "$LAUNCH_FAILURE_ROOT" \
+    --installer-bin "$FAKE_INSTALLER" \
+    --codex-bin "$codex_bin" \
+    --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/$launch_name-summary.json"
+  python3 - "$REPO" "$LAUNCH_FAILURE_ROOT" <<'PY' || fail "launch failure did not produce per-case infrastructure evidence"
+import json
+import sys
+from pathlib import Path
+
+repo, result_root = map(Path, sys.argv[1:])
+records = list((repo / result_root / "runs").glob("*/*/*/execution.json"))
+if len(records) != 16:
+    raise SystemExit(f"expected one record per candidate/baseline case, got {len(records)}")
+for path in records:
+    evidence = json.loads(path.read_text(encoding="utf-8"))
+    if evidence.get("state") != "INFRA_BLOCKED_PROCESS":
+        raise SystemExit(f"{path}: unexpected launch state {evidence.get('state')}")
+    if not (path.parent / "executor.jsonl").is_file() or not (path.parent / "executor.log").is_file():
+        raise SystemExit(f"{path}: launch evidence files are missing")
+PY
+done
 
 printf '[PASS] rule runtime executor and fail-closed route evidence\n'

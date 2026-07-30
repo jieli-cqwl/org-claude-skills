@@ -35,9 +35,20 @@ def main() -> int:
         sys.stdout.flush()
         time.sleep(60)
         return 0
+    if mode == "timeout_malformed":
+        print('{"type":"item.started"')
+        sys.stdout.flush()
+        time.sleep(60)
+        return 0
     if mode == "process":
         print('{"type":"item.completed","item":{"id":"failed","type":"command_execution","command":"cat /missing","exit_code":1,"status":"failed","aggregated_output":"missing"}}')
         return 7
+    if mode == "process_malformed":
+        print('{"type":"item.completed"')
+        return 7
+    if mode == "missing_output_malformed":
+        print('{"type":"item.completed"')
+        return 0
 
     codex_home = Path(os.environ["CODEX_HOME"])
     installed_paths = (

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import re
 import shlex
 
 from rule_runtime_eval.contracts import SceneContract
@@ -177,8 +178,23 @@ def _direct_read_targets(tokens: list[str], expected_targets: set[Path]) -> tupl
         return set(), _mentions_target(" ".join(tokens), expected_targets)
     if any(token in {";", "&&", "||", "|", "<", ">", "<<", ">>"} for token in tokens[1:]):
         return set(), True
+    if Path(tokens[0]).name == "awk":
+        return _awk_read_targets(tokens, expected_targets)
     targets = {_normal_path(token) for token in tokens[1:]}
     return targets & expected_targets, False
+
+
+def _awk_read_targets(tokens: list[str], expected_targets: set[Path]) -> tuple[set[Path], bool]:
+    """Accept only record-processing awk programs with one explicit target file."""
+
+    if len(tokens) != 3 or _has_awk_fileless_rule(tokens[1]):
+        return set(), True
+    target = _normal_path(tokens[2])
+    return ({target} & expected_targets), False
+
+
+def _has_awk_fileless_rule(program: str) -> bool:
+    return re.search(r"\b(?:BEGIN|END)\b", program) is not None
 
 
 def _normal_path(value: str) -> Path:
