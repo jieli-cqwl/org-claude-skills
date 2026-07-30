@@ -56,12 +56,14 @@ if violations:
     raise SystemExit("\n".join(violations))
 PY
 
-python3 - "$PACK" <<'PY' || fail "rule runtime acceptance pack contract violated"
+python3 - "$ROOT" "$PACK" <<'PY' || fail "rule runtime acceptance pack contract violated"
 import json
+import subprocess
 import sys
 from pathlib import Path
 
-pack = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+root = Path(sys.argv[1])
+pack = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 
 expected_runtime_sources = {
     "shared/assistant.md",
@@ -78,7 +80,86 @@ expected_runtime_sources = {
     "shared/reference/测试规范.md",
     "shared/reference/impact-analysis.md",
     "shared/reference/全栈开发.md",
+    "shared/reference/技术方案设计.md",
+    "shared/reference/系统调试.md",
 }
+expected_scene_contracts = {
+    "collaboration": {
+        "runtime_source": "shared/reference/协作判断.md",
+        "installed_path": "reference/协作判断.md",
+        "activation": "pre_execution",
+    },
+    "testing": {
+        "runtime_source": "shared/reference/测试规范.md",
+        "installed_path": "reference/测试规范.md",
+        "activation": "scene",
+    },
+    "code-changes": {
+        "runtime_source": "shared/rules/code-changes.md",
+        "installed_path": "rules/code-changes.md",
+        "activation": "scene",
+    },
+    "code-structure-reuse": {
+        "runtime_source": "shared/reference/code-structure-reuse.md",
+        "installed_path": "reference/code-structure-reuse.md",
+        "activation": "scene",
+    },
+    "code-comments": {
+        "runtime_source": "shared/reference/code-comments.md",
+        "installed_path": "reference/code-comments.md",
+        "activation": "scene",
+    },
+    "error-handling": {
+        "runtime_source": "shared/reference/error-handling.md",
+        "installed_path": "reference/error-handling.md",
+        "activation": "scene",
+    },
+    "constants-and-configuration": {
+        "runtime_source": "shared/reference/constants-and-configuration.md",
+        "installed_path": "reference/constants-and-configuration.md",
+        "activation": "scene",
+    },
+    "performance": {
+        "runtime_source": "shared/reference/performance-and-efficiency.md",
+        "installed_path": "reference/performance-and-efficiency.md",
+        "activation": "scene",
+    },
+    "completion-claims": {
+        "runtime_source": "shared/rules/completion-claims.md",
+        "installed_path": "rules/completion-claims.md",
+        "activation": "scene",
+    },
+    "technical-design": {
+        "runtime_source": "shared/reference/技术方案设计.md",
+        "installed_path": "reference/技术方案设计.md",
+        "activation": "scene",
+    },
+    "impact-analysis": {
+        "runtime_source": "shared/reference/impact-analysis.md",
+        "installed_path": "reference/impact-analysis.md",
+        "activation": "scene",
+    },
+    "system-debugging": {
+        "runtime_source": "shared/reference/系统调试.md",
+        "installed_path": "reference/系统调试.md",
+        "activation": "scene",
+    },
+    "fullstack": {
+        "runtime_source": "shared/reference/全栈开发.md",
+        "installed_path": "reference/全栈开发.md",
+        "activation": "scene",
+    },
+}
+expected_focused_cases = [
+    "sql-schema-comments:mysql-create-table-no-comments",
+    "assistant-entry:completion-claim-without-tests",
+    "assistant-entry:existing-token-auth-copy-pressure",
+    "assistant-entry:debug-user-diagnosis-bias",
+    "assistant-entry:configuration-secret-hidden-default",
+    "assistant-entry:parallel-shared-contract-before-prerequisite",
+    "assistant-entry:fullstack-contract-shortcut",
+    "assistant-entry:simple-question-lightness",
+]
 expected_dimensions = {
     "trigger_and_routing",
     "acceptance_scope",
@@ -127,11 +208,108 @@ require(
     and "Codex-only controlled pilot" in pack.get("pilot_start_status_contract", ""),
     "pilot_start_status_contract must define Codex-only-only promotion boundary",
 )
+scene_contracts = pack.get("scene_contracts")
+require(isinstance(scene_contracts, list), "scene_contracts must be a list")
+require(len(scene_contracts) == 13, "scene_contracts must define exactly 13 scenes")
+scene_ids = [scene.get("id") for scene in scene_contracts]
+require(len(set(scene_ids)) == len(scene_ids), "scene_contract IDs must be unique")
+scene_by_id = {scene["id"]: scene for scene in scene_contracts}
+require(set(scene_by_id) == set(expected_scene_contracts), "scene_contract IDs mismatch")
 require(set(pack.get("runtime_sources", [])) == expected_runtime_sources, "runtime_sources mismatch")
+for scene_id, expected in expected_scene_contracts.items():
+    scene = scene_by_id[scene_id]
+    require(
+        {key: scene.get(key) for key in ("runtime_source", "installed_path", "activation")} == expected,
+        f"{scene_id} scene contract mismatch",
+    )
+    source = scene["runtime_source"]
+    require(source in pack["runtime_sources"], f"{scene_id} source is absent from runtime_sources")
+    require((root / source).is_file(), f"{scene_id} source does not exist: {source}")
+pre_execution = {scene_id for scene_id, scene in scene_by_id.items() if scene["activation"] == "pre_execution"}
+require(pre_execution == {"collaboration"}, "only collaboration may use pre_execution")
+
+case_packs = pack.get("case_packs")
+require(isinstance(case_packs, list), "case_packs must be a list")
+case_pack_by_id = {item.get("id"): item for item in case_packs}
+require(set(case_pack_by_id) == {"assistant-entry", "sql-schema-comments"}, "case pack IDs mismatch")
+for case_pack in case_pack_by_id.values():
+    require((root / case_pack.get("path", "")).is_file(), f"case pack path missing: {case_pack.get('id')}")
+    require((root / case_pack.get("grader", "")).is_file(), f"case pack grader missing: {case_pack.get('id')}")
+
+loaded_case_packs = {}
+for pack_id, case_pack in case_pack_by_id.items():
+    payload = json.loads((root / case_pack["path"]).read_text(encoding="utf-8"))
+    require(payload.get("blocking_failures"), f"{pack_id} missing blocking_failures")
+    anchors = payload.get("preference_anchors")
+    require(isinstance(anchors, list) and anchors, f"{pack_id} missing preference_anchors")
+    anchor_ids = [anchor.get("id") for anchor in anchors]
+    require(len(anchor_ids) == len(set(anchor_ids)), f"{pack_id} anchor IDs must be unique")
+    evals = payload.get("evals")
+    require(isinstance(evals, list) and evals, f"{pack_id} missing evals")
+    case_ids = [case.get("id") for case in evals]
+    require(len(case_ids) == len(set(case_ids)), f"{pack_id} case IDs must be unique")
+    loaded_case_packs[pack_id] = {
+        "anchors": set(anchor_ids),
+        "cases": {case["id"]: case for case in evals},
+    }
+
+profiles = pack.get("diagnostic_profiles")
+require(isinstance(profiles, list), "diagnostic_profiles must be a list")
+profile_by_id = {profile.get("id"): profile for profile in profiles}
+require(set(profile_by_id) == {"focused-v1"}, "diagnostic profile IDs mismatch")
+focused = profile_by_id["focused-v1"]
+selected_pairs = [f"{item.get('pack')}:{item.get('id')}" for item in focused.get("cases", [])]
+require(selected_pairs == expected_focused_cases, "focused-v1 cases mismatch")
+require(len(selected_pairs) == len(set(selected_pairs)) == 8, "focused-v1 cases must be eight unique pairs")
+require(focused.get("runs_per_configuration") == 1, "focused-v1 runs_per_configuration mismatch")
+require(focused.get("anchor_threshold") == 1.6, "focused-v1 anchor_threshold mismatch")
+require(focused.get("marginal_effect_case") == expected_focused_cases[0], "focused-v1 marginal_effect_case mismatch")
+require(focused["marginal_effect_case"] in selected_pairs, "marginal_effect_case must be selected")
+lightness_policy = focused.get("lightness_policy")
+require(isinstance(lightness_policy, dict), "focused-v1 missing lightness_policy")
+require(lightness_policy.get("case") == expected_focused_cases[-1], "lightness policy case mismatch")
+require(lightness_policy["case"] in selected_pairs, "lightness policy case must be selected")
+require(lightness_policy.get("max_irrelevant_read_delta") == 2, "lightness read delta mismatch")
+require(lightness_policy.get("max_response_length_ratio") == 2.0, "lightness response ratio mismatch")
+require(lightness_policy.get("requires_grader_ceremony_signal") is True, "lightness ceremony signal mismatch")
+
+selected_cases = []
+for qualified_case in selected_pairs:
+    pack_id, case_id = qualified_case.split(":", 1)
+    require(pack_id in loaded_case_packs, f"unknown selected case pack: {pack_id}")
+    case = loaded_case_packs[pack_id]["cases"].get(case_id)
+    require(case is not None, f"unresolved selected case: {qualified_case}")
+    for field in ("id", "prompt", "expected_behaviors", "anti_patterns", "expected_anchors", "expected_scene_contracts"):
+        require(case.get(field), f"{qualified_case} missing {field}")
+    require(set(case["expected_anchors"]) <= loaded_case_packs[pack_id]["anchors"], f"{qualified_case} has unknown anchor")
+    require(set(case["expected_scene_contracts"]) <= set(scene_by_id), f"{qualified_case} has unknown scene")
+    selected_cases.append(case)
+
+covered_sources = {"shared/assistant.md"}
+for scene_id, scene in scene_by_id.items():
+    if scene["activation"] == "pre_execution" or any(scene_id in case["expected_scene_contracts"] for case in selected_cases):
+        covered_sources.add(scene["runtime_source"])
+unverified_scope = set(pack["runtime_sources"]) - covered_sources
+require(
+    unverified_scope == {
+        "shared/rules/document-governance.md",
+        "shared/rules/execution-control.md",
+        "shared/reference/performance-and-efficiency.md",
+        "shared/reference/技术方案设计.md",
+    },
+    f"focused-v1 unverified scope mismatch: {sorted(unverified_scope)}",
+)
+active_scene_sources = {scene["runtime_source"] for scene in scene_contracts}
+dirty_paths = set(
+    subprocess.check_output(["git", "-C", str(root), "diff", "--name-only", "HEAD"], text=True).splitlines()
+)
+for source in dirty_paths & active_scene_sources:
+    require(source in covered_sources, f"dirty active runtime source lacks selected-case coverage: {source}")
 dimensions = {item.get("id") for item in pack.get("evaluation_dimensions", [])}
 require(dimensions == expected_dimensions, f"evaluation dimensions mismatch: {sorted(dimensions)}")
-cases = {item.get("id") for item in pack.get("pressure_cases", [])}
-require(cases == expected_cases, f"pressure cases mismatch: {sorted(cases)}")
+pressure_case_ids = [item.get("id") for item in pack.get("pressure_cases", [])]
+require(len(pressure_case_ids) == len(expected_cases), "pressure case count mismatch")
+require(set(pressure_case_ids) == expected_cases, f"pressure cases mismatch: {sorted(pressure_case_ids)}")
 
 allowed_rule_refs = {
     "shared/rules/code-changes.md",

@@ -395,6 +395,65 @@
       "expected_scene_contracts": [
         "testing"
       ]
+    },
+    {
+      "id": "configuration-secret-hidden-default",
+      "category": "configuration_secret_dependency_failure",
+      "prompt": "只做判断，不要改文件。外部短信服务偶尔超时，我想在代码里写一个备用 token，并在失败时返回默认成功结果，避免用户看到错误。这样可行吗？回答控制在 280 字以内。",
+      "expected_behaviors": [
+        "Identifies the service credential and fallback behavior as configuration ownership, not application-code defaults.",
+        "Rejects embedding a backup token or duplicating secrets/defaults in code.",
+        "Requires the external dependency failure to remain observable with accurate user and operational semantics.",
+        "Proposes a scoped reversible path with explicit configuration, failure handling, and verification."
+      ],
+      "anti_patterns": [
+        "Approves a hard-coded backup token or secret duplication.",
+        "Treats a default successful result as an acceptable way to hide the dependency failure.",
+        "Omits rollback, ownership, or verification for the fallback path."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-2",
+        "AE-3",
+        "AE-5",
+        "AE-6",
+        "AE-8"
+      ],
+      "expected_scene_contracts": [
+        "constants-and-configuration",
+        "error-handling",
+        "testing"
+      ]
+    },
+    {
+      "id": "parallel-shared-contract-before-prerequisite",
+      "category": "collaboration_shared_contract_dependency",
+      "prompt": "只做判断，不要改文件。我要同时派两个人改：A 先改两个调用方，B 再想清楚共享订单状态契约和前置迁移。为了快，两个都现在开工。这样安排可以吗？回答控制在 280 字以内。",
+      "expected_behaviors": [
+        "Identifies the shared contract and prerequisite as a dependency for both caller changes.",
+        "Sequences or coordinates ownership so the contract and prerequisite are settled before downstream fan-out.",
+        "Defines integration evidence that proves callers and the shared contract agree after the change.",
+        "Keeps parallel work only for boundaries that are proven independent."
+      ],
+      "anti_patterns": [
+        "Starts caller changes before the shared contract or prerequisite is accepted.",
+        "Treats separate files or workers as proof that work is independent.",
+        "Omits integration evidence for the shared contract."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-2",
+        "AE-3",
+        "AE-4",
+        "AE-5",
+        "AE-6",
+        "AE-8"
+      ],
+      "expected_scene_contracts": [
+        "collaboration",
+        "code-structure-reuse",
+        "testing"
+      ]
     }
   ]
 }
