@@ -11,8 +11,10 @@ import subprocess
 import sys
 
 from rule_runtime_eval.common import sha256_file, write_json
-from rule_runtime_eval.contracts import ContractError, load_acceptance_contract, load_profile_cases, parse_baseline_refs
-from rule_runtime_eval.workspace import WorkspaceError, prepare_runtime_workspaces
+from rule_runtime_eval.contracts import ContractError, EvalCase, SceneContract, load_acceptance_contract, load_profile_cases, parse_baseline_refs
+from rule_runtime_eval.evidence import classify_route_reads, load_jsonl
+from rule_runtime_eval.execution import ExecutionSettings, classify_execution_state, run_executor
+from rule_runtime_eval.workspace import RuntimeWorkspace, WorkspaceError, prepare_runtime_workspaces
 
 
 class ContractArgumentParser(argparse.ArgumentParser):
@@ -113,6 +115,11 @@ def main(argv: list[str] | None = None) -> int:
             raise ContractError("output_root_required", "workspace preparation requires an output root")
         output_root = _repo_path(args.repo_root.resolve(), args.output_root, "output_root_outside_repo")
         output_root.mkdir(parents=True, exist_ok=True)
+        execution_contract = load_acceptance_contract(
+            args.repo_root.resolve(),
+            _repo_path(args.repo_root.resolve(), args.acceptance_pack, "acceptance_pack_outside_repo"),
+        )
+        _, execution_cases = load_profile_cases(execution_contract, args.profile, args.repo_root.resolve())
         source_codex_home = args.source_codex_home or Path(
             os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
         )
@@ -127,6 +134,20 @@ def main(argv: list[str] | None = None) -> int:
             timeout_seconds=args.timeout_sec,
             output_root=output_root,
             keep_workspaces=args.keep_workspaces,
+            after_install=lambda workspaces, installations: _execute_cases(
+                execution_contract,
+                execution_cases,
+                resolution["baseline_commits"],
+                workspaces,
+                installations,
+                output_root,
+                ExecutionSettings(
+                    codex_bin=args.codex_bin,
+                    model=args.model,
+                    reasoning_effort=args.reasoning_effort,
+                    timeout_seconds=args.timeout_sec,
+                ),
+            ),
         )
         prepared = {**resolution, "mode": "workspace_prepared", **workspace_summary}
         write_json(output_root / "workspace-preparation.json", prepared)
@@ -138,6 +159,97 @@ def main(argv: list[str] | None = None) -> int:
     except WorkspaceError as exc:
         _emit_error(exc.code, exc.message)
         return 1
+
+
+def _execute_cases(
+    contract: object,
+    cases: list[EvalCase],
+    baseline_commits: list[dict[str, str]],
+    workspaces: tuple[RuntimeWorkspace, ...],
+    installations: tuple[dict[str, object], ...],
+    output_root: Path,
+    settings: ExecutionSettings,
+) -> dict[str, object]:
+    """Create one candidate/baseline execution record for every selected case."""
+
+    acceptance = contract
+    workspace_by_id = {workspace.id: workspace for workspace in workspaces}
+    installation_by_id = {str(item["id"]): item for item in installations}
+    baseline_by_pack = {
+        item["pack_id"]: workspace_by_id[f"baseline-{item['commit']}"] for item in baseline_commits
+    }
+    records: list[dict[str, object]] = []
+    for case in cases:
+        configurations = [workspace_by_id["candidate"], baseline_by_pack[case.pack_id]]
+        for workspace in configurations:
+            run_dir = output_root / "runs" / workspace.id / case.pack_id / case.id
+            installation = installation_by_id[workspace.id]
+            if (
+                installation.get("install_status") != "READY"
+                or installation.get("live_execution_status") != "READY"
+            ):
+                _write_execution(run_dir, workspace, case, "INFRA_BLOCKED_INSTALL")
+                records.append({"configuration": workspace.id, "case": f"{case.pack_id}:{case.id}", "state": "INFRA_BLOCKED_INSTALL"})
+                continue
+            result = run_executor(case, workspace, run_dir, settings)
+            jsonl_path = run_dir / "executor.jsonl"
+            response_path = run_dir / "outputs" / "response.md"
+            try:
+                events = load_jsonl(jsonl_path)
+            except ValueError:
+                _write_execution(run_dir, workspace, case, "INFRA_BLOCKED_EVENT_SHAPE", result=result)
+                records.append({"configuration": workspace.id, "case": f"{case.pack_id}:{case.id}", "state": "INFRA_BLOCKED_EVENT_SHAPE"})
+                continue
+            state = classify_execution_state(result, events, response_path)
+            expected_contracts = _expected_contracts(acceptance, case)
+            route = classify_route_reads(events, expected_contracts, workspace.codex_home)
+            if state not in {"INFRA_BLOCKED_TIMEOUT", "INFRA_BLOCKED_PROCESS"} and not route.route_evidence_available:
+                state = "INFRA_BLOCKED_EVENT_SHAPE"
+            _write_execution(run_dir, workspace, case, state, result=result, route=route)
+            records.append({"configuration": workspace.id, "case": f"{case.pack_id}:{case.id}", "state": state})
+    return {"records": records}
+
+
+def _expected_contracts(contract: object, case: EvalCase) -> tuple[SceneContract, ...]:
+    ids = [scene.id for scene in contract.scene_contracts if scene.activation == "pre_execution"]
+    ids.extend(case.expected_scene_contracts)
+    return tuple(contract.scene_by_id[scene_id] for scene_id in dict.fromkeys(ids))
+
+
+def _write_execution(
+    run_dir: Path,
+    workspace: RuntimeWorkspace,
+    case: EvalCase,
+    state: str,
+    *,
+    result: object | None = None,
+    route: object | None = None,
+) -> None:
+    run_dir.mkdir(parents=True, exist_ok=True)
+    payload: dict[str, object] = {
+        "configuration": workspace.id,
+        "case": {"pack_id": case.pack_id, "id": case.id},
+        "state": state,
+    }
+    if result is not None:
+        payload["process"] = {
+            "returncode": result.returncode,
+            "timed_out": result.timed_out,
+            "started_at": result.started_at,
+            "ended_at": result.ended_at,
+            "duration_seconds": result.duration_seconds,
+        }
+    if route is not None:
+        payload["route"] = {
+            "route_evidence_available": route.route_evidence_available,
+            "route_pass": route.route_pass,
+            "parser_uncertain": route.parser_uncertain,
+            "expected_contract_ids": list(route.expected_contract_ids),
+            "read_contract_ids": list(route.read_contract_ids),
+            "observed_event_ids": list(route.observed_event_ids),
+            "observed_command_ids": list(route.observed_command_ids),
+        }
+    write_json(run_dir / "execution.json", payload)
 
 
 def _resolve_git_ref(repo_root: Path, ref: str) -> str:

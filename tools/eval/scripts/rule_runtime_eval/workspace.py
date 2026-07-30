@@ -9,7 +9,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
-from typing import Mapping
+from typing import Callable, Mapping
 
 from rule_runtime_eval.common import CommandResult, run_command, sha256_file, write_json
 
@@ -92,8 +92,9 @@ def prepare_runtime_workspaces(
     timeout_seconds: int,
     output_root: Path,
     keep_workspaces: bool,
+    after_install: Callable[[tuple[RuntimeWorkspace, ...], tuple[dict[str, object], ...]], dict[str, object]] | None = None,
 ) -> dict[str, object]:
-    """Install candidate and unique baseline runtimes without executing Codex."""
+    """Install runtimes and optionally execute while their isolated homes remain alive."""
 
     candidate_root = repo_root.resolve()
     workspace_parent = Path(tempfile.gettempdir()).resolve()
@@ -107,6 +108,7 @@ def prepare_runtime_workspaces(
             candidate_head,
             candidate_dirty_paths,
         )
+        workspaces = [candidate]
         prepared = [
             _prepare_configuration(
                 candidate,
@@ -120,15 +122,17 @@ def prepare_runtime_workspaces(
         for baseline in _unique_baselines(baseline_commits):
             snapshot = _materialize_baseline(candidate_root, workspace_root, baseline["commit"])
             snapshots.append(snapshot)
+            baseline_workspace = _create_runtime_workspace(
+                workspace_root,
+                f"baseline-{baseline['commit']}",
+                snapshot,
+                baseline["commit"],
+                (),
+            )
+            workspaces.append(baseline_workspace)
             prepared.append(
                 _prepare_configuration(
-                    _create_runtime_workspace(
-                        workspace_root,
-                        f"baseline-{baseline['commit']}",
-                        snapshot,
-                        baseline["commit"],
-                        (),
-                    ),
+                    baseline_workspace,
                     acceptance_pack,
                     source_codex_home,
                     installer_bin,
@@ -144,11 +148,14 @@ def prepare_runtime_workspaces(
             (),
         )
         judge_context = seed_codex_context(source_codex_home, judge.codex_home)
-        return {
+        summary = {
             "installations": prepared,
             "judge_context": judge_context,
             "workspace_retained": keep_workspaces,
         }
+        if after_install is not None:
+            summary["executions"] = after_install(tuple(workspaces), tuple(prepared))
+        return summary
     finally:
         cleanup_error: WorkspaceError | None = None
         try:

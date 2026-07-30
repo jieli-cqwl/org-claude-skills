@@ -242,6 +242,7 @@ printf '\n' >> "$REPO/shared/assistant.md"
 
 SOURCE_CODEX_HOME="$TMP_ROOT/source-codex-home"
 FAKE_INSTALLER="$ROOT/tests/fixtures/rule-runtime-eval/fake-install.sh"
+FAKE_CODEX="$ROOT/tests/fixtures/rule-runtime-eval/fake-codex.py"
 EVALUATOR_TMP="$TMP_ROOT/evaluator-tmp"
 RESULT_ROOT="tools/eval/results/rule-runtime-eval-test"
 RESULT_KEEP_ROOT="tools/eval/results/rule-runtime-eval-test-keep"
@@ -268,6 +269,7 @@ run_workspace_prepare() {
     --reasoning-effort high \
     --output-root "$RESULT_ROOT" \
     --installer-bin "$FAKE_INSTALLER" \
+    --codex-bin "$FAKE_CODEX" \
     --source-codex-home "$SOURCE_CODEX_HOME" \
     "$@"
 }
@@ -342,6 +344,8 @@ if [path for path in evaluator_tmp.glob("rule-runtime-eval-*") if path != foreig
     raise SystemExit("default cleanup retained evaluator workspace roots")
 for path in result_root.rglob("*"):
     if path.is_file():
+        if path.name == "executor.jsonl":
+            continue
         payload = path.read_text(encoding="utf-8", errors="replace")
         if any(
             forbidden in payload
@@ -367,6 +371,7 @@ TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
   --reasoning-effort high \
   --output-root "$RESULT_KEEP_ROOT" \
   --installer-bin "$FAKE_INSTALLER" \
+  --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_CODEX_HOME" \
   --keep-workspaces > "$TMP_ROOT/keep-summary.json"
 python3 - "$EVALUATOR_TMP" "$FOREIGN_PREFIXED_ROOT" <<'PY' || fail "keep-workspaces did not retain exactly evaluator-owned roots"
@@ -393,6 +398,7 @@ TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
   --reasoning-effort high \
   --output-root "$RESULT_NO_AUTH_ROOT" \
   --installer-bin "$FAKE_INSTALLER" \
+  --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_WITHOUT_AUTH" > "$TMP_ROOT/no-auth-summary.json"
 python3 - "$TMP_ROOT/no-auth-summary.json" <<'PY' || fail "missing auth was not marked as an execution blocker"
 import json
@@ -489,3 +495,172 @@ if attempted != [second, first]:
 PY
 
 printf '[PASS] rule runtime evaluator contract loading and dry-run resolution\n'
+
+PYTHONPATH="$ROOT/tools/eval/scripts" python3 - "$ROOT" "$TMP_ROOT" <<'PY'
+import sys
+from pathlib import Path
+
+from rule_runtime_eval.evidence import classify_route_reads, load_jsonl
+from rule_runtime_eval.execution import extract_final_agent_message
+from rule_runtime_eval.contracts import load_acceptance_contract
+
+root = Path(sys.argv[1])
+tmp = Path(sys.argv[2])
+contract = load_acceptance_contract(
+    root, root / "docs/rule-runtime--team-readiness/acceptance-pack.json"
+)
+scene = contract.scene_by_id["collaboration"]
+runtime_home = tmp / "runtime-home" / ".codex"
+
+def fixture(name: str) -> list[dict]:
+    source = (root / "tests/fixtures/rule-runtime-eval" / name).read_text(encoding="utf-8")
+    path = tmp / name
+    path.write_text(source.replace("__CODEX_HOME__", str(runtime_home)), encoding="utf-8")
+    return load_jsonl(path)
+
+passed_events = fixture("route-read-pass.jsonl")
+passed = classify_route_reads(passed_events, (scene,), runtime_home)
+if not passed.route_evidence_available or not passed.route_pass:
+    raise SystemExit(f"recognized successful reader did not pass: {passed}")
+if passed.observed_command_ids != ("command-read",):
+    raise SystemExit("successful command event ID was not retained")
+if extract_final_agent_message(passed_events) != "final response":
+    raise SystemExit("last completed agent message was not extracted")
+
+missed = classify_route_reads(fixture("route-read-miss.jsonl"), (scene,), runtime_home)
+if not missed.route_evidence_available or missed.route_pass:
+    raise SystemExit(f"route miss was accepted or blocked: {missed}")
+
+unknown = classify_route_reads(fixture("route-read-unknown-shape.jsonl"), (scene,), runtime_home)
+if unknown.route_evidence_available or unknown.route_pass:
+    raise SystemExit(f"unknown event shape did not fail closed: {unknown}")
+
+compound = [dict(event) for event in passed_events]
+compound[0] = dict(compound[0], item=dict(compound[0]["item"], command=f"cat {runtime_home}/reference/协作判断.md; echo ignored"))
+compound_route = classify_route_reads(compound, (scene,), runtime_home)
+if compound_route.route_evidence_available or compound_route.route_pass:
+    raise SystemExit("compound reader command did not fail closed")
+PY
+
+EXECUTION_ROOT="tools/eval/results/rule-runtime-eval-execution-test"
+FAKE_CODEX_LOG="$TMP_ROOT/fake-codex.log"
+FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_LOG="$FAKE_CODEX_LOG" python3 "$RUNNER" \
+  --repo-root "$REPO" \
+  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --profile focused-v1 \
+  --case-source candidate \
+  --baseline-ref assistant-entry=f9cbf552 \
+  --baseline-ref sql-schema-comments=68abd950 \
+  --model gpt-5 \
+  --reasoning-effort high \
+  --output-root "$EXECUTION_ROOT" \
+  --installer-bin "$FAKE_INSTALLER" \
+  --codex-bin "$FAKE_CODEX" \
+  --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/execution-summary.json"
+python3 - "$REPO" "$EXECUTION_ROOT" "$FAKE_CODEX_LOG" <<'PY' || fail "executor evidence is invalid"
+import json
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+repo, result_root, log_path = map(Path, sys.argv[1:])
+result_root = repo / result_root
+records = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
+if not records:
+    raise SystemExit("fake Codex was not invoked")
+by_prompt = defaultdict(list)
+for record in records:
+    if record["model"] != "gpt-5" or record["reasoning"] != 'model_reasoning_effort="high"':
+        raise SystemExit("model settings drifted between configurations")
+    try:
+        Path(record["workspace"]).resolve().relative_to(repo.resolve())
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("executor used a source-repository case workspace")
+    by_prompt[record["prompt_sha256"]].append(record)
+if not all(
+    len(group) == 2 and len({(item["model"], item["reasoning"]) for item in group}) == 1
+    for group in by_prompt.values()
+):
+    raise SystemExit("candidate and baseline did not receive identical settings")
+
+run = result_root / "runs" / "candidate" / "assistant-entry" / "completion-claim-without-tests"
+evidence = json.loads((run / "execution.json").read_text(encoding="utf-8"))
+if evidence.get("state") != "EXECUTOR_OK":
+    raise SystemExit(f"expected executor success, got {evidence.get('state')}")
+if not evidence.get("route", {}).get("route_pass"):
+    raise SystemExit("successful fake reader evidence did not route all required contracts")
+if not (run / "executor.jsonl").is_file() or not (run / "outputs/response.md").is_file():
+    raise SystemExit("raw JSONL or final response is missing")
+PY
+
+PYTHONPATH="$ROOT/tools/eval/scripts" FAKE_CODEX_MODE=timeout python3 - "$ROOT" "$TMP_ROOT" "$FAKE_CODEX" <<'PY' || fail "executor failure classification is invalid"
+import os
+import sys
+from pathlib import Path
+
+from rule_runtime_eval.contracts import EvalCase
+from rule_runtime_eval.evidence import load_jsonl
+from rule_runtime_eval.execution import ExecutionSettings, classify_execution_state, run_executor
+from rule_runtime_eval.workspace import RuntimeWorkspace
+
+root, tmp, fake = map(Path, sys.argv[1:])
+home = tmp / "timeout-home"
+(home / ".codex").mkdir(parents=True)
+workspace = RuntimeWorkspace("timeout", root, "test", home, home / ".codex", home / "state", home / "skills", ())
+case = EvalCase("assistant-entry", "timeout", "prompt", ("behavior",), ("anti",), ("block",), (), {}, ())
+settings = ExecutionSettings(str(fake), "gpt-5", "high", 1)
+result = run_executor(case, workspace, tmp / "timeout-run", settings)
+if classify_execution_state(result, [], tmp / "timeout-run/outputs/response.md") != "INFRA_BLOCKED_TIMEOUT":
+    raise SystemExit("timeout was not classified")
+if not (tmp / "timeout-run/executor.jsonl").read_bytes():
+    raise SystemExit("timeout did not preserve partial JSONL")
+for mode, expected in (
+    ("process", "INFRA_BLOCKED_PROCESS"),
+    ("missing_output", "INFRA_BLOCKED_MISSING_OUTPUT"),
+    ("missing_message", "INFRA_BLOCKED_MISSING_OUTPUT"),
+):
+    os.environ["FAKE_CODEX_MODE"] = mode
+    os.environ["FAKE_CODEX_STDERR"] = "credential=deliberately-sensitive-token"
+    run_dir = tmp / f"{mode}-run"
+    result = run_executor(case, workspace, run_dir, settings)
+    state = classify_execution_state(result, load_jsonl(run_dir / "executor.jsonl"), run_dir / "outputs/response.md")
+    if state != expected:
+        raise SystemExit(f"{mode} was classified as {state}")
+    if "deliberately-sensitive-token" in (run_dir / "executor.log").read_text(encoding="utf-8"):
+        raise SystemExit("executor stderr was not redacted")
+PY
+
+UNKNOWN_ROOT="tools/eval/results/rule-runtime-eval-unknown-shape-test"
+FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=unknown_shape python3 "$RUNNER" \
+  --repo-root "$REPO" \
+  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --profile focused-v1 \
+  --case-source candidate \
+  --baseline-ref assistant-entry=f9cbf552 \
+  --baseline-ref sql-schema-comments=68abd950 \
+  --model gpt-5 \
+  --reasoning-effort high \
+  --output-root "$UNKNOWN_ROOT" \
+  --installer-bin "$FAKE_INSTALLER" \
+  --codex-bin "$FAKE_CODEX" \
+  --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/unknown-summary.json"
+python3 - "$REPO" "$UNKNOWN_ROOT" <<'PY' || fail "unknown JSONL shape did not visibly block"
+import json
+import sys
+from pathlib import Path
+
+repo, result_root = map(Path, sys.argv[1:])
+evidence = json.loads(
+    (repo / result_root / "runs/candidate/assistant-entry/completion-claim-without-tests/execution.json").read_text(
+        encoding="utf-8"
+    )
+)
+if evidence.get("state") != "INFRA_BLOCKED_EVENT_SHAPE":
+    raise SystemExit(f"unknown event state mismatch: {evidence.get('state')}")
+if evidence.get("route", {}).get("route_evidence_available") is not False:
+    raise SystemExit("unknown event shape was accepted as route evidence")
+PY
+
+printf '[PASS] rule runtime executor and fail-closed route evidence\n'
