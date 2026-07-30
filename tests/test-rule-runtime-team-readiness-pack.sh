@@ -300,11 +300,29 @@ require(
     f"focused-v1 unverified scope mismatch: {sorted(unverified_scope)}",
 )
 active_scene_sources = {scene["runtime_source"] for scene in scene_contracts}
+allowed_unverified_dirty_sources = unverified_scope & active_scene_sources
+
+
+def uncovered_dirty_active_sources(dirty_sources, allowed_unverified_sources):
+    return (dirty_sources & active_scene_sources) - covered_sources - allowed_unverified_sources
+
+
+dirty_source_proof_failures = []
+if uncovered_dirty_active_sources(
+    {"shared/reference/performance-and-efficiency.md"}, allowed_unverified_dirty_sources
+):
+    dirty_source_proof_failures.append("explicit unverified dirty active source must be allowed")
+if uncovered_dirty_active_sources({"shared/reference/performance-and-efficiency.md"}, set()) != {
+    "shared/reference/performance-and-efficiency.md"
+}:
+    dirty_source_proof_failures.append("dirty active source without explicit unverified permission must be rejected")
+require(not dirty_source_proof_failures, "; ".join(dirty_source_proof_failures))
+
 dirty_paths = set(
     subprocess.check_output(["git", "-C", str(root), "diff", "--name-only", "HEAD"], text=True).splitlines()
 )
-for source in dirty_paths & active_scene_sources:
-    require(source in covered_sources, f"dirty active runtime source lacks selected-case coverage: {source}")
+for source in uncovered_dirty_active_sources(dirty_paths, allowed_unverified_dirty_sources):
+    require(False, f"dirty active runtime source lacks selected-case coverage: {source}")
 dimensions = {item.get("id") for item in pack.get("evaluation_dimensions", [])}
 require(dimensions == expected_dimensions, f"evaluation dimensions mismatch: {sorted(dimensions)}")
 pressure_case_ids = [item.get("id") for item in pack.get("pressure_cases", [])]
