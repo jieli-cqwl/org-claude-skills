@@ -550,8 +550,20 @@ awk_begin[0] = dict(
     ),
 )
 awk_begin_route = classify_route_reads(awk_begin, (scene,), runtime_home)
-if awk_begin_route.route_evidence_available or awk_begin_route.route_pass:
-    raise SystemExit("awk BEGIN program was accepted without consuming the runtime target")
+if not awk_begin_route.route_evidence_available or awk_begin_route.route_pass:
+    raise SystemExit("awk BEGIN program was not ignored as a valid route miss")
+
+awk_beginfile = [dict(event) for event in passed_events]
+awk_beginfile[0] = dict(
+    awk_beginfile[0],
+    item=dict(
+        awk_beginfile[0]["item"],
+        command=f"awk 'BEGINFILE {{ exit }}' {runtime_home}/reference/协作判断.md",
+    ),
+)
+awk_beginfile_route = classify_route_reads(awk_beginfile, (scene,), runtime_home)
+if not awk_beginfile_route.route_evidence_available or awk_beginfile_route.route_pass:
+    raise SystemExit("awk BEGINFILE program was not ignored as a valid route miss")
 PY
 
 EXECUTION_ROOT="tools/eval/results/rule-runtime-eval-execution-test"
