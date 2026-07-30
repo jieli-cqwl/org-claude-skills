@@ -166,7 +166,13 @@ def parse_baseline_refs(values: list[str], selected_pack_ids: set[str]) -> dict[
 def _load_runtime_sources(root: Path, payload: Mapping[str, object]) -> tuple[Path, ...]:
     values = _string_list(payload.get("runtime_sources"), "runtime_sources_missing")
     _require_unique(values, "runtime_source_duplicate")
-    return tuple(_resolve_repo_file(root, Path(value), "runtime_source_missing") for value in values)
+    sources = tuple(_resolve_repo_file(root, Path(value), "runtime_source_missing") for value in values)
+    if (root / "shared" / "assistant.md").resolve() not in sources:
+        raise ContractError(
+            "assistant_runtime_source_missing",
+            "shared/assistant.md must be declared as a runtime source",
+        )
+    return sources
 
 
 def _load_scene_contracts(

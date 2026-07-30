@@ -13,8 +13,15 @@ from rule_runtime_eval.common import sha256_file, write_json
 from rule_runtime_eval.contracts import ContractError, load_acceptance_contract, load_profile_cases, parse_baseline_refs
 
 
+class ContractArgumentParser(argparse.ArgumentParser):
+    """Emit CLI input failures through the runner's structured error boundary."""
+
+    def error(self, message: str) -> None:
+        raise ContractError("argument_parse_error", message)
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Resolve rule-runtime evaluation contracts")
+    parser = ContractArgumentParser(description="Resolve rule-runtime evaluation contracts")
     parser.add_argument("--repo-root", type=Path, required=True)
     parser.add_argument("--acceptance-pack", type=Path, required=True)
     parser.add_argument("--profile", required=True)
@@ -59,7 +66,7 @@ def resolve_dry_run(args: argparse.Namespace) -> dict[str, object]:
     unverified_scope = tuple(
         sorted(_relative(contract.repo_root, source) for source in set(contract.runtime_sources) - covered_sources)
     )
-    _validate_dirty_runtime_sources(contract, dirty_paths, covered_sources, unverified_scope)
+    _validate_dirty_runtime_sources(contract, dirty_paths, covered_sources)
     return {
         "mode": "dry_run",
         "model": args.model,
@@ -92,8 +99,8 @@ def resolve_dry_run(args: argparse.Namespace) -> dict[str, object]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
     try:
+        args = build_parser().parse_args(argv)
         resolution = resolve_dry_run(args)
         if not args.dry_run:
             _emit_error("evaluation_not_implemented", "evaluation execution is outside this runner slice")
@@ -187,26 +194,18 @@ def _validate_dirty_runtime_sources(
     contract: object,
     dirty_paths: tuple[str, ...],
     covered_sources: set[Path],
-    unverified_scope: tuple[str, ...],
 ) -> None:
     runtime_sources = {_relative(contract.repo_root, source): source for source in contract.runtime_sources}
-    active_scene_sources = {scene.runtime_source for scene in contract.scene_contracts}
-    allowed_unverified_dirty = {
-        (contract.repo_root / path).resolve()
-        for path in unverified_scope
-        if (contract.repo_root / path).resolve() in active_scene_sources
-    }
     uncovered_dirty = {
         runtime_sources[path]
         for path in dirty_paths
         if path in runtime_sources
         and runtime_sources[path] not in covered_sources
-        and runtime_sources[path] not in allowed_unverified_dirty
     }
     if uncovered_dirty:
         raise ContractError(
             "dirty_runtime_source_uncovered",
-            "dirty runtime sources outside active scene coverage are unsupported",
+            "dirty runtime sources outside selected-case coverage are unsupported",
         )
 
 

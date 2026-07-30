@@ -132,6 +132,17 @@ expect_contract_error case_source_unsupported python3 "$RUNNER" \
   --model gpt-5 \
   --reasoning-effort high \
   --dry-run
+expect_contract_error argument_parse_error python3 "$RUNNER"
+expect_contract_error argument_parse_error python3 "$RUNNER" \
+  --repo-root "$REPO" \
+  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --profile focused-v1 \
+  --case-source candidate \
+  --baseline-ref assistant-entry=f9cbf552 \
+  --baseline-ref sql-schema-comments=68abd950 \
+  --model gpt-5 \
+  --reasoning-effort unsupported \
+  --dry-run
 
 python3 - "$REPO" "$UNKNOWN_SCENE_FIXTURE" <<'PY'
 import json
@@ -203,8 +214,21 @@ PY
 expect_contract_error anchor_definition_missing run_dry
 
 git -C "$REPO" checkout -- tools/eval/scenarios/assistant-entry/evals.json
+python3 - "$REPO" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1]) / "docs/rule-runtime--team-readiness/acceptance-pack.json"
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["runtime_sources"].remove("shared/assistant.md")
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_contract_error assistant_runtime_source_missing run_dry
+
+git -C "$REPO" checkout -- docs/rule-runtime--team-readiness/acceptance-pack.json
 printf '\n' >> "$REPO/shared/reference/performance-and-efficiency.md"
-run_dry >"$TMP_ROOT/unverified-dirty-resolution.json"
+expect_contract_error dirty_runtime_source_uncovered run_dry
 
 git -C "$REPO" checkout -- shared/reference/performance-and-efficiency.md
 printf '\n' >> "$REPO/shared/rules/document-governance.md"
