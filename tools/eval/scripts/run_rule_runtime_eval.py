@@ -5,12 +5,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
 
 from rule_runtime_eval.common import sha256_file, write_json
 from rule_runtime_eval.contracts import ContractError, load_acceptance_contract, load_profile_cases, parse_baseline_refs
+from rule_runtime_eval.workspace import WorkspaceError, prepare_runtime_workspaces
 
 
 class ContractArgumentParser(argparse.ArgumentParser):
@@ -102,18 +104,42 @@ def main(argv: list[str] | None = None) -> int:
     try:
         args = build_parser().parse_args(argv)
         resolution = resolve_dry_run(args)
-        if not args.dry_run:
-            _emit_error("evaluation_not_implemented", "evaluation execution is outside this runner slice")
-            return 1
-        if args.output_root is not None:
-            output_root = _repo_path(args.repo_root.resolve(), args.output_root, "output_root_outside_repo")
-            output_root.mkdir(parents=True, exist_ok=True)
-            write_json(output_root / "resolution.json", resolution)
-        print(json.dumps(resolution, ensure_ascii=False, sort_keys=True, indent=2))
+        if args.dry_run:
+            if args.output_root is not None:
+                output_root = _repo_path(args.repo_root.resolve(), args.output_root, "output_root_outside_repo")
+                output_root.mkdir(parents=True, exist_ok=True)
+                write_json(output_root / "resolution.json", resolution)
+            print(json.dumps(resolution, ensure_ascii=False, sort_keys=True, indent=2))
+            return 0
+        if args.output_root is None:
+            raise ContractError("output_root_required", "workspace preparation requires an output root")
+        output_root = _repo_path(args.repo_root.resolve(), args.output_root, "output_root_outside_repo")
+        output_root.mkdir(parents=True, exist_ok=True)
+        source_codex_home = args.source_codex_home or Path(
+            os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
+        )
+        workspace_summary = prepare_runtime_workspaces(
+            repo_root=args.repo_root.resolve(),
+            acceptance_pack=args.acceptance_pack,
+            candidate_head=resolution["candidate"]["head"],
+            candidate_dirty_paths=tuple(resolution["candidate"]["dirty_paths"]),
+            baseline_commits=resolution["baseline_commits"],
+            source_codex_home=source_codex_home,
+            installer_bin=args.installer_bin,
+            timeout_seconds=args.timeout_sec,
+            output_root=output_root,
+            keep_workspaces=args.keep_workspaces,
+        )
+        prepared = {**resolution, "mode": "workspace_prepared", **workspace_summary}
+        write_json(output_root / "workspace-preparation.json", prepared)
+        print(json.dumps(prepared, ensure_ascii=False, sort_keys=True, indent=2))
         return 0
     except ContractError as exc:
         _emit_error(exc.code, exc.message)
         return 2
+    except WorkspaceError as exc:
+        _emit_error(exc.code, exc.message)
+        return 1
 
 
 def _resolve_git_ref(repo_root: Path, ref: str) -> str:
