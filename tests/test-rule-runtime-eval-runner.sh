@@ -638,6 +638,38 @@ if not (result_root / "summary.json").is_file() or not (result_root / "summary.m
     raise SystemExit("machine or human report projection is missing")
 PY
 
+VERSION_FAILURE_ROOT="tools/eval/results/rule-runtime-eval-version-failure-test"
+FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=version_failure python3 "$RUNNER" \
+  --repo-root "$REPO" \
+  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --profile focused-v1 \
+  --case-source candidate \
+  --baseline-ref assistant-entry=f9cbf552 \
+  --baseline-ref sql-schema-comments=68abd950 \
+  --model gpt-5 \
+  --reasoning-effort high \
+  --output-root "$VERSION_FAILURE_ROOT" \
+  --installer-bin "$FAKE_INSTALLER" \
+  --codex-bin "$FAKE_CODEX" \
+  --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/version-failure-summary.json"
+python3 - "$REPO" "$VERSION_FAILURE_ROOT" <<'PY' || fail "Codex version failure was accepted as fresh evidence"
+import json
+import sys
+from pathlib import Path
+
+repo, result_root = map(Path, sys.argv[1:])
+records = list((repo / result_root / "runs").glob("*/*/*/execution.json"))
+if len(records) != 16:
+    raise SystemExit(f"expected 16 version-blocked execution records, got {len(records)}")
+for path in records:
+    evidence = json.loads(path.read_text(encoding="utf-8"))
+    if evidence.get("state") != "INFRA_BLOCKED_CODEX_VERSION":
+        raise SystemExit(f"{path}: version failure produced {evidence.get('state')!r}")
+summary = json.loads((repo / result_root / "summary.json").read_text(encoding="utf-8"))
+if any(pair.get("state") != "INFRA_BLOCKED" for pair in summary.get("pairs", [])):
+    raise SystemExit("version failure produced a comparable pair")
+PY
+
 PYTHONPATH="$ROOT/tools/eval/scripts" FAKE_CODEX_MODE=timeout python3 - "$ROOT" "$TMP_ROOT" "$FAKE_CODEX" <<'PY' || fail "executor failure classification is invalid"
 import os
 import sys
@@ -761,7 +793,7 @@ for codex_bin in "$TMP_ROOT/missing-codex" "$NON_EXECUTABLE_CODEX"; do
     --installer-bin "$FAKE_INSTALLER" \
     --codex-bin "$codex_bin" \
     --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/$launch_name-summary.json"
-  python3 - "$REPO" "$LAUNCH_FAILURE_ROOT" <<'PY' || fail "launch failure did not produce per-case infrastructure evidence"
+  python3 - "$REPO" "$LAUNCH_FAILURE_ROOT" <<'PY' || fail "Codex version probe failure did not produce per-case infrastructure evidence"
 import json
 import sys
 from pathlib import Path
@@ -772,10 +804,10 @@ if len(records) != 16:
     raise SystemExit(f"expected one record per candidate/baseline case, got {len(records)}")
 for path in records:
     evidence = json.loads(path.read_text(encoding="utf-8"))
-    if evidence.get("state") != "INFRA_BLOCKED_PROCESS":
-        raise SystemExit(f"{path}: unexpected launch state {evidence.get('state')}")
-    if not (path.parent / "executor.jsonl").is_file() or not (path.parent / "executor.log").is_file():
-        raise SystemExit(f"{path}: launch evidence files are missing")
+    if evidence.get("state") != "INFRA_BLOCKED_CODEX_VERSION":
+        raise SystemExit(f"{path}: unexpected version-probe state {evidence.get('state')}")
+    if (path.parent / "executor.jsonl").exists() or (path.parent / "executor.log").exists():
+        raise SystemExit(f"{path}: executor ran after Codex version probe failed")
 PY
 done
 
@@ -802,6 +834,7 @@ from rule_runtime_eval.reporting import (
     render_reports,
 )
 from rule_runtime_eval.workspace import RuntimeWorkspace
+from run_rule_runtime_eval import _runner_identity
 
 root = Path(sys.argv[1])
 tmp = Path(sys.argv[2])
@@ -831,6 +864,13 @@ passed = json.loads((fixtures / "grading-pass.json").read_text(encoding="utf-8")
 validated = validate_grader_output(passed, case)
 if validated["behavior_verdict"] != "PASS":
     raise SystemExit("valid grader fixture was not accepted")
+contradictory = json.loads((fixtures / "grading-contradictory-pass.json").read_text(encoding="utf-8"))
+try:
+    validate_grader_output(contradictory, case)
+except GradingError:
+    pass
+else:
+    raise SystemExit("aggregate PASS overrode a failed detailed verdict")
 schema = grading_schema(case)
 if schema["properties"]["anchors"]["items"]["properties"]["score"].get("maximum") != 2:
     raise SystemExit("grader schema does not bound anchor scores")
@@ -874,6 +914,11 @@ identity = {
 fresh = compute_freshness({"identity": identity, "execution_state": "EXECUTOR_OK", "route_pass": True, "grading": passed}, identity)
 if fresh["state"] != "FRESH_PASS":
     raise SystemExit(f"complete passing evidence was not fresh: {fresh}")
+contradictory_freshness = compute_freshness(
+    {"identity": identity, "execution_state": "EXECUTOR_OK", "route_pass": True, "grading": contradictory}, identity
+)
+if contradictory_freshness["state"] != "BEHAVIOR_FAIL":
+    raise SystemExit("failed detail verdicts were overridden by an aggregate PASS")
 fresh["evidence_path"] = "runs/candidate/blind-case/execution.json"
 changed = dict(identity, runner="changed-runner")
 if compute_freshness({"identity": identity, "execution_state": "EXECUTOR_OK", "route_pass": True, "grading": passed}, changed)["state"] != "STALE":
@@ -928,6 +973,24 @@ if "rollout readiness" in summary.lower() or "evidence" not in summary.lower():
     raise SystemExit("summary report claimed rollout readiness or omitted evidence links")
 if "runs/candidate/blind-case/execution.json" not in summary:
     raise SystemExit("incomplete pair row omitted its available execution evidence link")
+if "[execution.json](runs/candidate/blind-case/execution.json)" not in summary:
+    raise SystemExit("summary report rendered evidence as a bare path instead of a Markdown link")
+
+runner_source_root = root / "tools/eval/scripts"
+runner_sources = {
+    str(path.relative_to(runner_source_root)): path
+    for path in [
+        runner_source_root / "run_rule_runtime_eval.py",
+        *sorted((runner_source_root / "rule_runtime_eval").glob("*.py")),
+    ]
+}
+from rule_runtime_eval.common import sha256_file, sha256_json
+
+expected_runner_identity = sha256_json(
+    {name: sha256_file(path) for name, path in runner_sources.items()}
+)
+if _runner_identity() != expected_runner_identity:
+    raise SystemExit("runner identity omitted an evaluator source that can change grading or reporting")
 PY
 
 printf '[PASS] rule runtime blind grading, freshness, comparison, and reports\n'

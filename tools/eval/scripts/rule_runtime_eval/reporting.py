@@ -31,11 +31,7 @@ def compute_freshness(record: Mapping[str, object] | None, current_identity: Map
     grading = evidence.get("grading")
     if not isinstance(grading, dict):
         return {**evidence, "state": "INFRA_BLOCKED"}
-    behavior_pass = grading.get("behavior_verdict") == "PASS" and not any(
-        item.get("present") is True
-        for item in grading.get("blocking_failures", [])
-        if isinstance(item, dict)
-    )
+    behavior_pass = _behavior_pass(grading)
     state = "FRESH_PASS" if evidence.get("route_pass") is True and behavior_pass else "BEHAVIOR_FAIL"
     return {**evidence, "state": state}
 
@@ -160,7 +156,11 @@ def render_reports(
         links = pair.get("evidence", {})
         candidate_link = links.get("candidate", "") if isinstance(links, dict) else ""
         baseline_link = links.get("baseline", "") if isinstance(links, dict) else ""
-        evidence = " / ".join(link for link in (candidate_link, baseline_link) if isinstance(link, str) and link)
+        evidence = " / ".join(
+            _markdown_evidence_link(link)
+            for link in (candidate_link, baseline_link)
+            if isinstance(link, str) and link
+        )
         lines.append(
             f"| {pair.get('case', 'unknown')} | {pair.get('state', 'unknown')} | "
             f"{pair.get('candidate_outcome', 'n/a')} | {pair.get('baseline_outcome', 'n/a')} | {evidence or 'n/a'} |"
@@ -197,7 +197,7 @@ def _matching_comparison_identity(candidate: Mapping[str, object], baseline: Map
 
 def _outcome(record: Mapping[str, object]) -> str:
     grading = record.get("grading")
-    behavior_pass = isinstance(grading, dict) and grading.get("behavior_verdict") == "PASS" and not _has_blocking_failure(record)
+    behavior_pass = isinstance(grading, Mapping) and _behavior_pass(grading)
     route_pass = record.get("route_pass") is True
     if route_pass and behavior_pass:
         return "pass"
@@ -214,6 +214,25 @@ def _has_blocking_failure(record: object) -> bool:
     grading = record.get("grading")
     return isinstance(grading, Mapping) and any(
         item.get("present") is True for item in grading.get("blocking_failures", []) if isinstance(item, Mapping)
+    )
+
+
+def _behavior_pass(grading: Mapping[str, object]) -> bool:
+    """Require the aggregate verdict to agree with complete passing details."""
+
+    return grading.get("behavior_verdict") == "PASS" and all(
+        _all_verdicts(grading.get(field), verdict_field, expected)
+        for field, verdict_field, expected in (
+            ("expectations", "met", True),
+            ("anti_patterns", "present", False),
+            ("blocking_failures", "present", False),
+        )
+    )
+
+
+def _all_verdicts(value: object, verdict_field: str, expected: bool) -> bool:
+    return isinstance(value, list) and bool(value) and all(
+        isinstance(item, Mapping) and item.get(verdict_field) is expected for item in value
     )
 
 
@@ -268,3 +287,7 @@ def _evidence_links(
 
 def _relative_evidence(value: object) -> str:
     return str(value) if isinstance(value, str) else ""
+
+
+def _markdown_evidence_link(path: str) -> str:
+    return f"[execution.json]({path})"

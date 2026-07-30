@@ -191,8 +191,12 @@ def _execute_cases(
         for workspace in configurations:
             run_dir = output_root / "runs" / workspace.id / case.pack_id / case.id
             installation = installation_by_id[workspace.id]
-            identity = _evidence_identity(acceptance, case, workspace, settings, codex_version)
+            identity = _evidence_identity(acceptance, case, workspace, settings, codex_version or "unavailable")
             evidence_path = str(run_dir.relative_to(output_root) / "execution.json")
+            if codex_version is None:
+                _write_execution(run_dir, workspace, case, "INFRA_BLOCKED_CODEX_VERSION", identity=identity)
+                records.append(_run_record(workspace, case, evidence_path, identity, "INFRA_BLOCKED_CODEX_VERSION"))
+                continue
             if (
                 installation.get("install_status") != "READY"
                 or installation.get("live_execution_status") != "READY"
@@ -307,7 +311,7 @@ def _evidence_identity(
         "codex": codex_version,
         "model": settings.model,
         "reasoning": settings.reasoning_effort,
-        "runner": sha256_file(Path(__file__)),
+        "runner": _runner_identity(),
         "runtime_source_hashes": runtime_hashes,
     }
 
@@ -317,8 +321,8 @@ def _grader_instructions(contract: object, case: EvalCase) -> str:
     return acceptance.case_pack_by_id[case.pack_id].grader.read_text(encoding="utf-8")
 
 
-def _codex_version(codex_bin: str, output_root: Path, timeout_seconds: int) -> str:
-    """Record a bounded version probe as identity input without mixing it into judge prompts."""
+def _codex_version(codex_bin: str, output_root: Path, timeout_seconds: int) -> str | None:
+    """Return the known Codex version, or fail closed when it cannot be established."""
 
     try:
         completed = subprocess.run(
@@ -331,9 +335,22 @@ def _codex_version(codex_bin: str, output_root: Path, timeout_seconds: int) -> s
             timeout=timeout_seconds,
         )
     except (OSError, subprocess.TimeoutExpired):
-        return "unavailable"
+        return None
     version = completed.stdout.strip()
-    return version if completed.returncode == 0 and version else f"unavailable:{completed.returncode}"
+    return version if completed.returncode == 0 and version else None
+
+
+def _runner_identity() -> str:
+    """Fingerprint the evaluator package that shapes grading and report behavior."""
+
+    source_root = Path(__file__).resolve().parent
+    source_files = [Path(__file__), *sorted((source_root / "rule_runtime_eval").glob("*.py"))]
+    return sha256_json(
+        {
+            str(path.resolve().relative_to(source_root)): sha256_file(path)
+            for path in source_files
+        }
+    )
 
 
 def _run_record(

@@ -20,9 +20,15 @@ def _verdicts(schema: dict, field: str, value: bool) -> list[dict]:
 
 def main() -> int:
     args = sys.argv[1:]
+    mode = os.environ.get("FAKE_CODEX_MODE", "pass")
+    if args == ["--version"]:
+        if mode == "version_failure":
+            print("fake Codex version failure", file=sys.stderr)
+            return 1
+        print("fake-codex 1.0.0")
+        return 0
     output_path = Path(args[args.index("--output-last-message") + 1])
     prompt = args[-1]
-    mode = os.environ.get("FAKE_CODEX_MODE", "pass")
     if "--output-schema" in args:
         schema_path = Path(args[args.index("--output-schema") + 1])
         schema = json.loads(schema_path.read_text(encoding="utf-8"))

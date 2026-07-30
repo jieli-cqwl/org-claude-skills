@@ -184,6 +184,9 @@ def validate_grader_output(payload: object, case: EvalCase) -> dict[str, object]
     _validate_anchors(payload["anchors"], case.expected_anchors)
     if payload["behavior_verdict"] not in {"PASS", "FAIL"}:
         raise GradingError("behavior verdict must be PASS or FAIL")
+    expected_behavior_verdict = "PASS" if _details_behavior_pass(payload) else "FAIL"
+    if payload["behavior_verdict"] != expected_behavior_verdict:
+        raise GradingError("behavior verdict contradicts detailed verdicts")
     if not isinstance(payload["added_ceremony_without_decision_value"], bool):
         raise GradingError("ceremony signal must be boolean")
     if not _nonempty_string(payload["rationale"]):
@@ -248,6 +251,24 @@ def _validate_anchors(value: object, expected_ids: tuple[str, ...]) -> None:
         seen.add(identifier)
     if seen != set(expected_ids):
         raise GradingError("grader anchor IDs are incomplete")
+
+
+def _details_behavior_pass(payload: Mapping[str, object]) -> bool:
+    """Derive semantic pass from all case-owned detailed verdicts."""
+
+    return all(
+        item.get("met") is True
+        for item in payload["expectations"]
+        if isinstance(item, Mapping)
+    ) and all(
+        item.get("present") is False
+        for item in payload["anti_patterns"]
+        if isinstance(item, Mapping)
+    ) and all(
+        item.get("present") is False
+        for item in payload["blocking_failures"]
+        if isinstance(item, Mapping)
+    )
 
 
 def _process_evidence(result: CommandResult) -> dict[str, object]:
