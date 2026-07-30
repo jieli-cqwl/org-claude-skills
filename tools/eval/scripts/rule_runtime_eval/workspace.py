@@ -6,7 +6,9 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
+import re
 import shutil
+import site
 import subprocess
 import tempfile
 from typing import Callable, Mapping
@@ -216,7 +218,7 @@ def _prepare_configuration(
         },
         "context": context,
         "runtime_source_hashes": _runtime_source_hashes(workspace.repo_root, acceptance_pack),
-        "install": _install_evidence(result),
+        "install": _install_evidence(result, source_codex_home, workspace),
         "live_execution_status": "READY" if context["auth_available"] else "INFRA_BLOCKED",
     }
     write_json(output_root / "runtime-manifests" / f"{workspace.id}.json", manifest)
@@ -318,12 +320,17 @@ def _installer_command(repo_root: Path, installer_bin: Path | None) -> list[str]
 
 def _installer_env(workspace: RuntimeWorkspace) -> dict[str, str]:
     env = dict(os.environ)
+    user_site = site.getusersitepackages()
+    python_paths = [path for path in env.get("PYTHONPATH", "").split(os.pathsep) if path]
+    if user_site not in python_paths:
+        python_paths.insert(0, user_site)
     env.update(
         {
             "HOME": str(workspace.home),
             "CODEX_HOME": str(workspace.codex_home),
             "ORG_STATE_ROOT": str(workspace.state_root),
             "CODEX_USER_SKILLS_DIR": str(workspace.skills_dir),
+            "PYTHONPATH": os.pathsep.join(python_paths),
         }
     )
     return env
@@ -352,7 +359,16 @@ def _runtime_source_hashes(repo_root: Path, acceptance_pack: Path) -> list[dict[
     return hashes
 
 
-def _install_evidence(result: CommandResult) -> dict[str, object]:
+def _install_evidence(
+    result: CommandResult, source_codex_home: Path, workspace: RuntimeWorkspace
+) -> dict[str, object]:
+    """Retain diagnostics without exposing credentials or evaluator-local paths."""
+
+    hidden_paths = (
+        source_codex_home.resolve(),
+        workspace.home.parents[2],
+        Path(tempfile.gettempdir()).resolve(),
+    )
     return {
         "args": result.args,
         "returncode": result.returncode,
@@ -360,5 +376,23 @@ def _install_evidence(result: CommandResult) -> dict[str, object]:
         "started_at": result.started_at,
         "ended_at": result.ended_at,
         "duration_seconds": result.duration_seconds,
+        "stdout": _redact_installer_stdout(result.stdout, hidden_paths),
         "stderr": "[installer stderr withheld]" if result.stderr else "",
     }
+
+
+_INSTALLER_SENSITIVE_LINE = re.compile(r"\b(?:auth(?:entication|orization)?|token|credential|secret)\b", re.IGNORECASE)
+
+
+def _redact_installer_stdout(value: str, hidden_paths: tuple[Path, ...]) -> str:
+    """Keep non-sensitive installer diagnostics while removing dangerous output lines."""
+
+    redacted: list[str] = []
+    for line in value.splitlines():
+        if _INSTALLER_SENSITIVE_LINE.search(line):
+            redacted.append("[redacted]")
+            continue
+        for path in hidden_paths:
+            line = line.replace(str(path), "[redacted path]")
+        redacted.append(line)
+    return "\n".join(redacted)

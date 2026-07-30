@@ -246,6 +246,7 @@ FAKE_CODEX="$ROOT/tests/fixtures/rule-runtime-eval/fake-codex.py"
 EVALUATOR_TMP="$TMP_ROOT/evaluator-tmp"
 RESULT_ROOT="tools/eval/results/rule-runtime-eval-test"
 RESULT_KEEP_ROOT="tools/eval/results/rule-runtime-eval-test-keep"
+RESULT_INSTALL_DIAGNOSTIC_ROOT="tools/eval/results/rule-runtime-eval-install-diagnostic-test"
 FAKE_INSTALL_LOG="$TMP_ROOT/fake-install.log"
 mkdir -p "$SOURCE_CODEX_HOME/rules" "$EVALUATOR_TMP"
 FOREIGN_PREFIXED_ROOT="$EVALUATOR_TMP/rule-runtime-eval-foreign"
@@ -357,6 +358,51 @@ for path in result_root.rglob("*"):
             )
         ):
             raise SystemExit("sensitive auth data leaked through persisted evidence")
+PY
+
+: > "$FAKE_INSTALL_LOG"
+PYTHON_USER_SITE="$(python3 -c 'import site; print(site.getusersitepackages())')"
+INSTALL_STDOUT="$(printf 'FATAL: PyYAML not installed\nAuthorization: Bearer deliberately-sensitive-token\ntoken=deliberately-sensitive-token\nauth body=placeholder-auth-secret\nsource=%s/auth.json\ntemp=%s\n' "$SOURCE_CODEX_HOME" "$EVALUATOR_TMP")"
+FAKE_INSTALL_REQUIRED_PYTHON_USER_SITE="$PYTHON_USER_SITE" \
+FAKE_INSTALL_STDOUT="$INSTALL_STDOUT" \
+  TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
+    --repo-root "$REPO" \
+    --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+    --profile focused-v1 \
+    --case-source candidate \
+    --baseline-ref assistant-entry=f9cbf552 \
+    --baseline-ref sql-schema-comments=68abd950 \
+    --model gpt-5 \
+    --reasoning-effort high \
+    --output-root "$RESULT_INSTALL_DIAGNOSTIC_ROOT" \
+    --installer-bin "$FAKE_INSTALLER" \
+    --codex-bin "$FAKE_CODEX" \
+    --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/install-diagnostic-summary.json"
+python3 - "$REPO" "$RESULT_INSTALL_DIAGNOSTIC_ROOT" "$SOURCE_CODEX_HOME" "$EVALUATOR_TMP" <<'PY' || fail "installer dependency path or diagnostic evidence is invalid"
+import json
+import sys
+from pathlib import Path
+
+repo, result_root, source_home, evaluator_tmp = map(Path, sys.argv[1:])
+result_root = repo / result_root
+for manifest_path in (result_root / "runtime-manifests").glob("*.json"):
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("install", {}).get("returncode") != 0:
+        raise SystemExit(f"installer did not receive Python user-site dependency path: {manifest_path}")
+    stdout = manifest.get("install", {}).get("stdout", "")
+    if "FATAL: PyYAML not installed" not in stdout:
+        raise SystemExit("redacted installer stdout omitted the diagnostic")
+    if "[redacted]" not in stdout:
+        raise SystemExit("redacted installer stdout did not mark withheld content")
+    for forbidden in (
+        "Authorization",
+        "deliberately-sensitive-token",
+        "placeholder-auth-secret",
+        str(source_home),
+        str(evaluator_tmp),
+    ):
+        if forbidden in stdout:
+            raise SystemExit(f"installer stdout leaked {forbidden!r}")
 PY
 
 : > "$FAKE_INSTALL_LOG"
@@ -636,6 +682,13 @@ for record in grader_records:
         raise SystemExit("grader prompt exposed configuration context")
 if not (result_root / "summary.json").is_file() or not (result_root / "summary.md").is_file():
     raise SystemExit("machine or human report projection is missing")
+coverage = json.loads((result_root / "coverage.json").read_text(encoding="utf-8"))
+comparison = json.loads((result_root / "comparison.json").read_text(encoding="utf-8"))
+summary = json.loads((result_root / "summary.json").read_text(encoding="utf-8"))
+if coverage != summary.get("coverage"):
+    raise SystemExit("standalone coverage projection drifted from summary")
+if comparison.get("pairs") != summary.get("pairs"):
+    raise SystemExit("standalone comparison projection drifted from summary")
 PY
 
 VERSION_FAILURE_ROOT="tools/eval/results/rule-runtime-eval-version-failure-test"
@@ -958,6 +1011,15 @@ profile = {
 decision = project_suite_decision(profile, [behavior_pair, lightness_pair] * 4)
 if decision["verdict"] != "FAIL" or not decision["lightness"]["material_regression"]:
     raise SystemExit("blocking failure or configured lightness regression did not fail the suite")
+
+incomplete_lightness_pair = compare_pair(lightness_case, timeout, timeout, (), ())
+incomplete_decision = project_suite_decision(profile, [behavior_pair] * 7 + [incomplete_lightness_pair])
+if incomplete_decision["lightness"].get("material_regression"):
+    raise SystemExit("incomplete lightness evidence was classified as a material regression")
+if incomplete_decision["lightness"].get("state") != "INCOMPLETE":
+    raise SystemExit("incomplete lightness evidence was not classified as incomplete")
+if "lightness case is incomplete" not in incomplete_decision.get("blockers", []):
+    raise SystemExit("incomplete lightness evidence did not remain a visible blocker")
 
 coverage = coverage_projection(
     ("shared/rules/code-changes.md", "shared/rules/completion-claims.md"),

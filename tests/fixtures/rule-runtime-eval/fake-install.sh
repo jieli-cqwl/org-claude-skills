@@ -21,6 +21,20 @@ printf 'HOME=%s\tCODEX_HOME=%s\tCWD=%s\tCOMMIT=%s\tARGS=%s\tAUTH=%s\tCONFIG=%s\t
 
 printf 'installed\n' > "$CODEX_HOME/installed-marker"
 
+if [[ -n "${FAKE_INSTALL_REQUIRED_PYTHON_USER_SITE:-}" ]]; then
+  case ":${PYTHONPATH:-}:" in
+    *":${FAKE_INSTALL_REQUIRED_PYTHON_USER_SITE}:"*) ;;
+    *)
+      printf 'FATAL: PyYAML not installed\n'
+      exit 1
+      ;;
+  esac
+fi
+
+if [[ -n "${FAKE_INSTALL_STDOUT:-}" ]]; then
+  printf '%s\n' "$FAKE_INSTALL_STDOUT"
+fi
+
 if [[ -n "${FAKE_INSTALL_STDERR:-}" ]]; then
   printf '%s\n' "$FAKE_INSTALL_STDERR" >&2
 fi

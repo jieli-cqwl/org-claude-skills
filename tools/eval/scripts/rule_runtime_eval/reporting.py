@@ -114,7 +114,11 @@ def project_suite_decision(profile: Mapping[str, object], pairs: list[Mapping[st
     if marginal is None or not isinstance(marginal.get("marginal_effect"), dict):
         blockers.append("named SQL marginal-effect case is incomplete")
     lightness = _lightness_projection(profile.get("lightness_policy"), complete)
-    if lightness["material_regression"]:
+    if lightness["state"] == "INCOMPLETE":
+        blockers.append("lightness case is incomplete")
+    elif lightness["state"] == "INVALID_POLICY":
+        blockers.append("focused profile lightness policy is invalid")
+    elif lightness["material_regression"]:
         blockers.append("candidate has a material lightness regression")
     return {
         "verdict": "PASS" if not blockers else "FAIL",
@@ -136,6 +140,8 @@ def render_reports(
 
     machine = {"decision": dict(decision), "pairs": [dict(pair) for pair in pairs], "coverage": dict(coverage)}
     write_json(output_root / "summary.json", machine)
+    write_json(output_root / "coverage.json", dict(coverage))
+    write_json(output_root / "comparison.json", {"pairs": [dict(pair) for pair in pairs]})
     lines = [
         "# Rule Runtime Evidence Summary",
         "",
@@ -255,14 +261,18 @@ def _anchors(record: object) -> list[Mapping[str, object]]:
 
 def _lightness_projection(policy: object, pairs: list[Mapping[str, object]]) -> dict[str, object]:
     if not isinstance(policy, Mapping):
-        return {"material_regression": True, "reason": "focused profile lightness policy is invalid"}
+        return {
+            "state": "INVALID_POLICY",
+            "material_regression": False,
+            "reason": "focused profile lightness policy is invalid",
+        }
     pair = next((item for item in pairs if item.get("case") == policy.get("case")), None)
     if pair is None:
-        return {"material_regression": True, "reason": "lightness case is incomplete"}
+        return {"state": "INCOMPLETE", "material_regression": False, "reason": "lightness case is incomplete"}
     candidate = pair.get("candidate")
     baseline = pair.get("baseline")
     if not isinstance(candidate, Mapping) or not isinstance(baseline, Mapping):
-        return {"material_regression": True, "reason": "lightness pair is incomplete"}
+        return {"state": "INCOMPLETE", "material_regression": False, "reason": "lightness pair is incomplete"}
     read_delta = int(candidate.get("irrelevant_successful_reads", 0)) - int(baseline.get("irrelevant_successful_reads", 0))
     candidate_length = int(candidate.get("response_characters", 0))
     baseline_length = int(baseline.get("response_characters", 0))
@@ -273,7 +283,13 @@ def _lightness_projection(policy: object, pairs: list[Mapping[str, object]]) -> 
     response_regression = ratio > float(policy.get("max_response_length_ratio", 1)) and (
         not policy.get("requires_grader_ceremony_signal", False) or ceremony
     )
-    return {"material_regression": read_regression or response_regression, "irrelevant_successful_read_delta": read_delta, "response_length_ratio": ratio, "added_ceremony_without_decision_value": ceremony}
+    return {
+        "state": "COMPLETE",
+        "material_regression": read_regression or response_regression,
+        "irrelevant_successful_read_delta": read_delta,
+        "response_length_ratio": ratio,
+        "added_ceremony_without_decision_value": ceremony,
+    }
 
 
 def _evidence_links(
