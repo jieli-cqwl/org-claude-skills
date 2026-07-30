@@ -92,7 +92,7 @@ def prepare_runtime_workspaces(
     timeout_seconds: int,
     output_root: Path,
     keep_workspaces: bool,
-    after_install: Callable[[tuple[RuntimeWorkspace, ...], tuple[dict[str, object], ...]], dict[str, object]] | None = None,
+    after_install: Callable[[tuple[RuntimeWorkspace, ...], tuple[dict[str, object], ...], RuntimeWorkspace], dict[str, object]] | None = None,
 ) -> dict[str, object]:
     """Install runtimes and optionally execute while their isolated homes remain alive."""
 
@@ -154,7 +154,7 @@ def prepare_runtime_workspaces(
             "workspace_retained": keep_workspaces,
         }
         if after_install is not None:
-            summary["executions"] = after_install(tuple(workspaces), tuple(prepared))
+            summary["executions"] = after_install(tuple(workspaces), tuple(prepared), judge)
         return summary
     finally:
         cleanup_error: WorkspaceError | None = None

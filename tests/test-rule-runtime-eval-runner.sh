@@ -568,7 +568,8 @@ PY
 
 EXECUTION_ROOT="tools/eval/results/rule-runtime-eval-execution-test"
 FAKE_CODEX_LOG="$TMP_ROOT/fake-codex.log"
-FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_LOG="$FAKE_CODEX_LOG" python3 "$RUNNER" \
+FAKE_GRADER_LOG="$TMP_ROOT/fake-grader.log"
+FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_LOG="$FAKE_CODEX_LOG" FAKE_GRADER_LOG="$FAKE_GRADER_LOG" python3 "$RUNNER" \
   --repo-root "$REPO" \
   --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
   --profile focused-v1 \
@@ -581,13 +582,13 @@ FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_LOG="$FAKE_CODEX_LOG" python3 "$
   --installer-bin "$FAKE_INSTALLER" \
   --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/execution-summary.json"
-python3 - "$REPO" "$EXECUTION_ROOT" "$FAKE_CODEX_LOG" <<'PY' || fail "executor evidence is invalid"
+python3 - "$REPO" "$EXECUTION_ROOT" "$FAKE_CODEX_LOG" "$FAKE_GRADER_LOG" <<'PY' || fail "executor and blind grader evidence is invalid"
 import json
 import sys
 from collections import defaultdict
 from pathlib import Path
 
-repo, result_root, log_path = map(Path, sys.argv[1:])
+repo, result_root, log_path, grader_log_path = map(Path, sys.argv[1:])
 result_root = repo / result_root
 records = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
 if not records:
@@ -617,6 +618,24 @@ if not evidence.get("route", {}).get("route_pass"):
     raise SystemExit("successful fake reader evidence did not route all required contracts")
 if not (run / "executor.jsonl").is_file() or not (run / "outputs/response.md").is_file():
     raise SystemExit("raw JSONL or final response is missing")
+grading = json.loads((run / "execution.json").read_text(encoding="utf-8"))
+if grading.get("grading_state") != "GRADER_OK" or grading.get("grading", {}).get("behavior_verdict") != "PASS":
+    raise SystemExit("successful blind grader evidence is missing")
+grader_records = [json.loads(line) for line in grader_log_path.read_text(encoding="utf-8").splitlines()]
+if not grader_records:
+    raise SystemExit("fake blind grader was not invoked")
+configured_homes = {Path(record["home"]) for record in records}
+for record in grader_records:
+    home = Path(record["home"])
+    codex_home = Path(record["codex_home"])
+    if home in configured_homes:
+        raise SystemExit("grader reused a candidate or baseline HOME")
+    if (codex_home / "rules").exists() or (codex_home / "reference").exists():
+        raise SystemExit("grader HOME contains installed runtime rules")
+    if any(forbidden in record["prompt"] for forbidden in ("candidate", "baseline", "git diff")):
+        raise SystemExit("grader prompt exposed configuration context")
+if not (result_root / "summary.json").is_file() or not (result_root / "summary.md").is_file():
+    raise SystemExit("machine or human report projection is missing")
 PY
 
 PYTHONPATH="$ROOT/tools/eval/scripts" FAKE_CODEX_MODE=timeout python3 - "$ROOT" "$TMP_ROOT" "$FAKE_CODEX" <<'PY' || fail "executor failure classification is invalid"
@@ -761,3 +780,154 @@ PY
 done
 
 printf '[PASS] rule runtime executor and fail-closed route evidence\n'
+
+PYTHONPATH="$ROOT/tools/eval/scripts" python3 - "$ROOT" "$TMP_ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+from rule_runtime_eval.contracts import EvalCase
+from rule_runtime_eval.grading import (
+    GradingError,
+    build_grader_prompt,
+    grading_schema,
+    validate_grader_output,
+    validate_judge_workspace,
+)
+from rule_runtime_eval.reporting import (
+    compare_pair,
+    compute_freshness,
+    coverage_projection,
+    project_suite_decision,
+    render_reports,
+)
+from rule_runtime_eval.workspace import RuntimeWorkspace
+
+root = Path(sys.argv[1])
+tmp = Path(sys.argv[2])
+fixtures = root / "tests/fixtures/rule-runtime-eval"
+case = EvalCase(
+    "assistant-entry",
+    "blind-case",
+    "Answer the constrained request.",
+    ("Makes the required decision.",),
+    ("Claims unsupported rollout readiness.",),
+    ("Accepts a dangerous premise.",),
+    ("AE-1",),
+    {"AE-1": {"id": "AE-1", "anchor": "Decision is explicit and evidence-bound."}},
+    ("completion-claims",),
+)
+grader = "Grade only the supplied response against the structured scenario."
+response = "The decision is blocked until direct evidence exists."
+prompt = build_grader_prompt(case, grader, response)
+for expected in (case.prompt, case.expected_behaviors[0], case.anti_patterns[0], case.blocking_failures[0], "AE-1", response):
+    if expected not in prompt:
+        raise SystemExit(f"blind prompt omitted required grading input: {expected!r}")
+for forbidden in ("candidate", "baseline", "26e63dca", "git diff", "runtime source body"):
+    if forbidden in prompt.lower():
+        raise SystemExit(f"blind prompt exposed forbidden configuration context: {forbidden!r}")
+
+passed = json.loads((fixtures / "grading-pass.json").read_text(encoding="utf-8"))
+validated = validate_grader_output(passed, case)
+if validated["behavior_verdict"] != "PASS":
+    raise SystemExit("valid grader fixture was not accepted")
+schema = grading_schema(case)
+if schema["properties"]["anchors"]["items"]["properties"]["score"].get("maximum") != 2:
+    raise SystemExit("grader schema does not bound anchor scores")
+for mutation, message in (
+    (lambda value: value["anchors"][0].update(score=3), "out-of-range anchor score was accepted"),
+    (lambda value: value["anchors"][0].update(id="unknown"), "unknown anchor ID was accepted"),
+    (lambda value: value["expectations"].pop(), "missing expectation verdict was accepted"),
+    (lambda value: value.update(behavior_verdict="Looks good in prose"), "prose verdict was accepted"),
+):
+    value = json.loads(json.dumps(passed))
+    mutation(value)
+    try:
+        validate_grader_output(value, case)
+    except GradingError:
+        pass
+    else:
+        raise SystemExit(message)
+
+root_home = root / "tests/fixtures/rule-runtime-eval"
+candidate = RuntimeWorkspace("candidate", root, "candidate", root_home / "candidate", root_home / "candidate/.codex", root_home / "candidate/state", root_home / "candidate/skills", ())
+baseline = RuntimeWorkspace("baseline", root, "baseline", root_home / "baseline", root_home / "baseline/.codex", root_home / "baseline/state", root_home / "baseline/skills", ())
+judge = RuntimeWorkspace("judge", root, "judge", root_home / "judge", root_home / "judge/.codex", root_home / "judge/state", root_home / "judge/skills", ())
+validate_judge_workspace(judge, (candidate, baseline))
+try:
+    validate_judge_workspace(candidate, (candidate, baseline))
+except GradingError:
+    pass
+else:
+    raise SystemExit("candidate runtime was accepted as blind judge home")
+
+identity = {
+    "configuration": "candidate-identity",
+    "case": "case-identity",
+    "grader": "grader-identity",
+    "runtime": "runtime-identity",
+    "codex": "codex-identity",
+    "model": "gpt-5",
+    "reasoning": "high",
+    "runner": "runner-identity",
+}
+fresh = compute_freshness({"identity": identity, "execution_state": "EXECUTOR_OK", "route_pass": True, "grading": passed}, identity)
+if fresh["state"] != "FRESH_PASS":
+    raise SystemExit(f"complete passing evidence was not fresh: {fresh}")
+fresh["evidence_path"] = "runs/candidate/blind-case/execution.json"
+changed = dict(identity, runner="changed-runner")
+if compute_freshness({"identity": identity, "execution_state": "EXECUTOR_OK", "route_pass": True, "grading": passed}, changed)["state"] != "STALE":
+    raise SystemExit("identity change did not stale evidence")
+
+candidate_only = compare_pair(case, fresh, None, ("shared/rules/code-changes.md",), ("code-changes",))
+if candidate_only["state"] != "MISSING" or candidate_only["attribution"] is not None:
+    raise SystemExit("candidate-only evidence was attributed instead of missing")
+route_miss = compute_freshness({"identity": identity, "execution_state": "EXECUTOR_OK", "route_pass": False, "grading": passed}, identity)
+route_pair = compare_pair(case, route_miss, fresh, (), ())
+if route_pair["candidate_outcome"] != "behavior_pass_route_fail":
+    raise SystemExit("route miss plus behavior pass did not retain both verdicts")
+blocked = json.loads((fixtures / "grading-blocked.json").read_text(encoding="utf-8"))
+behavior_fail = compute_freshness({"identity": identity, "execution_state": "EXECUTOR_OK", "route_pass": True, "grading": blocked}, identity)
+behavior_pair = compare_pair(case, behavior_fail, fresh, (), ())
+if behavior_pair["candidate_outcome"] != "route_pass_behavior_fail":
+    raise SystemExit("route pass plus behavior fail did not retain both verdicts")
+timeout = compute_freshness({"identity": identity, "execution_state": "INFRA_BLOCKED_TIMEOUT", "route_pass": False}, identity)
+if timeout["state"] != "INFRA_BLOCKED":
+    raise SystemExit("executor timeout was not projected as infrastructure blocked")
+
+lightness_case = EvalCase("assistant-entry", "simple-question-lightness", "p", ("b",), ("a",), ("block",), ("AE-1",), case.anchor_definitions, ())
+lightness_candidate = dict(fresh, irrelevant_successful_reads=5, response_characters=240, grading=dict(passed, added_ceremony_without_decision_value=True))
+lightness_baseline = dict(fresh, irrelevant_successful_reads=2, response_characters=100)
+lightness_pair = compare_pair(lightness_case, lightness_candidate, lightness_baseline, (), ())
+profile = {
+    "id": "focused-v1",
+    "anchor_threshold": 1.6,
+    "marginal_effect_case": "assistant-entry:blind-case",
+    "lightness_policy": {
+        "case": "assistant-entry:simple-question-lightness",
+        "max_irrelevant_read_delta": 2,
+        "max_response_length_ratio": 2.0,
+        "requires_grader_ceremony_signal": True,
+    },
+}
+decision = project_suite_decision(profile, [behavior_pair, lightness_pair] * 4)
+if decision["verdict"] != "FAIL" or not decision["lightness"]["material_regression"]:
+    raise SystemExit("blocking failure or configured lightness regression did not fail the suite")
+
+coverage = coverage_projection(
+    ("shared/rules/code-changes.md", "shared/rules/completion-claims.md"),
+    [{"case": "assistant-entry:blind-case", "sources": ["shared/rules/code-changes.md"], "freshness": "FRESH_PASS"}],
+)
+if coverage["uncovered_sources"] != ["shared/rules/completion-claims.md"]:
+    raise SystemExit("coverage did not identify runtime sources without fresh selected evidence")
+
+report_root = tmp / "report-projection"
+render_reports(report_root, decision, [candidate_only, behavior_pair, lightness_pair], coverage)
+summary = (report_root / "summary.md").read_text(encoding="utf-8")
+if "rollout readiness" in summary.lower() or "evidence" not in summary.lower():
+    raise SystemExit("summary report claimed rollout readiness or omitted evidence links")
+if "runs/candidate/blind-case/execution.json" not in summary:
+    raise SystemExit("incomplete pair row omitted its available execution evidence link")
+PY
+
+printf '[PASS] rule runtime blind grading, freshness, comparison, and reports\n'

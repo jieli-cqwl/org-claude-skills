@@ -11,11 +11,46 @@ import sys
 import time
 
 
+def _verdicts(schema: dict, field: str, value: bool) -> list[dict]:
+    return [
+        {"id": identifier, field: value, "evidence": "fixture evidence"}
+        for identifier in schema["items"]["properties"]["id"]["enum"]
+    ]
+
+
 def main() -> int:
     args = sys.argv[1:]
     output_path = Path(args[args.index("--output-last-message") + 1])
     prompt = args[-1]
     mode = os.environ.get("FAKE_CODEX_MODE", "pass")
+    if "--output-schema" in args:
+        schema_path = Path(args[args.index("--output-schema") + 1])
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        properties = schema["properties"]
+        grading = {
+            "expectations": _verdicts(properties["expectations"], "met", True),
+            "anti_patterns": _verdicts(properties["anti_patterns"], "present", False),
+            "blocking_failures": _verdicts(properties["blocking_failures"], "present", False),
+            "anchors": [
+                {"id": identifier, "score": 2, "evidence": "fixture evidence"}
+                for identifier in properties["anchors"]["items"]["properties"]["id"]["enum"]
+            ],
+            "behavior_verdict": "PASS",
+            "added_ceremony_without_decision_value": False,
+            "rationale": "fixture grading result",
+        }
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(grading, ensure_ascii=False), encoding="utf-8")
+        grader_log = os.environ.get("FAKE_GRADER_LOG")
+        if grader_log:
+            payload = {
+                "home": os.environ.get("HOME", ""),
+                "codex_home": os.environ.get("CODEX_HOME", ""),
+                "prompt": prompt.lower(),
+            }
+            with Path(grader_log).open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(payload, sort_keys=True) + "\n")
+        return 0
     log_path = os.environ.get("FAKE_CODEX_LOG")
     if log_path:
         payload = {
