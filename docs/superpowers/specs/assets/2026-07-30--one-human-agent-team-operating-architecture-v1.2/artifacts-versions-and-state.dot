@@ -7,14 +7,14 @@ digraph ArtifactsVersionsAndState {
     splines=ortho,
     outputorder=edgesfirst,
     bgcolor="#F6F8FB",
-    pad="0.28",
-    nodesep="0.28",
-    ranksep="0.42",
+    pad="0.20",
+    nodesep="0.24",
+    ranksep="0.36",
     labelloc=t,
     labeljust=l,
     label="ARTIFACTS, VERSIONS, AND STATE\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R6\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
     fontname="Helvetica-Bold",
-    fontsize=24,
+    fontsize=21,
     fontcolor="#132A44"
   ];
 
@@ -25,32 +25,21 @@ digraph ArtifactsVersionsAndState {
     fillcolor="#FFFFFF",
     fontname="Helvetica",
     fontcolor="#132A44",
-    fontsize=10,
-    margin="0.12,0.08",
-    penwidth=1.1
+    fontsize=12,
+    margin="0.10,0.07",
+    penwidth=1.2
   ];
 
   edge [
     color="#64748B",
     fontname="Helvetica",
     fontcolor="#334155",
-    fontsize=8.5,
-    arrowsize=0.7,
-    penwidth=1.2
+    fontsize=11.5,
+    arrowsize=0.75,
+    penwidth=1.3
   ];
 
-  // layout only: DOT stacks LR clusters bottom-up by first nonempty declaration.
-  subgraph cluster_outcome_incident_state {
-    layout_cluster_order_04 [
-      shape=point,
-      style=invis,
-      width=0,
-      height=0,
-      label=""
-    ];
-  }
-
-  // layout only: seed order also compensates the ACCEPTED-to-Baseline bridge.
+  // Layout only: this seed order keeps the four connected LR lanes top-to-bottom.
   subgraph cluster_package_lifecycle {
     layout_cluster_order_02 [
       shape=point,
@@ -61,7 +50,16 @@ digraph ArtifactsVersionsAndState {
     ];
   }
 
-  // layout only
+  subgraph cluster_package_lineage {
+    layout_cluster_order_01 [
+      shape=point,
+      style=invis,
+      width=0,
+      height=0,
+      label=""
+    ];
+  }
+
   subgraph cluster_release_environment_identity {
     layout_cluster_order_03 [
       shape=point,
@@ -72,9 +70,8 @@ digraph ArtifactsVersionsAndState {
     ];
   }
 
-  // layout only
-  subgraph cluster_package_lineage {
-    layout_cluster_order_01 [
+  subgraph cluster_outcome_incident_state {
+    layout_cluster_order_04 [
       shape=point,
       style=invis,
       width=0,
@@ -91,17 +88,17 @@ digraph ArtifactsVersionsAndState {
     fillcolor="#F8FBFF";
     fontname="Helvetica-Bold";
     fontcolor="#174B80";
-    fontsize=16;
+    fontsize=15;
     penwidth=1.7;
     style="rounded,filled";
-    margin=16;
+    margin=14;
 
     lineage_director [
       label="[ART]\nDirector Decision",
       shape=note,
       style=filled,
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
@@ -110,8 +107,8 @@ digraph ArtifactsVersionsAndState {
       label="[ART]\nProduct Definition",
       shape=note,
       style=filled,
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
@@ -120,8 +117,8 @@ digraph ArtifactsVersionsAndState {
       label="[ART]\nImpact Freeze",
       shape=note,
       style=filled,
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
@@ -130,8 +127,8 @@ digraph ArtifactsVersionsAndState {
       label="[ART]\nTest Design",
       shape=note,
       style=filled,
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
@@ -140,8 +137,8 @@ digraph ArtifactsVersionsAndState {
       label="[ART]\nTech Lead Package",
       shape=note,
       style=filled,
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
@@ -150,21 +147,21 @@ digraph ArtifactsVersionsAndState {
       label="[ART]\nBounded Task Packets",
       shape=note,
       style=filled,
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
 
     lineage_reference_law [
-      label="[REFERENCE LAW]\ndownstream references exact revision\nnever rewrites upstream bytes",
+      label="[REFERENCE LAW]\nexact accepted revision\nupstream bytes never rewritten",
       shape=note,
       style=filled,
       color="#2F6DB0",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold",
       fontcolor="#174B80",
-      fontsize=8.5,
+      fontsize=11.5,
       penwidth=1.3
     ];
 
@@ -172,22 +169,15 @@ digraph ArtifactsVersionsAndState {
       lineage_impact_freeze -> lineage_test_design ->
       lineage_tech_lead -> lineage_task_packets [
         color="#2F6DB0",
-        penwidth=1.4
+        penwidth=1.5
       ];
 
     lineage_task_packets -> lineage_reference_law [
       style=dashed,
       arrowhead=none,
       color="#2F6DB0",
-      penwidth=1.1,
-      constraint=false
+      penwidth=1.2
     ];
-
-    {
-      rank=same;
-      lineage_task_packets;
-      lineage_reference_law;
-    }
   }
 
   subgraph cluster_package_lifecycle {
@@ -198,64 +188,64 @@ digraph ArtifactsVersionsAndState {
     fillcolor="#F8FBFF";
     fontname="Helvetica-Bold";
     fontcolor="#174B80";
-    fontsize=16;
+    fontsize=15;
     penwidth=1.7;
     style="rounded,filled";
-    margin=16;
+    margin=14;
 
     lifecycle_draft [
       label="[PKG]\nDRAFT\nbytes may change",
-      color="#66768D",
-      fillcolor="#F3F5F8",
+      color="#64748B",
+      fillcolor="#F8FAFC",
       fontname="Helvetica-Bold"
     ];
 
     lifecycle_ready [
       label="[PKG]\nREADY_FOR_REVIEW\nfrozen review revision",
-      color="#2459A9",
-      fillcolor="#EAF2FF",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
       fontname="Helvetica-Bold"
     ];
 
     lifecycle_accepted [
       label="[H]\nHuman ACCEPTS exact immutable revision\nACCEPTED",
-      color="#A16207",
-      fillcolor="#FFF4D6",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
       fontname="Helvetica-Bold",
       penwidth=2.0
     ];
 
     lifecycle_superseded [
       label="[HISTORY]\nSUPERSEDED\nhistory only",
-      color="#66768D",
-      fillcolor="#F3F5F8",
+      color="#64748B",
+      fillcolor="#F8FAFC",
       fontname="Helvetica-Bold"
     ];
 
     lifecycle_blocked [
       label="[PKG][BLOCK]\nBLOCKED\nfact · authority · environment",
-      color="#B42318",
-      fillcolor="#FDECEC",
+      color="#B23A48",
+      fillcolor="#FFE0E4",
       fontname="Helvetica-Bold",
-      fontcolor="#8F1D13",
-      penwidth=1.6
+      fontcolor="#8F2635",
+      penwidth=1.7
     ];
 
     lifecycle_stale [
       label="[PKG][STALE]\nSTALE\nupstream identity changed",
-      color="#B42318",
-      fillcolor="#FDECEC",
+      color="#B23A48",
+      fillcolor="#FFE0E4",
       fontname="Helvetica-Bold",
-      fontcolor="#8F1D13",
-      penwidth=1.6
+      fontcolor="#8F2635",
+      penwidth=1.7
     ];
 
     lifecycle_new_draft [
       label="[NEW REVISION]\nnew DRAFT revision\nfresh review required",
-      color="#2459A9",
-      fillcolor="#EAF2FF",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
       fontname="Helvetica-Bold",
-      penwidth=1.4
+      penwidth=1.5
     ];
 
     lifecycle_draft -> lifecycle_ready [
@@ -263,49 +253,49 @@ digraph ArtifactsVersionsAndState {
     ];
 
     lifecycle_ready -> lifecycle_accepted [
-      color="#A16207",
+      color="#B7791F",
       style=dashed,
-      penwidth=1.8
+      penwidth=1.9
     ];
 
     lifecycle_accepted -> lifecycle_superseded [
       xlabel="history only",
-      color="#66768D"
+      color="#64748B"
     ];
 
     lifecycle_draft -> lifecycle_blocked [
       xlabel="blocked",
       style=dashed,
-      color="#B42318",
-      fontcolor="#8F1D13",
+      color="#B23A48",
+      fontcolor="#8F2635",
       constraint=false
     ];
 
     lifecycle_accepted -> lifecycle_stale [
       xlabel="upstream changed",
       style=dashed,
-      color="#B42318",
-      fontcolor="#8F1D13",
+      color="#B23A48",
+      fontcolor="#8F2635",
       constraint=false
     ];
 
     lifecycle_blocked -> lifecycle_new_draft [
       xlabel="new revision",
       style=dashed,
-      color="#B42318",
-      fontcolor="#8F1D13"
+      color="#B23A48",
+      fontcolor="#8F2635"
     ];
 
     lifecycle_stale -> lifecycle_new_draft [
       xlabel="new revision",
       style=dashed,
-      color="#B42318",
-      fontcolor="#8F1D13"
+      color="#B23A48",
+      fontcolor="#8F2635"
     ];
 
     lifecycle_new_draft -> lifecycle_ready [
       xlabel="fresh review",
-      color="#2459A9",
+      color="#2F6DB0",
       fontcolor="#174B80",
       constraint=false
     ];
@@ -330,248 +320,338 @@ digraph ArtifactsVersionsAndState {
   }
 
   subgraph cluster_release_environment_identity {
-    label="03 RELEASE & ENVIRONMENT IDENTITY · EACH FACT KEEPS ITS OWN IDENTITY";
+    label="03 RELEASE & ENVIRONMENT IDENTITY · IDENTITY CHANGES REQUALIFY, NEVER BORROW OLD EVIDENCE";
     labelloc=t;
     labeljust=l;
-    color="#2F6DB0";
-    fillcolor="#F8FBFF";
+    color="#177E89";
+    fillcolor="#EAF8F7";
     fontname="Helvetica-Bold";
-    fontcolor="#174B80";
-    fontsize=16;
+    fontcolor="#0F6269";
+    fontsize=15;
     penwidth=1.7;
     style="rounded,filled";
-    margin=16;
+    margin=14;
 
     release_baseline [
-      label="[STATE]\nPhase Success Baseline\naccepted package ≠ success denominator\nfrozen before first test action",
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      label="[STATE]\nPhase Success Baseline\nfrozen before first test action",
+      color="#177E89",
+      fillcolor="#FFFFFF",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
 
     release_candidate [
-      label="[ART][IMMUTABLE]\nCandidate\nrelease-bearing identity",
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      label="[ART][IMMUTABLE]\nCandidate C[n]\nrelease-bearing identity",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
-      penwidth=1.6,
+      penwidth=1.7,
       peripheries=2
     ];
 
     release_manifest [
-      label="[ART]\nEnvironment-specific Manifest\nseparate deployment identity",
+      label="[ART]\nManifest M[n]\nCandidate C[n]\n+ environment",
       shape=note,
       style=filled,
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
 
     action_authorization [
-      label="[H]\nAuthorized Action\nexact identity · consumed once",
-      color="#A16207",
-      fillcolor="#FFF4D6",
+      label="[H]\nAuthorized Action\nC[n] + M[n] · consumed once",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
       fontname="Helvetica-Bold",
       penwidth=2.0
     ];
 
     action_attempt [
-      label="[ACTION]\nAttempt\n≤ 1 effective side effect",
-      color="#66768D",
-      fillcolor="#F3F5F8",
+      label="[ACTION]\nAttempt\n≤ 1 side effect",
+      color="#7890AA",
+      fillcolor="#EEF4FA",
       fontname="Helvetica-Bold"
     ];
 
     action_observation [
-      label="[ART]\nReconciliation Observation\nsame action identity",
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      label="[ART]\nReconciliation\nObservation",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
 
     action_outcome [
-      label="[ART]\nTrustworthy Complete Outcome\n≤ 1 terminal outcome",
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      label="[ART]\nTrustworthy Complete Outcome\ncomplete + trustworthy only",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.5
     ];
 
     release_environment_state [
-      label="[STATE]\nCurrent Environment State\nsettled identity · complete incident set\nmutation / write status",
-      color="#0F766E",
-      fillcolor="#E7F7F3",
-      fontname="Helvetica-Bold",
-      penwidth=1.8
-    ];
-
-    action_evidence_law [
-      label="[CONTROL LAW]\nauthorization ≠ attempt ≠ observation ≠ outcome",
-      shape=note,
-      style=filled,
-      color="#A16207",
+      label="[STATE]\nCurrent Environment State\nsettled identity · incidents\n· write status",
+      color="#177E89",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold",
-      fontcolor="#7A4B00",
-      fontsize=8.5,
-      penwidth=1.4
-    ];
-
-    release_environment_blocked [
-      label="[STATE][BLOCK]\nfailed / partial / unknown → environment BLOCKED\nno QA · verification · acceptance · success",
-      color="#B42318",
-      fillcolor="#FDECEC",
-      fontname="Helvetica-Bold",
-      fontcolor="#8F1D13",
       penwidth=1.8
     ];
 
     identity_candidate_changed [
-      label="[CHANGE]\nCandidate change → new Candidate + affected gates",
-      shape=box,
-      style="rounded,filled",
-      color="#B42318",
-      fillcolor="#FDECEC",
+      label="[CHANGE]\nCandidate change →\nnew Candidate + affected gates",
+      color="#B23A48",
+      fillcolor="#FFF1F2",
       fontname="Helvetica-Bold",
-      fontcolor="#8F1D13",
-      fontsize=8.5,
+      fontcolor="#8F2635",
+      fontsize=11.5,
+      penwidth=1.7
+    ];
+
+    release_candidate_next [
+      label="[ART][IMMUTABLE][NEXT]\nCandidate C[n+1]\nnew release identity",
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
+      penwidth=1.8,
+      peripheries=2
+    ];
+
+    identity_candidate_gates [
+      label="[ART][AFFECTED]\nCandidate qualification\nfresh evidence only\nverify · deploy · QA · release",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F2635",
+      fontsize=11.5,
       penwidth=1.6
     ];
 
     identity_manifest_changed [
-      label="[CHANGE]\nManifest-only change → same Candidate, new deployment identity",
-      shape=box,
-      style="rounded,filled",
-      color="#B42318",
-      fillcolor="#FDECEC",
+      label="[CHANGE]\nManifest-only change →\nsame Candidate,\nnew deployment identity",
+      color="#B23A48",
+      fillcolor="#FFF1F2",
       fontname="Helvetica-Bold",
-      fontcolor="#8F1D13",
-      fontsize=8.5,
+      fontcolor="#8F2635",
+      fontsize=11.5,
+      penwidth=1.7
+    ];
+
+    release_manifest_next [
+      label="[ART][NEXT]\nManifest M[n+1]\nsame Candidate C[n]\nnew environment identity",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
       penwidth=1.6
     ];
 
-    identity_affected_evidence [
-      label="[ART][INVALIDATED]\nAffected downstream evidence\nverify · deploy · QA · release",
+    identity_manifest_gates [
+      label="[ART][AFFECTED]\nEnvironment qualification\nfresh evidence only\ndeploy · QA · release",
       shape=note,
       style=filled,
-      color="#B42318",
-      fillcolor="#FDECEC",
+      color="#B23A48",
+      fillcolor="#FFFFFF",
       fontname="Helvetica-Bold",
-      fontcolor="#8F1D13",
+      fontcolor="#8F2635",
+      fontsize=11.5,
       penwidth=1.6
+    ];
+
+    identity_prior_evidence [
+      label="[ART][IDENTITY-BOUND]\nPrior evidence: C[n] + M[n] only\nTEE = NO AUTHORITY\nto another identity",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F2635",
+      fontsize=11.5,
+      penwidth=1.6
+    ];
+
+    action_evidence_law [
+      label="[CONTROL LAW]\nauthorization ≠ attempt\n≠ observation ≠ outcome",
+      shape=note,
+      style=filled,
+      color="#B7791F",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontcolor="#7A4B00",
+      fontsize=11.5,
+      penwidth=1.5
+    ];
+
+    release_environment_blocked [
+      label="[STATE][BLOCK]\nfailed / partial / unknown\n→ environment BLOCKED\nno QA · verification\n· acceptance · success",
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F2635",
+      fontsize=11.5,
+      penwidth=1.9
     ];
 
     release_baseline -> release_candidate [
-      color="#0F766E",
-      penwidth=1.4
+      color="#177E89",
+      penwidth=1.5
     ];
 
     release_candidate -> release_manifest [
-      color="#0F766E",
-      penwidth=1.4
+      color="#177E89",
+      penwidth=1.5
     ];
 
     release_manifest -> action_authorization [
-      color="#A16207",
+      color="#B7791F",
       style=dashed,
-      penwidth=1.8
+      penwidth=1.9
     ];
 
     action_authorization -> action_attempt [
-      color="#A16207",
+      color="#B7791F",
       style=dashed,
-      penwidth=1.6
+      penwidth=1.7
     ];
 
     action_attempt -> action_observation;
 
     action_observation -> action_outcome [
-      xlabel="complete + trustworthy only"
+      color="#64748B"
     ];
 
     action_outcome -> release_environment_state [
-      color="#0F766E",
-      penwidth=1.4
-    ];
-
-    action_authorization -> action_evidence_law [
-      style=dashed,
-      arrowhead=none,
-      color="#A16207",
-      penwidth=1.1,
-      constraint=false
-    ];
-
-    action_observation -> release_environment_blocked [
-      style=dashed,
-      color="#B42318",
-      penwidth=1.7,
-      constraint=false
+      color="#177E89",
+      penwidth=1.5
     ];
 
     release_candidate -> identity_candidate_changed [
       style=dashed,
-      color="#B42318",
-      fontcolor="#8F1D13",
+      color="#B23A48",
+      fontcolor="#8F2635",
+      constraint=false
+    ];
+
+    identity_candidate_changed -> release_candidate_next [
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.8,
+      constraint=false
+    ];
+
+    release_candidate_next -> identity_candidate_gates [
+      xlabel="invalidates + reruns",
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.8,
+      constraint=false
+    ];
+
+    identity_candidate_gates -> action_authorization [
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.7,
       constraint=false
     ];
 
     release_manifest -> identity_manifest_changed [
       style=dashed,
-      color="#B42318",
-      fontcolor="#8F1D13",
+      color="#B23A48",
+      fontcolor="#8F2635",
       constraint=false
     ];
 
-    identity_candidate_changed -> identity_affected_evidence [
-      xlabel="invalidates",
+    identity_manifest_changed -> release_manifest_next [
       style=dashed,
-      color="#B42318",
-      fontcolor="#8F1D13",
-      penwidth=1.8
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.8,
+      constraint=false
     ];
 
-    identity_manifest_changed -> identity_affected_evidence [
-      xlabel="invalidates",
+    release_manifest_next -> identity_manifest_gates [
+      xlabel="invalidates + reruns",
       style=dashed,
-      color="#B42318",
-      fontcolor="#8F1D13",
-      penwidth=1.8
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.8,
+      constraint=false
     ];
 
-    identity_affected_evidence -> action_authorization [
-      xlabel="rerun affected gates",
+    identity_manifest_gates -> action_authorization [
       style=dashed,
-      color="#B42318",
-      fontcolor="#8F1D13",
-      penwidth=1.6,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.7,
+      constraint=false
+    ];
+
+    identity_prior_evidence -> release_candidate_next [
+      arrowhead=tee,
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.9,
+      constraint=false
+    ];
+
+    identity_prior_evidence -> release_manifest_next [
+      arrowhead=tee,
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.9,
+      constraint=false
+    ];
+
+    action_authorization -> action_evidence_law [
+      style=dashed,
+      arrowhead=none,
+      color="#B7791F",
+      penwidth=1.2,
+      constraint=false
+    ];
+
+    action_observation -> release_environment_blocked [
+      style=dashed,
+      color="#B23A48",
+      penwidth=1.8,
       constraint=false
     ];
 
     {
       rank=same;
+      release_baseline;
+      identity_prior_evidence;
+    }
+
+    {
+      rank=same;
       release_candidate;
       identity_candidate_changed;
+      release_candidate_next;
+      identity_candidate_gates;
     }
 
     {
       rank=same;
       release_manifest;
       identity_manifest_changed;
+      release_manifest_next;
+      identity_manifest_gates;
     }
 
     {
       rank=same;
-      identity_affected_evidence;
-      action_evidence_law;
-      action_authorization;
-      action_attempt;
       action_observation;
+      action_evidence_law;
       release_environment_blocked;
-      action_outcome;
     }
   }
 
@@ -583,82 +663,82 @@ digraph ArtifactsVersionsAndState {
     fillcolor="#F8FBFF";
     fontname="Helvetica-Bold";
     fontcolor="#174B80";
-    fontsize=16;
+    fontsize=15;
     penwidth=1.7;
     style="rounded,filled";
-    margin=16;
+    margin=14;
 
     incident_case [
-      label="[INCIDENT]\nIncident Case\nproduct disposition does not close Incident Case\nindependent safety identity",
-      color="#B42318",
-      fillcolor="#FDECEC",
+      label="[INCIDENT]\nIncident Case\nproduct disposition does not\nclose Incident Case",
+      color="#B23A48",
+      fillcolor="#FFE0E4",
       fontname="Helvetica-Bold",
-      fontcolor="#8F1D13",
-      penwidth=1.8
+      fontcolor="#8F2635",
+      penwidth=1.9
     ];
 
     incident_resolution [
-      label="[STATE][INCIDENT]\nindependent current-safety resolution\nincident evidence has no product-success authority",
-      color="#B42318",
-      fillcolor="#FDECEC",
+      label="[STATE][INCIDENT]\nindependent current-safety resolution\nincident evidence has no\nproduct-success authority",
+      color="#B23A48",
+      fillcolor="#FFF1F2",
       fontname="Helvetica-Bold",
-      fontcolor="#8F1D13",
-      penwidth=1.8
+      fontcolor="#8F2635",
+      penwidth=1.9
     ];
 
     outcome_disposition [
-      label="[H]\nProduct Disposition\ncurrent state is evidence, not product success\nProduction Verification + Business Acceptance required",
-      color="#A16207",
-      fillcolor="#FFF4D6",
+      label="[H]\nProduct Disposition\nProduction Verification + Business Acceptance",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
       fontname="Helvetica-Bold",
       penwidth=2.0
     ];
 
     outcome_phase [
       label="[STATE][PRODUCT]\nPhase Outcome\nsuccess · pause · terminate · rework",
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.6
     ];
 
     outcome_demand [
       label="[STATE][PRODUCT]\nDemand Outcome\ncomplete · defer · terminate · continue",
-      color="#0F766E",
-      fillcolor="#E7F7F3",
+      color="#177E89",
+      fillcolor="#E7F7F6",
       fontname="Helvetica-Bold",
       penwidth=1.6
     ];
 
     incident_case -> incident_resolution [
-      color="#B42318",
-      penwidth=1.7
-    ];
-
-    outcome_disposition -> outcome_phase [
-      color="#A16207",
-      style=dashed,
+      color="#B23A48",
       penwidth=1.8
     ];
 
+    outcome_disposition -> outcome_phase [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
     outcome_phase -> outcome_demand [
-      color="#0F766E",
-      penwidth=1.4
+      color="#177E89",
+      penwidth=1.5
     ];
 
     outcome_disposition -> incident_case [
       arrowhead=tee,
       style=dashed,
-      color="#B42318",
-      penwidth=1.7,
+      color="#B23A48",
+      penwidth=1.8,
       constraint=false
     ];
 
     incident_resolution -> outcome_phase [
       arrowhead=tee,
       style=dashed,
-      color="#B42318",
-      penwidth=1.7,
+      color="#B23A48",
+      penwidth=1.8,
       constraint=false
     ];
 
@@ -670,36 +750,32 @@ digraph ArtifactsVersionsAndState {
     color="#2F6DB0",
     fontcolor="#174B80",
     penwidth=1.5,
-    weight=0,
     constraint=false
   ];
 
   release_baseline -> lifecycle_accepted [
     dir=back,
-    color="#A16207",
+    color="#B7791F",
     style=dashed,
-    penwidth=1.6,
-    weight=0,
+    penwidth=1.7,
     constraint=false
   ];
 
   outcome_disposition -> release_environment_state [
     dir=back,
-    color="#A16207",
+    color="#B7791F",
     style=dashed,
-    penwidth=1.6,
-    weight=0,
+    penwidth=1.7,
     constraint=false
   ];
 
   incident_case -> release_environment_blocked [
     xlabel="contain + open / preserve exact Incident Case",
     dir=back,
-    color="#B42318",
-    fontcolor="#8F1D13",
+    color="#B23A48",
+    fontcolor="#8F2635",
     style=dashed,
-    penwidth=1.8,
-    weight=0,
+    penwidth=1.9,
     constraint=false
   ];
 
@@ -720,6 +796,5 @@ digraph ArtifactsVersionsAndState {
     rank=same;
     release_environment_state;
     incident_resolution;
-    outcome_disposition;
   }
 }
