@@ -12,7 +12,7 @@ digraph ArtifactsVersionsAndState {
     ranksep="0.36",
     labelloc=t,
     labeljust=l,
-    label="ARTIFACTS, VERSIONS, AND STATE\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R6\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
+    label="ARTIFACTS, VERSIONS, AND STATE\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R4\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
     fontname="Helvetica-Bold",
     fontsize=21,
     fontcolor="#132A44"

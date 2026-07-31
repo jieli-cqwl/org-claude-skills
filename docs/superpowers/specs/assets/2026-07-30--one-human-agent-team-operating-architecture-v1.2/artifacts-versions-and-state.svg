@@ -10,7 +10,7 @@
 <title>ArtifactsVersionsAndState</title>
 <polygon fill="#f6f8fb" stroke="none" points="-14.4,14.4 -14.4,-1021.4 1997.35,-1021.4 1997.35,14.4 -14.4,14.4"/>
 <text text-anchor="middle" x="399.88" y="-983.05" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="21.00" fill="#132a44">ARTIFACTS, VERSIONS, AND STATE</text>
-<text text-anchor="middle" x="399.88" y="-961.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="21.00" fill="#132a44">TARGET OPERATING ARCHITECTURE · V1.2 · VIEW R6</text>
+<text text-anchor="middle" x="399.88" y="-961.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="21.00" fill="#132a44">TARGET OPERATING ARCHITECTURE · V1.2 · VIEW R4</text>
 <text text-anchor="middle" x="399.88" y="-939.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="21.00" fill="#132a44">M0 MANUAL CONTROL · Human&#45;governed · Agent&#45;executed · Evidence&#45;driven</text>
 <text text-anchor="middle" x="399.88" y="-917.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="21.00" fill="#132a44">TARGET DESIGN · NOT RUNTIME&#45;ACTIVE</text>
 <g id="clust1" class="cluster">
