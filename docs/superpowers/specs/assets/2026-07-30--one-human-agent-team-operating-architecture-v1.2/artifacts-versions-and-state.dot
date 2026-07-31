@@ -1,154 +1,725 @@
 digraph ArtifactsVersionsAndState {
   graph [
-    bgcolor="#F8FAFD",
-    pad="0.24",
+    rankdir=LR,
+    newrank=true,
+    compound=true,
+    ordering=out,
+    splines=ortho,
+    outputorder=edgesfirst,
+    bgcolor="#F6F8FB",
+    pad="0.28",
+    nodesep="0.28",
+    ranksep="0.42",
     labelloc=t,
-    label="ARTIFACTS, VERSIONS, AND STATE · TARGET V1.2\nSTAGE-OWNED PACKAGES · IMMUTABLE IDENTITIES · SEPARATE STATE DOMAINS\nM0 MANUAL HANDOFFS · NOT RUNTIME-ACTIVE",
-    fontname="PingFang SC",
-    fontsize=22,
-    fontcolor="#172033"
+    labeljust=l,
+    label="ARTIFACTS, VERSIONS, AND STATE\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R6\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
+    fontname="Helvetica-Bold",
+    fontsize=24,
+    fontcolor="#132A44"
   ];
 
-  node [shape=plain, fontname="PingFang SC", fontcolor="#172033"];
-
-  artifact_map [
-    label=<
-      <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="14" CELLPADDING="0" BGCOLOR="#F8FAFD">
-        <TR>
-          <TD VALIGN="TOP">
-            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="10"
-                   COLOR="#8FA6C2" BGCOLOR="#FFFFFF" WIDTH="620">
-              <TR><TD BGCOLOR="#DDE9F8" ALIGN="LEFT"><FONT POINT-SIZE="14"><B>1 · OPERATING GRAIN</B></FONT></TD></TR>
-              <TR>
-                <TD ALIGN="LEFT">
-                  <B>PRODUCT</B><BR ALIGN="LEFT"/>
-                  Demand → Phase → Product Unit → Task → Candidate lineage<BR ALIGN="LEFT"/><BR ALIGN="LEFT"/>
-                  <B>INCIDENT_REMEDIATION</B><BR ALIGN="LEFT"/>
-                  Incident Case → bounded remediation work → Task → optional Candidate lineage
-                </TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#F4EEFC" COLOR="#6F4BA5" ALIGN="LEFT">
-                  Incident lineage 独立于 product outcome；<BR ALIGN="LEFT"/>
-                  terminated product package 只作 provenance，不能授权 incident work；<BR ALIGN="LEFT"/>
-                  incident evidence 永远不获得 product-success authority。
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-
-          <TD VALIGN="TOP">
-            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="10"
-                   COLOR="#8FA6C2" BGCOLOR="#FFFFFF" WIDTH="700">
-              <TR><TD BGCOLOR="#DDE9F8" ALIGN="LEFT"><FONT POINT-SIZE="14"><B>2 · STAGE PACKAGE REFERENCE CHAIN</B></FONT><BR ALIGN="LEFT"/>下游引用，不改写上游 bytes</TD></TR>
-              <TR>
-                <TD ALIGN="LEFT">
-                  Director Decision → Product Definition → Impact discovery<BR ALIGN="LEFT"/>
-                  → activated UX / Architecture 或 explicit skip → Impact freeze<BR ALIGN="LEFT"/>
-                  → Test Design → Tech Lead → bounded Task Packets
-                </TD>
-              </TR>
-              <TR>
-                <TD ALIGN="LEFT" BGCOLOR="#F4EEFC" COLOR="#6F4BA5">
-                  Human freezes <B>Phase Success Baseline</B> before first test action<BR ALIGN="LEFT"/>
-                  → immutable Candidate + test Manifest + Test Admission<BR ALIGN="LEFT"/>
-                  → trustworthy test outcome → independent QA<BR ALIGN="LEFT"/>
-                  → PRODUCT Release Package for exact Candidate + production Manifest<BR ALIGN="LEFT"/>
-                  → trustworthy production outcome → Production Verification → Business Acceptance
-                </TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#FFF9E8" COLOR="#A66A00" ALIGN="LEFT">
-                  每次 handoff：freeze exact revision → Human ACCEPT → separate INVOKE → actual start rechecks current authority。<BR ALIGN="LEFT"/>
-                  Uncertain invocation or environment action remains BLOCKED until the same identity is reconciled without duplicate execution。
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-        </TR>
-
-        <TR>
-          <TD VALIGN="TOP">
-            <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="9"
-                   COLOR="#8FA6C2" BGCOLOR="#FFFFFF" WIDTH="620">
-              <TR><TD COLSPAN="2" BGCOLOR="#DDE9F8" ALIGN="LEFT"><FONT POINT-SIZE="14"><B>3 · STAGE-PACKAGE LIFECYCLE</B></FONT></TD></TR>
-              <TR><TD BGCOLOR="#EAF2FF"><B>DRAFT</B></TD><TD ALIGN="LEFT">producing Owner may edit</TD></TR>
-              <TR><TD BGCOLOR="#EAF2FF"><B>READY_FOR_REVIEW</B></TD><TD ALIGN="LEFT">Owner freezes review revision + self-check</TD></TR>
-              <TR><TD BGCOLOR="#FFF3C7" COLOR="#A66A00"><B>ACCEPTED</B></TD><TD ALIGN="LEFT">Human accepts exact immutable revision</TD></TR>
-              <TR><TD BGCOLOR="#FDECEC" COLOR="#B43A3A"><B>BLOCKED</B></TD><TD ALIGN="LEFT">fact / authority / environment prevents valid completion</TD></TR>
-              <TR><TD BGCOLOR="#FDECEC" COLOR="#B43A3A"><B>STALE</B></TD><TD ALIGN="LEFT">upstream change requires reassessment</TD></TR>
-              <TR><TD BGCOLOR="#F5F7FA"><B>SUPERSEDED</B></TD><TD ALIGN="LEFT">newer revision replaced it; history only</TD></TR>
-              <TR>
-                <TD COLSPAN="2" BGCOLOR="#FFF9E8" ALIGN="LEFT">
-                  BLOCKED / STALE resolution creates a new DRAFT revision；不得直接回 ACCEPTED。<BR ALIGN="LEFT"/>
-                  历史 ACCEPT 不证明 current start authority；invalidation 沿 exact references 传播。
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-
-          <TD VALIGN="TOP">
-            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="10"
-                   COLOR="#6F4BA5" BGCOLOR="#FFFFFF" WIDTH="700">
-              <TR><TD BGCOLOR="#EEE6FA" ALIGN="LEFT"><FONT POINT-SIZE="14"><B>4 · IDENTITY &amp; ENVIRONMENT BOUNDARIES</B></FONT></TD></TR>
-              <TR>
-                <TD ALIGN="LEFT" BGCOLOR="#F4EEFC">
-                  <B>Phase Success Baseline</B> = frozen value / behavior / AC / proof denominator<BR ALIGN="LEFT"/>
-                  <B>Candidate</B> = release-bearing material identity<BR ALIGN="LEFT"/>
-                  <B>Deployment Manifest</B> = environment-specific identity（secret values stay outside）<BR ALIGN="LEFT"/>
-                  <B>Environment State</B> = current settled identity + complete incident set + mutation status
-                </TD>
-              </TR>
-              <TR>
-                <TD ALIGN="LEFT">
-                  Candidate change → new Candidate + affected verify / deploy / QA / release evidence。<BR ALIGN="LEFT"/>
-                  Manifest-only change → same Candidate, new deployment identity + affected gates。<BR ALIGN="LEFT"/>
-                  Old evidence remains history but cannot qualify another identity。
-                </TD>
-              </TR>
-              <TR>
-                <TD ALIGN="LEFT" BGCOLOR="#FFF9E8" COLOR="#A66A00">
-                  <B>Environment action evidence</B>：Human authorization ≠ attempt ≠ observation ≠ trustworthy outcome。<BR ALIGN="LEFT"/>
-                  Each action identity is authorized once, produces at most one effective side effect and ≤ 1 trustworthy terminal outcome；
-                  retry with new side effect requires fresh authority。
-                </TD>
-              </TR>
-              <TR>
-                <TD ALIGN="LEFT" BGCOLOR="#FDECEC" COLOR="#B43A3A">
-                  Failed / partial / unknown / unresolved action → environment stays blocked；
-                  no QA / verification / acceptance / success。<BR ALIGN="LEFT"/>
-                  Previous mutator must be unable to write before authority transfers；
-                  failed production state must never become temporarily unguarded。
-                </TD>
-              </TR>
-              <TR>
-                <TD ALIGN="LEFT" BGCOLOR="#FFF9E8" COLOR="#A66A00">
-                  <B>Production diagnostic</B>：bounded + continuous safe exit + NO RELEASE PASS + R00 only；
-                  expiry triggers pre-authorized safe exit without a new Human decision，otherwise environment remains blocked and enters R09。
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-        </TR>
-
-        <TR>
-          <TD COLSPAN="2">
-            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="10"
-                   COLOR="#B43A3A" BGCOLOR="#FDECEC" WIDTH="1334">
-              <TR>
-                <TD ALIGN="LEFT" COLOR="#B43A3A">
-                  <B>DO NOT COLLAPSE STATE DOMAINS</B>：
-                  package ACCEPTED ≠ Phase Success Baseline ≠ Candidate qualified ≠ Manifest identity ≠ invocation authority
-                  ≠ environment state ≠ action attempt / outcome ≠ containment ≠ Incident Case ≠ Phase outcome ≠ Demand outcome。<BR ALIGN="LEFT"/>
-                  closed / terminated Phase 与 completed / terminated Demand authority-absorbing；
-                  paused / awaiting-rework Phase 只能 F17，同一 Demand 不得同时存在 F16 / competing Phase authority；<BR ALIGN="LEFT"/>
-                  Incident Case 只能由独立 current-safety evidence 关闭，不能被 product disposition 顺手关闭。
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-        </TR>
-      </TABLE>
-    >
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#7890AA",
+    fillcolor="#FFFFFF",
+    fontname="Helvetica",
+    fontcolor="#132A44",
+    fontsize=10,
+    margin="0.12,0.08",
+    penwidth=1.1
   ];
+
+  edge [
+    color="#64748B",
+    fontname="Helvetica",
+    fontcolor="#334155",
+    fontsize=8.5,
+    arrowsize=0.7,
+    penwidth=1.2
+  ];
+
+  // layout only: DOT stacks LR clusters bottom-up by first nonempty declaration.
+  subgraph cluster_outcome_incident_state {
+    layout_cluster_order_04 [
+      shape=point,
+      style=invis,
+      width=0,
+      height=0,
+      label=""
+    ];
+  }
+
+  // layout only: seed order also compensates the ACCEPTED-to-Baseline bridge.
+  subgraph cluster_package_lifecycle {
+    layout_cluster_order_02 [
+      shape=point,
+      style=invis,
+      width=0,
+      height=0,
+      label=""
+    ];
+  }
+
+  // layout only
+  subgraph cluster_release_environment_identity {
+    layout_cluster_order_03 [
+      shape=point,
+      style=invis,
+      width=0,
+      height=0,
+      label=""
+    ];
+  }
+
+  // layout only
+  subgraph cluster_package_lineage {
+    layout_cluster_order_01 [
+      shape=point,
+      style=invis,
+      width=0,
+      height=0,
+      label=""
+    ];
+  }
+
+  subgraph cluster_package_lineage {
+    label="01 PACKAGE LINEAGE · DOWNSTREAM REFERENCES EXACT ACCEPTED REVISIONS";
+    labelloc=t;
+    labeljust=l;
+    color="#2F6DB0";
+    fillcolor="#F8FBFF";
+    fontname="Helvetica-Bold";
+    fontcolor="#174B80";
+    fontsize=16;
+    penwidth=1.7;
+    style="rounded,filled";
+    margin=16;
+
+    lineage_director [
+      label="[ART]\nDirector Decision",
+      shape=note,
+      style=filled,
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    lineage_product_definition [
+      label="[ART]\nProduct Definition",
+      shape=note,
+      style=filled,
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    lineage_impact_freeze [
+      label="[ART]\nImpact Freeze",
+      shape=note,
+      style=filled,
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    lineage_test_design [
+      label="[ART]\nTest Design",
+      shape=note,
+      style=filled,
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    lineage_tech_lead [
+      label="[ART]\nTech Lead Package",
+      shape=note,
+      style=filled,
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    lineage_task_packets [
+      label="[ART]\nBounded Task Packets",
+      shape=note,
+      style=filled,
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    lineage_reference_law [
+      label="[REFERENCE LAW]\ndownstream references exact revision\nnever rewrites upstream bytes",
+      shape=note,
+      style=filled,
+      color="#2F6DB0",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontcolor="#174B80",
+      fontsize=8.5,
+      penwidth=1.3
+    ];
+
+    lineage_director -> lineage_product_definition ->
+      lineage_impact_freeze -> lineage_test_design ->
+      lineage_tech_lead -> lineage_task_packets [
+        color="#2F6DB0",
+        penwidth=1.4
+      ];
+
+    lineage_task_packets -> lineage_reference_law [
+      style=dashed,
+      arrowhead=none,
+      color="#2F6DB0",
+      penwidth=1.1,
+      constraint=false
+    ];
+
+    {
+      rank=same;
+      lineage_task_packets;
+      lineage_reference_law;
+    }
+  }
+
+  subgraph cluster_package_lifecycle {
+    label="02 PACKAGE LIFECYCLE · ACCEPTANCE IS REVISION-BOUND, NOT CURRENT AUTHORITY";
+    labelloc=t;
+    labeljust=l;
+    color="#2F6DB0";
+    fillcolor="#F8FBFF";
+    fontname="Helvetica-Bold";
+    fontcolor="#174B80";
+    fontsize=16;
+    penwidth=1.7;
+    style="rounded,filled";
+    margin=16;
+
+    lifecycle_draft [
+      label="[PKG]\nDRAFT\nbytes may change",
+      color="#66768D",
+      fillcolor="#F3F5F8",
+      fontname="Helvetica-Bold"
+    ];
+
+    lifecycle_ready [
+      label="[PKG]\nREADY_FOR_REVIEW\nfrozen review revision",
+      color="#2459A9",
+      fillcolor="#EAF2FF",
+      fontname="Helvetica-Bold"
+    ];
+
+    lifecycle_accepted [
+      label="[H]\nHuman ACCEPTS exact immutable revision\nACCEPTED",
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="Helvetica-Bold",
+      penwidth=2.0
+    ];
+
+    lifecycle_superseded [
+      label="[HISTORY]\nSUPERSEDED\nhistory only",
+      color="#66768D",
+      fillcolor="#F3F5F8",
+      fontname="Helvetica-Bold"
+    ];
+
+    lifecycle_blocked [
+      label="[PKG][BLOCK]\nBLOCKED\nfact · authority · environment",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F1D13",
+      penwidth=1.6
+    ];
+
+    lifecycle_stale [
+      label="[PKG][STALE]\nSTALE\nupstream identity changed",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F1D13",
+      penwidth=1.6
+    ];
+
+    lifecycle_new_draft [
+      label="[NEW REVISION]\nnew DRAFT revision\nfresh review required",
+      color="#2459A9",
+      fillcolor="#EAF2FF",
+      fontname="Helvetica-Bold",
+      penwidth=1.4
+    ];
+
+    lifecycle_draft -> lifecycle_ready [
+      xlabel="freeze + self-check"
+    ];
+
+    lifecycle_ready -> lifecycle_accepted [
+      color="#A16207",
+      style=dashed,
+      penwidth=1.8
+    ];
+
+    lifecycle_accepted -> lifecycle_superseded [
+      xlabel="history only",
+      color="#66768D"
+    ];
+
+    lifecycle_draft -> lifecycle_blocked [
+      xlabel="blocked",
+      style=dashed,
+      color="#B42318",
+      fontcolor="#8F1D13",
+      constraint=false
+    ];
+
+    lifecycle_accepted -> lifecycle_stale [
+      xlabel="upstream changed",
+      style=dashed,
+      color="#B42318",
+      fontcolor="#8F1D13",
+      constraint=false
+    ];
+
+    lifecycle_blocked -> lifecycle_new_draft [
+      xlabel="new revision",
+      style=dashed,
+      color="#B42318",
+      fontcolor="#8F1D13"
+    ];
+
+    lifecycle_stale -> lifecycle_new_draft [
+      xlabel="new revision",
+      style=dashed,
+      color="#B42318",
+      fontcolor="#8F1D13"
+    ];
+
+    lifecycle_new_draft -> lifecycle_ready [
+      xlabel="fresh review",
+      color="#2459A9",
+      fontcolor="#174B80",
+      constraint=false
+    ];
+
+    {
+      rank=same;
+      lifecycle_draft;
+      lifecycle_blocked;
+    }
+
+    {
+      rank=same;
+      lifecycle_ready;
+      lifecycle_new_draft;
+    }
+
+    {
+      rank=same;
+      lifecycle_accepted;
+      lifecycle_stale;
+    }
+  }
+
+  subgraph cluster_release_environment_identity {
+    label="03 RELEASE & ENVIRONMENT IDENTITY · EACH FACT KEEPS ITS OWN IDENTITY";
+    labelloc=t;
+    labeljust=l;
+    color="#2F6DB0";
+    fillcolor="#F8FBFF";
+    fontname="Helvetica-Bold";
+    fontcolor="#174B80";
+    fontsize=16;
+    penwidth=1.7;
+    style="rounded,filled";
+    margin=16;
+
+    release_baseline [
+      label="[STATE]\nPhase Success Baseline\naccepted package ≠ success denominator\nfrozen before first test action",
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    release_candidate [
+      label="[ART][IMMUTABLE]\nCandidate\nrelease-bearing identity",
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.6,
+      peripheries=2
+    ];
+
+    release_manifest [
+      label="[ART]\nEnvironment-specific Manifest\nseparate deployment identity",
+      shape=note,
+      style=filled,
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    action_authorization [
+      label="[H]\nAuthorized Action\nexact identity · consumed once",
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="Helvetica-Bold",
+      penwidth=2.0
+    ];
+
+    action_attempt [
+      label="[ACTION]\nAttempt\n≤ 1 effective side effect",
+      color="#66768D",
+      fillcolor="#F3F5F8",
+      fontname="Helvetica-Bold"
+    ];
+
+    action_observation [
+      label="[ART]\nReconciliation Observation\nsame action identity",
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    action_outcome [
+      label="[ART]\nTrustworthy Complete Outcome\n≤ 1 terminal outcome",
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    release_environment_state [
+      label="[STATE]\nCurrent Environment State\nsettled identity · complete incident set\nmutation / write status",
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    action_evidence_law [
+      label="[CONTROL LAW]\nauthorization ≠ attempt ≠ observation ≠ outcome",
+      shape=note,
+      style=filled,
+      color="#A16207",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontcolor="#7A4B00",
+      fontsize=8.5,
+      penwidth=1.4
+    ];
+
+    release_environment_blocked [
+      label="[STATE][BLOCK]\nfailed / partial / unknown → environment BLOCKED\nno QA · verification · acceptance · success",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F1D13",
+      penwidth=1.8
+    ];
+
+    identity_candidate_changed [
+      label="[CHANGE]\nCandidate change → new Candidate + affected gates",
+      shape=box,
+      style="rounded,filled",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F1D13",
+      fontsize=8.5,
+      penwidth=1.6
+    ];
+
+    identity_manifest_changed [
+      label="[CHANGE]\nManifest-only change → same Candidate, new deployment identity",
+      shape=box,
+      style="rounded,filled",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F1D13",
+      fontsize=8.5,
+      penwidth=1.6
+    ];
+
+    identity_affected_evidence [
+      label="[ART][INVALIDATED]\nAffected downstream evidence\nverify · deploy · QA · release",
+      shape=note,
+      style=filled,
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F1D13",
+      penwidth=1.6
+    ];
+
+    release_baseline -> release_candidate [
+      color="#0F766E",
+      penwidth=1.4
+    ];
+
+    release_candidate -> release_manifest [
+      color="#0F766E",
+      penwidth=1.4
+    ];
+
+    release_manifest -> action_authorization [
+      color="#A16207",
+      style=dashed,
+      penwidth=1.8
+    ];
+
+    action_authorization -> action_attempt [
+      color="#A16207",
+      style=dashed,
+      penwidth=1.6
+    ];
+
+    action_attempt -> action_observation;
+
+    action_observation -> action_outcome [
+      xlabel="complete + trustworthy only"
+    ];
+
+    action_outcome -> release_environment_state [
+      color="#0F766E",
+      penwidth=1.4
+    ];
+
+    action_authorization -> action_evidence_law [
+      style=dashed,
+      arrowhead=none,
+      color="#A16207",
+      penwidth=1.1,
+      constraint=false
+    ];
+
+    action_observation -> release_environment_blocked [
+      style=dashed,
+      color="#B42318",
+      penwidth=1.7,
+      constraint=false
+    ];
+
+    release_candidate -> identity_candidate_changed [
+      style=dashed,
+      color="#B42318",
+      fontcolor="#8F1D13",
+      constraint=false
+    ];
+
+    release_manifest -> identity_manifest_changed [
+      style=dashed,
+      color="#B42318",
+      fontcolor="#8F1D13",
+      constraint=false
+    ];
+
+    identity_candidate_changed -> identity_affected_evidence [
+      xlabel="invalidates",
+      style=dashed,
+      color="#B42318",
+      fontcolor="#8F1D13",
+      penwidth=1.8
+    ];
+
+    identity_manifest_changed -> identity_affected_evidence [
+      xlabel="invalidates",
+      style=dashed,
+      color="#B42318",
+      fontcolor="#8F1D13",
+      penwidth=1.8
+    ];
+
+    identity_affected_evidence -> action_authorization [
+      xlabel="rerun affected gates",
+      style=dashed,
+      color="#B42318",
+      fontcolor="#8F1D13",
+      penwidth=1.6,
+      constraint=false
+    ];
+
+    {
+      rank=same;
+      release_candidate;
+      identity_candidate_changed;
+    }
+
+    {
+      rank=same;
+      release_manifest;
+      identity_manifest_changed;
+    }
+
+    {
+      rank=same;
+      identity_affected_evidence;
+      action_evidence_law;
+      action_authorization;
+      action_attempt;
+      action_observation;
+      release_environment_blocked;
+      action_outcome;
+    }
+  }
+
+  subgraph cluster_outcome_incident_state {
+    label="04 ORTHOGONAL OUTCOME / INCIDENT STATE · PRODUCT AND SAFETY AUTHORITY NEVER MERGE";
+    labelloc=t;
+    labeljust=l;
+    color="#2F6DB0";
+    fillcolor="#F8FBFF";
+    fontname="Helvetica-Bold";
+    fontcolor="#174B80";
+    fontsize=16;
+    penwidth=1.7;
+    style="rounded,filled";
+    margin=16;
+
+    incident_case [
+      label="[INCIDENT]\nIncident Case\nproduct disposition does not close Incident Case\nindependent safety identity",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F1D13",
+      penwidth=1.8
+    ];
+
+    incident_resolution [
+      label="[STATE][INCIDENT]\nindependent current-safety resolution\nincident evidence has no product-success authority",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F1D13",
+      penwidth=1.8
+    ];
+
+    outcome_disposition [
+      label="[H]\nProduct Disposition\ncurrent state is evidence, not product success\nProduction Verification + Business Acceptance required",
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="Helvetica-Bold",
+      penwidth=2.0
+    ];
+
+    outcome_phase [
+      label="[STATE][PRODUCT]\nPhase Outcome\nsuccess · pause · terminate · rework",
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.6
+    ];
+
+    outcome_demand [
+      label="[STATE][PRODUCT]\nDemand Outcome\ncomplete · defer · terminate · continue",
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="Helvetica-Bold",
+      penwidth=1.6
+    ];
+
+    incident_case -> incident_resolution [
+      color="#B42318",
+      penwidth=1.7
+    ];
+
+    outcome_disposition -> outcome_phase [
+      color="#A16207",
+      style=dashed,
+      penwidth=1.8
+    ];
+
+    outcome_phase -> outcome_demand [
+      color="#0F766E",
+      penwidth=1.4
+    ];
+
+    outcome_disposition -> incident_case [
+      arrowhead=tee,
+      style=dashed,
+      color="#B42318",
+      penwidth=1.7,
+      constraint=false
+    ];
+
+    incident_resolution -> outcome_phase [
+      arrowhead=tee,
+      style=dashed,
+      color="#B42318",
+      penwidth=1.7,
+      constraint=false
+    ];
+
+  }
+
+  lifecycle_draft -> lineage_director [
+    xlabel="each package",
+    dir=back,
+    color="#2F6DB0",
+    fontcolor="#174B80",
+    penwidth=1.5,
+    weight=0,
+    constraint=false
+  ];
+
+  release_baseline -> lifecycle_accepted [
+    dir=back,
+    color="#A16207",
+    style=dashed,
+    penwidth=1.6,
+    weight=0,
+    constraint=false
+  ];
+
+  outcome_disposition -> release_environment_state [
+    dir=back,
+    color="#A16207",
+    style=dashed,
+    penwidth=1.6,
+    weight=0,
+    constraint=false
+  ];
+
+  incident_case -> release_environment_blocked [
+    xlabel="contain + open / preserve exact Incident Case",
+    dir=back,
+    color="#B42318",
+    fontcolor="#8F1D13",
+    style=dashed,
+    penwidth=1.8,
+    weight=0,
+    constraint=false
+  ];
+
+  {
+    rank=same;
+    lineage_director;
+    lifecycle_draft;
+  }
+
+  {
+    rank=same;
+    action_observation;
+    release_environment_blocked;
+    incident_case;
+  }
+
+  {
+    rank=same;
+    release_environment_state;
+    incident_resolution;
+    outcome_disposition;
+  }
 }
