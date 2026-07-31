@@ -6,125 +6,132 @@ digraph TeamBattleMap {
     ordering=out,
     splines=ortho,
     outputorder=edgesfirst,
-    bgcolor="#F6F8FB",
-    pad="0.20",
-    nodesep="0.14",
-    ranksep="0.38",
+    bgcolor="#F7F9FC",
+    pad="0.30",
+    nodesep="0.30",
+    ranksep="0.56",
     labelloc=t,
     labeljust=l,
     label="ONE-HUMAN + AGENT TEAM\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R4\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
-    fontname="Helvetica-Bold",
+    fontname="PingFang SC",
     fontsize=24,
-    fontcolor="#132A44"
+    fontcolor="#152238"
   ];
 
   node [
     shape=box,
     style="rounded,filled",
-    color="#7890AA",
+    color="#B8C2D1",
     fillcolor="#FFFFFF",
-    fontname="Helvetica",
-    fontcolor="#132A44",
-    fontsize=11.5,
-    margin="0.08,0.06",
-    penwidth=1.1
+    fontname="PingFang SC",
+    fontcolor="#152238",
+    fontsize=11,
+    margin="0.13,0.09",
+    penwidth=1.2
   ];
 
   edge [
-    color="#64748B",
-    fontname="Helvetica",
-    fontcolor="#334155",
-    fontsize=10.5,
-    arrowsize=0.7,
-    penwidth=1.2
+    fontname="PingFang SC",
+    fontsize=9,
+    fontcolor="#40536D",
+    color="#66768D",
+    arrowsize=0.72,
+    penwidth=1.25
   ];
 
   subgraph cluster_human {
     label="HUMAN CONTROL PLANE";
     labelloc=t;
     labeljust=l;
-    color="#B7791F";
-    fillcolor="#FFF8E7";
-    fontname="Helvetica-Bold";
-    fontcolor="#7A4B00";
+    color="#A16207";
+    fillcolor="#FFF4D6";
+    fontname="PingFang SC";
+    fontcolor="#A16207";
     fontsize=15;
     penwidth=1.6;
     style="rounded,filled";
     margin=14;
 
+    node [
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontcolor="#A16207",
+      fontsize=11.5
+    ];
+
     human_co_create [
       label="[H]\nco-create\nvalue/direction",
       group="column_1",
-      color="#B7791F",
-      fillcolor="#FFF3C4",
-      fontname="Helvetica-Bold",
-      penwidth=1.8
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="PingFang SC",
+      penwidth=2.0
     ];
 
     human_accept_artifact [
       label="[H]\naccept exact\nartifact",
-      color="#B7791F",
-      fillcolor="#FFF3C4",
-      fontname="Helvetica-Bold",
-      penwidth=1.8
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="PingFang SC",
+      penwidth=2.0
     ];
 
     human_invoke_owner [
       label="[H]\ninvoke next\nOwner",
       group="column_2",
-      color="#B7791F",
-      fillcolor="#FFF3C4",
-      fontname="Helvetica-Bold",
-      penwidth=1.8
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="PingFang SC",
+      penwidth=2.0
     ];
 
     human_test_deployment [
       label="[H]\nexecute test\ndeployment",
       group="column_3",
-      color="#B7791F",
-      fillcolor="#FFF3C4",
-      fontname="Helvetica-Bold",
-      penwidth=1.8
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="PingFang SC",
+      penwidth=2.0
     ];
 
     human_production_deployment [
       label="[H]\nexecute production\ndeployment",
       group="column_4",
-      color="#B7791F",
-      fillcolor="#FFF3C4",
-      fontname="Helvetica-Bold",
-      penwidth=1.8
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="PingFang SC",
+      penwidth=2.0
     ];
 
     human_business_disposition [
       label="[H]\nbusiness acceptance\n/disposition",
       group="column_5",
-      color="#B7791F",
-      fillcolor="#FFF3C4",
-      fontname="Helvetica-Bold",
-      penwidth=1.8
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="PingFang SC",
+      penwidth=2.0
     ];
 
     human_action_law [
       label="[CONTROL LAW]\nACCEPT ≠ INVOKE\n≠ ACTUAL START\n≠ EXTERNAL ACTION\n≠ OUTCOME\nrevalidate current authority\nat every Owner start",
       shape=note,
       style=filled,
-      color="#B7791F",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold",
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="PingFang SC",
       fontsize=10.5,
       penwidth=1.4
     ];
 
     human_safety_authority [
-      label="[H-AUTHORITY]\nSTOP · ROLLBACK\nCONTAINMENT · INCIDENT AUTHORITY",
+      label="[H]\nSAFETY AUTHORITY\nSTOP · ROLLBACK\nCONTAINMENT · INCIDENT AUTHORITY",
       shape=note,
       style=filled,
-      color="#B7791F",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold",
+      color="#A16207",
+      fillcolor="#FFF4D6",
+      fontname="PingFang SC",
       fontsize=10.5,
-      penwidth=1.4
+      penwidth=2.0
     ];
 
     {
@@ -146,21 +153,25 @@ digraph TeamBattleMap {
     human_co_create -> human_accept_artifact -> human_invoke_owner ->
       human_test_deployment -> human_production_deployment ->
       human_business_disposition [
+        // layout only
         style=invis,
         weight=20
       ];
 
     human_co_create -> human_action_law [
+      // layout only
       style=invis,
       weight=20
     ];
 
     human_production_deployment -> human_safety_authority [
+      // layout only
       style=invis,
       weight=20
     ];
 
     human_action_law -> human_safety_authority [
+      // layout only
       style=invis,
       weight=20
     ];
@@ -170,10 +181,10 @@ digraph TeamBattleMap {
     label="MAIN SYSTEM PATH · F01–F17 · HUMAN-MEDIATED HANDOFFS";
     labelloc=t;
     labeljust=l;
-    color="#132A44";
-    fillcolor="#EAF0F6";
-    fontname="Helvetica-Bold";
-    fontcolor="#132A44";
+    color="#24466F";
+    fillcolor="#F8FBFF";
+    fontname="PingFang SC";
+    fontcolor="#24466F";
     fontsize=15;
     penwidth=1.8;
     style="rounded,filled";
@@ -183,57 +194,67 @@ digraph TeamBattleMap {
       label="01 PRODUCT DEFINITION";
       labelloc=t;
       labeljust=l;
-      color="#2F6DB0";
+      color="#24466F";
       fillcolor="#F8FBFF";
-      fontname="Helvetica-Bold";
-      fontcolor="#174B80";
+      fontname="PingFang SC";
+      fontcolor="#24466F";
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
       margin=10;
 
+      node [
+        color="#2459A9",
+        fillcolor="#EAF2FF",
+        fontcolor="#2459A9",
+        fontsize=11.5
+      ];
+
       product_purpose [
         label="Find the right problem\nand freeze the complete\nproduct boundary.",
         group="column_1",
-        color="#132A44",
-        fillcolor="#132A44",
+        color="#152238",
+        fillcolor="#152238",
         fontcolor="#FFFFFF",
-        fontname="Helvetica-Bold",
-        fontsize=12
+        fontname="PingFang SC",
+        fontsize=17,
+        margin="0.08,0.05"
       ];
 
       product_director [
         label="[AO] Product Director",
         group="column_1",
-        fontname="Helvetica-Bold"
+        fontname="PingFang SC"
       ];
 
       product_manager [
         label="[AO] Product Manager\nActors · User touchpoints\nMain/exception flows\nObjects · States · Rules\nPermissions · AC",
         group="column_1",
-        fontname="Helvetica-Bold",
+        fontname="PingFang SC",
         fontsize=12
       ];
 
       product_impact_owner [
         label="[AO] Impact Owner",
         group="column_1",
-        fontname="Helvetica-Bold"
+        fontname="PingFang SC"
       ];
 
       product_ux_owner [
         label="[AO][OPTIONAL]\nUX Owner",
         style="rounded,dashed,filled",
-        color="#64748B",
-        fillcolor="#F8FAFC",
+        color="#66768D",
+        fillcolor="#EAF2FF",
+        fontcolor="#66768D",
         fontsize=10.5
       ];
 
       product_architecture_owner [
         label="[AO][OPTIONAL]\nArchitecture Owner",
         style="rounded,dashed,filled",
-        color="#64748B",
-        fillcolor="#F8FAFC",
+        color="#66768D",
+        fillcolor="#EAF2FF",
+        fontcolor="#66768D",
         fontsize=10.5
       ];
 
@@ -242,43 +263,56 @@ digraph TeamBattleMap {
         group="column_1",
         shape=note,
         style=filled,
-        color="#177E89",
-        fillcolor="#E7F7F6",
-        fontname="Helvetica-Bold",
-        fontsize=12,
+        color="#0F766E",
+        fillcolor="#E7F7F3",
+        fontname="PingFang SC",
+        fontcolor="#0F766E",
+        fontsize=17,
+        margin="0.08,0.05",
         penwidth=1.5
       ];
 
       product_purpose -> product_director -> product_manager ->
         product_impact_owner [
           dir=none,
-          color="#94A3B8",
+          color="#B8C2D1",
           penwidth=1.0
         ];
 
       product_impact_owner -> product_ux_owner [
+        xlabel="optional activation",
         dir=none,
         style=dashed,
-        color="#64748B"
+        color="#66768D"
       ];
 
       product_impact_owner -> product_architecture_owner [
+        xlabel="optional activation",
         dir=none,
         style=dashed,
-        color="#64748B"
+        color="#66768D"
       ];
 
       product_ux_owner -> product_output [
+        xlabel="if activated",
         dir=none,
         style=dashed,
-        color="#64748B"
+        color="#66768D"
       ];
 
       product_architecture_owner -> product_output [
+        xlabel="if activated",
         dir=none,
         style=dashed,
-        color="#64748B"
+        color="#66768D"
       ];
+
+      {
+        rank=same;
+        product_director;
+        product_manager;
+        product_impact_owner;
+      }
 
       {
         rank=same;
@@ -291,35 +325,43 @@ digraph TeamBattleMap {
       label="02 PROOF & PLAN";
       labelloc=t;
       labeljust=l;
-      color="#2F6DB0";
+      color="#24466F";
       fillcolor="#F8FBFF";
-      fontname="Helvetica-Bold";
-      fontcolor="#174B80";
+      fontname="PingFang SC";
+      fontcolor="#24466F";
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
       margin=10;
 
+      node [
+        color="#2459A9",
+        fillcolor="#EAF2FF",
+        fontcolor="#2459A9",
+        fontsize=11.5
+      ];
+
       proof_purpose [
         label="Define how success\nwill be proved,\nthen bound the work.",
         group="column_2",
-        color="#132A44",
-        fillcolor="#132A44",
+        color="#152238",
+        fillcolor="#152238",
         fontcolor="#FFFFFF",
-        fontname="Helvetica-Bold",
-        fontsize=12
+        fontname="PingFang SC",
+        fontsize=17,
+        margin="0.08,0.05"
       ];
 
       proof_test_design_owner [
         label="[AO] Test Design Owner",
         group="column_2",
-        fontname="Helvetica-Bold"
+        fontname="PingFang SC"
       ];
 
       proof_tech_lead [
         label="[AO] Tech Lead",
         group="column_2",
-        fontname="Helvetica-Bold"
+        fontname="PingFang SC"
       ];
 
       proof_output [
@@ -327,10 +369,12 @@ digraph TeamBattleMap {
         group="column_2",
         shape=note,
         style=filled,
-        color="#177E89",
-        fillcolor="#E7F7F6",
-        fontname="Helvetica-Bold",
-        fontsize=12,
+        color="#0F766E",
+        fillcolor="#E7F7F3",
+        fontname="PingFang SC",
+        fontcolor="#0F766E",
+        fontsize=17,
+        margin="0.08,0.05",
         penwidth=1.5
       ];
 
@@ -338,11 +382,11 @@ digraph TeamBattleMap {
         label="accepted\ndefinition",
         shape=box,
         style="rounded,filled",
-        color="#2F6DB0",
+        color="#24466F",
         fillcolor="#FFFFFF",
-        fontcolor="#174B80",
-        fontname="Helvetica-Bold",
-        fontsize=12,
+        fontcolor="#24466F",
+        fontname="PingFang SC",
+        fontsize=17,
         height=0.25,
         margin="0.03,0.02"
       ];
@@ -350,75 +394,94 @@ digraph TeamBattleMap {
       proof_purpose -> proof_test_design_owner -> proof_tech_lead ->
         proof_output [
           dir=none,
-          color="#94A3B8",
+          color="#B8C2D1",
           penwidth=1.0
         ];
+
+      {
+        rank=same;
+        proof_test_design_owner;
+        proof_tech_lead;
+      }
     }
 
     subgraph cluster_build {
       label="03 BUILD";
       labelloc=t;
       labeljust=l;
-      color="#2F6DB0";
+      color="#24466F";
       fillcolor="#F8FBFF";
-      fontname="Helvetica-Bold";
-      fontcolor="#174B80";
+      fontname="PingFang SC";
+      fontcolor="#24466F";
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
       margin=10;
 
+      node [
+        color="#2459A9",
+        fillcolor="#EAF2FF",
+        fontcolor="#2459A9",
+        fontsize=11.5
+      ];
+
       build_purpose [
         label="Produce one verified\nimmutable Candidate\nready for test deployment.",
         group="column_3",
-        color="#132A44",
-        fillcolor="#132A44",
+        color="#152238",
+        fillcolor="#152238",
         fontcolor="#FFFFFF",
-        fontname="Helvetica-Bold",
-        fontsize=12
+        fontname="PingFang SC",
+        fontsize=17,
+        margin="0.08,0.05"
       ];
 
       build_development_owner [
         label="[AO] Development Owner\nUNIQUE CODE-CHANGE DOMAIN",
         group="column_3",
-        fontname="Helvetica-Bold",
+        fontname="PingFang SC",
         fontsize=11
       ];
 
       build_developer [
         label="[AE] Developer",
-        color="#7890AA",
-        fillcolor="#EEF4FA",
+        color="#66768D",
+        fillcolor="#F3F5F8",
+        fontcolor="#66768D",
         fontsize=10.5
       ];
 
       build_code_fixer [
         label="[AE] Code Fixer",
-        color="#7890AA",
-        fillcolor="#EEF4FA",
+        color="#66768D",
+        fillcolor="#F3F5F8",
+        fontcolor="#66768D",
         fontsize=10.5
       ];
 
       build_verifier [
         label="[AE] Verifier",
-        color="#7890AA",
-        fillcolor="#EEF4FA",
+        color="#66768D",
+        fillcolor="#F3F5F8",
+        fontcolor="#66768D",
         fontsize=10.5
       ];
 
       build_code_reviewer [
         label="[AE] Code Reviewer",
-        color="#7890AA",
-        fillcolor="#EEF4FA",
+        color="#66768D",
+        fillcolor="#F3F5F8",
+        fontcolor="#66768D",
         fontsize=10.5
       ];
 
       build_test_deployment [
         label="[H-GATE]\nTest Deployment",
         group="column_3",
-        color="#B7791F",
-        fillcolor="#FFF3C4",
-        fontname="Helvetica-Bold",
+        color="#A16207",
+        fillcolor="#FFF4D6",
+        fontcolor="#A16207",
+        fontname="PingFang SC",
         penwidth=2.0
       ];
 
@@ -427,10 +490,12 @@ digraph TeamBattleMap {
         group="column_3",
         shape=note,
         style=filled,
-        color="#177E89",
-        fillcolor="#E7F7F6",
-        fontname="Helvetica-Bold",
-        fontsize=12,
+        color="#0F766E",
+        fillcolor="#E7F7F3",
+        fontname="PingFang SC",
+        fontcolor="#0F766E",
+        fontsize=17,
+        margin="0.08,0.05",
         penwidth=1.5
       ];
 
@@ -438,60 +503,60 @@ digraph TeamBattleMap {
         label="accepted proof\n& plan",
         shape=box,
         style="rounded,filled",
-        color="#2F6DB0",
+        color="#24466F",
         fillcolor="#FFFFFF",
-        fontcolor="#174B80",
-        fontname="Helvetica-Bold",
-        fontsize=12,
+        fontcolor="#24466F",
+        fontname="PingFang SC",
+        fontsize=17,
         height=0.25,
         margin="0.03,0.02"
       ];
 
       build_purpose -> build_development_owner [
           dir=none,
-          color="#94A3B8",
+          color="#B8C2D1",
           penwidth=1.0
         ];
 
       build_development_owner -> build_developer [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       build_development_owner -> build_code_fixer [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       build_developer -> build_verifier [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       build_code_fixer -> build_code_reviewer [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       build_verifier -> build_test_deployment [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       build_code_reviewer -> build_test_deployment [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       build_test_deployment -> build_output [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
@@ -499,10 +564,6 @@ digraph TeamBattleMap {
         rank=same;
         build_developer;
         build_code_fixer;
-      }
-
-      {
-        rank=same;
         build_verifier;
         build_code_reviewer;
       }
@@ -512,59 +573,70 @@ digraph TeamBattleMap {
       label="04 QUALITY & RELEASE";
       labelloc=t;
       labeljust=l;
-      color="#2F6DB0";
+      color="#24466F";
       fillcolor="#F8FBFF";
-      fontname="Helvetica-Bold";
-      fontcolor="#174B80";
+      fontname="PingFang SC";
+      fontcolor="#24466F";
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
       margin=10;
 
+      node [
+        color="#2459A9",
+        fillcolor="#EAF2FF",
+        fontcolor="#2459A9",
+        fontsize=11.5
+      ];
+
       quality_purpose [
         label="Independently qualify\nthe Candidate and\nverify production.",
         group="column_4",
-        color="#132A44",
-        fillcolor="#132A44",
+        color="#152238",
+        fillcolor="#152238",
         fontcolor="#FFFFFF",
-        fontname="Helvetica-Bold",
-        fontsize=12
+        fontname="PingFang SC",
+        fontsize=17,
+        margin="0.08,0.05"
       ];
 
       quality_owner [
         label="[AO] Quality Owner\nNO CODE CHANGE",
         group="column_4",
-        fontname="Helvetica-Bold",
+        fontname="PingFang SC",
         fontsize=11
       ];
 
       quality_qa_executor [
         label="[AE] QA Executor",
-        color="#7890AA",
-        fillcolor="#EEF4FA",
+        color="#66768D",
+        fillcolor="#F3F5F8",
+        fontcolor="#66768D",
         fontsize=10.5
       ];
 
       quality_analyst [
         label="[AE] Quality Analyst",
-        color="#7890AA",
-        fillcolor="#EEF4FA",
+        color="#66768D",
+        fillcolor="#F3F5F8",
+        fontcolor="#66768D",
         fontsize=10.5
       ];
 
       quality_production_deployment [
         label="[H-GATE]\nProduction Deployment",
         group="column_4",
-        color="#B7791F",
-        fillcolor="#FFF3C4",
-        fontname="Helvetica-Bold",
+        color="#A16207",
+        fillcolor="#FFF4D6",
+        fontcolor="#A16207",
+        fontname="PingFang SC",
         penwidth=2.0
       ];
 
       quality_production_verification [
         label="[AO] Production Verification",
         group="column_4",
-        fontname="Helvetica-Bold"
+        fontname="PingFang SC"
       ];
 
       quality_output [
@@ -572,10 +644,12 @@ digraph TeamBattleMap {
         group="column_4",
         shape=note,
         style=filled,
-        color="#177E89",
-        fillcolor="#E7F7F6",
-        fontname="Helvetica-Bold",
-        fontsize=12,
+        color="#0F766E",
+        fillcolor="#E7F7F3",
+        fontname="PingFang SC",
+        fontcolor="#0F766E",
+        fontsize=17,
+        margin="0.08,0.05",
         penwidth=1.5
       ];
 
@@ -583,49 +657,49 @@ digraph TeamBattleMap {
         label="trusted test\noutcome",
         shape=box,
         style="rounded,filled",
-        color="#2F6DB0",
+        color="#24466F",
         fillcolor="#FFFFFF",
-        fontcolor="#174B80",
-        fontname="Helvetica-Bold",
-        fontsize=12,
+        fontcolor="#24466F",
+        fontname="PingFang SC",
+        fontsize=17,
         height=0.25,
         margin="0.03,0.02"
       ];
 
       quality_purpose -> quality_owner [
           dir=none,
-          color="#94A3B8",
+          color="#B8C2D1",
           penwidth=1.0
         ];
 
       quality_owner -> quality_qa_executor [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       quality_owner -> quality_analyst [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       quality_qa_executor -> quality_production_deployment [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       quality_analyst -> quality_production_deployment [
         dir=none,
-        color="#94A3B8",
+        color="#B8C2D1",
         penwidth=1.0
       ];
 
       quality_production_deployment -> quality_production_verification ->
         quality_output [
           dir=none,
-          color="#94A3B8",
+          color="#B8C2D1",
           penwidth=1.0
         ];
 
@@ -640,46 +714,56 @@ digraph TeamBattleMap {
       label="05 OUTCOME";
       labelloc=t;
       labeljust=l;
-      color="#2F6DB0";
+      color="#24466F";
       fillcolor="#F8FBFF";
-      fontname="Helvetica-Bold";
-      fontcolor="#174B80";
+      fontname="PingFang SC";
+      fontcolor="#24466F";
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
       margin=10;
 
+      node [
+        color="#2459A9",
+        fillcolor="#EAF2FF",
+        fontcolor="#2459A9",
+        fontsize=11.5
+      ];
+
       outcome_purpose [
         label="Judge the real\nbusiness result\nand close honestly.",
         group="column_5",
-        color="#132A44",
-        fillcolor="#132A44",
+        color="#152238",
+        fillcolor="#152238",
         fontcolor="#FFFFFF",
-        fontname="Helvetica-Bold",
-        fontsize=12
+        fontname="PingFang SC",
+        fontsize=17,
+        margin="0.08,0.05"
       ];
 
       outcome_business_acceptance [
         label="[H]\nBusiness Acceptance",
         group="column_5",
-        color="#B7791F",
-        fillcolor="#FFF3C4",
-        fontname="Helvetica-Bold",
+        color="#A16207",
+        fillcolor="#FFF4D6",
+        fontcolor="#A16207",
+        fontname="PingFang SC",
         penwidth=2.0
       ];
 
       outcome_closeout_recommendation [
         label="[AO] Product Director\nCloseout Recommendation",
         group="column_5",
-        fontname="Helvetica-Bold"
+        fontname="PingFang SC"
       ];
 
       outcome_disposition [
         label="[H]\nPhase & Demand\nDisposition",
         group="column_5",
-        color="#B7791F",
-        fillcolor="#FFF3C4",
-        fontname="Helvetica-Bold",
+        color="#A16207",
+        fillcolor="#FFF4D6",
+        fontcolor="#A16207",
+        fontname="PingFang SC",
         penwidth=2.0
       ];
 
@@ -687,9 +771,9 @@ digraph TeamBattleMap {
         label="[AUTHORITY GUARD]\nF16 new Phase XOR\nF17 same-Phase resume\nterminal identities never revive",
         shape=note,
         style=filled,
-        color="#B7791F",
+        color="#A16207",
         fillcolor="#FFFFFF",
-        fontname="Helvetica-Bold",
+        fontname="PingFang SC",
         fontsize=10.5,
         penwidth=1.3
       ];
@@ -698,9 +782,9 @@ digraph TeamBattleMap {
         label="[TERMINAL]\nRT = NON-SUCCESS\nR10 = ONLY SUCCESS ROUTE",
         shape=note,
         style=filled,
-        color="#B23A48",
-        fillcolor="#FFFFFF",
-        fontname="Helvetica-Bold",
+        color="#B42318",
+        fillcolor="#FDECEC",
+        fontname="PingFang SC",
         fontsize=10.5,
         penwidth=1.3
       ];
@@ -710,10 +794,12 @@ digraph TeamBattleMap {
         group="column_5",
         shape=note,
         style=filled,
-        color="#177E89",
-        fillcolor="#E7F7F6",
-        fontname="Helvetica-Bold",
-        fontsize=12,
+        color="#0F766E",
+        fillcolor="#E7F7F3",
+        fontname="PingFang SC",
+        fontcolor="#0F766E",
+        fontsize=17,
+        margin="0.08,0.05",
         penwidth=1.5
       ];
 
@@ -721,11 +807,11 @@ digraph TeamBattleMap {
         label="trusted production\nevidence",
         shape=box,
         style="rounded,filled",
-        color="#2F6DB0",
+        color="#24466F",
         fillcolor="#FFFFFF",
-        fontcolor="#174B80",
-        fontname="Helvetica-Bold",
-        fontsize=12,
+        fontcolor="#24466F",
+        fontname="PingFang SC",
+        fontsize=17,
         height=0.25,
         margin="0.03,0.02"
       ];
@@ -735,7 +821,7 @@ digraph TeamBattleMap {
         outcome_phase_authority_guard -> outcome_terminal_guard ->
         outcome_output [
           dir=none,
-          color="#94A3B8",
+          color="#B8C2D1",
           penwidth=1.0
         ];
     }
@@ -763,56 +849,56 @@ digraph TeamBattleMap {
     }
 
     product_output -> proof_handoff_in [
-      color="#2F6DB0",
+      color="#24466F",
       penwidth=2.0,
       arrowhead=none,
       weight=30
     ];
 
     proof_handoff_in -> proof_output [
-      color="#2F6DB0",
+      color="#24466F",
       penwidth=2.0,
       arrowsize=0.8,
       weight=30
     ];
 
     proof_output -> build_handoff_in [
-      color="#2F6DB0",
+      color="#24466F",
       penwidth=2.0,
       arrowhead=none,
       weight=30
     ];
 
     build_handoff_in -> build_output [
-      color="#2F6DB0",
+      color="#24466F",
       penwidth=2.0,
       arrowsize=0.8,
       weight=30
     ];
 
     build_output -> quality_handoff_in [
-      color="#2F6DB0",
+      color="#24466F",
       penwidth=2.0,
       arrowhead=none,
       weight=30
     ];
 
     quality_handoff_in -> quality_output [
-      color="#2F6DB0",
+      color="#24466F",
       penwidth=2.0,
       arrowsize=0.8,
       weight=30
     ];
 
     quality_output -> outcome_handoff_in [
-      color="#2F6DB0",
+      color="#24466F",
       penwidth=2.0,
       arrowhead=none,
       weight=30
     ];
 
     outcome_handoff_in -> outcome_output [
-      color="#2F6DB0",
+      color="#24466F",
       penwidth=2.0,
       arrowsize=0.8,
       weight=30
@@ -823,29 +909,36 @@ digraph TeamBattleMap {
     label="SHARED STATE & EVIDENCE BACKBONE";
     labelloc=t;
     labeljust=l;
-    color="#177E89";
-    fillcolor="#EAF8F7";
-    fontname="Helvetica-Bold";
-    fontcolor="#0F6269";
+    color="#0F766E";
+    fillcolor="#E7F7F3";
+    fontname="PingFang SC";
+    fontcolor="#0F766E";
     fontsize=15;
     penwidth=1.6;
     style="rounded,filled";
     margin=14;
 
+    node [
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontcolor="#0F766E",
+      fontsize=11.5
+    ];
+
     state_baseline [
       label="[STATE]\nPhase Success Baseline",
       group="column_1",
-      color="#177E89",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold"
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="PingFang SC"
     ];
 
     state_candidate [
       label="[ART][IMMUTABLE]\nCandidate",
       group="column_2",
-      color="#177E89",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold",
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="PingFang SC",
       peripheries=2,
       penwidth=1.6
     ];
@@ -853,17 +946,17 @@ digraph TeamBattleMap {
     state_manifest [
       label="[ART]\nDeployment Manifest",
       group="column_3",
-      color="#177E89",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold"
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="PingFang SC"
     ];
 
     state_environment [
       label="[STATE]\nEnvironment State",
       group="column_4",
-      color="#177E89",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold"
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="PingFang SC"
     ];
 
     state_finding_route [
@@ -871,9 +964,9 @@ digraph TeamBattleMap {
       group="column_5",
       shape=note,
       style=filled,
-      color="#177E89",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold"
+      color="#0F766E",
+      fillcolor="#E7F7F3",
+      fontname="PingFang SC"
     ];
 
     {
@@ -887,6 +980,7 @@ digraph TeamBattleMap {
 
     state_baseline -> state_candidate -> state_manifest ->
       state_environment -> state_finding_route [
+        // layout only
         style=invis,
         weight=20
       ];
@@ -896,59 +990,66 @@ digraph TeamBattleMap {
     label="FAILURE & INCIDENT LANE";
     labelloc=t;
     labeljust=l;
-    color="#B23A48";
-    fillcolor="#FFF1F2";
-    fontname="Helvetica-Bold";
-    fontcolor="#8F2635";
+    color="#B42318";
+    fillcolor="#FDECEC";
+    fontname="PingFang SC";
+    fontcolor="#B42318";
     fontsize=15;
     penwidth=1.7;
     style="rounded,filled";
     margin=14;
 
+    node [
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontcolor="#B42318",
+      fontsize=11.5
+    ];
+
     failure_gap [
       label="failure/gap",
       shape=diamond,
-      color="#B23A48",
-      fillcolor="#FFE0E4",
-      fontname="Helvetica-Bold",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="PingFang SC",
       penwidth=1.8
     ];
 
     failure_diagnose [
       label="diagnose\ndomain",
-      color="#B23A48",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold"
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="PingFang SC"
     ];
 
     failure_owner [
       label="earliest wrong\nOwner",
-      color="#B23A48",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold"
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="PingFang SC"
     ];
 
     failure_invalidate [
       label="invalidate affected\nevidence",
-      color="#B23A48",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold"
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="PingFang SC"
     ];
 
     failure_reenter [
       label="re-enter every\naffected gate",
-      color="#B23A48",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold"
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="PingFang SC"
     ];
 
     failure_guard [
       label="UNKNOWN cause remains DIAGNOSTIC\nfailed/indeterminate\nenvironment action ≠ success",
       shape=note,
       style=filled,
-      color="#B23A48",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="PingFang SC",
       fontsize=10.5
     ];
 
@@ -956,9 +1057,9 @@ digraph TeamBattleMap {
       label="[INCIDENT]\nIncident Case closes\nindependently\nProduct closeout\ndoes not close it",
       shape=note,
       style=filled,
-      color="#B23A48",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="PingFang SC",
       fontsize=10.5
     ];
 
@@ -966,9 +1067,9 @@ digraph TeamBattleMap {
       label="[RETURN ROUTER]\nR00–R09 selects exactly one\nroute-named Owner\nall affected gates rerun",
       shape=note,
       style=filled,
-      color="#B23A48",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontname="PingFang SC",
       fontsize=10.5
     ];
 
@@ -990,33 +1091,36 @@ digraph TeamBattleMap {
 
     failure_gap -> failure_diagnose -> failure_owner ->
       failure_invalidate -> failure_reenter [
-        color="#B23A48",
-        fontcolor="#8F2635",
+        color="#B42318",
+        fontcolor="#B42318",
         penwidth=1.9,
         arrowsize=0.8
       ];
 
     failure_diagnose -> failure_guard [
+      xlabel="diagnostic only",
       style=dashed,
-      color="#B23A48",
+      color="#B42318",
       arrowhead=none
     ];
 
     failure_reenter -> failure_incident [
       xlabel="independent authority",
       style=dashed,
-      color="#B23A48",
-      fontcolor="#8F2635",
+      color="#B42318",
+      fontcolor="#B42318",
       arrowhead=none
     ];
 
     failure_reenter -> failure_return_rule [
+      xlabel="route rule",
       style=dashed,
-      color="#B23A48",
+      color="#B42318",
       arrowhead=none
     ];
 
     failure_guard -> failure_return_rule -> failure_incident [
+      // layout only
       style=invis,
       weight=20
     ];
@@ -1024,150 +1128,174 @@ digraph TeamBattleMap {
   }
 
   human_co_create -> product_purpose [
+    // layout only
     style=invis,
     weight=100
   ];
 
   human_invoke_owner -> proof_purpose [
+    // layout only
     style=invis,
     weight=100
   ];
 
   human_test_deployment -> build_purpose [
+    // layout only
     style=invis,
     weight=100
   ];
 
   human_production_deployment -> quality_purpose [
+    // layout only
     style=invis,
     weight=100
   ];
 
   human_business_disposition -> outcome_purpose [
+    // layout only
     style=invis,
     weight=100
   ];
 
   human_action_law -> product_purpose [
+    // layout only
     style=invis,
     weight=100
   ];
 
   human_safety_authority -> outcome_purpose [
+    // layout only
     style=invis,
     weight=100
   ];
 
   product_output -> state_baseline [
+    // layout only
     style=invis,
     weight=100
   ];
 
   proof_output -> state_candidate [
+    // layout only
     style=invis,
     weight=100
   ];
 
   build_output -> state_manifest [
+    // layout only
     style=invis,
     weight=100
   ];
 
   quality_output -> state_environment [
+    // layout only
     style=invis,
     weight=100
   ];
 
   outcome_output -> state_finding_route [
+    // layout only
     style=invis,
     weight=100
   ];
 
   state_baseline -> failure_guard [
+    // layout only
     style=invis,
     weight=100
   ];
 
   state_manifest -> failure_return_rule [
+    // layout only
     style=invis,
     weight=100
   ];
 
   state_finding_route -> failure_incident [
+    // layout only
     style=invis,
     weight=100
   ];
 
   human_test_deployment -> build_test_deployment [
+    xlabel="test deployment authority",
     style=dashed,
-    color="#B7791F",
+    color="#A16207",
     penwidth=1.7,
     arrowsize=0.7,
     constraint=false
   ];
 
   human_production_deployment -> quality_production_deployment [
+    xlabel="production deployment authority",
     style=dashed,
-    color="#B7791F",
+    color="#A16207",
     penwidth=1.7,
     arrowsize=0.7,
     constraint=false
   ];
 
   human_business_disposition -> outcome_business_acceptance [
+    xlabel="business acceptance authority",
     style=dashed,
-    color="#B7791F",
+    color="#A16207",
     penwidth=1.7,
     arrowsize=0.7,
     constraint=false
   ];
 
   human_business_disposition -> outcome_disposition [
+    xlabel="disposition authority",
     style=dashed,
-    color="#B7791F",
+    color="#A16207",
     penwidth=1.7,
     arrowsize=0.7,
     constraint=false
   ];
 
   state_finding_route -> failure_gap [
+    xlabel="failure route",
     style=dashed,
-    color="#B23A48",
+    color="#B42318",
     penwidth=1.4,
     arrowsize=0.7
   ];
 
   product_impact_owner -> failure_owner [
+    xlabel="return: impact",
     dir=back,
     style=dashed,
-    color="#B23A48",
+    color="#B42318",
     penwidth=1.3,
     arrowsize=0.7,
     constraint=false
   ];
 
   build_development_owner -> failure_owner [
+    xlabel="return: development",
     dir=back,
     style=dashed,
-    color="#B23A48",
+    color="#B42318",
     penwidth=1.3,
     arrowsize=0.7,
     constraint=false
   ];
 
   build_test_deployment -> failure_reenter [
+    xlabel="return: test gate",
     dir=back,
     style=dashed,
-    color="#B23A48",
+    color="#B42318",
     penwidth=1.3,
     arrowsize=0.7,
     constraint=false
   ];
 
   quality_production_deployment -> failure_reenter [
+    xlabel="return: production gate",
     dir=back,
     style=dashed,
-    color="#B23A48",
+    color="#B42318",
     penwidth=1.3,
     arrowsize=0.7,
     constraint=false
