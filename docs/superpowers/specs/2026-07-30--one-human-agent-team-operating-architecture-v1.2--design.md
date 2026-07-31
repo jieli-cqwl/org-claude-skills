@@ -10,7 +10,7 @@
 - Operating mode: `M0`, with manual cross-Owner invocation and manual deployment.
 - Versioning note: `TARGET-V1.2` remains a candidate baseline until final human acceptance.
 - Authority boundary: this document defines the target operating architecture. It does not claim that the current standard-chain runtime implements it.
-- Activation boundary: do not register this document in `contracts/active-doc-scope.yaml`. Runtime activation requires separately approved role designs, implementation plans, contract migration, and end-to-end evidence.
+- Activation boundary: do not register this document in `contracts/active-doc-scope.yaml`. Runtime activation requires separately approved role designs, isolated implementation evidence for every mapped target role, whole-chain acceptance, and one atomic target-runtime cutover.
 
 ## Purpose
 
@@ -41,7 +41,7 @@ This architecture covers:
 
 `Demand signal → accepted business result or explicit non-success closeout → separate human Phase and Demand outcomes`
 
-It includes team topology, role authority, normal and exceptional flow, optional stages, handoff artifacts, release identity, human deployment gates, failure routing, incident remediation, and terminal semantics.
+It includes team topology, role authority, normal and exceptional flow, optional stages, handoff artifacts, release identity, human deployment gates, failure routing, incident remediation, terminal semantics, target runtime naming, and the activation strategy.
 
 It deliberately excludes:
 
@@ -53,7 +53,7 @@ It deliberately excludes:
 - automated orchestration;
 - project-specific requirements;
 - the `qft-tenants` acceptance scenario;
-- current-runtime migration planning.
+- per-file cutover, installer transaction, residue-audit, and rollback implementation.
 
 Those details must later satisfy this architecture; they may not silently redefine it.
 
@@ -122,6 +122,34 @@ In `M0`, every cross-Owner transition requires the human to:
 | `QUALITY_ANALYST` | `QUALITY_OWNER` | reproduction, read-only diagnosis, and Finding-classification support | code changes or cross-Owner invocation |
 
 Quality Owner and QA are not synonyms. Quality Owner is accountable for the quality stage; QA Executor performs tests under that Owner.
+
+### Normative runtime names
+
+Stable IDs define architecture identity. Runtime names are the first-party Skill entrypoints that implement those identities. The target mapping is fixed:
+
+| Stable ID | Target runtime name |
+|---|---|
+| `PRODUCT_DIRECTOR` | `product-director` |
+| `PRODUCT_MANAGER` | `product-manager` |
+| `IMPACT_OWNER` | `impact-owner` |
+| `UX_OWNER` | `ux-owner` |
+| `ARCHITECTURE_OWNER` | `architecture-owner` |
+| `TEST_DESIGN_OWNER` | `test-design-owner` |
+| `TECH_LEAD` | `tech-lead` |
+| `DEVELOPMENT_OWNER` | `development-owner` |
+| `QUALITY_OWNER` | `quality-owner` |
+| `DEVELOPER` | `developer` |
+| `CODE_FIXER` | `code-fixer` |
+| `VERIFIER` | `verifier` |
+| `CODE_REVIEWER` | `code-reviewer` |
+| `QA_EXECUTOR` | `qa-executor` |
+| `QUALITY_ANALYST` | `quality-analyst` |
+
+`HUMAN_CONTROL` is an authority domain, not a Skill entrypoint.
+
+At target cutover, retire the first-party chain entrypoints `ux`, `design`, `test-design`, `delivery-owner`, `fix`, `verify`, `review`, and `qa`. Retire both the `consistency-audit` Skill entrypoint and its `consistency-auditor` chain identity after each required consistency obligation is assigned to the accountable target Owner and proven by that Owner's acceptance contract. Replace `product-director`, `product-manager`, `tech-lead`, and `developer` in place; do not create `-v2` aliases. Third-party mirrors and unrelated standalone Skills are outside this retirement set.
+
+Development may proceed role by role in an isolated target branch, worktree, and runtime. Partial promotion into the shared runtime, legacy-to-target adapters, dual-read contracts, mixed artifact revisions, and simultaneous old/new first-party chain entrypoints are forbidden. The shared runtime activates only after every mapped target role and required consumer passes its role, installer, generic, adversarial, and whole-chain gates.
 
 ## Human View 1: Authority and Team Topology
 
@@ -388,6 +416,10 @@ Product closeout never closes an open Incident Case. Incident remediation never 
 26. Each environment action has one unique identity, consumes one current human authorization at most once, produces at most one effective side effect and one trustworthy terminal outcome, and requires fresh authority for any new side effect.
 27. Diagnostic observation-window expiry automatically initiates its pre-authorized safe exit; failure to prove a safe state preserves or opens the environment incident block and enters `R09`.
 28. At most one Phase authority is current within a Demand: a nonterminal Phase may resume through `F17`, while a new Phase may start through `F16` only after the preceding Phase is authority-absorbing.
+29. Every first-party target role has exactly one runtime name from the normative mapping; legacy aliases and target aliases cannot coexist.
+30. Target roles may be implemented and manually evaluated incrementally only in an isolated non-active runtime.
+31. Shared-runtime activation is one atomic whole-chain cutover. Partial role promotion, compatibility adapters, dual reads, and mixed legacy/target revisions are forbidden.
+32. After cutover, retired first-party chain sources, routes, contracts, and managed runtime residues are absent from the active tree and installed runtime. Git history is their sole reference source; rollback restores the frozen legacy release as a whole and reinstalls it.
 
 ## Deferred Detailed-Design Obligations
 
@@ -399,13 +431,17 @@ Later designs must choose and prove mechanisms for:
 - diagnostic safe-exit enforcement, automatic expiry initiation, and failure escalation without an unguarded window;
 - artifact schemas, storage, digests, and event identities;
 - optional-stage activation algorithms;
-- current-runtime migration and compatibility.
+- isolated target-runtime construction, atomic installer transaction, retired-name residue audit, and whole-release rollback mechanics.
 
-These are open implementation decisions, not permission to weaken the invariants.
+These are open implementation decisions, not permission to weaken the invariants. A target/legacy compatibility layer is not an open option.
 
 ## Target Versus Current Runtime
 
-The target architecture is not implemented. The current standard chain still aggregates responsibilities that this target separates and does not provide the target release, environment, incident, or disposition contracts. A separate evidence-backed migration/readiness design must map target capability IDs to the current runtime; implementation maturity must not be painted onto the target diagrams.
+The target architecture is not implemented. The current standard chain still aggregates responsibilities that this target separates and does not provide the target release, environment, incident, or disposition contracts. The current runtime is a frozen evaluation baseline, not a migration substrate.
+
+Build and evaluate the target chain without installing it into the shared runtime. Freeze the legacy baseline by immutable Git identity before target implementation begins. Once every mapped target role and required consumer passes, rehearse and execute one cutover that replaces the complete active first-party chain, removes retired managed residues, audits retired unmanaged names, and verifies a target-only runtime inventory. If activation fails, restore the frozen legacy release and reinstall the whole legacy runtime. Do not repair activation by leaving a mixed chain alive.
+
+This choice deliberately trades gradual availability for semantic cleanliness. Its risks are a larger activation batch and delayed target use; the controls are bounded role-by-role evaluation, whole-chain rehearsal, an explicit inventory oracle, and whole-release rollback.
 
 Current-runtime evidence:
 
@@ -465,7 +501,10 @@ The candidate baseline is acceptable only when:
 - no incident evidence enters Business Acceptance or `R10`;
 - no product-terminal identity regains active authority;
 - no paused or awaiting-rework Phase coexists with a new-Phase authority;
-- no successful Phase closure bypasses production verification and human business acceptance.
+- no successful Phase closure bypasses production verification and human business acceptance;
+- no target role is promoted into the shared runtime before whole-chain acceptance;
+- no legacy alias, adapter, dual-read path, mixed artifact revision, or retired managed residue survives target activation;
+- no rollback leaves a hybrid runtime.
 
 ## Next Step After Final Review
 
@@ -473,7 +512,9 @@ After the human reviews and accepts this baseline:
 
 1. record it as the target reference for subsequent role-design documents;
 2. return to the pending Product Director written-spec review;
-3. use `writing-plans` only for the approved Product Director implementation slice;
-4. design remaining roles against this architecture one bounded contract at a time;
-5. design control-plane and deployment mechanisms separately against the deferred obligations;
-6. reserve automation and the `qft-tenants` whole-chain case until required role contracts and generic evaluations pass.
+3. use `writing-plans` for one approved, bounded role implementation and evaluation slice at a time;
+4. keep every slice in the isolated, non-active target runtime and obtain human acceptance before moving to the next role;
+5. design remaining roles and shared mechanisms against this architecture, including target consumer contracts and atomic cutover controls;
+6. after every mapped target role passes, create and rehearse the whole-chain cutover and whole-release rollback plan;
+7. activate the target runtime only as one complete replacement;
+8. reserve automation and the `qft-tenants` whole-chain case until required role contracts and generic evaluations pass.

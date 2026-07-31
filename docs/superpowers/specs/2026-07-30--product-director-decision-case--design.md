@@ -5,7 +5,7 @@
 - Design status: approved section by section in human co-creation on 2026-07-30; pending final document review.
 - Runtime status: not implemented.
 - Authority: design input only. This document does not replace current runtime Skills, canonical schemas, `contracts/standard-chain.yaml`, or active standard-chain artifacts.
-- Activation boundary: do not register this document in `contracts/active-doc-scope.yaml`. Runtime activation requires a separate approved implementation plan and synchronized contract migration.
+- Activation boundary: do not register this document in `contracts/active-doc-scope.yaml`. Product Director may be implemented and evaluated only in the isolated target runtime until every mapped target role passes and the complete chain is activated by one atomic cutover.
 
 ## Objective
 
@@ -50,7 +50,9 @@ This design covers:
 
 `human → product-director → product-manager`
 
-It does not redesign Product Manager, Impact Owner, Architecture, Test Design, Development Owner, Quality Owner, or deployment behavior. It defines only the contracts those roles must not violate when consuming Director output.
+It conforms to [`One-Human + Agent Team Operating Architecture V1.2`](2026-07-30--one-human-agent-team-operating-architecture-v1.2--design.md), specifically stable role `PRODUCT_DIRECTOR`, entry flow `F00`, handoff `F01`, Director return ownership in `R01`, and successful closeout input through `R10`.
+
+It does not redesign Product Manager's WHAT authority, Impact Owner, Architecture, Test Design, Development Owner, Quality Owner, or deployment behavior. It defines only the Product Manager intake and receipt contract needed to prove that a Director output is consumable without inventing or changing WHY.
 
 ### Reserved acceptance case
 
@@ -432,10 +434,26 @@ Every evaluated gate produces `PASS`, `BLOCKED`, or `FAILED`. A gate that has no
 
 - customer and business outcomes are explicit;
 - why now and cost of doing nothing are explicit;
-- baseline or observable direction exists;
-- success, failure, and stop signals exist;
+- a structured Success Standard is complete for the decision horizon;
 - investment appetite and opportunity cost are visible;
 - non-product alternatives were considered.
+
+The Success Standard is a logical contract, not a prose slogan. It contains at least:
+
+- metric or directly observable outcome;
+- applicable population and boundary, plus the denominator whenever an aggregate claim is made;
+- current baseline;
+- target value or target direction;
+- observation window;
+- evidence or data source;
+- calculation or interpretation definition;
+- success signal;
+- failure signal;
+- stop signal;
+- guardrails and unacceptable adverse outcomes;
+- epistemic state and evidence references for each decision-relevant field.
+
+An exact numeric target is not mandatory when the phenomenon is not honestly quantifiable. An observable direction, bounded interpretation, observation window, and evidence basis are mandatory. Missing or invented precision cannot pass this gate.
 
 ### 5. Evidence and Uncertainty Gate
 
@@ -460,6 +478,8 @@ The count must be zero for this gate to pass. If decisive evidence defeats the f
 - entry and business exit conditions are clear;
 - future phases, when needed, remain coarse, non-binding outcome hypotheses;
 - no product behavior or technical solution is frozen.
+
+No universal fourteen-day delivery gate applies. Product Director may record the human's investment and calendar appetite, but it does not estimate implementation feasibility or force the value boundary to fit an arbitrary duration. If later Impact, Architecture, or Tech Lead evidence proves that the Active Phase cannot close within the accepted appetite or hard constraint, work returns to Product Director to reframe the value boundary or obtain a new human decision. The current runtime's fixed timebox rule is legacy behavior and must not be carried into the target role.
 
 ### 7. Governance and Disposition Gate
 
@@ -593,7 +613,7 @@ The agent recommendation may disagree with the human. Evidence gates remain mand
 - `PM receipt = NOT_REQUESTED` until a `READY` revision is submitted to Product Manager.
 - `PM receipt = PENDING` is allowed only while Product Manager is evaluating a revision that was `READY` at submission.
 - `PM receipt = ACCEPTED` or `REJECTED` records the result for that exact revision and digest.
-- A PM rejection makes the current handoff `BLOCKED` until its exact cause is closed through a new Case revision or a compatible consumer correction.
+- A PM rejection makes the current handoff `BLOCKED` until its exact cause is closed through a new Case revision or a conforming target-consumer correction.
 - New counterevidence, expiry, supersession, or digest invalidation changes current readiness to `BLOCKED` and any previously accepted current receipt to `INVALIDATED`; historical events remain immutable.
 
 Forbidden current-state combinations include:
@@ -634,6 +654,7 @@ Contains:
 - decision-relevant causal model;
 - actor and scenario boundary;
 - Outcome and Value Baseline;
+- structured Success Standard;
 - why now and cost of inaction;
 - investment appetite;
 - value-level non-goals and external hard constraints;
@@ -728,7 +749,7 @@ Replace shared mutable refinement of `brief.json` and `phase-prd.json`.
 2. Product Manager verifies that the current handoff readiness is `READY`, records `PENDING`, and runs intake preflight.
 3. Product Manager returns exactly one receipt outcome:
    - `ACCEPTED`: create a separate Product Definition Package.
-   - `REJECTED`: cite exact gate, claim, revision, digest, authority, or compatibility failure.
+   - `REJECTED`: cite exact gate, claim, revision, digest, authority, or consumer-contract mismatch.
 4. Partial consumption is prohibited.
 5. PM receipt is a separate consumer artifact; it does not mutate the Director Case.
 
@@ -793,15 +814,39 @@ Implementation planning must address, not paper over:
 
 These are implementation-scope findings. This design does not change current runtime behavior.
 
+## Frozen Semantics Versus Deferred Mechanisms
+
+The implementation plan may choose mechanisms, but it may not reopen settled semantics:
+
+| Frozen in this design | Deferred to shared implementation design |
+|---|---|
+| Product Director owns WHY and Product Manager owns WHAT | physical file boundaries |
+| accepted Director payload bytes are immutable | JSON, YAML, database, or event schemas |
+| downstream consumption binds exact Case identity, revision, and content digest | digest algorithm and canonicalization profile |
+| human acceptance and PM receipt are external, identity-bound events | storage, projection, and event transport |
+| claim invalidation blocks dependent current authority without rewriting history | control-plane transaction and recovery mechanics |
+| only the target PM intake/receipt contract may qualify `READY` | exact validator and consumer implementation |
+| legacy and target runtimes, contracts, and artifact revisions may not mix | atomic installer transaction and whole-release rollback implementation |
+
+The later shared plan must select one versioned canonicalization and identity profile for all target roles. Mechanism choice may strengthen observability and safety; it may not weaken the frozen semantics.
+
 ## Implementation Constraints
 
 The later implementation plan must:
 
 - preserve current user changes and unrelated dirty worktree content;
-- define a staged migration from existing PM consumers;
+- freeze the legacy baseline by immutable Git commit or tag before target implementation;
+- build each target role in an isolated branch, worktree, and runtime that is not installed into the shared global runtime;
+- replace the same-name `product-director` entrypoint in place and use the architecture's fixed runtime names; do not create a `product-director-v2` alias;
+- remove retired first-party chain entrypoints, contracts, and routes from the target tree before activation;
 - avoid two active canonical truths;
 - version the new consumer contract;
-- make unsupported old and new mixed revisions fail closed;
+- reject legacy PM artifacts and consumers, unsupported target revisions, and any mixed legacy/target revision; do not add adapters, dual reads, or compatibility guesses;
+- allow role-by-role manual evaluation, but prohibit partial promotion into the shared runtime;
+- activate only after every mapped target Owner and execution role, consumer contract, installer cleanup, runtime inventory, generic scenario, adversarial scenario, and whole-chain gate passes;
+- perform one atomic target cutover, remove retired managed runtime residues, and audit retired unmanaged names;
+- rollback only by restoring the frozen legacy release and reinstalling it as a whole; never recover through a hybrid compatibility mode;
+- keep legacy implementation content out of the active target tree after cutover; Git history is the reference;
 - keep third-party brainstorming and PRD Skills from writing standard-chain canonical artifacts;
 - use English Skill instructions and contracts;
 - allow runtime conversation language to follow the user context;
@@ -814,14 +859,17 @@ The later implementation plan must:
 
 Use the official Skill creation loop after implementation approval:
 
-1. Snapshot the existing Product Director as the baseline.
-2. Draft the revised first-party Skill and contracts.
-3. Create realistic prompts before assertions.
-4. Run revised-Skill and baseline cases in the same turn.
-5. Grade objective behavior and expose qualitative outputs to the human reviewer.
-6. Analyze failures, token cost, interaction burden, and non-discriminating assertions.
-7. Iterate until the human accepts the behavior.
-8. Optimize Skill triggering only after behavior is stable.
+1. Freeze the existing Product Director and its consumers at one immutable legacy Git identity.
+2. Create separate legacy and target worktrees and runtime directories; never overwrite the shared runtime during evaluation.
+3. Draft the revised first-party Skill and target contracts in the isolated target worktree.
+4. Use a target PM intake/receipt contract harness to evaluate Director output before Product Manager is implemented; this proves the producer contract only and grants no activation authority.
+5. Create realistic prompts before assertions.
+6. Run target-Skill and frozen-baseline cases against their own isolated runtimes in the same evaluation round.
+7. Grade objective behavior and expose qualitative outputs to the human reviewer.
+8. Analyze failures, token cost, interaction burden, and non-discriminating assertions.
+9. Iterate until the human accepts the role behavior and the target PM contract harness accepts valid Director output.
+10. Optimize Skill triggering only after behavior is stable.
+11. Keep the accepted target Product Director inactive until the actual target Product Manager and every other mapped target role pass whole-chain acceptance.
 
 ### Required scenario classes
 
@@ -834,6 +882,7 @@ Use the official Skill creation loop after implementation approval:
 - real problem with a cheaper non-product response;
 - human GO override while an empirical blocker remains;
 - valid GO with PM-ready WHY;
+- valid target Director output presented to a legacy PM consumer;
 - PM rejection caused by a stale or mismatched Director digest;
 - PM-owned detail incorrectly routed back to Director;
 - simple or frozen implementation request that should bypass Product Director.
@@ -854,6 +903,7 @@ Each evaluation must declare its expected state tuple and forbidden behavior bef
 | PM-owned product detail is incomplete | all `PASS` | `GO` | `GO` | `PASS` | `READY` | `ACCEPTED` | PM closes the WHAT detail; Director baseline is not reopened |
 | Director debt is relabeled `BOUNDED` or `DOWNSTREAM_OWNED` without candidate-answer and WHY-change proof | Gate 5 `BLOCKED` | `DISCOVERY` | any | `BLOCKED` for human `GO`, otherwise disposition-specific | never `READY` | `NOT_REQUESTED` | relabeling does not reduce debt; no PM receipt or Product Definition Package exists |
 | Consumer contract is unsupported | all `PASS` | `GO` | `GO` | `BLOCKED` | `BLOCKED` | `NOT_REQUESTED` | no partial consumption or compatibility guess is allowed |
+| Legacy PM consumer receives a target Director Case | all `PASS` | `GO` | `GO` | `BLOCKED` because the target consumer is absent | `BLOCKED` | `NOT_REQUESTED` | legacy consumption is rejected; no adapter, downgrade, or legacy artifact is emitted |
 | Simple or frozen implementation request bypasses Director | not evaluated | not applicable | not applicable | not evaluated | `NOT_APPLICABLE` | `NOT_REQUESTED` | routing evidence explains why Product Director was not invoked |
 
 ### Behavioral acceptance dimensions
@@ -889,16 +939,21 @@ This design is ready for implementation planning when the human confirms that it
 - defines one logical Director Decision Case;
 - replaces shared mutable PD/PM artifacts with stage-owned immutable packages;
 - defines clean PM receipt and route-back boundaries;
+- rejects a universal delivery timebox at the Director gate while preserving human investment appetite;
+- defines a structured, evidence-bound Success Standard;
+- preserves isolated role-by-role evaluation without partial runtime promotion;
+- requires target-only whole-chain activation and whole-release rollback;
 - reserves the target case for later whole-chain validation.
 
 ## Next Step After Final Review
 
 After the human reviews and accepts this document:
 
-1. use `writing-plans` to create a migration-aware implementation plan;
-2. use the official `skill-creator` workflow to revise Product Director;
-3. run baseline and revised-Skill evaluations;
-4. obtain human review of the evaluation outputs;
-5. only then promote the revised role contract and continue to Product Manager design.
+1. use `writing-plans` to create the isolated Product Director implementation and evaluation slice;
+2. use the official `skill-creator` workflow to implement Product Director in the target worktree;
+3. run the frozen legacy baseline, target role, and target PM receipt-harness evaluations;
+4. obtain human review and acceptance of the evaluation outputs;
+5. keep the accepted role inactive and continue to the Product Manager design and subsequent bounded role slices;
+6. activate nothing in the shared runtime until the complete target chain passes and the atomic cutover plan is approved and rehearsed.
 
 Do not modify runtime Skills, schemas, validators, or standard-chain artifacts before final document review.
