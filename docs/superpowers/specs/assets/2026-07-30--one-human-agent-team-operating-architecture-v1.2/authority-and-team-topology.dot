@@ -1,121 +1,844 @@
 digraph AuthorityAndTeamTopology {
   graph [
-    bgcolor="#F8FAFD",
-    pad="0.24",
+    rankdir=TB,
+    newrank=true,
+    compound=true,
+    ordering=out,
+    splines=spline,
+    outputorder=edgesfirst,
+    bgcolor="#F6F8FB",
+    pad="0.28",
+    nodesep="0.34",
+    ranksep="0.56",
     labelloc=t,
-    label="AUTHORITY AND TEAM TOPOLOGY · TARGET V1.2\nONE HUMAN CONTROL PLANE · ACCOUNTABLE OWNERS · ISOLATED EXECUTION DOMAINS\nM0 MANUAL CONTROL · NOT RUNTIME-ACTIVE",
-    fontname="PingFang SC",
-    fontsize=22,
-    fontcolor="#172033"
+    labeljust=l,
+    label="AUTHORITY AND TEAM TOPOLOGY\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R5\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
+    fontname="Helvetica-Bold",
+    fontsize=24,
+    fontcolor="#132A44"
   ];
 
-  node [shape=plain, fontname="PingFang SC", fontcolor="#172033"];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#7890AA",
+    fillcolor="#FFFFFF",
+    fontname="Helvetica",
+    fontcolor="#132A44",
+    fontsize=10,
+    margin="0.13,0.09",
+    penwidth=1.1
+  ];
 
-  topology [
-    label=<
-      <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="11"
-             COLOR="#8FA6C2" BGCOLOR="#FFFFFF">
-        <TR>
-          <TD COLSPAN="6" BGCOLOR="#FFF3C7" COLOR="#A66A00" ALIGN="LEFT">
-            <FONT POINT-SIZE="15"><B>[H] HUMAN CONTROL PLANE · CROSS-CUTTING, NOT A SERIAL STAGE</B></FONT><BR ALIGN="LEFT"/>
-            人独占：顶层包 ACCEPT、跨 Owner INVOKE、环境动作、停止/回滚/containment、incident authority、
-            风险接受、业务验收、Phase / Demand disposition。<BR ALIGN="LEFT"/>
-            ACCEPT ≠ INVOKE ≠ actual start ≠ action outcome；启动时 authority 必须 current；
-            人的确认不能把 unknown、assumption、conflict 或 failed obligation 变成 fact / PASS。
-          </TD>
-        </TR>
+  edge [
+    color="#64748B",
+    fontname="Helvetica",
+    fontcolor="#334155",
+    fontsize=8.5,
+    arrowsize=0.7,
+    penwidth=1.2
+  ];
 
-        <TR>
-          <TD COLSPAN="2" WIDTH="430" BGCOLOR="#DDE9F8"><B>VALUE &amp; PRODUCT · 深度共创</B></TD>
-          <TD COLSPAN="2" WIDTH="430" BGCOLOR="#DDE9F8"><B>SCOPE &amp; DESIGN · 条件共创 + 证据验收</B></TD>
-          <TD COLSPAN="2" WIDTH="430" BGCOLOR="#DDE9F8"><B>PROOF &amp; PLAN · 证据验收</B></TD>
-        </TR>
-        <TR>
-          <TD COLSPAN="2" ALIGN="LEFT" BGCOLOR="#EAF2FF">
-            <B>[AO] Product Director</B><BR ALIGN="LEFT"/>
-            WHY · 真实场景 · 价值 · Active Phase · Closeout Recommendation（不拥有最终 outcome）<BR ALIGN="LEFT"/><BR ALIGN="LEFT"/>
-            <B>[AO] Product Manager</B><BR ALIGN="LEFT"/>
-            WHAT · 对象 · 状态 · 规则 · 权限 · Product Unit · AC
-          </TD>
-          <TD COLSPAN="2" ALIGN="LEFT" BGCOLOR="#EAF2FF">
-            <B>[AO] Impact Owner · ONE OWNER / ONE PACKAGE LINEAGE</B><BR ALIGN="LEFT"/>
-            discovery checkpoint → freeze checkpoint；freeze 引用全部 activation / skip evidence<BR ALIGN="LEFT"/><BR ALIGN="LEFT"/>
-            <FONT COLOR="#5D6D80"><B>[AO · OPTIONAL] UX Owner</B> · 体验与交互</FONT><BR ALIGN="LEFT"/>
-            <FONT COLOR="#5D6D80"><B>[AO · OPTIONAL] Architecture Owner</B> · 技术方案与回滚</FONT><BR ALIGN="LEFT"/>
-            <FONT POINT-SIZE="10">两者独立条件化；触发或跳过都必须留证据</FONT>
-          </TD>
-          <TD COLSPAN="2" ALIGN="LEFT" BGCOLOR="#EAF2FF">
-            <B>[AO] Test Design Owner</B><BR ALIGN="LEFT"/>
-            开发前定义接受面、回归义务、失败路径与 QA 合同<BR ALIGN="LEFT"/><BR ALIGN="LEFT"/>
-            <B>[AO] Tech Lead</B><BR ALIGN="LEFT"/>
-            实现路径 · 依赖 · 批次 · bounded Task；不在计划阶段重发明范围
-          </TD>
-        </TR>
+  subgraph cluster_human_plane {
+    label="HUMAN CONTROL PLANE · DECIDES & RETAINS AUTHORITY";
+    labelloc=t;
+    labeljust=l;
+    color="#B7791F";
+    fillcolor="#FFF8E7";
+    fontname="Helvetica-Bold";
+    fontcolor="#7A4B00";
+    fontsize=16;
+    penwidth=1.8;
+    style="rounded,filled";
+    margin=18;
 
-        <TR>
-          <TD COLSPAN="3" BGCOLOR="#DDE9F8"><B>DEVELOPMENT EXECUTION DOMAIN</B></TD>
-          <TD COLSPAN="3" BGCOLOR="#DDE9F8"><B>INDEPENDENT QUALITY DOMAIN</B></TD>
-        </TR>
-        <TR>
-          <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#EAF2FF">
-            <FONT POINT-SIZE="14"><B>[AO] Development Owner</B></FONT><BR ALIGN="LEFT"/>
-            唯一代码修改域 · TDD / 集成 / 验证 / 评审 · Candidate + environment-specific Manifest
-          </TD>
-          <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#EAF2FF">
-            <FONT POINT-SIZE="14"><B>[AO] Quality Owner · NO CODE CHANGE</B></FONT><BR ALIGN="LEFT"/>
-            上线前 QA / Finding route / 复测 / Release recommendation · 部署后独立生产验证
-          </TD>
-        </TR>
-        <TR>
-          <TD COLSPAN="3" BGCOLOR="#EAF2FF">
-            <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="7" COLOR="#A8B7C8">
-              <TR>
-                <TD BGCOLOR="#F5F7FA"><B>[AE] Developer</B><BR/>实现与自测</TD>
-                <TD BGCOLOR="#F5F7FA"><B>[AE] Code Fixer</B><BR/>根因修复</TD>
-                <TD BGCOLOR="#F5F7FA"><B>[AE] Verifier</B><BR/>独立判定证据</TD>
-                <TD BGCOLOR="#F5F7FA"><B>[AE] Code Reviewer</B><BR/>质量与风险评审</TD>
-              </TR>
-            </TABLE>
-          </TD>
-          <TD COLSPAN="3" BGCOLOR="#EAF2FF">
-            <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="7" COLOR="#A8B7C8">
-              <TR>
-                <TD BGCOLOR="#F5F7FA"><B>[AE] QA Executor</B><BR/>执行、观察、取证、复测</TD>
-                <TD BGCOLOR="#F5F7FA"><B>[AE] Quality Analyst</B><BR/>复现、只读诊断、分类支持</TD>
-              </TR>
-            </TABLE>
-          </TD>
-        </TR>
-        <TR>
-          <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#F4EEFC" COLOR="#6F4BA5">
-            <B>[ART]</B> Phase Success Baseline · immutable Candidate · Deployment Manifest · Test Admission
-          </TD>
-          <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#F4EEFC" COLOR="#6F4BA5">
-            <B>[ART]</B> Finding Route · Release Package · Production / Incident Verification Evidence
-          </TD>
-        </TR>
+    human_direction [
+      label="[H]\nDIRECTION / VALUE\nco-create the problem and value",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
 
-        <TR>
-          <TD COLSPAN="2" BGCOLOR="#FFF9E8" ALIGN="LEFT">
-            <B>Human authority</B><BR ALIGN="LEFT"/>
-            决定方向、接受证据、调用 Owner、授权并执行环境动作、接受风险、裁决结果
-          </TD>
-          <TD COLSPAN="2" BGCOLOR="#EAF2FF" ALIGN="LEFT">
-            <B>Owner accountability</B><BR ALIGN="LEFT"/>
-            完成阶段判断、组织执行、冻结输出、提出 handoff / route；不越权调用下一 Owner
-          </TD>
-          <TD COLSPAN="2" BGCOLOR="#F5F7FA" ALIGN="LEFT">
-            <B>Execution Agent boundary</B><BR ALIGN="LEFT"/>
-            只消费 bounded input，在父 Owner 内执行；不拥有跨阶段或最终裁决权
-          </TD>
-        </TR>
-        <TR>
-          <TD COLSPAN="6" BGCOLOR="#FDECEC" COLOR="#B43A3A" ALIGN="LEFT">
-            <B>隔离原则</B>：Development Owner 无独立 QA / 部署权；Quality Owner 无代码修改权；
-            PRODUCT 与 INCIDENT_REMEDIATION authority / evidence 不互换；撤权后的输出只能留历史。
-          </TD>
-        </TR>
-      </TABLE>
-    >
+    human_accept [
+      label="[H]\nEXACT ACCEPTANCE\naccept named artifact + evidence",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_invoke [
+      label="[H]\nNEXT-OWNER INVOCATION\nACCEPT ≠ INVOKE ≠ ACTUAL START",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_environment [
+      label="[H]\nENVIRONMENT ACTION\nexecute test / production deployment",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_risk_incident [
+      label="[H-AUTHORITY]\nRISK ACCEPTANCE · STOP · ROLLBACK · CONTAINMENT\nINCIDENT AUTHORITY",
+      shape=note,
+      style=filled,
+      color="#B7791F",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontsize=9.5,
+      penwidth=1.5
+    ];
+
+    human_disposition [
+      label="[H]\nFINAL DISPOSITION\nbusiness acceptance · Phase / Demand outcome",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_current_authority [
+      label="[CONTROL LAW]\nrevalidate current authority at every Owner start\nconfirmation never converts unknown / conflict / failure into fact or PASS",
+      shape=note,
+      style=filled,
+      color="#B7791F",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontsize=9,
+      penwidth=1.4
+    ];
+
+    {
+      rank=same;
+      human_direction;
+      human_accept;
+      human_invoke;
+    }
+
+    {
+      rank=same;
+      human_environment;
+      human_risk_incident;
+      human_disposition;
+    }
+
+    human_direction -> human_accept -> human_invoke [
+      style=invis,
+      weight=24
+    ];
+
+    human_environment -> human_risk_incident -> human_disposition [
+      style=invis,
+      weight=24
+    ];
+
+    human_direction -> human_environment [
+      style=invis,
+      weight=24
+    ];
+
+    human_accept -> human_risk_incident [
+      style=invis,
+      weight=24
+    ];
+
+    human_invoke -> human_disposition [
+      style=invis,
+      weight=24
+    ];
+
+    human_risk_incident -> human_current_authority [
+      style=invis,
+      weight=24
+    ];
+  }
+
+  subgraph cluster_owner_plane {
+    label="ACCOUNTABLE OWNER PLANE · OWNS JUDGMENT, PACKAGE & HANDOFF PROPOSAL · DOMAINS ARE NOT A SERIAL FLOW";
+    labelloc=t;
+    labeljust=l;
+    color="#2F6DB0";
+    fillcolor="#EAF0F6";
+    fontname="Helvetica-Bold";
+    fontcolor="#174B80";
+    fontsize=16;
+    penwidth=1.8;
+    style="rounded,filled";
+    margin=18;
+
+    subgraph cluster_product_definition {
+      label="PRODUCT DEFINITION SUBSYSTEM";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=13;
+      penwidth=1.5;
+      style="rounded,filled";
+      margin=13;
+
+      product_director [
+        label="[AO] Product Director\nWHY · value · Active Phase\ncloseout recommendation, never final outcome",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      product_manager [
+        label="[AO] Product Manager\nWHAT · objects · states · rules\npermissions · AC",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      impact_owner [
+        label="[AO] Impact Owner\nONE OWNER / ONE PACKAGE LINEAGE\nimpact discovery → impact freeze",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      ux_owner [
+        label="[AO][OPTIONAL]\nUX Owner\nindependently conditional",
+        style="rounded,dashed,filled",
+        color="#64748B",
+        fillcolor="#F8FAFC",
+        fontsize=8.5
+      ];
+
+      architecture_owner [
+        label="[AO][OPTIONAL]\nArchitecture Owner\nindependently conditional",
+        style="rounded,dashed,filled",
+        color="#64748B",
+        fillcolor="#F8FAFC",
+        fontsize=8.5
+      ];
+
+      product_director -> product_manager -> impact_owner [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      impact_owner -> ux_owner [
+        dir=none,
+        style=dashed,
+        color="#64748B"
+      ];
+
+      impact_owner -> architecture_owner [
+        dir=none,
+        style=dashed,
+        color="#64748B"
+      ];
+
+      {
+        rank=same;
+        ux_owner;
+        architecture_owner;
+      }
+    }
+
+    subgraph cluster_proof_plan {
+      label="PROOF & PLAN SUBSYSTEM";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=13;
+      penwidth=1.5;
+      style="rounded,filled";
+      margin=13;
+
+      test_design_owner [
+        label="[AO] Test Design Owner\nacceptance surface · regression obligations\nfailure paths · QA contract",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      tech_lead [
+        label="[AO] Tech Lead\nimplementation path · dependencies\nbatches · bounded Task Packets",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      test_design_owner -> tech_lead [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+    }
+
+    subgraph cluster_outcome_activities {
+      label="OUTCOME ACTIVITIES";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=13;
+      penwidth=1.5;
+      style="rounded,filled";
+      margin=13;
+
+      outcome_recommendation [
+        label="[AO] Product Director\ncloseout recommendation\nsupports, never owns, final disposition",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      outcome_evidence [
+        label="[ACCOUNTABILITY]\nstate evidence honestly\nno final outcome authority",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=8.5,
+        penwidth=1.3
+      ];
+
+      outcome_recommendation -> outcome_evidence [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+    }
+
+    {
+      rank=same;
+      product_director;
+      test_design_owner;
+      outcome_recommendation;
+    }
+
+    product_director -> test_design_owner -> outcome_recommendation [
+      style=invis,
+      weight=24
+    ];
+
+    subgraph cluster_development_domain {
+      label="DEVELOPMENT DOMAIN";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=13;
+      penwidth=1.5;
+      style="rounded,filled";
+      margin=13;
+
+      development_owner [
+        label="[AO] Development Owner\nUNIQUE CODE-CHANGE DOMAIN\nverified immutable Candidate + Manifest",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+    }
+
+    subgraph cluster_independent_quality {
+      label="INDEPENDENT QUALITY DOMAIN";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=13;
+      penwidth=1.5;
+      style="rounded,filled";
+      margin=13;
+
+      quality_owner [
+        label="[AO] Quality Owner\nNO CODE CHANGE\nindependent QA · release recommendation\nproduction / incident verification",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+    }
+
+    impact_owner -> development_owner [
+      style=invis,
+      weight=36
+    ];
+
+    tech_lead -> development_owner [
+      style=invis,
+      weight=36
+    ];
+
+    outcome_evidence -> quality_owner [
+      style=invis,
+      weight=36
+    ];
+
+    subgraph cluster_authority_firewall {
+      label="AUTHORITY FIREWALL · MUST NOT BE CROSSED";
+      labelloc=t;
+      labeljust=l;
+      color="#B23A48";
+      fillcolor="#FFF1F2";
+      fontname="Helvetica-Bold";
+      fontcolor="#8F2635";
+      fontsize=13;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=13;
+
+      development_boundary [
+        label="[PROHIBITED]\nDevelopment Owner ≠ independent QA / deployment authority",
+        shape=note,
+        style=filled,
+        color="#B23A48",
+        fillcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontcolor="#8F2635",
+        fontsize=9,
+        penwidth=1.4
+      ];
+
+      quality_boundary [
+        label="[PROHIBITED]\nQuality Owner = NO CODE CHANGE",
+        shape=note,
+        style=filled,
+        color="#B23A48",
+        fillcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontcolor="#8F2635",
+        fontsize=9,
+        penwidth=1.4
+      ];
+
+      authority_boundary [
+        label="[SEPARATE AUTHORITY]\nPRODUCT authority ≠ INCIDENT_REMEDIATION authority\nacceptance / evidence never substitutes across cases",
+        shape=note,
+        style=filled,
+        color="#B23A48",
+        fillcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontcolor="#8F2635",
+        fontsize=9,
+        penwidth=1.4
+      ];
+
+      disposition_boundary [
+        label="[PROHIBITED]\nOwner accountability ≠ Human disposition authority\nOwner proposes; Human accepts / invokes / acts / disposes",
+        shape=note,
+        style=filled,
+        color="#B23A48",
+        fillcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontcolor="#8F2635",
+        fontsize=9,
+        penwidth=1.4
+      ];
+
+      {
+        rank=same;
+        development_boundary;
+        quality_boundary;
+      }
+
+      {
+        rank=same;
+        authority_boundary;
+        disposition_boundary;
+      }
+
+      development_boundary -> quality_boundary [
+        style=invis,
+        weight=20
+      ];
+
+      authority_boundary -> disposition_boundary [
+        style=invis,
+        weight=20
+      ];
+
+      development_boundary -> authority_boundary [
+        style=invis,
+        weight=24
+      ];
+
+      quality_boundary -> disposition_boundary [
+        style=invis,
+        weight=24
+      ];
+    }
+
+    {
+      rank=same;
+      development_owner;
+      quality_owner;
+      development_boundary;
+    }
+
+    development_owner -> quality_owner -> development_boundary [
+      style=invis,
+      weight=24
+    ];
+
+  }
+
+  subgraph cluster_execution_plane {
+    label="BOUNDED EXECUTION PLANE · EXECUTES ONLY INSIDE THE PARENT OWNER DOMAIN";
+    labelloc=t;
+    labeljust=l;
+    color="#7890AA";
+    fillcolor="#EDF2F7";
+    fontname="Helvetica-Bold";
+    fontcolor="#334155";
+    fontsize=16;
+    penwidth=1.8;
+    style="rounded,filled";
+    margin=18;
+
+    development_delegation [
+      label="[BOUNDED]\nDEVELOPMENT DELEGATION",
+      shape=diamond,
+      color="#2F6DB0",
+      fillcolor="#DDE9F8",
+      fontname="Helvetica-Bold",
+      fontcolor="#174B80",
+      fontsize=8.5,
+      penwidth=1.5
+    ];
+
+    quality_delegation [
+      label="[BOUNDED]\nQUALITY DELEGATION",
+      shape=diamond,
+      color="#2F6DB0",
+      fillcolor="#DDE9F8",
+      fontname="Helvetica-Bold",
+      fontcolor="#174B80",
+      fontsize=8.5,
+      penwidth=1.5
+    ];
+
+    {
+      rank=same;
+      development_delegation;
+      quality_delegation;
+    }
+
+    development_delegation -> quality_delegation [
+      style=invis,
+      weight=20
+    ];
+
+    subgraph cluster_development_execution {
+      label="DEVELOPMENT EXECUTION AGENTS · DEVELOPMENT OWNER ONLY";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=13;
+      penwidth=1.5;
+      style="rounded,filled";
+      margin=13;
+
+      developer [
+        label="[AE] Developer\nimplementation · self-test",
+        fillcolor="#EEF4FA",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      code_fixer [
+        label="[AE] Code Fixer\nroot-cause repair",
+        fillcolor="#EEF4FA",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      verifier [
+        label="[AE] Verifier\nindependent evidence judgment",
+        fillcolor="#EEF4FA",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      code_reviewer [
+        label="[AE] Code Reviewer\nquality · risk review",
+        fillcolor="#EEF4FA",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      {
+        rank=same;
+        developer;
+        code_fixer;
+      }
+
+      {
+        rank=same;
+        verifier;
+        code_reviewer;
+      }
+
+      developer -> code_fixer [
+        style=invis,
+        weight=20
+      ];
+
+      verifier -> code_reviewer [
+        style=invis,
+        weight=20
+      ];
+
+      developer -> verifier [
+        style=invis,
+        weight=24
+      ];
+
+      code_fixer -> code_reviewer [
+        style=invis,
+        weight=24
+      ];
+    }
+
+    subgraph cluster_quality_execution {
+      label="QUALITY EXECUTION AGENTS · QUALITY OWNER ONLY";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=13;
+      penwidth=1.5;
+      style="rounded,filled";
+      margin=13;
+
+      qa_executor [
+        label="[AE] QA Executor\nexecute · observe · capture evidence · retest",
+        fillcolor="#EEF4FA",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      quality_analyst [
+        label="[AE] Quality Analyst\nreproduce · read-only diagnosis · classify",
+        fillcolor="#EEF4FA",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      qa_executor -> quality_analyst [
+        style=invis,
+        weight=20
+      ];
+    }
+
+    {
+      rank=same;
+      developer;
+      qa_executor;
+    }
+
+    developer -> qa_executor [
+      style=invis,
+      weight=24
+    ];
+
+    development_delegation -> developer [
+      color="#2F6DB0",
+      penwidth=1.7,
+      arrowsize=0.75
+    ];
+
+    development_delegation -> code_fixer [
+      color="#2F6DB0",
+      penwidth=1.7,
+      arrowsize=0.75
+    ];
+
+    development_delegation -> verifier [
+      color="#2F6DB0",
+      penwidth=1.7,
+      arrowsize=0.75
+    ];
+
+    development_delegation -> code_reviewer [
+      color="#2F6DB0",
+      penwidth=1.7,
+      arrowsize=0.75
+    ];
+
+    quality_delegation -> qa_executor [
+      color="#2F6DB0",
+      penwidth=1.7,
+      arrowsize=0.75
+    ];
+
+    quality_delegation -> quality_analyst [
+      color="#2F6DB0",
+      penwidth=1.7,
+      arrowsize=0.75
+    ];
+
+    execution_boundary [
+      label="[EXECUTION BOUNDARY]\nbounded input only · no cross-Owner invocation · no acceptance · no environment action · no final disposition",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontcolor="#8F2635",
+      fontsize=9,
+      penwidth=1.4
+    ];
+
+    verifier -> execution_boundary [
+      style=invis,
+      weight=24
+    ];
+  }
+
+  human_current_authority -> product_director [
+    style=invis,
+    weight=100
+  ];
+
+  human_direction -> product_director [
+    label="authority / co-create",
+    style=dashed,
+    color="#B7791F",
+    fontcolor="#7A4B00",
+    penwidth=1.7,
+    arrowsize=0.75,
+    tailport=s,
+    headport=n,
+    constraint=false
+  ];
+
+  human_accept -> impact_owner [
+    label="accept exact package",
+    style=dashed,
+    color="#B7791F",
+    fontcolor="#7A4B00",
+    penwidth=1.7,
+    arrowsize=0.75,
+    tailport=s,
+    headport=n,
+    constraint=false
+  ];
+
+  human_invoke -> test_design_owner [
+    label="invoke next Owner",
+    style=dashed,
+    color="#B7791F",
+    fontcolor="#7A4B00",
+    penwidth=1.7,
+    arrowsize=0.75,
+    tailport=s,
+    headport=n
+  ];
+
+  human_invoke -> development_owner [
+    label="invoke Owner",
+    style=dashed,
+    color="#B7791F",
+    fontcolor="#7A4B00",
+    penwidth=1.7,
+    arrowsize=0.75,
+    tailport=s,
+    headport=n,
+    constraint=false
+  ];
+
+  human_invoke -> quality_owner [
+    label="invoke Owner",
+    style=dashed,
+    color="#B7791F",
+    fontcolor="#7A4B00",
+    penwidth=1.7,
+    arrowsize=0.75,
+    tailport=s,
+    headport=n,
+    constraint=false
+  ];
+
+  human_environment -> quality_owner [
+    label="authority / accept evidence\n(no execution transfer)",
+    style=dashed,
+    color="#B7791F",
+    fontcolor="#7A4B00",
+    penwidth=1.7,
+    arrowsize=0.75,
+    tailport=s,
+    headport=n,
+    constraint=false
+  ];
+
+  human_disposition -> outcome_recommendation [
+    label="invoke recommendation /\nretain final disposition",
+    style=dashed,
+    color="#B7791F",
+    fontcolor="#7A4B00",
+    penwidth=1.7,
+    arrowsize=0.75,
+    tailport=s,
+    headport=n,
+    constraint=false
+  ];
+
+  human_risk_incident -> authority_boundary [
+    label="authority remains Human",
+    style=dashed,
+    color="#B7791F",
+    fontcolor="#7A4B00",
+    penwidth=1.5,
+    arrowsize=0.7,
+    tailport=s,
+    headport=n,
+    constraint=false
+  ];
+
+  authority_boundary -> developer [
+    style=invis,
+    weight=100,
+    minlen=2
+  ];
+
+  disposition_boundary -> qa_executor [
+    style=invis,
+    weight=100,
+    minlen=2
+  ];
+
+  development_owner -> development_delegation [
+    label="delegates bounded work",
+    color="#2F6DB0",
+    fontcolor="#174B80",
+    penwidth=2.0,
+    arrowsize=0.8,
+    tailport=s,
+    headport=n,
+    constraint=false
+  ];
+
+  quality_owner -> quality_delegation [
+    label="delegates bounded work",
+    color="#2F6DB0",
+    fontcolor="#174B80",
+    penwidth=2.0,
+    arrowsize=0.8,
+    tailport=s,
+    headport=n,
+    constraint=false
   ];
 }
