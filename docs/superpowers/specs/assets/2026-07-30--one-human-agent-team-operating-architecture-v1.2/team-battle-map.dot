@@ -650,7 +650,7 @@ digraph TeamBattleMap {
       margin=14;
 
       outcome_purpose [
-        label="Judge the real business result and close honestly.",
+        label="Judge the real business result\nand close honestly.",
         group="column_5",
         color="#132A44",
         fillcolor="#132A44",

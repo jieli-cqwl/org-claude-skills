@@ -15,7 +15,7 @@
 <text text-anchor="middle" x="457.62" y="-1086.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="24.00" fill="#132a44">TARGET DESIGN · NOT RUNTIME&#45;ACTIVE</text>
 <g id="clust1" class="cluster">
 <title>cluster_human</title>
-<path fill="#fff8e7" stroke="#b7791f" stroke-width="1.6" d="M20,-894.08C20,-894.08 1780,-894.08 1780,-894.08 1786,-894.08 1792,-900.08 1792,-906.08 1792,-906.08 1792,-1060.35 1792,-1060.35 1792,-1066.35 1786,-1072.35 1780,-1072.35 1780,-1072.35 20,-1072.35 20,-1072.35 14,-1072.35 8,-1066.35 8,-1060.35 8,-1060.35 8,-906.08 8,-906.08 8,-900.08 14,-894.08 20,-894.08"/>
+<path fill="#fff8e7" stroke="#b7791f" stroke-width="1.6" d="M20,-894.08C20,-894.08 1734,-894.08 1734,-894.08 1740,-894.08 1746,-900.08 1746,-906.08 1746,-906.08 1746,-1060.35 1746,-1060.35 1746,-1066.35 1740,-1072.35 1734,-1072.35 1734,-1072.35 20,-1072.35 20,-1072.35 14,-1072.35 8,-1066.35 8,-1060.35 8,-1060.35 8,-906.08 8,-906.08 8,-900.08 14,-894.08 20,-894.08"/>
 <text text-anchor="middle" x="109" y="-1054.1" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="15.00" fill="#7a4b00">HUMAN CONTROL PLANE</text>
 </g>
 <g id="clust4" class="cluster">
@@ -78,21 +78,21 @@
 <!-- human_production_deployment&#45;&gt;quality_production_deployment -->
 <g id="edge77" class="edge">
 <title>human_production_deployment&#45;&gt;quality_production_deployment</title>
-<path fill="none" stroke="#b7791f" stroke-width="1.7" stroke-dasharray="5,2" d="M1435.25,-1009C1467.98,-1009 1498.02,-1009 1498.02,-1009 1498.02,-1009 1498.02,-492 1498.02,-492 1498.02,-492 1497.41,-492 1497.41,-492"/>
-<polygon fill="#b7791f" stroke="#b7791f" stroke-width="1.7" points="1501.53,-489.55 1494.53,-492 1501.53,-494.45 1501.53,-489.55"/>
+<path fill="none" stroke="#b7791f" stroke-width="1.7" stroke-dasharray="5,2" d="M1435.25,-1009C1467.98,-1009 1498.02,-1009 1498.02,-1009 1498.02,-1009 1498.02,-498 1498.02,-498 1498.02,-498 1497.41,-498 1497.41,-498"/>
+<polygon fill="#b7791f" stroke="#b7791f" stroke-width="1.7" points="1501.53,-495.55 1494.53,-498 1501.53,-500.45 1501.53,-495.55"/>
 </g>
 <!-- human_business_disposition&#45;&gt;outcome_purpose -->
 <!-- human_business_disposition&#45;&gt;outcome_business_acceptance -->
 <g id="edge78" class="edge">
 <title>human_business_disposition&#45;&gt;outcome_business_acceptance</title>
-<path fill="none" stroke="#b7791f" stroke-width="1.7" stroke-dasharray="5,2" d="M1776.02,-1009C1802.1,-1009 1824.06,-1009 1824.06,-1009 1824.06,-1009 1824.06,-714 1824.06,-714 1824.06,-714 1767.88,-714 1767.88,-714"/>
-<polygon fill="#b7791f" stroke="#b7791f" stroke-width="1.7" points="1767.88,-711.55 1760.88,-714 1767.88,-716.45 1767.88,-711.55"/>
+<path fill="none" stroke="#b7791f" stroke-width="1.7" stroke-dasharray="5,2" d="M1729.95,-1009C1731.57,-1009 1732.47,-1009 1732.47,-1009 1732.47,-1009 1732.47,-714 1732.47,-714 1732.47,-714 1723.92,-714 1723.92,-714"/>
+<polygon fill="#b7791f" stroke="#b7791f" stroke-width="1.7" points="1723.92,-711.55 1716.92,-714 1723.92,-716.45 1723.92,-711.55"/>
 </g>
 <!-- human_business_disposition&#45;&gt;outcome_disposition -->
 <g id="edge79" class="edge">
 <title>human_business_disposition&#45;&gt;outcome_disposition</title>
-<path fill="none" stroke="#b7791f" stroke-width="1.7" stroke-dasharray="5,2" d="M1776.18,-1021C1805.84,-1021 1831.85,-1021 1831.85,-1021 1831.85,-1021 1831.85,-566 1831.85,-566 1831.85,-566 1787.37,-566 1787.37,-566"/>
-<polygon fill="#b7791f" stroke="#b7791f" stroke-width="1.7" points="1787.37,-563.55 1780.37,-566 1787.37,-568.45 1787.37,-563.55"/>
+<path fill="none" stroke="#b7791f" stroke-width="1.7" stroke-dasharray="5,2" d="M1730.07,-1021C1733.3,-1021 1735.18,-1021 1735.18,-1021 1735.18,-1021 1735.18,-594.12 1735.18,-594.12"/>
+<polygon fill="#b7791f" stroke="#b7791f" stroke-width="1.7" points="1737.63,-594.12 1735.18,-587.12 1732.73,-594.12 1737.63,-594.12"/>
 </g>
 <!-- human_action_law&#45;&gt;human_safety_authority -->
 <!-- human_action_law&#45;&gt;product_purpose -->
@@ -220,7 +220,7 @@
 <!-- build_test_deployment&#45;&gt;failure_reenter -->
 <g id="edge83" class="edge">
 <title>build_test_deployment&#45;&gt;failure_reenter</title>
-<path fill="none" stroke="#b23a48" stroke-width="1.3" stroke-dasharray="5,2" d="M1124.01,-391.21C1124.01,-391.21 1124.01,-383 1124.01,-383 1124.01,-383 1644.82,-383 1644.82,-383 1644.82,-383 1644.82,-196.63 1644.82,-136.93"/>
+<path fill="none" stroke="#b23a48" stroke-width="1.3" stroke-dasharray="5,2" d="M1124.01,-391.21C1124.01,-391.21 1124.01,-383 1124.01,-383 1124.01,-383 1648.18,-383 1648.18,-383 1648.18,-383 1648.18,-196.63 1648.18,-136.93"/>
 <polygon fill="#b23a48" stroke="#b23a48" stroke-width="1.3" points="1121.56,-391.21 1124.01,-398.21 1126.46,-391.21 1121.56,-391.21"/>
 </g>
 <!-- build_output&#45;&gt;quality_handoff_in -->
@@ -263,13 +263,13 @@
 <!-- quality_production_deployment&#45;&gt;quality_production_verification -->
 <g id="edge32" class="edge">
 <title>quality_production_deployment&#45;&gt;quality_production_verification</title>
-<path fill="none" stroke="#94a3b8" d="M1405.62,-473.43C1405.62,-462.33 1405.62,-448.34 1405.62,-437.34"/>
+<path fill="none" stroke="#94a3b8" d="M1427,-473.43C1427,-462.33 1427,-448.34 1427,-437.34"/>
 </g>
 <!-- quality_production_deployment&#45;&gt;failure_reenter -->
 <g id="edge84" class="edge">
 <title>quality_production_deployment&#45;&gt;failure_reenter</title>
-<path fill="none" stroke="#b23a48" stroke-width="1.3" stroke-dasharray="5,2" d="M1448.38,-464.68C1448.38,-464.68 1448.38,-455 1448.38,-455 1448.38,-455 1647.28,-455 1647.28,-455 1647.28,-455 1647.28,-206.69 1647.28,-136.85"/>
-<polygon fill="#b23a48" stroke="#b23a48" stroke-width="1.3" points="1445.93,-464.68 1448.38,-471.68 1450.83,-464.68 1445.93,-464.68"/>
+<path fill="none" stroke="#b23a48" stroke-width="1.3" stroke-dasharray="5,2" d="M1500.9,-486C1500.9,-486 1540.31,-486 1540.31,-486 1540.31,-486 1540.31,-229 1540.31,-229 1540.31,-229 1628.68,-229 1628.68,-229 1628.68,-229 1628.68,-168.28 1628.68,-136.97"/>
+<polygon fill="#b23a48" stroke="#b23a48" stroke-width="1.3" points="1500.9,-483.55 1493.9,-486 1500.9,-488.45 1500.9,-483.55"/>
 </g>
 <!-- quality_production_verification&#45;&gt;quality_output -->
 <g id="edge33" class="edge">
@@ -291,32 +291,32 @@
 <!-- outcome_purpose&#45;&gt;outcome_business_acceptance -->
 <g id="edge34" class="edge">
 <title>outcome_purpose&#45;&gt;outcome_business_acceptance</title>
-<path fill="none" stroke="#94a3b8" d="M1691,-768.16C1691,-757.5 1691,-744.04 1691,-733.25"/>
+<path fill="none" stroke="#94a3b8" d="M1647,-768.16C1647,-757.5 1647,-744.04 1647,-733.25"/>
 </g>
 <!-- outcome_business_acceptance&#45;&gt;outcome_closeout_recommendation -->
 <g id="edge35" class="edge">
 <title>outcome_business_acceptance&#45;&gt;outcome_closeout_recommendation</title>
-<path fill="none" stroke="#94a3b8" d="M1691,-695.56C1691,-684.11 1691,-669.55 1691,-658.2"/>
+<path fill="none" stroke="#94a3b8" d="M1647,-695.56C1647,-684.11 1647,-669.55 1647,-658.2"/>
 </g>
 <!-- outcome_closeout_recommendation&#45;&gt;outcome_disposition -->
 <g id="edge36" class="edge">
 <title>outcome_closeout_recommendation&#45;&gt;outcome_disposition</title>
-<path fill="none" stroke="#94a3b8" d="M1691,-621.56C1691,-610.29 1691,-595.89 1691,-584.51"/>
+<path fill="none" stroke="#94a3b8" d="M1650,-621.56C1650,-610.29 1650,-595.89 1650,-584.51"/>
 </g>
 <!-- outcome_disposition&#45;&gt;outcome_phase_authority_guard -->
 <g id="edge37" class="edge">
 <title>outcome_disposition&#45;&gt;outcome_phase_authority_guard</title>
-<path fill="none" stroke="#94a3b8" d="M1709.62,-546.69C1709.62,-536.01 1709.62,-522.67 1709.62,-511.87"/>
+<path fill="none" stroke="#94a3b8" d="M1656.12,-546.69C1656.12,-536.01 1656.12,-522.67 1656.12,-511.87"/>
 </g>
 <!-- outcome_phase_authority_guard&#45;&gt;outcome_terminal_guard -->
 <g id="edge38" class="edge">
 <title>outcome_phase_authority_guard&#45;&gt;outcome_terminal_guard</title>
-<path fill="none" stroke="#94a3b8" d="M1744.69,-472.67C1744.69,-461.65 1744.69,-447.99 1744.69,-437.22"/>
+<path fill="none" stroke="#94a3b8" d="M1696.19,-472.67C1696.19,-461.65 1696.19,-447.99 1696.19,-437.22"/>
 </g>
 <!-- outcome_terminal_guard&#45;&gt;outcome_output -->
 <g id="edge39" class="edge">
 <title>outcome_terminal_guard&#45;&gt;outcome_output</title>
-<path fill="none" stroke="#94a3b8" d="M1770.19,-400.65C1770.19,-389.98 1770.19,-376.51 1770.19,-365.46"/>
+<path fill="none" stroke="#94a3b8" d="M1755.69,-400.65C1755.69,-389.98 1755.69,-376.51 1755.69,-365.46"/>
 </g>
 <!-- outcome_output&#45;&gt;state_finding_route -->
 <!-- outcome_handoff_in&#45;&gt;outcome_output -->
@@ -418,9 +418,9 @@
 <!-- human_business_disposition -->
 <g id="node6" class="node">
 <title>human_business_disposition</title>
-<path fill="#fff3c4" stroke="#b7791f" stroke-width="1.8" d="M1763.77,-1032.6C1763.77,-1032.6 1618.23,-1032.6 1618.23,-1032.6 1612.23,-1032.6 1606.23,-1026.6 1606.23,-1020.6 1606.23,-1020.6 1606.23,-1008.6 1606.23,-1008.6 1606.23,-1002.6 1612.23,-996.6 1618.23,-996.6 1618.23,-996.6 1763.77,-996.6 1763.77,-996.6 1769.77,-996.6 1775.77,-1002.6 1775.77,-1008.6 1775.77,-1008.6 1775.77,-1020.6 1775.77,-1020.6 1775.77,-1026.6 1769.77,-1032.6 1763.77,-1032.6"/>
-<text text-anchor="middle" x="1691" y="-1016.35" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">[H]</text>
-<text text-anchor="middle" x="1691" y="-1005.1" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">business acceptance/disposition</text>
+<path fill="#fff3c4" stroke="#b7791f" stroke-width="1.8" d="M1717.77,-1032.6C1717.77,-1032.6 1572.23,-1032.6 1572.23,-1032.6 1566.23,-1032.6 1560.23,-1026.6 1560.23,-1020.6 1560.23,-1020.6 1560.23,-1008.6 1560.23,-1008.6 1560.23,-1002.6 1566.23,-996.6 1572.23,-996.6 1572.23,-996.6 1717.77,-996.6 1717.77,-996.6 1723.77,-996.6 1729.77,-1002.6 1729.77,-1008.6 1729.77,-1008.6 1729.77,-1020.6 1729.77,-1020.6 1729.77,-1026.6 1723.77,-1032.6 1717.77,-1032.6"/>
+<text text-anchor="middle" x="1645" y="-1016.35" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">[H]</text>
+<text text-anchor="middle" x="1645" y="-1005.1" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">business acceptance/disposition</text>
 </g>
 <!-- human_action_law -->
 <g id="node7" class="node">
@@ -651,46 +651,47 @@
 <!-- outcome_purpose -->
 <g id="node38" class="node">
 <title>outcome_purpose</title>
-<path fill="#132a44" stroke="#132a44" stroke-width="1.1" d="M1804.27,-804.33C1804.27,-804.33 1577.73,-804.33 1577.73,-804.33 1571.73,-804.33 1565.73,-798.33 1565.73,-792.33 1565.73,-792.33 1565.73,-780.33 1565.73,-780.33 1565.73,-774.33 1571.73,-768.33 1577.73,-768.33 1577.73,-768.33 1804.27,-768.33 1804.27,-768.33 1810.27,-768.33 1816.27,-774.33 1816.27,-780.33 1816.27,-780.33 1816.27,-792.33 1816.27,-792.33 1816.27,-798.33 1810.27,-804.33 1804.27,-804.33"/>
-<text text-anchor="middle" x="1691" y="-782.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#ffffff">Judge the real business result and close honestly.</text>
+<path fill="#132a44" stroke="#132a44" stroke-width="1.1" d="M1711.77,-804.33C1711.77,-804.33 1578.23,-804.33 1578.23,-804.33 1572.23,-804.33 1566.23,-798.33 1566.23,-792.33 1566.23,-792.33 1566.23,-780.33 1566.23,-780.33 1566.23,-774.33 1572.23,-768.33 1578.23,-768.33 1578.23,-768.33 1711.77,-768.33 1711.77,-768.33 1717.77,-768.33 1723.77,-774.33 1723.77,-780.33 1723.77,-780.33 1723.77,-792.33 1723.77,-792.33 1723.77,-798.33 1717.77,-804.33 1711.77,-804.33"/>
+<text text-anchor="middle" x="1645" y="-788.08" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#ffffff">Judge the real business result</text>
+<text text-anchor="middle" x="1645" y="-776.83" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#ffffff">and close honestly.</text>
 </g>
 <!-- outcome_business_acceptance -->
 <g id="node39" class="node">
 <title>outcome_business_acceptance</title>
-<path fill="#fff3c4" stroke="#b7791f" stroke-width="2" d="M1745.39,-732.33C1745.39,-732.33 1636.61,-732.33 1636.61,-732.33 1630.61,-732.33 1624.61,-726.33 1624.61,-720.33 1624.61,-720.33 1624.61,-708.33 1624.61,-708.33 1624.61,-702.33 1630.61,-696.33 1636.61,-696.33 1636.61,-696.33 1745.39,-696.33 1745.39,-696.33 1751.39,-696.33 1757.39,-702.33 1757.39,-708.33 1757.39,-708.33 1757.39,-720.33 1757.39,-720.33 1757.39,-726.33 1751.39,-732.33 1745.39,-732.33"/>
-<text text-anchor="middle" x="1691" y="-710.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">[H] Business Acceptance</text>
+<path fill="#fff3c4" stroke="#b7791f" stroke-width="2" d="M1701.39,-732.33C1701.39,-732.33 1592.61,-732.33 1592.61,-732.33 1586.61,-732.33 1580.61,-726.33 1580.61,-720.33 1580.61,-720.33 1580.61,-708.33 1580.61,-708.33 1580.61,-702.33 1586.61,-696.33 1592.61,-696.33 1592.61,-696.33 1701.39,-696.33 1701.39,-696.33 1707.39,-696.33 1713.39,-702.33 1713.39,-708.33 1713.39,-708.33 1713.39,-720.33 1713.39,-720.33 1713.39,-726.33 1707.39,-732.33 1701.39,-732.33"/>
+<text text-anchor="middle" x="1647" y="-710.45" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">[H] Business Acceptance</text>
 </g>
 <!-- outcome_closeout_recommendation -->
 <g id="node40" class="node">
 <title>outcome_closeout_recommendation</title>
-<path fill="#ffffff" stroke="#7890aa" stroke-width="1.1" d="M1751.39,-657.94C1751.39,-657.94 1630.61,-657.94 1630.61,-657.94 1624.61,-657.94 1618.61,-651.94 1618.61,-645.94 1618.61,-645.94 1618.61,-633.94 1618.61,-633.94 1618.61,-627.94 1624.61,-621.94 1630.61,-621.94 1630.61,-621.94 1751.39,-621.94 1751.39,-621.94 1757.39,-621.94 1763.39,-627.94 1763.39,-633.94 1763.39,-633.94 1763.39,-645.94 1763.39,-645.94 1763.39,-651.94 1757.39,-657.94 1751.39,-657.94"/>
-<text text-anchor="middle" x="1691" y="-641.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">[AO] Product Director</text>
-<text text-anchor="middle" x="1691" y="-630.44" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">Closeout Recommendation</text>
+<path fill="#ffffff" stroke="#7890aa" stroke-width="1.1" d="M1710.39,-657.94C1710.39,-657.94 1589.61,-657.94 1589.61,-657.94 1583.61,-657.94 1577.61,-651.94 1577.61,-645.94 1577.61,-645.94 1577.61,-633.94 1577.61,-633.94 1577.61,-627.94 1583.61,-621.94 1589.61,-621.94 1589.61,-621.94 1710.39,-621.94 1710.39,-621.94 1716.39,-621.94 1722.39,-627.94 1722.39,-633.94 1722.39,-633.94 1722.39,-645.94 1722.39,-645.94 1722.39,-651.94 1716.39,-657.94 1710.39,-657.94"/>
+<text text-anchor="middle" x="1650" y="-641.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">[AO] Product Director</text>
+<text text-anchor="middle" x="1650" y="-630.44" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">Closeout Recommendation</text>
 </g>
 <!-- outcome_disposition -->
 <g id="node41" class="node">
 <title>outcome_disposition</title>
-<path fill="#fff3c4" stroke="#b7791f" stroke-width="2" d="M1764.89,-583.56C1764.89,-583.56 1617.11,-583.56 1617.11,-583.56 1611.11,-583.56 1605.11,-577.56 1605.11,-571.56 1605.11,-571.56 1605.11,-559.56 1605.11,-559.56 1605.11,-553.56 1611.11,-547.56 1617.11,-547.56 1617.11,-547.56 1764.89,-547.56 1764.89,-547.56 1770.89,-547.56 1776.89,-553.56 1776.89,-559.56 1776.89,-559.56 1776.89,-571.56 1776.89,-571.56 1776.89,-577.56 1770.89,-583.56 1764.89,-583.56"/>
-<text text-anchor="middle" x="1691" y="-561.68" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">[H] Phase &amp; Demand Disposition</text>
+<path fill="#fff3c4" stroke="#b7791f" stroke-width="2" d="M1725.89,-583.56C1725.89,-583.56 1578.11,-583.56 1578.11,-583.56 1572.11,-583.56 1566.11,-577.56 1566.11,-571.56 1566.11,-571.56 1566.11,-559.56 1566.11,-559.56 1566.11,-553.56 1572.11,-547.56 1578.11,-547.56 1578.11,-547.56 1725.89,-547.56 1725.89,-547.56 1731.89,-547.56 1737.89,-553.56 1737.89,-559.56 1737.89,-559.56 1737.89,-571.56 1737.89,-571.56 1737.89,-577.56 1731.89,-583.56 1725.89,-583.56"/>
+<text text-anchor="middle" x="1652" y="-561.68" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00" fill="#132a44">[H] Phase &amp; Demand Disposition</text>
 </g>
 <!-- outcome_phase_authority_guard -->
 <g id="node42" class="node">
 <title>outcome_phase_authority_guard</title>
-<polygon fill="#ffffff" stroke="#b7791f" stroke-width="1.3" points="1833.64,-511.56 1642.36,-511.56 1642.36,-473.04 1839.64,-473.04 1839.64,-505.56 1833.64,-511.56"/>
-<polyline fill="none" stroke="#b7791f" stroke-width="1.3" points="1833.64,-511.56 1833.64,-505.56"/>
-<polyline fill="none" stroke="#b7791f" stroke-width="1.3" points="1839.64,-505.56 1833.64,-505.56"/>
-<text text-anchor="middle" x="1741" y="-497.72" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">[AUTHORITY GUARD]</text>
-<text text-anchor="middle" x="1741" y="-488.72" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">F16 new Phase XOR F17 same&#45;Phase resume</text>
-<text text-anchor="middle" x="1741" y="-479.72" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">terminal identities never revive</text>
+<polygon fill="#ffffff" stroke="#b7791f" stroke-width="1.3" points="1765.64,-511.56 1574.36,-511.56 1574.36,-473.04 1771.64,-473.04 1771.64,-505.56 1765.64,-511.56"/>
+<polyline fill="none" stroke="#b7791f" stroke-width="1.3" points="1765.64,-511.56 1765.64,-505.56"/>
+<polyline fill="none" stroke="#b7791f" stroke-width="1.3" points="1771.64,-505.56 1765.64,-505.56"/>
+<text text-anchor="middle" x="1673" y="-497.72" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">[AUTHORITY GUARD]</text>
+<text text-anchor="middle" x="1673" y="-488.72" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">F16 new Phase XOR F17 same&#45;Phase resume</text>
+<text text-anchor="middle" x="1673" y="-479.72" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">terminal identities never revive</text>
 </g>
 <!-- outcome_terminal_guard -->
 <g id="node43" class="node">
 <title>outcome_terminal_guard</title>
-<polygon fill="#ffffff" stroke="#b23a48" stroke-width="1.3" points="1876.27,-437.04 1649.73,-437.04 1649.73,-401.04 1882.27,-401.04 1882.27,-431.04 1876.27,-437.04"/>
-<polyline fill="none" stroke="#b23a48" stroke-width="1.3" points="1876.27,-437.04 1876.27,-431.04"/>
-<polyline fill="none" stroke="#b23a48" stroke-width="1.3" points="1882.27,-431.04 1876.27,-431.04"/>
-<text text-anchor="middle" x="1766" y="-419.96" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">[TERMINAL]</text>
-<text text-anchor="middle" x="1766" y="-410.96" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">RT = NON&#45;SUCCESS · R10 = ONLY SUCCESS ROUTE</text>
+<polygon fill="#ffffff" stroke="#b23a48" stroke-width="1.3" points="1847.27,-437.04 1620.73,-437.04 1620.73,-401.04 1853.27,-401.04 1853.27,-431.04 1847.27,-437.04"/>
+<polyline fill="none" stroke="#b23a48" stroke-width="1.3" points="1847.27,-437.04 1847.27,-431.04"/>
+<polyline fill="none" stroke="#b23a48" stroke-width="1.3" points="1853.27,-431.04 1847.27,-431.04"/>
+<text text-anchor="middle" x="1737" y="-419.96" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">[TERMINAL]</text>
+<text text-anchor="middle" x="1737" y="-410.96" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="8.50" fill="#132a44">RT = NON&#45;SUCCESS · R10 = ONLY SUCCESS ROUTE</text>
 </g>
 <!-- outcome_output -->
 <g id="node44" class="node">
