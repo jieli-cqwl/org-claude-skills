@@ -3,7 +3,7 @@
 ## Status
 
 - Visual direction: approved by the human on 2026-07-30.
-- Written design: pending final human review.
+- Written design: approved by the human on 2026-07-30.
 - Implementation: not started.
 - Normative architecture: unchanged.
 - Runtime activation: out of scope.
