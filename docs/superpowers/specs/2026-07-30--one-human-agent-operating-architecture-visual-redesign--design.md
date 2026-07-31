@@ -4,7 +4,7 @@
 
 - Visual direction: approved by the human on 2026-07-30.
 - Written design: approved by the human on 2026-07-30.
-- Implementation: not started.
+- Implementation: completed; final human visual acceptance pending.
 - Normative architecture: unchanged.
 - Runtime activation: out of scope.
 

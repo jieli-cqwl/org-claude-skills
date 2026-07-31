@@ -3,7 +3,7 @@
 ## Status
 
 - Architecture version: `TARGET-V1.2`.
-- View revision: `R3`.
+- View revision: `R4`.
 - Macro design status: approved in human co-creation on 2026-07-30.
 - Written baseline status: pending final human review.
 - Runtime status: not implemented.
