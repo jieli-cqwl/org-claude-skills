@@ -1,231 +1,1078 @@
 digraph FailureRoutingAndTerminalOutcomes {
   graph [
-    bgcolor="#F8FAFD",
-    pad="0.24",
+    rankdir=LR,
+    newrank=true,
+    compound=true,
+    ordering=out,
+    splines=ortho,
+    outputorder=edgesfirst,
+    bgcolor="#F6F8FB",
+    pad="0.22",
+    nodesep="0.25",
+    ranksep="0.42",
     labelloc=t,
-    label="FAILURE ROUTING AND REAL COMPLETION · TARGET V1.2\nDETERMINISTIC RETURN · INDEPENDENT INCIDENT LANE · HONEST TERMINAL OUTCOMES\nM0 MANUAL CONTROL · NOT RUNTIME-ACTIVE",
-    fontname="PingFang SC",
+    labeljust=l,
+    label="FAILURE ROUTING AND REAL COMPLETION\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R4\nM0 MANUAL CONTROL · Deterministic return · Independent incident closure\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
+    fontname="Helvetica-Bold",
     fontsize=22,
-    fontcolor="#172033"
+    fontcolor="#132A44"
   ];
 
-  node [shape=plain, fontname="PingFang SC", fontcolor="#172033"];
-
-  routing_map [
-    label=<
-      <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="14" CELLPADDING="0" BGCOLOR="#F8FAFD">
-        <TR>
-          <TD>
-            <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"
-                   COLOR="#8FA6C2" BGCOLOR="#FFFFFF" WIDTH="1380">
-              <TR>
-                <TD COLSPAN="6" BGCOLOR="#DDE9F8" ALIGN="LEFT">
-                  <FONT POINT-SIZE="14"><B>1 · FINDING ROUTE PACKAGE · 失败不是一句“退回去”</B></FONT>
-                </TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#EAF2FF"><B>Evidence</B><BR/>事实 + exact identity</TD>
-                <TD BGCOLOR="#EAF2FF"><B>Domain</B><BR/>PRODUCT / INCIDENT</TD>
-                <TD BGCOLOR="#EAF2FF"><B>Type</B><BR/>diagnostic / corrective / authority / terminal</TD>
-                <TD BGCOLOR="#EAF2FF"><B>One Owner</B><BR/>唯一 next action</TD>
-                <TD BGCOLOR="#FDECEC" COLOR="#B43A3A"><B>Invalidate</B><BR/>哪些结论 / 权限失效</TD>
-                <TD BGCOLOR="#FFF3C7" COLOR="#A66A00"><B>Resume</B><BR/>人决策 + 可观察条件</TD>
-              </TR>
-              <TR>
-                <TD COLSPAN="6" BGCOLOR="#FFF9E8" ALIGN="LEFT" COLOR="#A66A00">
-                  Unknown root cause 只能保持 <B>R00 DIAGNOSTIC</B>；不得猜一个修复、宣布 PASS、进入 release 或 closeout。
-                  Human containment 是权限动作，不等于根因结论；只有 trustworthy complete outcome 才证明安全。
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-        </TR>
-
-        <TR>
-          <TD>
-            <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="9"
-                   COLOR="#8FA6C2" BGCOLOR="#FFFFFF" WIDTH="1380">
-              <TR>
-                <TD COLSPAN="4" BGCOLOR="#DDE9F8" ALIGN="LEFT">
-                  <FONT POINT-SIZE="14"><B>2 · MACRO ROUTE MAP · 找到最早错误 Owner，再从受影响闸门重跑</B></FONT>
-                </TD>
-              </TR>
-              <TR>
-                <TD WIDTH="170" BGCOLOR="#DDE9F8"><B>Route family</B></TD>
-                <TD WIDTH="360" BGCOLOR="#DDE9F8"><B>Trigger</B></TD>
-                <TD WIDTH="480" BGCOLOR="#DDE9F8"><B>Accountable destination</B></TD>
-                <TD WIDTH="370" BGCOLOR="#DDE9F8"><B>Resume law</B></TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#FFF3C7" COLOR="#A66A00"><B>R00</B><BR/>DIAGNOSTIC</TD>
-                <TD ALIGN="LEFT">失败真实，但根因域未知</TD>
-                <TD ALIGN="LEFT">一个明确 diagnostic Owner；部署后默认由 Quality Owner intake</TD>
-                <TD ALIGN="LEFT">只产证据并回 R00；生产取证走 D00–D02，无 Release PASS</TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#EAF2FF"><B>R01–R03</B><BR/>CORRECTIVE</TD>
-                <TD ALIGN="LEFT">WHY / WHAT / impact coverage 错误或不完整</TD>
-                <TD ALIGN="LEFT">
-                  <B>R01 Product Director</B> · 真实问题 / 价值 / Phase<BR ALIGN="LEFT"/>
-                  <B>R02 Product Manager</B> · 行为 / 规则 / 状态 / AC<BR ALIGN="LEFT"/>
-                  <B>R03 Impact Owner</B> · 影响面 / preserved behavior
-                </TD>
-                <TD ALIGN="LEFT">依赖工件 stale；产出新 revision；刷新 Impact freeze 与全部受影响闸门</TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#EAF2FF"><B>R04–R07</B><BR/>CORRECTIVE</TD>
-                <TD ALIGN="LEFT">UX、Architecture、proof obligation 或实现错误</TD>
-                <TD ALIGN="LEFT">
-                  <B>R04 UX Owner</B> · journey / interaction<BR ALIGN="LEFT"/>
-                  <B>R05 Architecture Owner</B> · interface / data / migration / rollback<BR ALIGN="LEFT"/>
-                  <B>R06 Test Design Owner</B> · proof / coverage / QA contract<BR ALIGN="LEFT"/>
-                  <B>R07 Development Owner</B> · implementation / Manifest
-                </TD>
-                <TD ALIGN="LEFT">变化创建新 identity / revision；affected verify、review、deploy、QA 和 release gate 重跑</TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#FFF3C7" COLOR="#A66A00"><B>R08</B><BR/>AUTHORITY</TD>
-                <TD ALIGN="LEFT">环境、权限、外部依赖、前置状态或 action reconciliation 错误</TD>
-                <TD ALIGN="LEFT"><B>Human control plane</B>；product / code 结论默认保留，除非证据反驳</TD>
-                <TD ALIGN="LEFT">current state 可信 + fresh action authority；新 side effect 必须新 action identity</TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#FDECEC" COLOR="#B43A3A"><B>R09</B><BR/>AUTHORITY</TD>
-                <TD ALIGN="LEFT" BGCOLOR="#FDECEC">生产 / 诊断 / 回滚 / containment / verification / BA 失败、部分、未知或失去 current validity</TD>
-                <TD ALIGN="LEFT" BGCOLOR="#FFF9E8"><B>Human control plane</B> → containment + exact Incident Case</TD>
-                <TD ALIGN="LEFT" BGCOLOR="#FDECEC">安全状态可信、Incident resolved、无 unresolved mutation、唯一非诊断 route、fresh resume authority</TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#FDECEC" COLOR="#B43A3A"><B>RT</B><BR/>TERMINAL</TD>
-                <TD ALIGN="LEFT">Human 停止产品工作并要求 non-success closeout</TD>
-                <TD ALIGN="LEFT"><B>Product Director</B> 只产 non-success recommendation</TD>
-                <TD ALIGN="LEFT">Human 记录 honest termination；成功被禁止；open incident 继续独立处理</TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#EAF2FF"><B>R10</B><BR/>TERMINAL SUCCESS</TD>
-                <TD ALIGN="LEFT">PRODUCT 结果满足 frozen Baseline；exact production evidence current；incident empty；无 unresolved action</TD>
-                <TD ALIGN="LEFT"><B>Product Director</B> 推荐成功，<B>Human</B> 最终裁决</TD>
-                <TD ALIGN="LEFT">重新核对 current evidence；分别记录 Phase 与 Demand outcome</TD>
-              </TR>
-              <TR>
-                <TD COLSPAN="4" BGCOLOR="#FDECEC" COLOR="#B43A3A" ALIGN="LEFT">
-                  <B>BASELINE LAW</B>：首次 test action 后，R01–R07 必须映射旧义务。
-                  同一 Phase 只能保持或加强成功标准；移除 / 放宽成功义务必须 honest terminate 旧 Phase，再开新 Phase。
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-        </TR>
-
-        <TR>
-          <TD>
-            <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="14" CELLPADDING="0" WIDTH="1380">
-              <TR>
-                <TD VALIGN="TOP">
-                  <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="9"
-                         COLOR="#A66A00" BGCOLOR="#FFFFFF" WIDTH="675">
-                    <TR>
-                      <TD COLSPAN="4" BGCOLOR="#FFF3C7" ALIGN="LEFT">
-                        <FONT POINT-SIZE="14"><B>3A · PRODUCTION-ONLY DIAGNOSTIC · D00–D02</B></FONT>
-                      </TD>
-                    </TR>
-                    <TR>
-                      <TD BGCOLOR="#FFF9E8"><B>R00 accepted</B><BR/>read-only / test 不足</TD>
-                      <TD BGCOLOR="#EAF2FF"><B>D00 Owner</B><BR/>bounded evidence-only change</TD>
-                      <TD BGCOLOR="#FFF3C7"><B>D01 Human gate</B><BR/>exact package + safety limits</TD>
-                      <TD BGCOLOR="#EAF2FF"><B>D02 evidence</B><BR/>只回 R00</TD>
-                    </TR>
-                    <TR>
-                      <TD COLSPAN="4" BGCOLOR="#FDECEC" COLOR="#B43A3A" ALIGN="LEFT">
-                        Continuous safe exit；NO RELEASE PASS。Observation expiry 无需新人工决策，自动启动预授权 safe exit；
-                        无法证明安全则 incident/environment block 保持或开启，并进入 R09。
-                      </TD>
-                    </TR>
-                  </TABLE>
-                </TD>
-
-                <TD VALIGN="TOP">
-                  <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="9"
-                         COLOR="#B43A3A" BGCOLOR="#FFFFFF" WIDTH="675">
-                    <TR>
-                      <TD COLSPAN="4" BGCOLOR="#FDECEC" ALIGN="LEFT">
-                        <FONT POINT-SIZE="14"><B>3B · INCIDENT REMEDIATION · IR00–IR03</B></FONT>
-                      </TD>
-                    </TR>
-                    <TR>
-                      <TD BGCOLOR="#FDECEC"><B>IR00</B><BR/>先开 / 保留 Case + environment block</TD>
-                      <TD BGCOLOR="#FFF3C7"><B>IR01</B><BR/>Human 接受 bounded route 并调用 exact Owner</TD>
-                      <TD BGCOLOR="#EAF2FF"><B>IR02</B><BR/>按 affected gates 修复</TD>
-                      <TD BGCOLOR="#EAF2FF"><B>IR03</B><BR/>独立验证安全，Human resolve</TD>
-                    </TR>
-                    <TR>
-                      <TD COLSPAN="4" BGCOLOR="#FFF9E8" COLOR="#A66A00" ALIGN="LEFT">
-                        Product outcome 与 Incident Case 正交：product closeout 不关 incident；
-                        incident evidence 不扩产品价值、不弱化 Baseline、不复活终态、不进入 BA / R10。
-                      </TD>
-                    </TR>
-                  </TABLE>
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-        </TR>
-
-        <TR>
-          <TD>
-            <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"
-                   COLOR="#8FA6C2" BGCOLOR="#FFFFFF" WIDTH="1380">
-              <TR>
-                <TD COLSPAN="6" BGCOLOR="#DDE9F8" ALIGN="LEFT">
-                  <FONT POINT-SIZE="14"><B>4 · REAL COMPLETION · 部署成功不是产品成功</B></FONT>
-                </TD>
-              </TR>
-              <TR>
-                <TD BGCOLOR="#F4EEFC"><B>PRODUCT</B><BR/>Production Verification</TD>
-                <TD BGCOLOR="#FFF3C7" COLOR="#A66A00"><B>[H]</B><BR/>Business Acceptance</TD>
-                <TD BGCOLOR="#EAF2FF"><B>[AO]</B><BR/>Product Director recommendation</TD>
-                <TD BGCOLOR="#FFF3C7" COLOR="#A66A00"><B>[H]</B><BR/>Disposition Decision</TD>
-                <TD BGCOLOR="#FFF9E8"><B>Phase Outcome</B><BR/>success / pause / rework / terminate</TD>
-                <TD BGCOLOR="#FFF9E8"><B>Demand Outcome</B><BR/>complete / defer / terminate / continue</TD>
-              </TR>
-              <TR>
-                <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#EAF2FF">
-                  <B>F16 · NEW PHASE</B>：旧 Phase 必须 already successfully closed / terminated；
-                  Demand nonterminal；无 F17 或 competing Phase authority。
-                </TD>
-                <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#FFF9E8">
-                  <B>F17 · SAME PHASE RESUME</B>：旧 Phase paused / awaiting rework；
-                  Baseline 不变；无 F16 / new-Phase authority；affected gates 重跑。
-                </TD>
-              </TR>
-              <TR>
-                <TD COLSPAN="6" BGCOLOR="#FDECEC" COLOR="#B43A3A" ALIGN="LEFT">
-                  Successfully closed / terminated Phase 与 completed / terminated Demand 都 authority-absorbing。
-                  RT 永远 non-success；只有 R10 可推荐成功；任何 open Incident Case 都不会被 disposition 顺手关闭。
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-        </TR>
-
-        <TR>
-          <TD>
-            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="10"
-                   COLOR="#A66A00" BGCOLOR="#FFF9E8" WIDTH="1380">
-              <TR>
-                <TD ALIGN="LEFT" COLOR="#A66A00">
-                  <B>M0 SAFETY PROPERTIES</B>：
-                  ACCEPT ≠ INVOKE ≠ start ≠ action ≠ outcome；
-                  每个 environment action 只有一个 identity、authorization 至多消费一次、至多一个 effective side effect 与一个 trustworthy terminal outcome；
-                  duplicate 只能 reconcile 同一 action，新 side effect 必须 fresh authority。<BR ALIGN="LEFT"/>
-                  Failed / partial / unknown action 一律阻断 QA、verification、acceptance 与 success；
-                  failed production state 不得出现 incident block 与 safe containment 都不存在的空窗。
-                </TD>
-              </TR>
-            </TABLE>
-          </TD>
-        </TR>
-      </TABLE>
-    >
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#7890AA",
+    fillcolor="#FFFFFF",
+    fontname="Helvetica",
+    fontcolor="#132A44",
+    fontsize=11.5,
+    margin="0.11,0.08",
+    penwidth=1.2
   ];
+
+  edge [
+    color="#64748B",
+    fontname="Helvetica-Bold",
+    fontcolor="#334155",
+    fontsize=10.5,
+    arrowsize=0.75,
+    penwidth=1.3
+  ];
+
+  subgraph cluster_diagnostic {
+    label="01 DIAGNOSTIC · UNKNOWN CAUSE PRODUCES EVIDENCE, NEVER CORRECTION OR SUCCESS";
+    labelloc=t;
+    labeljust=l;
+    color="#B23A48";
+    fillcolor="#FFF7F8";
+    fontname="Helvetica-Bold";
+    fontcolor="#8F2635";
+    fontsize=15;
+    penwidth=1.8;
+    style="rounded,filled";
+    margin=16;
+
+    diagnostic_anchor [
+      shape=point,
+      style=invis,
+      width=0,
+      height=0,
+      label=""
+    ];
+
+    r00 [
+      label="[R00][DIAGNOSTIC]\nUNKNOWN ROOT-CAUSE DOMAIN\nfailure is real · domain unresolved",
+      shape=hexagon,
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=2.0
+    ];
+
+    diagnostic_owner [
+      label="[AO][DIAGNOSTIC]\nONE NAMED OWNER\npost-deployment intake: Quality Owner",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    bounded_evidence [
+      label="[EVIDENCE ONLY]\nBOUNDED DIAGNOSIS\nclassifies root-cause domain only",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
+      penwidth=1.6
+    ];
+
+    diagnostic_block [
+      label="[BLOCKED]\nNO CORRECTION · PASS · RELEASE\nBUSINESS ACCEPTANCE · R10 · CLOSEOUT",
+      shape=octagon,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=2.1
+    ];
+
+    d00 [
+      label="[D00][AO]\nROUTE-NAMED CHANGED-ASSET OWNER\nbounded evidence-only change",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    d01 [
+      label="[H-GATE][D01]\nDIAGNOSTIC PRODUCTION ACTION\nexact package · observation window\nsafety limits · continuous safe exit",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.0
+    ];
+
+    d02 [
+      label="[D02][EVIDENCE]\nTRUSTWORTHY COMPLETE OUTCOME\n+ bounded observations\nRETURN ONLY TO R00",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
+      penwidth=1.7
+    ];
+
+    no_release_pass [
+      label="[BLOCKED][PRODUCTION DIAGNOSTIC]\nNO RELEASE PASS\nexpiry initiates pre-authorized safe exit",
+      shape=octagon,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=2.0
+    ];
+
+    diagnostic_anchor -> r00 [
+      style=invis,
+      weight=40
+    ];
+
+    r00 -> diagnostic_owner [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.8
+    ];
+
+    diagnostic_owner -> bounded_evidence [
+      color="#177E89",
+      penwidth=1.6
+    ];
+
+    bounded_evidence -> r00 [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.8,
+      constraint=false
+    ];
+
+    r00 -> diagnostic_block [
+      arrowhead=tee,
+      color="#B23A48",
+      style=dashed,
+      penwidth=2.0,
+      constraint=false
+    ];
+
+    r00 -> d00 [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.8
+    ];
+
+    d00 -> d01 [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    d01 -> d02 [
+      color="#177E89",
+      penwidth=1.7
+    ];
+
+    d02 -> r00 [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.8,
+      constraint=false
+    ];
+
+    d01 -> no_release_pass [
+      arrowhead=tee,
+      color="#B23A48",
+      style=dashed,
+      penwidth=2.0,
+      constraint=false
+    ];
+
+    {
+      rank=same;
+      d00;
+      diagnostic_owner;
+    }
+
+    {
+      rank=same;
+      diagnostic_block;
+      d01;
+      bounded_evidence;
+    }
+
+    {
+      rank=same;
+      no_release_pass;
+      d02;
+    }
+
+    // Layout only: keep the ordinary R00 loop above the production-only branch.
+    d00 -> diagnostic_owner [
+      style=invis,
+      weight=80
+    ];
+
+    diagnostic_block -> d01 -> bounded_evidence [
+      style=invis,
+      weight=80
+    ];
+
+    no_release_pass -> d02 [
+      style=invis,
+      weight=80
+    ];
+  }
+
+  subgraph cluster_corrective {
+    label="02 CORRECTIVE · ROUTE TO THE EARLIEST WRONG OWNER, INVALIDATE, MAP, AND RE-ENTER";
+    labelloc=t;
+    labeljust=l;
+    color="#2F6DB0";
+    fillcolor="#F8FBFF";
+    fontname="Helvetica-Bold";
+    fontcolor="#174B80";
+    fontsize=15;
+    penwidth=1.8;
+    style="rounded,filled";
+    margin=16;
+
+    corrective_anchor [
+      shape=point,
+      style=invis,
+      width=0,
+      height=0,
+      label=""
+    ];
+
+    r01 [
+      label="[R01][CORRECTIVE]\n→ [AO] PRODUCT DIRECTOR\nactor · real problem · value\nor Active Phase is wrong",
+      shape=hexagon,
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    r02 [
+      label="[R02][CORRECTIVE]\n→ [AO] PRODUCT MANAGER\nbehavior · rule · state · permission\nProduct Unit or AC is wrong",
+      shape=hexagon,
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    r03 [
+      label="[R03][CORRECTIVE]\n→ [AO] IMPACT OWNER\naffected surface · consumer · preserved behavior\nor evidence exclusion is incomplete",
+      shape=hexagon,
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    r04 [
+      label="[R04][CORRECTIVE]\n→ [AO][CONDITIONAL] UX OWNER\njourney or interaction evidence\nis wrong or missing",
+      shape=hexagon,
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    r05 [
+      label="[R05][CORRECTIVE]\n→ [AO][CONDITIONAL] ARCHITECTURE OWNER\ninterface · data · migration · rollback\nor architecture decision is wrong",
+      shape=hexagon,
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    r06 [
+      label="[R06][CORRECTIVE]\n→ [AO] TEST DESIGN OWNER\nproof obligation · coverage\nor QA contract is wrong",
+      shape=hexagon,
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    r07 [
+      label="[R07][CORRECTIVE]\n→ [AO] DEVELOPMENT OWNER\nexpected behavior is clear;\nimplementation or Manifest is wrong",
+      shape=hexagon,
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    affected_invalidation [
+      label="[INVALIDATE][HISTORY PRESERVED]\nAFFECTED packages · qualifications · evidence\nand authority become STALE / REVOKED",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=1.9
+    ];
+
+    obligation_mapping [
+      label="[POST-BASELINE LAW]\nMAP EVERY OLD OBLIGATION TO THE NEW REVISION\nsame Phase may preserve / strengthen only\nweakened denominator → honest non-success + NEW PHASE",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=1.8
+    ];
+
+    affected_gates [
+      label="[RE-ENTRY]\nRERUN EVERY AFFECTED GATE\nidentity · review · verify · deploy · QA · release",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
+      penwidth=1.7
+    ];
+
+    fresh_corrective_evidence [
+      label="[CURRENT EVIDENCE]\nFRESH PROOF FOR THE CHANGED IDENTITY\nfailure history remains",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      penwidth=1.6
+    ];
+
+    corrective_anchor -> r01 [
+      style=invis,
+      weight=40
+    ];
+
+    r01 -> affected_invalidation [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.7
+    ];
+
+    r02 -> affected_invalidation [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.7
+    ];
+
+    r03 -> affected_invalidation [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.7
+    ];
+
+    r04 -> affected_invalidation [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.7
+    ];
+
+    r05 -> affected_invalidation [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.7
+    ];
+
+    r06 -> affected_invalidation [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.7
+    ];
+
+    r07 -> affected_invalidation [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.7
+    ];
+
+    affected_invalidation -> obligation_mapping [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    obligation_mapping -> affected_gates [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    affected_gates -> fresh_corrective_evidence [
+      color="#177E89",
+      penwidth=1.7
+    ];
+
+    {
+      rank=same;
+      r04;
+      r03;
+      r02;
+      r01;
+    }
+
+    {
+      rank=same;
+      r07;
+      r06;
+      r05;
+    }
+
+    // Layout only: keep the two corrective route columns in numeric order.
+    r04 -> r03 -> r02 -> r01 [
+      style=invis,
+      weight=100
+    ];
+
+    r07 -> r06 -> r05 [
+      style=invis,
+      weight=100
+    ];
+
+    r01 -> r05 [
+      style=invis,
+      weight=100
+    ];
+  }
+
+  subgraph cluster_authority_incident {
+    label="03 AUTHORITY & INCIDENT · RECONCILE ACTIONS; CONTAIN AND CLOSE SAFETY INDEPENDENTLY";
+    labelloc=t;
+    labeljust=l;
+    color="#B23A48";
+    fillcolor="#FFF7F8";
+    fontname="Helvetica-Bold";
+    fontcolor="#8F2635";
+    fontsize=15;
+    penwidth=1.8;
+    style="rounded,filled";
+    margin=16;
+
+    authority_anchor [
+      shape=point,
+      style=invis,
+      width=0,
+      height=0,
+      label=""
+    ];
+
+    r08 [
+      label="[R08][AUTHORITY]\nenvironment · permission · dependency\nprecondition or action reconciliation fault",
+      shape=hexagon,
+      color="#B7791F",
+      fillcolor="#FFF8E7",
+      fontcolor="#7A4B00",
+      fontname="Helvetica-Bold",
+      penwidth=1.9
+    ];
+
+    human_reconcile [
+      label="[H][RECONCILE]\nENVIRONMENT · PERMISSION · ACTION\nnew side effect requires fresh action identity",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.0
+    ];
+
+    r08_ready [
+      label="[R08 EXIT]\nTRUSTWORTHY CURRENT ENVIRONMENT STATE\n+ fresh action authority succeeds\nproduct / code conclusions retained unless contradicted",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=1.7
+    ];
+
+    r08_resume [
+      label="[ROUTE]\nRESUME THE NAMED ACTION\nunder fresh current authority",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    r09 [
+      label="[R09][AUTHORITY]\nproduction / diagnostic / rollback / containment /\nverification / BA failed · partial · unknown · stale",
+      shape=hexagon,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=2.1
+    ];
+
+    r09_block [
+      label="[BLOCKED]\nNO ACCEPTANCE · R10 · SUCCESS\nuntil safe state + resolved Incident + settled mutation\n+ one non-diagnostic route + fresh Human authority",
+      shape=octagon,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.1
+    ];
+
+    human_containment [
+      label="[H][CONTAINMENT]\nREQUEST ≠ SAFE OUTCOME\ntrustworthy complete outcome only",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.0
+    ];
+
+    ir00 [
+      label="[IR00][INCIDENT]\nOPEN / PRESERVE THE EXACT INCIDENT CASE\n+ environment-level incident block\nPRODUCT CLOSEOUT CANNOT CLOSE IT",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.0
+    ];
+
+    ir01 [
+      label="[H][IR01]\nACCEPT ONE BOUNDED INCIDENT ROUTE\ninvoke exact Owner under\nINCIDENT_REMEDIATION authority",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.0
+    ];
+
+    ir02 [
+      label="[IR02][REMEDIATION]\nBOUNDED WORK · NORMAL ROLE BOUNDARIES\nrerun every affected identity · review · test\nquality · deployment · verification gate",
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=1.9
+    ];
+
+    ir03 [
+      label="[IR03][INDEPENDENT SAFETY PROOF]\ncurrent safe environment · no unresolved mutation\ncontainment / recovery proven · Incident Verification\nHuman resolves exact Case · NO PRODUCT-SUCCESS AUTHORITY",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.0
+    ];
+
+    r09_exit [
+      label="[R09 EXIT PREREQUISITES]\nSAFE STATE · INCIDENT RESOLVED\nNO UNRESOLVED MUTATION\nONE CURRENT NON-DIAGNOSTIC ROUTE",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
+      penwidth=1.7
+    ];
+
+    fresh_resume_authority [
+      label="[H-GATE]\nFRESH RESUME AUTHORITY\nrevalidate Case · route · target · environment",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.0
+    ];
+
+    r09_resume [
+      label="[ROUTE][NON-DIAGNOSTIC]\nRESUME THE NAMED OWNER\nrerun every affected gate",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      fontname="Helvetica-Bold",
+      penwidth=1.6
+    ];
+
+    authority_anchor -> r08 [
+      style=invis,
+      weight=40
+    ];
+
+    r08 -> human_reconcile [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    human_reconcile -> r08_ready [
+      color="#177E89",
+      penwidth=1.7
+    ];
+
+    r08_ready -> r08_resume [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.8
+    ];
+
+    r09 -> r09_block [
+      color="#B23A48",
+      penwidth=2.0
+    ];
+
+    r09_block -> human_containment [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    human_containment -> ir00 [
+      color="#B23A48",
+      penwidth=2.0
+    ];
+
+    ir00 -> ir01 [
+      color="#B23A48",
+      penwidth=2.0
+    ];
+
+    ir01 -> ir02 [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    ir02 -> ir03 [
+      color="#B23A48",
+      penwidth=2.0
+    ];
+
+    ir03 -> r09_exit [
+      color="#177E89",
+      penwidth=1.7
+    ];
+
+    r09_exit -> fresh_resume_authority [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    fresh_resume_authority -> r09_resume [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    {
+      rank=same;
+      r09;
+      r08;
+    }
+
+    {
+      rank=same;
+      human_containment;
+      r09_block;
+      human_reconcile;
+    }
+
+    {
+      rank=same;
+      ir01;
+      ir00;
+      r08_ready;
+    }
+
+    {
+      rank=same;
+      ir03;
+      ir02;
+      r08_resume;
+    }
+
+    {
+      rank=same;
+      r09_resume;
+      fresh_resume_authority;
+      r09_exit;
+    }
+
+    // Layout only: R08 reconciliation stays above independent R09 incident work.
+    r09 -> r08 [
+      style=invis,
+      weight=100
+    ];
+
+    human_reconcile -> r09_block [
+      style=invis,
+      weight=100
+    ];
+
+    r08_ready -> ir00 [
+      style=invis,
+      weight=100
+    ];
+
+    r08_resume -> ir02 [
+      style=invis,
+      weight=100
+    ];
+  }
+
+  subgraph cluster_real_completion {
+    label="04 REAL COMPLETION · PRODUCTION EVIDENCE ≠ PRODUCT SUCCESS; HUMAN DISPOSITION IS FINAL";
+    labelloc=t;
+    labeljust=l;
+    color="#177E89";
+    fillcolor="#F4FBFA";
+    fontname="Helvetica-Bold";
+    fontcolor="#0F6269";
+    fontsize=15;
+    penwidth=1.8;
+    style="rounded,filled";
+    margin=16;
+
+    completion_anchor [
+      shape=point,
+      style=invis,
+      width=0,
+      height=0,
+      label=""
+    ];
+
+    production_evidence [
+      label="[PRODUCT][PRODUCTION EVIDENCE]\nTRUSTWORTHY · CURRENT · EXACT IDENTITY\nfrozen Baseline obligations pass\nempty incident set · no unresolved action",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    business_acceptance [
+      label="[H-GATE]\nBUSINESS ACCEPTANCE\naccept / reject the actual business result",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.0
+    ];
+
+    r10 [
+      label="[R10][TERMINAL]\nONLY SUCCESS ROUTE\ncurrent unrevoked PRODUCT evidence\nsatisfies frozen Success Baseline",
+      shape=doubleoctagon,
+      color="#177E89",
+      fillcolor="#D4F3EF",
+      fontcolor="#0F6269",
+      fontname="Helvetica-Bold",
+      penwidth=2.2
+    ];
+
+    human_stop [
+      label="[H]\nSTOP PRODUCT WORK\nrequest non-success closeout",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.0
+    ];
+
+    rt [
+      label="[RT][TERMINAL]\nNON-SUCCESS\nsuccessful closure prohibited\ncurrent product authority revoked",
+      shape=octagon,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=2.2
+    ];
+
+    product_director_recommendation [
+      label="[AO]\nPRODUCT DIRECTOR\nCLOSEOUT RECOMMENDATION ONLY\nHuman retains final disposition",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      fontname="Helvetica-Bold",
+      penwidth=1.6
+    ];
+
+    human_disposition [
+      label="[H][XOR]\nPHASE / DEMAND DISPOSITION\nrecord one consistent outcome\nchoose exactly one authority branch",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=2.1
+    ];
+
+    f16 [
+      label="[F16][NEW PHASE]\nDemand nonterminal · prior Phase authority-absorbing\nfresh new Phase identity + authorization\nNO F17 / resume / competing Phase authority",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=1.7
+    ];
+
+    f17 [
+      label="[F17][SAME PHASE RESUME]\npaused / awaiting rework · value + Baseline unchanged\nincident resolved · environment safe · one non-diagnostic route\nNO F16 / new-Phase / competing Phase authority",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=1.7
+    ];
+
+    no_next_authority [
+      label="[TERMINAL DISPOSITION]\nFINISH OR TERMINATE\nno resume / next-Phase authority",
+      shape=note,
+      style=filled,
+      color="#64748B",
+      fillcolor="#F8FAFC",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    f16_target [
+      label="[AO][NEW PHASE]\nPRODUCT DIRECTOR\nconsume exact authorization",
+      color="#2F6DB0",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    f17_target [
+      label="[AO][SAME PHASE]\nROUTE-NAMED EARLIEST VALID OWNER\nrerun affected gates",
+      color="#2F6DB0",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      penwidth=1.5
+    ];
+
+    phase_demand_outcomes [
+      label="[STATE]\nSEPARATE PHASE + DEMAND OUTCOMES\nPhase: success · pause · rework · terminate\nDemand: complete · defer · terminate · continue",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
+      fontsize=10.5,
+      penwidth=1.7
+    ];
+
+    incident_closure_block [
+      label="[BLOCKED]\nPRODUCT CLOSEOUT ≠ INCIDENT RESOLUTION\nopen Cases continue independently through IR00–IR03",
+      shape=octagon,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
+      fontname="Helvetica-Bold",
+      penwidth=2.0
+    ];
+
+    completion_anchor -> production_evidence [
+      style=invis,
+      weight=40
+    ];
+
+    production_evidence -> business_acceptance [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    business_acceptance -> r10 [
+      color="#177E89",
+      penwidth=1.9
+    ];
+
+    r10 -> product_director_recommendation [
+      color="#177E89",
+      penwidth=2.0
+    ];
+
+    human_stop -> rt [
+      color="#B23A48",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    rt -> product_director_recommendation [
+      color="#B23A48",
+      style=dashed,
+      penwidth=2.0
+    ];
+
+    product_director_recommendation -> human_disposition [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    human_disposition -> f16 [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    human_disposition -> f17 [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    human_disposition -> no_next_authority [
+      color="#64748B",
+      style=dashed,
+      penwidth=1.6
+    ];
+
+    f16 -> f16_target [
+      color="#2F6DB0",
+      penwidth=1.6
+    ];
+
+    f17 -> f17_target [
+      color="#2F6DB0",
+      penwidth=1.6
+    ];
+
+    no_next_authority -> phase_demand_outcomes [
+      color="#177E89",
+      penwidth=1.6
+    ];
+
+    f16 -> f17 [
+      dir=both,
+      arrowhead=tee,
+      arrowtail=tee,
+      color="#B23A48",
+      style=dashed,
+      penwidth=2.0,
+      constraint=false
+    ];
+
+    human_disposition -> phase_demand_outcomes [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.7,
+      constraint=false
+    ];
+
+    human_disposition -> incident_closure_block [
+      arrowhead=tee,
+      color="#B23A48",
+      style=dashed,
+      penwidth=2.0,
+      constraint=false
+    ];
+
+    {
+      rank=same;
+      human_stop;
+      business_acceptance;
+    }
+
+    {
+      rank=same;
+      rt;
+      r10;
+    }
+
+    {
+      rank=same;
+      no_next_authority;
+      f17;
+      f16;
+      human_disposition;
+      incident_closure_block;
+    }
+
+    {
+      rank=same;
+      phase_demand_outcomes;
+      f17_target;
+      f16_target;
+    }
+
+    // Layout only: success and RT remain parallel, never a merged terminal route.
+    human_stop -> business_acceptance [
+      style=invis,
+      weight=100
+    ];
+
+    rt -> r10 [
+      style=invis,
+      weight=100
+    ];
+  }
+
+  {
+    rank=same;
+    diagnostic_anchor;
+    corrective_anchor;
+    authority_anchor;
+    completion_anchor;
+  }
+
+  lane_order_seed [
+    shape=point,
+    style=invis,
+    width=0,
+    height=0,
+    label=""
+  ];
+
+  // Layout only: one ordered fan-out fixes the four swimlanes top-to-bottom.
+  lane_order_seed -> diagnostic_anchor [style=invis, weight=100];
+  lane_order_seed -> corrective_anchor [style=invis, weight=100];
+  lane_order_seed -> authority_anchor [style=invis, weight=100];
+  lane_order_seed -> completion_anchor [style=invis, weight=100];
 }
