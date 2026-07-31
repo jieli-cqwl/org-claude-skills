@@ -220,21 +220,18 @@ digraph AuthorityAndTeamTopology {
       ];
 
       product_director -> product_manager -> impact_owner [
-        dir=none,
-        color="#94A3B8",
-        penwidth=1.0
+        style=invis,
+        weight=20
       ];
 
       impact_owner -> ux_owner [
-        dir=none,
-        style=dashed,
-        color="#64748B"
+        style=invis,
+        weight=16
       ];
 
       impact_owner -> architecture_owner [
-        dir=none,
-        style=dashed,
-        color="#64748B"
+        style=invis,
+        weight=16
       ];
 
       {
@@ -270,9 +267,8 @@ digraph AuthorityAndTeamTopology {
       ];
 
       test_design_owner -> tech_lead [
-        dir=none,
-        color="#94A3B8",
-        penwidth=1.0
+        style=invis,
+        weight=20
       ];
     }
 
@@ -307,9 +303,8 @@ digraph AuthorityAndTeamTopology {
       ];
 
       outcome_recommendation -> outcome_evidence [
-        dir=none,
-        color="#94A3B8",
-        penwidth=1.0
+        style=invis,
+        weight=20
       ];
     }
 
@@ -340,6 +335,7 @@ digraph AuthorityAndTeamTopology {
 
       development_owner [
         label="[AO] Development Owner\nUNIQUE CODE-CHANGE DOMAIN\nverified immutable Candidate + Manifest",
+        group="development",
         fontname="Helvetica-Bold",
         fontsize=9,
         penwidth=1.5
@@ -361,6 +357,7 @@ digraph AuthorityAndTeamTopology {
 
       quality_owner [
         label="[AO] Quality Owner\nNO CODE CHANGE\nindependent QA · release recommendation\nproduction / incident verification",
+        group="quality",
         fontname="Helvetica-Bold",
         fontsize=9,
         penwidth=1.5
@@ -478,12 +475,22 @@ digraph AuthorityAndTeamTopology {
 
     {
       rank=same;
-      development_owner;
-      quality_owner;
+      outcome_recommendation;
       development_boundary;
     }
 
-    development_owner -> quality_owner -> development_boundary [
+    outcome_recommendation -> development_boundary [
+      style=invis,
+      weight=24
+    ];
+
+    {
+      rank=same;
+      development_owner;
+      quality_owner;
+    }
+
+    development_owner -> quality_owner [
       style=invis,
       weight=24
     ];
@@ -503,39 +510,6 @@ digraph AuthorityAndTeamTopology {
     style="rounded,filled";
     margin=18;
 
-    development_delegation [
-      label="[BOUNDED]\nDEVELOPMENT DELEGATION",
-      shape=diamond,
-      color="#2F6DB0",
-      fillcolor="#DDE9F8",
-      fontname="Helvetica-Bold",
-      fontcolor="#174B80",
-      fontsize=8.5,
-      penwidth=1.5
-    ];
-
-    quality_delegation [
-      label="[BOUNDED]\nQUALITY DELEGATION",
-      shape=diamond,
-      color="#2F6DB0",
-      fillcolor="#DDE9F8",
-      fontname="Helvetica-Bold",
-      fontcolor="#174B80",
-      fontsize=8.5,
-      penwidth=1.5
-    ];
-
-    {
-      rank=same;
-      development_delegation;
-      quality_delegation;
-    }
-
-    development_delegation -> quality_delegation [
-      style=invis,
-      weight=20
-    ];
-
     subgraph cluster_development_execution {
       label="DEVELOPMENT EXECUTION AGENTS · DEVELOPMENT OWNER ONLY";
       labelloc=t;
@@ -551,6 +525,7 @@ digraph AuthorityAndTeamTopology {
 
       developer [
         label="[AE] Developer\nimplementation · self-test",
+        group="development",
         fillcolor="#EEF4FA",
         fontname="Helvetica-Bold",
         fontsize=9
@@ -625,6 +600,7 @@ digraph AuthorityAndTeamTopology {
 
       qa_executor [
         label="[AE] QA Executor\nexecute · observe · capture evidence · retest",
+        group="quality",
         fillcolor="#EEF4FA",
         fontname="Helvetica-Bold",
         fontsize=9
@@ -652,42 +628,6 @@ digraph AuthorityAndTeamTopology {
     developer -> qa_executor [
       style=invis,
       weight=24
-    ];
-
-    development_delegation -> developer [
-      color="#2F6DB0",
-      penwidth=1.7,
-      arrowsize=0.75
-    ];
-
-    development_delegation -> code_fixer [
-      color="#2F6DB0",
-      penwidth=1.7,
-      arrowsize=0.75
-    ];
-
-    development_delegation -> verifier [
-      color="#2F6DB0",
-      penwidth=1.7,
-      arrowsize=0.75
-    ];
-
-    development_delegation -> code_reviewer [
-      color="#2F6DB0",
-      penwidth=1.7,
-      arrowsize=0.75
-    ];
-
-    quality_delegation -> qa_executor [
-      color="#2F6DB0",
-      penwidth=1.7,
-      arrowsize=0.75
-    ];
-
-    quality_delegation -> quality_analyst [
-      color="#2F6DB0",
-      penwidth=1.7,
-      arrowsize=0.75
     ];
 
     execution_boundary [
@@ -820,7 +760,7 @@ digraph AuthorityAndTeamTopology {
     minlen=2
   ];
 
-  development_owner -> development_delegation [
+  development_owner -> developer [
     label="delegates bounded work",
     color="#2F6DB0",
     fontcolor="#174B80",
@@ -828,10 +768,44 @@ digraph AuthorityAndTeamTopology {
     arrowsize=0.8,
     tailport=s,
     headport=n,
+    sametail="development_owner_fanout",
     constraint=false
   ];
 
-  quality_owner -> quality_delegation [
+  development_owner -> code_fixer [
+    color="#2F6DB0",
+    fontcolor="#174B80",
+    penwidth=2.0,
+    arrowsize=0.8,
+    tailport=s,
+    headport=n,
+    sametail="development_owner_fanout",
+    constraint=false
+  ];
+
+  development_owner -> verifier [
+    color="#2F6DB0",
+    fontcolor="#174B80",
+    penwidth=2.0,
+    arrowsize=0.8,
+    tailport=s,
+    headport=n,
+    sametail="development_owner_fanout",
+    constraint=false
+  ];
+
+  development_owner -> code_reviewer [
+    color="#2F6DB0",
+    fontcolor="#174B80",
+    penwidth=2.0,
+    arrowsize=0.8,
+    tailport=s,
+    headport=n,
+    sametail="development_owner_fanout",
+    constraint=false
+  ];
+
+  quality_owner -> qa_executor [
     label="delegates bounded work",
     color="#2F6DB0",
     fontcolor="#174B80",
@@ -839,6 +813,18 @@ digraph AuthorityAndTeamTopology {
     arrowsize=0.8,
     tailport=s,
     headport=n,
+    sametail="quality_owner_fanout",
+    constraint=false
+  ];
+
+  quality_owner -> quality_analyst [
+    color="#2F6DB0",
+    fontcolor="#174B80",
+    penwidth=2.0,
+    arrowsize=0.8,
+    tailport=s,
+    headport=n,
+    sametail="quality_owner_fanout",
     constraint=false
   ];
 }
