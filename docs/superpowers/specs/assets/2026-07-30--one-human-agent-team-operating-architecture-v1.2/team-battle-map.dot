@@ -1,158 +1,806 @@
 digraph TeamBattleMap {
   graph [
-    bgcolor="#F8FAFD",
-    pad="0.24",
+    rankdir=TB,
+    newrank=true,
+    compound=true,
+    ordering=out,
+    splines=polyline,
+    outputorder=edgesfirst,
+    bgcolor="#F6F8FB",
+    pad="0.28",
+    nodesep="0.28",
+    ranksep="0.50",
     labelloc=t,
-    label="ONE-HUMAN + AGENT TEAM · TARGET V1.2\nTEAM BATTLE MAP · M0 MANUAL CONTROL · NOT RUNTIME-ACTIVE",
-    fontname="PingFang SC",
-    fontsize=22,
-    fontcolor="#172033"
+    labeljust=l,
+    label="ONE-HUMAN + AGENT TEAM\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R4\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
+    fontname="Helvetica-Bold",
+    fontsize=24,
+    fontcolor="#132A44"
   ];
 
-  node [shape=plain, fontname="PingFang SC", fontcolor="#172033"];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#7890AA",
+    fillcolor="#FFFFFF",
+    fontname="Helvetica",
+    fontcolor="#132A44",
+    fontsize=10,
+    margin="0.12,0.08",
+    penwidth=1.1
+  ];
 
-  battle_map [
-    label=<
-      <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"
-             COLOR="#8FA6C2" BGCOLOR="#FFFFFF">
-        <TR>
-          <TD COLSPAN="4" BGCOLOR="#FFF3C7" COLOR="#A66A00" ALIGN="LEFT">
-            <FONT POINT-SIZE="15"><B>[H] HUMAN CONTROL PLANE · 横切全程，不是串行第一站</B></FONT><BR ALIGN="LEFT"/>
-            共创 Product / UX / Architecture · ACCEPT 精确版本 · INVOKE 下一 Owner ·
-            测试/生产部署 · 停止/回滚/containment · incident authority · 业务验收 · Phase / Demand disposition
-          </TD>
-        </TR>
-        <TR>
-          <TD COLSPAN="4" BGCOLOR="#FFF9E8" COLOR="#A66A00" ALIGN="LEFT">
-            <B>M0 RULE</B>：Owner 箭头只表示可提议 handoff；ACCEPT ≠ INVOKE ≠ actual start ≠ external action ≠ outcome。
-            每次启动都必须核对 current authority；撤权或重复命令不得产生新的有效执行。
-          </TD>
-        </TR>
-        <TR>
-          <TD WIDTH="100" BGCOLOR="#DDE9F8"><B>战役阶段</B></TD>
-          <TD WIDTH="560" BGCOLOR="#DDE9F8"><B>Agent 作战线</B></TD>
-          <TD WIDTH="330" BGCOLOR="#FFF3C7"><B>人的共创 / 权限 / 闸门</B></TD>
-          <TD WIDTH="290" BGCOLOR="#EEE6FA"><B>阶段出口与证据</B></TD>
-        </TR>
+  edge [
+    color="#64748B",
+    fontname="Helvetica",
+    fontcolor="#334155",
+    fontsize=9,
+    arrowsize=0.7,
+    penwidth=1.2
+  ];
 
-        <TR>
-          <TD BGCOLOR="#EAF2FF"><FONT POINT-SIZE="15"><B>1</B></FONT><BR/><B>DEFINE</B><BR/>找对问题</TD>
-          <TD ALIGN="LEFT">
-            <B>[AO] Product Director</B> · WHY / 真实场景 / 价值 / Active Phase<BR ALIGN="LEFT"/>
-            ↓ <B>[AO] Product Manager</B> · WHAT / 对象 / 状态 / 规则 / AC<BR ALIGN="LEFT"/>
-            ↓ <B>[AO] Impact Owner · ONE OWNER / ONE LINEAGE</B><BR ALIGN="LEFT"/>
-            discovery checkpoint → activated UX / Architecture 或显式 skip → freeze checkpoint
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#FFF9E8">
-            与 Product Director、Product Manager 深度共创；<BR ALIGN="LEFT"/>
-            需要时与 UX / Architecture 共创；<BR ALIGN="LEFT"/>
-            验收每个顶层包并逐个调用下一 Owner。
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#F4EEFC">
-            <B>[ART]</B> Director Decision Case<BR ALIGN="LEFT"/>
-            → Product Definition Package<BR ALIGN="LEFT"/>
-            → one Impact Package lineage<BR ALIGN="LEFT"/>
-            <FONT POINT-SIZE="10">blocking impact gaps = 0</FONT>
-          </TD>
-        </TR>
+  subgraph cluster_human {
+    label="HUMAN CONTROL PLANE";
+    labelloc=t;
+    labeljust=l;
+    color="#B7791F";
+    fillcolor="#FFF8E7";
+    fontname="Helvetica-Bold";
+    fontcolor="#7A4B00";
+    fontsize=15;
+    penwidth=1.6;
+    style="rounded,filled";
+    margin=16;
 
-        <TR>
-          <TD BGCOLOR="#EAF2FF"><FONT POINT-SIZE="15"><B>2</B></FONT><BR/><B>PROVE &amp; PLAN</B><BR/>先定义怎么证明</TD>
-          <TD ALIGN="LEFT">
-            <B>[AO] Test Design Owner</B> · 开发前冻结证明义务、回归面与 QA 合同<BR ALIGN="LEFT"/>
-            ↓ <B>[AO] Tech Lead</B> · 实现路径 / 依赖 / 批次 / 有界 Task 拆分
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#FFF9E8">
-            审核“能否被证明”与“是否可执行”；<BR ALIGN="LEFT"/>
-            分别验收 Test Design 与 Tech Lead 输出；<BR ALIGN="LEFT"/>
-            手动调用下一 Owner。
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#F4EEFC">
-            <B>[ART]</B> Test Design Package<BR ALIGN="LEFT"/>
-            → Tech Lead Package<BR ALIGN="LEFT"/>
-            → bounded Task Packets
-          </TD>
-        </TR>
+    human_co_create [
+      label="[H]\nco-create value/direction",
+      group="column_1",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
 
-        <TR>
-          <TD BGCOLOR="#EAF2FF"><FONT POINT-SIZE="15"><B>3</B></FONT><BR/><B>BUILD</B><BR/>达到提测标准</TD>
-          <TD ALIGN="LEFT">
-            <B>[AO] Development Owner · 唯一代码修改域</B><BR ALIGN="LEFT"/>
-            <FONT COLOR="#40566F">[AE] Developer · Code Fixer · Verifier · Code Reviewer</FONT><BR ALIGN="LEFT"/>
-            TDD / 集成 / 验证 / 评审 → immutable Candidate + environment-specific Manifest
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#FFF9E8">
-            首次 test action 前冻结 <B>Phase Success Baseline</B>；<BR ALIGN="LEFT"/>
-            验收 exact Candidate + test Manifest + Test Admission；<BR ALIGN="LEFT"/>
-            <B>[H-GATE]</B> 授权并执行测试部署；失败、部分或未知结果全部阻断 QA。
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#F4EEFC">
-            <B>[ART · IMMUTABLE]</B> Candidate<BR ALIGN="LEFT"/>
-            + test Deployment Manifest<BR ALIGN="LEFT"/>
-            + Phase Success Baseline<BR ALIGN="LEFT"/>
-            + Test Admission / trustworthy deployment outcome
-          </TD>
-        </TR>
+    human_accept_invoke [
+      label="[H]\naccept exact artifact\ninvoke next Owner",
+      group="column_2",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
 
-        <TR>
-          <TD BGCOLOR="#EAF2FF"><FONT POINT-SIZE="15"><B>4</B></FONT><BR/><B>QUALIFY &amp; RELEASE</B><BR/>独立质量与生产</TD>
-          <TD ALIGN="LEFT">
-            <B>[AO] Quality Owner · NO CODE CHANGE</B><BR ALIGN="LEFT"/>
-            <FONT COLOR="#40566F">[AE] QA Executor · Quality Analyst</FONT><BR ALIGN="LEFT"/>
-            pre-release QA / Finding 分类 / 复测 → Release Package<BR ALIGN="LEFT"/>
-            production deploy 后恢复执行独立生产验证
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#FFF9E8">
-            调用 Quality Owner；代码缺陷只 route，不顺手修；<BR ALIGN="LEFT"/>
-            验收 exact PRODUCT Release Package 与残余风险；<BR ALIGN="LEFT"/>
-            <B>[H-GATE]</B> affected incident set known + empty → 人执行生产部署；<BR ALIGN="LEFT"/>
-            current state settled 后调用生产验证；最后由人完成业务验收。
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#F4EEFC">
-            <B>[ART]</B> Release Package<BR ALIGN="LEFT"/>
-            <FONT POINT-SIZE="10">qualifies exact Candidate + production Manifest against Baseline</FONT><BR ALIGN="LEFT"/>
-            → trustworthy Production Outcome<BR ALIGN="LEFT"/>
-            → Production Verification Evidence<BR ALIGN="LEFT"/>
-            → Business Acceptance Record
-          </TD>
-        </TR>
+    human_test_deployment [
+      label="[H]\nexecute test deployment",
+      group="column_3",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
 
-        <TR>
-          <TD BGCOLOR="#EAF2FF"><FONT POINT-SIZE="15"><B>5</B></FONT><BR/><B>CLOSE &amp; LEARN</B><BR/>真实结果回流</TD>
-          <TD ALIGN="LEFT">
-            <B>[AO ACTIVITY] Product Director resumes</B><BR ALIGN="LEFT"/>
-            用 current 生产结果或人工 stop 证据产出 Closeout Recommendation；只建议，不裁决
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#FFF9E8">
-            <B>[H]</B> 记录一致的 Phase + Demand disposition：<BR ALIGN="LEFT"/>
-            F16 → closed / terminated Phase 后的 exact new Phase；F17 → paused / rework same Phase 的 exact Owner；<BR ALIGN="LEFT"/>
-            两类 authority 不得并存；<BR ALIGN="LEFT"/>
-            closed / terminated Phase 与 completed / terminated Demand 不可复活；<BR ALIGN="LEFT"/>
-            Product outcome 不关闭 open Incident Case。
-          </TD>
-          <TD ALIGN="LEFT" BGCOLOR="#F4EEFC">
-            <B>[ART]</B> Closeout Recommendation<BR ALIGN="LEFT"/>
-            → Disposition Decision<BR ALIGN="LEFT"/>
-            → separate Phase Outcome + Demand Outcome<BR ALIGN="LEFT"/>
-            <FONT POINT-SIZE="10">RT 永远 non-success；R10 才是真成功</FONT>
-          </TD>
-        </TR>
+    human_production_deployment [
+      label="[H]\nexecute production deployment",
+      group="column_4",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
 
-        <TR>
-          <TD COLSPAN="4" BGCOLOR="#FDECEC" COLOR="#B43A3A" ALIGN="LEFT">
-            <B>FAILURE RULE</B>：Finding Route 必须写明 evidence、authority domain、route type、唯一 next Owner、
-            invalidation 与 resume condition；未知根因先 DIAGNOSTIC。<BR ALIGN="LEFT"/>
-            生产诊断有界、持续可安全退出、无 Release PASS、只回 R00；失败 / partial / unknown environment action → containment + R09。<BR ALIGN="LEFT"/>
-            Phase Baseline 冻结后不得靠换标准洗掉失败；Incident remediation 独立恢复安全状态，不能复活产品终态或贡献产品成功。
-          </TD>
-        </TR>
-        <TR>
-          <TD COLSPAN="4" ALIGN="LEFT" BGCOLOR="#F5F7FA">
-            <B>图例</B>　[H] 人的权力 / 动作　 [AO] Accountable Agent Owner　
-            [AE] 有界执行 Agent　 [ART] 版本化工件　 [H-GATE] 人批准并执行的部署 / 回滚 / 业务权力闸门
-          </TD>
-        </TR>
-      </TABLE>
-    >
+    human_business_disposition [
+      label="[H]\nbusiness acceptance/disposition",
+      group="column_5",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    {
+      rank=same;
+      human_co_create;
+      human_accept_invoke;
+      human_test_deployment;
+      human_production_deployment;
+      human_business_disposition;
+    }
+
+    human_co_create -> human_accept_invoke -> human_test_deployment ->
+      human_production_deployment -> human_business_disposition [
+        style=invis,
+        weight=20
+      ];
+  }
+
+  subgraph cluster_main_path {
+    label="MAIN SYSTEM PATH · F01–F17 · HUMAN-MEDIATED HANDOFFS";
+    labelloc=t;
+    labeljust=l;
+    color="#132A44";
+    fillcolor="#EAF0F6";
+    fontname="Helvetica-Bold";
+    fontcolor="#132A44";
+    fontsize=15;
+    penwidth=1.8;
+    style="rounded,filled";
+    margin=18;
+
+    subgraph cluster_product {
+      label="01 PRODUCT DEFINITION";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      product_purpose [
+        label="Find the right problem and freeze\nthe complete product boundary.",
+        group="column_1",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      product_director [
+        label="[AO] Product Director",
+        group="column_1",
+        fontname="Helvetica-Bold"
+      ];
+
+      product_manager [
+        label="[AO] Product Manager\nActors · User touchpoints · Main/exception flows\nObjects · States · Rules · Permissions · AC",
+        group="column_1",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      product_impact_owner [
+        label="[AO] Impact Owner",
+        group="column_1",
+        fontname="Helvetica-Bold"
+      ];
+
+      product_optional_owners [
+        label="[AO][OPTIONAL] UX Owner\n[AO][OPTIONAL] Architecture Owner\nindependently activated",
+        group="column_1",
+        style="rounded,dashed,filled",
+        color="#64748B",
+        fillcolor="#F8FAFC",
+        fontsize=9
+      ];
+
+      product_output [
+        label="[ART]\nDirector Decision Case\nProduct Definition Package · Impact Freeze",
+        group="column_1",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      product_purpose -> product_director -> product_manager ->
+        product_impact_owner -> product_output [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+
+      product_impact_owner -> product_optional_owners [
+        dir=none,
+        style=dashed,
+        color="#64748B"
+      ];
+
+      product_optional_owners -> product_output [
+        dir=none,
+        style=dashed,
+        color="#64748B",
+        constraint=false
+      ];
+    }
+
+    subgraph cluster_proof {
+      label="02 PROOF & PLAN";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      proof_purpose [
+        label="Define how success will be proved,\nthen bound the work.",
+        group="column_2",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      proof_test_design_owner [
+        label="[AO] Test Design Owner",
+        group="column_2",
+        fontname="Helvetica-Bold"
+      ];
+
+      proof_tech_lead [
+        label="[AO] Tech Lead",
+        group="column_2",
+        fontname="Helvetica-Bold"
+      ];
+
+      proof_output [
+        label="[ART]\nTest Design Package · Tech Lead Package\nBounded Task Packets",
+        group="column_2",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      proof_purpose -> proof_test_design_owner -> proof_tech_lead ->
+        proof_output [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+    }
+
+    subgraph cluster_build {
+      label="03 BUILD";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      build_purpose [
+        label="Produce one verified immutable Candidate\nready for test deployment.",
+        group="column_3",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      build_development_owner [
+        label="[AO] Development Owner",
+        group="column_3",
+        fontname="Helvetica-Bold"
+      ];
+
+      build_execution_group [
+        label="[AE] Developer · [AE] Code Fixer\n[AE] Verifier · [AE] Code Reviewer",
+        group="column_3",
+        color="#7890AA",
+        fillcolor="#EEF4FA",
+        fontsize=9
+      ];
+
+      build_test_deployment [
+        label="[H-GATE]\nTest Deployment",
+        group="column_3",
+        color="#B7791F",
+        fillcolor="#FFF3C4",
+        fontname="Helvetica-Bold",
+        penwidth=2.0
+      ];
+
+      build_output [
+        label="[ART]\nPhase Success Baseline · Candidate\nTest Manifest · Test Admission · Test Outcome",
+        group="column_3",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      build_purpose -> build_development_owner -> build_execution_group ->
+        build_test_deployment -> build_output [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+    }
+
+    subgraph cluster_quality {
+      label="04 QUALITY & RELEASE";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      quality_purpose [
+        label="Independently qualify the Candidate\nand verify production.",
+        group="column_4",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      quality_owner [
+        label="[AO] Quality Owner",
+        group="column_4",
+        fontname="Helvetica-Bold"
+      ];
+
+      quality_execution_group [
+        label="[AE] QA Executor · [AE] Quality Analyst",
+        group="column_4",
+        color="#7890AA",
+        fillcolor="#EEF4FA",
+        fontsize=9
+      ];
+
+      quality_production_deployment [
+        label="[H-GATE]\nProduction Deployment",
+        group="column_4",
+        color="#B7791F",
+        fillcolor="#FFF3C4",
+        fontname="Helvetica-Bold",
+        penwidth=2.0
+      ];
+
+      quality_production_verification [
+        label="[AO] Production Verification",
+        group="column_4",
+        fontname="Helvetica-Bold"
+      ];
+
+      quality_output [
+        label="[ART]\nRelease Package · Production Outcome\nProduction Verification Evidence",
+        group="column_4",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      quality_purpose -> quality_owner -> quality_execution_group ->
+        quality_production_deployment -> quality_production_verification ->
+        quality_output [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+    }
+
+    subgraph cluster_outcome {
+      label="05 OUTCOME";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      outcome_purpose [
+        label="Judge the real business result and close honestly.",
+        group="column_5",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      outcome_business_acceptance [
+        label="[H] Business Acceptance",
+        group="column_5",
+        color="#B7791F",
+        fillcolor="#FFF3C4",
+        fontname="Helvetica-Bold",
+        penwidth=2.0
+      ];
+
+      outcome_closeout_recommendation [
+        label="[AO] Product Director\nCloseout Recommendation",
+        group="column_5",
+        fontname="Helvetica-Bold"
+      ];
+
+      outcome_disposition [
+        label="[H] Phase & Demand Disposition",
+        group="column_5",
+        color="#B7791F",
+        fillcolor="#FFF3C4",
+        fontname="Helvetica-Bold",
+        penwidth=2.0
+      ];
+
+      outcome_output [
+        label="[ART]\nBusiness Acceptance Record · Closeout Recommendation\nPhase Outcome · Demand Outcome",
+        group="column_5",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      outcome_purpose -> outcome_business_acceptance ->
+        outcome_closeout_recommendation -> outcome_disposition ->
+        outcome_output [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+    }
+
+    {
+      rank=same;
+      product_purpose;
+      proof_purpose;
+      build_purpose;
+      quality_purpose;
+      outcome_purpose;
+    }
+
+    {
+      rank=same;
+      product_output;
+      proof_output;
+      build_output;
+      quality_output;
+      outcome_output;
+    }
+
+    product_output -> proof_output [
+      label="accepted definition",
+      color="#2F6DB0",
+      fontcolor="#174B80",
+      fontname="Helvetica-Bold",
+      fontsize=9,
+      penwidth=2.0,
+      arrowsize=0.8,
+      weight=30
+    ];
+
+    proof_output -> build_output [
+      label="accepted proof & plan",
+      color="#2F6DB0",
+      fontcolor="#174B80",
+      fontname="Helvetica-Bold",
+      fontsize=9,
+      penwidth=2.0,
+      arrowsize=0.8,
+      weight=30
+    ];
+
+    build_output -> quality_output [
+      label="trusted test outcome",
+      color="#2F6DB0",
+      fontcolor="#174B80",
+      fontname="Helvetica-Bold",
+      fontsize=9,
+      penwidth=2.0,
+      arrowsize=0.8,
+      weight=30
+    ];
+
+    quality_output -> outcome_output [
+      label="trusted production evidence",
+      color="#2F6DB0",
+      fontcolor="#174B80",
+      fontname="Helvetica-Bold",
+      fontsize=9,
+      penwidth=2.0,
+      arrowsize=0.8,
+      weight=30
+    ];
+  }
+
+  subgraph cluster_state {
+    label="SHARED STATE & EVIDENCE BACKBONE";
+    labelloc=t;
+    labeljust=l;
+    color="#177E89";
+    fillcolor="#EAF8F7";
+    fontname="Helvetica-Bold";
+    fontcolor="#0F6269";
+    fontsize=15;
+    penwidth=1.6;
+    style="rounded,filled";
+    margin=16;
+
+    state_baseline [
+      label="[STATE]\nPhase Success Baseline",
+      group="column_1",
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    state_candidate [
+      label="[ART][IMMUTABLE]\nCandidate",
+      group="column_2",
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      peripheries=2,
+      penwidth=1.6
+    ];
+
+    state_manifest [
+      label="[ART]\nDeployment Manifest",
+      group="column_3",
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    state_environment [
+      label="[STATE]\nEnvironment State",
+      group="column_4",
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    state_finding_route [
+      label="[ART]\nFinding Route",
+      group="column_5",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    {
+      rank=same;
+      state_baseline;
+      state_candidate;
+      state_manifest;
+      state_environment;
+      state_finding_route;
+    }
+
+    state_baseline -> state_candidate -> state_manifest ->
+      state_environment -> state_finding_route [
+        style=invis,
+        weight=20
+      ];
+  }
+
+  subgraph cluster_failure {
+    label="FAILURE & INCIDENT LANE";
+    labelloc=t;
+    labeljust=l;
+    color="#B23A48";
+    fillcolor="#FFF1F2";
+    fontname="Helvetica-Bold";
+    fontcolor="#8F2635";
+    fontsize=15;
+    penwidth=1.7;
+    style="rounded,filled";
+    margin=16;
+
+    failure_gap [
+      label="failure/gap",
+      shape=diamond,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    failure_diagnose [
+      label="diagnose domain",
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    failure_owner [
+      label="earliest wrong Owner",
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    failure_invalidate [
+      label="invalidate affected evidence",
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    failure_reenter [
+      label="re-enter every affected gate",
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    failure_guard [
+      label="UNKNOWN cause remains DIAGNOSTIC\nfailed/indeterminate environment action ≠ success",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontsize=9
+    ];
+
+    failure_incident [
+      label="[INCIDENT]\nIncident Case closes independently\nProduct closeout does not close it",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontsize=9
+    ];
+
+    {
+      rank=same;
+      failure_gap;
+      failure_diagnose;
+      failure_owner;
+      failure_invalidate;
+      failure_reenter;
+    }
+
+    {
+      rank=same;
+      failure_guard;
+      failure_incident;
+    }
+
+    failure_gap -> failure_diagnose -> failure_owner ->
+      failure_invalidate -> failure_reenter [
+        color="#B23A48",
+        fontcolor="#8F2635",
+        penwidth=1.9,
+        arrowsize=0.8
+      ];
+
+    failure_diagnose -> failure_guard [
+      style=dashed,
+      color="#B23A48",
+      arrowhead=none
+    ];
+
+    failure_reenter -> failure_incident [
+      label="independent authority",
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      arrowhead=none
+    ];
+  }
+
+  human_co_create -> product_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_accept_invoke -> proof_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_test_deployment -> build_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_production_deployment -> quality_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_business_disposition -> outcome_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  product_output -> state_baseline [
+    style=invis,
+    weight=100
+  ];
+
+  proof_output -> state_candidate [
+    style=invis,
+    weight=100
+  ];
+
+  build_output -> state_manifest [
+    style=invis,
+    weight=100
+  ];
+
+  quality_output -> state_environment [
+    style=invis,
+    weight=100
+  ];
+
+  outcome_output -> state_finding_route [
+    style=invis,
+    weight=100
+  ];
+
+  human_test_deployment -> build_test_deployment [
+    style=dashed,
+    color="#B7791F",
+    penwidth=1.7,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  human_production_deployment -> quality_production_deployment [
+    style=dashed,
+    color="#B7791F",
+    penwidth=1.7,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  human_business_disposition -> outcome_business_acceptance [
+    style=dashed,
+    color="#B7791F",
+    penwidth=1.7,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  human_business_disposition -> outcome_disposition [
+    style=dashed,
+    color="#B7791F",
+    penwidth=1.7,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  state_finding_route -> failure_reenter [
+    dir=none,
+    style=dashed,
+    color="#B23A48",
+    penwidth=1.4
   ];
 }
