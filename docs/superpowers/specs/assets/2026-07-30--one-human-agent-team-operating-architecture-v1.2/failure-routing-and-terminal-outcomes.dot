@@ -7,14 +7,14 @@ digraph FailureRoutingAndTerminalOutcomes {
     splines=ortho,
     outputorder=edgesfirst,
     bgcolor="#F6F8FB",
-    pad="0.22",
-    nodesep="0.25",
-    ranksep="0.42",
+    pad="0.12",
+    nodesep="0.06",
+    ranksep="0.14",
     labelloc=t,
     labeljust=l,
-    label="FAILURE ROUTING AND REAL COMPLETION\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R4\nM0 MANUAL CONTROL · Deterministic return · Independent incident closure\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
+    label="FAILURE ROUTING AND REAL COMPLETION\nTARGET ARCHITECTURE · V1.2 · VIEW R5\nM0 MANUAL CONTROL · NOT RUNTIME-ACTIVE",
     fontname="Helvetica-Bold",
-    fontsize=22,
+    fontsize=20,
     fontcolor="#132A44"
   ];
 
@@ -23,34 +23,31 @@ digraph FailureRoutingAndTerminalOutcomes {
     style="rounded,filled",
     color="#7890AA",
     fillcolor="#FFFFFF",
-    fontname="Helvetica",
+    fontname="Helvetica-Bold",
     fontcolor="#132A44",
-    fontsize=11.5,
-    margin="0.11,0.08",
+    fontsize=13,
+    margin="0.07,0.05",
     penwidth=1.2
   ];
 
   edge [
     color="#64748B",
-    fontname="Helvetica-Bold",
-    fontcolor="#334155",
-    fontsize=10.5,
-    arrowsize=0.75,
+    arrowsize=0.70,
     penwidth=1.3
   ];
 
   subgraph cluster_diagnostic {
-    label="01 DIAGNOSTIC · UNKNOWN CAUSE PRODUCES EVIDENCE, NEVER CORRECTION OR SUCCESS";
+    label="01 DIAGNOSTIC · UNKNOWN CAUSE RETURNS TO R00";
     labelloc=t;
     labeljust=l;
     color="#B23A48";
     fillcolor="#FFF7F8";
     fontname="Helvetica-Bold";
     fontcolor="#8F2635";
-    fontsize=15;
-    penwidth=1.8;
+    fontsize=14;
+    penwidth=1.7;
     style="rounded,filled";
-    margin=16;
+    margin=6;
 
     diagnostic_anchor [
       shape=point,
@@ -61,79 +58,71 @@ digraph FailureRoutingAndTerminalOutcomes {
     ];
 
     r00 [
-      label="[R00][DIAGNOSTIC]\nUNKNOWN ROOT-CAUSE DOMAIN\nfailure is real · domain unresolved",
+      label="[R00] DIAGNOSTIC\nUNKNOWN ROOT-CAUSE DOMAIN",
       shape=hexagon,
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=2.0
     ];
 
     diagnostic_owner [
-      label="[AO][DIAGNOSTIC]\nONE NAMED OWNER\npost-deployment intake: Quality Owner",
+      label="[AO] DIAGNOSTIC OWNER\npost-deploy intake: Quality Owner",
       color="#2F6DB0",
       fillcolor="#EEF4FA",
-      fontname="Helvetica-Bold",
       penwidth=1.5
     ];
 
     bounded_evidence [
-      label="[EVIDENCE ONLY]\nBOUNDED DIAGNOSIS\nclassifies root-cause domain only",
+      label="[EVIDENCE ONLY]\nBOUNDED DIAGNOSIS → R00",
       shape=note,
       style=filled,
       color="#177E89",
       fillcolor="#E7F7F6",
-      fontname="Helvetica-Bold",
       penwidth=1.6
     ];
 
     diagnostic_block [
-      label="[BLOCKED]\nNO CORRECTION · PASS · RELEASE\nBUSINESS ACCEPTANCE · R10 · CLOSEOUT",
+      label="[BLOCKED]\nNO CORRECTION · PASS\nRELEASE · CLOSEOUT",
       shape=octagon,
       color="#B23A48",
       fillcolor="#FFE0E4",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
-      penwidth=2.1
+      penwidth=2.0
     ];
 
     d00 [
-      label="[D00][AO]\nROUTE-NAMED CHANGED-ASSET OWNER\nbounded evidence-only change",
+      label="[D00] CHANGED-ASSET OWNER\nbounded evidence-only change",
       color="#2F6DB0",
       fillcolor="#EEF4FA",
-      fontname="Helvetica-Bold",
       penwidth=1.5
     ];
 
     d01 [
-      label="[H-GATE][D01]\nDIAGNOSTIC PRODUCTION ACTION\nexact package · observation window\nsafety limits · continuous safe exit",
+      label="[H-GATE][D01]\nEXACT DIAG ACTION\nOBS/LIMITS · SAFE EXIT",
+      tooltip="Diagnostic production action: exact package, observation window, safety limits, continuous safe exit",
       shape=diamond,
       color="#B7791F",
       fillcolor="#FFF3C4",
       fontcolor="#7A4B00",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=2.0
     ];
 
     d02 [
-      label="[D02][EVIDENCE]\nTRUSTWORTHY COMPLETE OUTCOME\n+ bounded observations\nRETURN ONLY TO R00",
+      label="[D02] TRUSTWORTHY OBSERVATION\nRETURN ONLY TO R00",
       shape=note,
       style=filled,
       color="#177E89",
       fillcolor="#E7F7F6",
-      fontname="Helvetica-Bold",
       penwidth=1.7
     ];
 
     no_release_pass [
-      label="[BLOCKED][PRODUCTION DIAGNOSTIC]\nNO RELEASE PASS\nexpiry initiates pre-authorized safe exit",
+      label="[BLOCKED]\nNO RELEASE PASS\nEXPIRY → SAFE EXIT",
       shape=octagon,
       color="#B23A48",
       fillcolor="#FFE0E4",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=2.0
     ];
 
@@ -202,52 +191,41 @@ digraph FailureRoutingAndTerminalOutcomes {
 
     {
       rank=same;
-      d00;
       diagnostic_owner;
+      d00;
     }
 
     {
       rank=same;
-      diagnostic_block;
-      d01;
       bounded_evidence;
+      d01;
+      diagnostic_block;
     }
 
     {
       rank=same;
-      no_release_pass;
       d02;
+      no_release_pass;
     }
 
-    // Layout only: keep the ordinary R00 loop above the production-only branch.
-    d00 -> diagnostic_owner [
-      style=invis,
-      weight=80
-    ];
-
-    diagnostic_block -> d01 -> bounded_evidence [
-      style=invis,
-      weight=80
-    ];
-
-    no_release_pass -> d02 [
-      style=invis,
-      weight=80
-    ];
+    // Layout only: keep the R00 loop above the production-only branch.
+    d00 -> diagnostic_owner [style=invis, weight=80];
+    diagnostic_block -> d01 -> bounded_evidence [style=invis, weight=80];
+    no_release_pass -> d02 [style=invis, weight=80];
   }
 
   subgraph cluster_corrective {
-    label="02 CORRECTIVE · ROUTE TO THE EARLIEST WRONG OWNER, INVALIDATE, MAP, AND RE-ENTER";
+    label="02 CORRECTIVE · OWNER → INVALIDATE → MAP → RE-ENTER";
     labelloc=t;
     labeljust=l;
     color="#2F6DB0";
     fillcolor="#F8FBFF";
     fontname="Helvetica-Bold";
     fontcolor="#174B80";
-    fontsize=15;
-    penwidth=1.8;
+    fontsize=14;
+    penwidth=1.7;
     style="rounded,filled";
-    margin=16;
+    margin=6;
 
     corrective_anchor [
       shape=point,
@@ -258,116 +236,95 @@ digraph FailureRoutingAndTerminalOutcomes {
     ];
 
     r01 [
-      label="[R01][CORRECTIVE]\n→ [AO] PRODUCT DIRECTOR\nactor · real problem · value\nor Active Phase is wrong",
+      label="[R01] → PRODUCT DIRECTOR\nWHY · VALUE · PHASE",
       shape=hexagon,
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=1.8
     ];
 
     r02 [
-      label="[R02][CORRECTIVE]\n→ [AO] PRODUCT MANAGER\nbehavior · rule · state · permission\nProduct Unit or AC is wrong",
+      label="[R02] → PRODUCT MANAGER\nBEHAVIOR · RULE · STATE\nPERMISSION\nPRODUCT UNIT · AC",
       shape=hexagon,
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=1.8
     ];
 
     r03 [
-      label="[R03][CORRECTIVE]\n→ [AO] IMPACT OWNER\naffected surface · consumer · preserved behavior\nor evidence exclusion is incomplete",
+      label="[R03] → IMPACT OWNER\nSURFACES · CONSUMERS\nPRESERVED BEHAVIOR\nEXCLUSIONS",
       shape=hexagon,
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=1.8
     ];
 
     r04 [
-      label="[R04][CORRECTIVE]\n→ [AO][CONDITIONAL] UX OWNER\njourney or interaction evidence\nis wrong or missing",
+      label="[R04][CONDITIONAL]\n→ UX OWNER\nJOURNEY · INTERACTION",
       shape=hexagon,
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=1.8
     ];
 
     r05 [
-      label="[R05][CORRECTIVE]\n→ [AO][CONDITIONAL] ARCHITECTURE OWNER\ninterface · data · migration · rollback\nor architecture decision is wrong",
+      label="[R05][CONDITIONAL]\n→ ARCHITECTURE OWNER\nINTERFACE · DATA · MIGRATION\nROLLBACK · ARCH DECISION",
       shape=hexagon,
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=1.8
     ];
 
     r06 [
-      label="[R06][CORRECTIVE]\n→ [AO] TEST DESIGN OWNER\nproof obligation · coverage\nor QA contract is wrong",
+      label="[R06] → TEST DESIGN OWNER\nPROOF · COVERAGE\nQA CONTRACT",
       shape=hexagon,
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=1.8
     ];
 
     r07 [
-      label="[R07][CORRECTIVE]\n→ [AO] DEVELOPMENT OWNER\nexpected behavior is clear;\nimplementation or Manifest is wrong",
+      label="[R07] → DEVELOPMENT OWNER\nIMPLEMENTATION\nMANIFEST",
       shape=hexagon,
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=1.8
     ];
 
     affected_invalidation [
-      label="[INVALIDATE][HISTORY PRESERVED]\nAFFECTED packages · qualifications · evidence\nand authority become STALE / REVOKED",
+      label="[INVALIDATE]\nAFFECTED EVIDENCE / AUTHORITY\nSTALE OR REVOKED · HISTORY KEPT",
       shape=note,
       style=filled,
       color="#B23A48",
       fillcolor="#FFE0E4",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=1.9
     ];
 
     obligation_mapping [
-      label="[POST-BASELINE LAW]\nMAP EVERY OLD OBLIGATION TO THE NEW REVISION\nsame Phase may preserve / strengthen only\nweakened denominator → honest non-success + NEW PHASE",
+      label="[POST-BASELINE]\nMAP EVERY OLD OBLIGATION\nNO WEAKENING IN SAME PHASE",
       shape=note,
       style=filled,
       color="#B23A48",
       fillcolor="#FFFFFF",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=1.8
     ];
 
     affected_gates [
-      label="[RE-ENTRY]\nRERUN EVERY AFFECTED GATE\nidentity · review · verify · deploy · QA · release",
+      label="[RE-ENTER EVERY AFFECTED GATE]\nIDENTITY → REVIEW → VERIFY\nDEPLOY → QA → RELEASE",
       shape=note,
       style=filled,
       color="#177E89",
       fillcolor="#E7F7F6",
-      fontname="Helvetica-Bold",
       penwidth=1.7
-    ];
-
-    fresh_corrective_evidence [
-      label="[CURRENT EVIDENCE]\nFRESH PROOF FOR THE CHANGED IDENTITY\nfailure history remains",
-      shape=note,
-      style=filled,
-      color="#177E89",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold",
-      penwidth=1.6
     ];
 
     corrective_anchor -> r01 [
@@ -429,11 +386,6 @@ digraph FailureRoutingAndTerminalOutcomes {
       penwidth=1.9
     ];
 
-    affected_gates -> fresh_corrective_evidence [
-      color="#177E89",
-      penwidth=1.7
-    ];
-
     {
       rank=same;
       r04;
@@ -449,35 +401,24 @@ digraph FailureRoutingAndTerminalOutcomes {
       r05;
     }
 
-    // Layout only: keep the two corrective route columns in numeric order.
-    r04 -> r03 -> r02 -> r01 [
-      style=invis,
-      weight=100
-    ];
-
-    r07 -> r06 -> r05 [
-      style=invis,
-      weight=100
-    ];
-
-    r01 -> r05 [
-      style=invis,
-      weight=100
-    ];
+    // Layout only: two compact route columns retain numeric order.
+    r04 -> r03 -> r02 -> r01 [style=invis, weight=100];
+    r07 -> r06 -> r05 [style=invis, weight=100];
+    r01 -> r05 [style=invis, weight=100];
   }
 
   subgraph cluster_authority_incident {
-    label="03 AUTHORITY & INCIDENT · RECONCILE ACTIONS; CONTAIN AND CLOSE SAFETY INDEPENDENTLY";
+    label="03 AUTHORITY & INCIDENT · RECONCILE; CONTAIN; PROVE SAFETY";
     labelloc=t;
     labeljust=l;
     color="#B23A48";
     fillcolor="#FFF7F8";
     fontname="Helvetica-Bold";
     fontcolor="#8F2635";
-    fontsize=15;
-    penwidth=1.8;
+    fontsize=14;
+    penwidth=1.7;
     style="rounded,filled";
-    margin=16;
+    margin=6;
 
     authority_anchor [
       shape=point,
@@ -488,148 +429,119 @@ digraph FailureRoutingAndTerminalOutcomes {
     ];
 
     r08 [
-      label="[R08][AUTHORITY]\nenvironment · permission · dependency\nprecondition or action reconciliation fault",
+      label="[R08] AUTHORITY\nENV · PERMISSION\nDEPENDENCY · PRECONDITION\nACTION",
       shape=hexagon,
       color="#B7791F",
       fillcolor="#FFF8E7",
       fontcolor="#7A4B00",
-      fontname="Helvetica-Bold",
       penwidth=1.9
     ];
 
     human_reconcile [
-      label="[H][RECONCILE]\nENVIRONMENT · PERMISSION · ACTION\nnew side effect requires fresh action identity",
+      label="[H] RECONCILE\nCURRENT STATE\nACTION",
       shape=diamond,
       color="#B7791F",
       fillcolor="#FFF3C4",
       fontcolor="#7A4B00",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=2.0
     ];
 
     r08_ready [
-      label="[R08 EXIT]\nTRUSTWORTHY CURRENT ENVIRONMENT STATE\n+ fresh action authority succeeds\nproduct / code conclusions retained unless contradicted",
+      label="[R08 EXIT]\nTRUSTWORTHY STATE + FRESH AUTHORITY",
       shape=note,
       style=filled,
       color="#177E89",
       fillcolor="#E7F7F6",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=1.7
     ];
 
-    r08_resume [
-      label="[ROUTE]\nRESUME THE NAMED ACTION\nunder fresh current authority",
-      color="#2F6DB0",
-      fillcolor="#EEF4FA",
-      fontname="Helvetica-Bold",
-      penwidth=1.5
-    ];
-
     r09 [
-      label="[R09][AUTHORITY]\nproduction / diagnostic / rollback / containment /\nverification / BA failed · partial · unknown · stale",
+      label="[R09] AUTHORITY\nPROD / DIAGNOSTIC\nROLLBACK / CONTAINMENT\nVERIFICATION / BA\nNOT TRUSTWORTHY",
       shape=hexagon,
       color="#B23A48",
       fillcolor="#FFE0E4",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
       penwidth=2.1
     ];
 
     r09_block [
-      label="[BLOCKED]\nNO ACCEPTANCE · R10 · SUCCESS\nuntil safe state + resolved Incident + settled mutation\n+ one non-diagnostic route + fresh Human authority",
+      label="[BLOCKED]\nNO ACCEPTANCE · R10\nSUCCESS",
       shape=octagon,
       color="#B23A48",
       fillcolor="#FFE0E4",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=2.1
     ];
 
     human_containment [
-      label="[H][CONTAINMENT]\nREQUEST ≠ SAFE OUTCOME\ntrustworthy complete outcome only",
+      label="[H] CONTAIN\nTRUSTWORTHY\nSAFE OUTCOME",
       shape=diamond,
       color="#B7791F",
       fillcolor="#FFF3C4",
       fontcolor="#7A4B00",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=2.0
     ];
 
     ir00 [
-      label="[IR00][INCIDENT]\nOPEN / PRESERVE THE EXACT INCIDENT CASE\n+ environment-level incident block\nPRODUCT CLOSEOUT CANNOT CLOSE IT",
+      label="[IR00] EXACT INCIDENT CASE\n+ ENVIRONMENT BLOCK\nPRODUCT CLOSEOUT CANNOT CLOSE",
       shape=note,
       style=filled,
       color="#B23A48",
       fillcolor="#FFE0E4",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=2.0
     ];
 
     ir01 [
-      label="[H][IR01]\nACCEPT ONE BOUNDED INCIDENT ROUTE\ninvoke exact Owner under\nINCIDENT_REMEDIATION authority",
+      label="[H][IR01]\nBOUNDED INCIDENT\nROUTE · IR AUTHORITY",
+      tooltip="Human accepts one bounded incident route and invokes the exact Owner under INCIDENT_REMEDIATION authority",
       shape=diamond,
       color="#B7791F",
       fillcolor="#FFF3C4",
       fontcolor="#7A4B00",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=2.0
     ];
 
     ir02 [
-      label="[IR02][REMEDIATION]\nBOUNDED WORK · NORMAL ROLE BOUNDARIES\nrerun every affected identity · review · test\nquality · deployment · verification gate",
+      label="[IR02] NORMAL ROLE BOUNDARIES\nEVERY AFFECTED REMEDIATION GATE",
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=1.9
     ];
 
     ir03 [
-      label="[IR03][INDEPENDENT SAFETY PROOF]\ncurrent safe environment · no unresolved mutation\ncontainment / recovery proven · Incident Verification\nHuman resolves exact Case · NO PRODUCT-SUCCESS AUTHORITY",
+      label="[IR03] INDEPENDENT SAFETY PROOF\nSAFE ENV · NO MUTATION\nRECOVERY PROVEN · HUMAN RESOLVES CASE\nNO PRODUCT-SUCCESS AUTHORITY",
       shape=note,
       style=filled,
       color="#B23A48",
       fillcolor="#FFFFFF",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=2.0
     ];
 
     r09_exit [
-      label="[R09 EXIT PREREQUISITES]\nSAFE STATE · INCIDENT RESOLVED\nNO UNRESOLVED MUTATION\nONE CURRENT NON-DIAGNOSTIC ROUTE",
+      label="[R09 EXIT]\nSAFE · INCIDENT RESOLVED\nMUTATION SETTLED\nONE NON-DIAGNOSTIC ROUTE",
       shape=note,
       style=filled,
       color="#177E89",
       fillcolor="#E7F7F6",
-      fontname="Helvetica-Bold",
       penwidth=1.7
     ];
 
     fresh_resume_authority [
-      label="[H-GATE]\nFRESH RESUME AUTHORITY\nrevalidate Case · route · target · environment",
+      label="[H-GATE]\nFRESH RESUME\nAUTHORITY",
       shape=diamond,
       color="#B7791F",
       fillcolor="#FFF3C4",
       fontcolor="#7A4B00",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=2.0
     ];
 
     r09_resume [
-      label="[ROUTE][NON-DIAGNOSTIC]\nRESUME THE NAMED OWNER\nrerun every affected gate",
+      label="[NON-DIAGNOSTIC ROUTE]\nNAMED OWNER · AFFECTED GATES",
       color="#2F6DB0",
       fillcolor="#EEF4FA",
-      fontname="Helvetica-Bold",
       penwidth=1.6
     ];
 
@@ -647,12 +559,6 @@ digraph FailureRoutingAndTerminalOutcomes {
     human_reconcile -> r08_ready [
       color="#177E89",
       penwidth=1.7
-    ];
-
-    r08_ready -> r08_resume [
-      color="#B7791F",
-      style=dashed,
-      penwidth=1.8
     ];
 
     r09 -> r09_block [
@@ -706,72 +612,62 @@ digraph FailureRoutingAndTerminalOutcomes {
 
     {
       rank=same;
-      r09;
       r08;
+      r09;
     }
 
     {
       rank=same;
-      human_containment;
-      r09_block;
       human_reconcile;
+      r09_block;
     }
 
     {
       rank=same;
-      ir01;
-      ir00;
       r08_ready;
+      human_containment;
     }
 
     {
       rank=same;
-      ir03;
+      ir00;
+      ir01;
+    }
+
+    {
+      rank=same;
       ir02;
-      r08_resume;
-    }
-
-    {
-      rank=same;
-      r09_resume;
-      fresh_resume_authority;
+      ir03;
       r09_exit;
     }
 
-    // Layout only: R08 reconciliation stays above independent R09 incident work.
-    r09 -> r08 [
-      style=invis,
-      weight=100
-    ];
+    {
+      rank=same;
+      fresh_resume_authority;
+      r09_resume;
+    }
 
-    human_reconcile -> r09_block [
-      style=invis,
-      weight=100
-    ];
-
-    r08_ready -> ir00 [
-      style=invis,
-      weight=100
-    ];
-
-    r08_resume -> ir02 [
-      style=invis,
-      weight=100
-    ];
+    // Layout only: R08 stays above independent R09 incident work.
+    r09 -> r08 [style=invis, weight=100];
+    r09_block -> human_reconcile [style=invis, weight=100];
+    human_containment -> r08_ready [style=invis, weight=100];
+    ir01 -> ir00 [style=invis, weight=100];
+    r09_exit -> ir03 -> ir02 [style=invis, weight=100];
+    r09_resume -> fresh_resume_authority [style=invis, weight=100];
   }
 
   subgraph cluster_real_completion {
-    label="04 REAL COMPLETION · PRODUCTION EVIDENCE ≠ PRODUCT SUCCESS; HUMAN DISPOSITION IS FINAL";
+    label="04 REAL COMPLETION · ACCEPTED SUCCESS AND RT NON-SUCCESS NEVER MERGE";
     labelloc=t;
     labeljust=l;
     color="#177E89";
     fillcolor="#F4FBFA";
     fontname="Helvetica-Bold";
     fontcolor="#0F6269";
-    fontsize=15;
-    penwidth=1.8;
+    fontsize=14;
+    penwidth=1.7;
     style="rounded,filled";
-    margin=16;
+    margin=6;
 
     completion_anchor [
       shape=point,
@@ -782,138 +678,164 @@ digraph FailureRoutingAndTerminalOutcomes {
     ];
 
     production_evidence [
-      label="[PRODUCT][PRODUCTION EVIDENCE]\nTRUSTWORTHY · CURRENT · EXACT IDENTITY\nfrozen Baseline obligations pass\nempty incident set · no unresolved action",
+      label="[PRODUCT EVIDENCE]\nTRUSTWORTHY · CURRENT\nEXACT IDENTITY · BASELINE PASS\nNO OPEN CASE / ACTION",
       shape=note,
       style=filled,
       color="#177E89",
       fillcolor="#E7F7F6",
-      fontname="Helvetica-Bold",
       penwidth=1.8
     ];
 
     business_acceptance [
-      label="[H-GATE]\nBUSINESS ACCEPTANCE\naccept / reject the actual business result",
+      label="[H-GATE][DECISION]\nBUSINESS\nACCEPTANCE",
       shape=diamond,
       color="#B7791F",
       fillcolor="#FFF3C4",
       fontcolor="#7A4B00",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
       penwidth=2.0
     ];
 
-    r10 [
-      label="[R10][TERMINAL]\nONLY SUCCESS ROUTE\ncurrent unrevoked PRODUCT evidence\nsatisfies frozen Success Baseline",
-      shape=doubleoctagon,
-      color="#177E89",
-      fillcolor="#D4F3EF",
-      fontcolor="#0F6269",
-      fontname="Helvetica-Bold",
-      penwidth=2.2
-    ];
-
-    human_stop [
-      label="[H]\nSTOP PRODUCT WORK\nrequest non-success closeout",
-      shape=diamond,
-      color="#B7791F",
-      fillcolor="#FFF3C4",
-      fontcolor="#7A4B00",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
-      penwidth=2.0
-    ];
-
-    rt [
-      label="[RT][TERMINAL]\nNON-SUCCESS\nsuccessful closure prohibited\ncurrent product authority revoked",
-      shape=octagon,
-      color="#B23A48",
-      fillcolor="#FFE0E4",
-      fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
-      penwidth=2.2
-    ];
-
-    product_director_recommendation [
-      label="[AO]\nPRODUCT DIRECTOR\nCLOSEOUT RECOMMENDATION ONLY\nHuman retains final disposition",
-      color="#2F6DB0",
-      fillcolor="#EEF4FA",
-      fontname="Helvetica-Bold",
-      penwidth=1.6
-    ];
-
-    human_disposition [
-      label="[H][XOR]\nPHASE / DEMAND DISPOSITION\nrecord one consistent outcome\nchoose exactly one authority branch",
-      shape=diamond,
-      color="#B7791F",
-      fillcolor="#FFF3C4",
-      fontcolor="#7A4B00",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
-      penwidth=2.1
-    ];
-
-    f16 [
-      label="[F16][NEW PHASE]\nDemand nonterminal · prior Phase authority-absorbing\nfresh new Phase identity + authorization\nNO F17 / resume / competing Phase authority",
-      color="#2F6DB0",
-      fillcolor="#EEF4FA",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
-      penwidth=1.7
-    ];
-
-    f17 [
-      label="[F17][SAME PHASE RESUME]\npaused / awaiting rework · value + Baseline unchanged\nincident resolved · environment safe · one non-diagnostic route\nNO F16 / new-Phase / competing Phase authority",
-      color="#2F6DB0",
-      fillcolor="#EEF4FA",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
-      penwidth=1.7
-    ];
-
-    no_next_authority [
-      label="[TERMINAL DISPOSITION]\nFINISH OR TERMINATE\nno resume / next-Phase authority",
-      shape=note,
-      style=filled,
-      color="#64748B",
-      fillcolor="#F8FAFC",
-      fontname="Helvetica-Bold",
-      penwidth=1.5
-    ];
-
-    f16_target [
-      label="[AO][NEW PHASE]\nPRODUCT DIRECTOR\nconsume exact authorization",
-      color="#2F6DB0",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold",
-      penwidth=1.5
-    ];
-
-    f17_target [
-      label="[AO][SAME PHASE]\nROUTE-NAMED EARLIEST VALID OWNER\nrerun affected gates",
-      color="#2F6DB0",
-      fillcolor="#FFFFFF",
-      fontname="Helvetica-Bold",
-      penwidth=1.5
-    ];
-
-    phase_demand_outcomes [
-      label="[STATE]\nSEPARATE PHASE + DEMAND OUTCOMES\nPhase: success · pause · rework · terminate\nDemand: complete · defer · terminate · continue",
+    accepted_product_result [
+      label="[ACCEPTED PRODUCT RESULT]\nCURRENT · EXACT IDENTITY",
       shape=note,
       style=filled,
       color="#177E89",
       fillcolor="#E7F7F6",
-      fontname="Helvetica-Bold",
-      fontsize=10.5,
-      penwidth=1.7
+      fontcolor="#0F6269",
+      penwidth=1.8
     ];
 
-    incident_closure_block [
-      label="[BLOCKED]\nPRODUCT CLOSEOUT ≠ INCIDENT RESOLUTION\nopen Cases continue independently through IR00–IR03",
+    business_nonaccepted [
+      label="[NOT ACCEPTED]\nREJECT · STALE\nFAILED · UNSAFE\n→ R09",
       shape=octagon,
       color="#B23A48",
       fillcolor="#FFE0E4",
       fontcolor="#8F2635",
-      fontname="Helvetica-Bold",
+      penwidth=2.0
+    ];
+
+    r10 [
+      label="[R10]\nONLY SUCCESS ROUTE\nUNREVOKED PRODUCT\nEVIDENCE\nFROZEN BASELINE SATISFIED",
+      shape=doubleoctagon,
+      color="#177E89",
+      fillcolor="#D4F3EF",
+      fontcolor="#0F6269",
+      penwidth=2.2
+    ];
+
+    pd_success_recommendation [
+      label="[AO] PRODUCT DIRECTOR\nSUCCESS CLOSEOUT RECOMMENDATION",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      penwidth=1.6
+    ];
+
+    human_success_disposition [
+      label="[H-GATE]\nSUCCESS\nDISPOSITION",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      penwidth=2.0
+    ];
+
+    success_outcomes [
+      label="[SUCCESS OUTCOMES]\nPHASE SUCCESSFULLY CLOSED\nDEMAND COMPLETE / NONTERMINAL",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#D4F3EF",
+      fontcolor="#0F6269",
+      penwidth=2.0
+    ];
+
+    human_stop [
+      label="[H]\nSTOP PRODUCT\nWORK",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      penwidth=2.0
+    ];
+
+    rt [
+      label="[RT]\nNON-SUCCESS\nSUCCESS PROHIBITED\nPRODUCT AUTHORITY\nREVOKED",
+      shape=octagon,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
+      penwidth=2.2
+    ];
+
+    pd_non_success_recommendation [
+      label="[AO] PRODUCT DIRECTOR\nNON-SUCCESS RECOMMENDATION",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      penwidth=1.6
+    ];
+
+    human_non_success_disposition [
+      label="[H-GATE]\nNON-SUCCESS\nDISPOSITION",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      penwidth=2.0
+    ];
+
+    non_success_outcomes [
+      label="[NON-SUCCESS OUTCOMES]\nPHASE TERMINATED NON-SUCCESS\nDEMAND DEFERRED / TERMINATED\nNONTERMINAL",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFF1F2",
+      fontcolor="#8F2635",
+      penwidth=2.0
+    ];
+
+    paused_rework_state [
+      label="[H DISPOSITION]\nPAUSED / AWAITING REWORK\nBASELINE UNCHANGED\nDEMAND NONTERMINAL",
+      shape=note,
+      style=filled,
+      color="#64748B",
+      fillcolor="#F8FAFC",
+      penwidth=1.6
+    ];
+
+    f16 [
+      label="[F16] NEW PHASE\nPRIOR PHASE AUTHORITY-ABSORBING\nNO F17 / COMPETING AUTHORITY",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      penwidth=1.7
+    ];
+
+    f17 [
+      label="[F17] SAME PHASE RESUME\nPAUSED / REWORK · SAFE · ONE ROUTE\nNO F16 / NEW-PHASE AUTHORITY",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      penwidth=1.7
+    ];
+
+    f16_target [
+      label="[AO] PRODUCT DIRECTOR\nNEW PHASE",
+      color="#2F6DB0",
+      fillcolor="#FFFFFF",
+      penwidth=1.5
+    ];
+
+    f17_target [
+      label="[AO] EARLIEST VALID OWNER\nSAME PHASE · AFFECTED GATES",
+      color="#2F6DB0",
+      fillcolor="#FFFFFF",
+      penwidth=1.5
+    ];
+
+    incident_closure_block [
+      label="[BLOCKED]\nPRODUCT CLOSEOUT ≠\nINCIDENT RESOLUTION",
+      shape=octagon,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontcolor="#8F2635",
       penwidth=2.0
     ];
 
@@ -928,50 +850,84 @@ digraph FailureRoutingAndTerminalOutcomes {
       penwidth=1.9
     ];
 
-    business_acceptance -> r10 [
+    business_acceptance -> accepted_product_result [
       color="#177E89",
       penwidth=1.9
     ];
 
-    r10 -> product_director_recommendation [
+    accepted_product_result -> r10 [
       color="#177E89",
       penwidth=2.0
+    ];
+
+    business_acceptance -> business_nonaccepted [
+      color="#B23A48",
+      style=dashed,
+      penwidth=2.0
+    ];
+
+    business_nonaccepted -> r09 [
+      color="#B23A48",
+      style=dashed,
+      penwidth=2.0,
+      constraint=false
+    ];
+
+    r10 -> pd_success_recommendation [
+      color="#177E89",
+      penwidth=2.0
+    ];
+
+    pd_success_recommendation -> human_success_disposition [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    human_success_disposition -> success_outcomes [
+      color="#177E89",
+      penwidth=1.9
     ];
 
     human_stop -> rt [
       color="#B23A48",
       style=dashed,
-      penwidth=1.9
+      penwidth=2.0
     ];
 
-    rt -> product_director_recommendation [
+    rt -> pd_non_success_recommendation [
       color="#B23A48",
       style=dashed,
       penwidth=2.0
     ];
 
-    product_director_recommendation -> human_disposition [
+    pd_non_success_recommendation -> human_non_success_disposition [
       color="#B7791F",
       style=dashed,
       penwidth=1.9
     ];
 
-    human_disposition -> f16 [
-      color="#B7791F",
-      style=dashed,
-      penwidth=1.9
+    human_non_success_disposition -> non_success_outcomes [
+      color="#B23A48",
+      penwidth=2.0
     ];
 
-    human_disposition -> f17 [
+    success_outcomes -> f16 [
       color="#B7791F",
       style=dashed,
-      penwidth=1.9
+      penwidth=1.8
     ];
 
-    human_disposition -> no_next_authority [
-      color="#64748B",
+    non_success_outcomes -> f16 [
+      color="#B7791F",
       style=dashed,
-      penwidth=1.6
+      penwidth=1.8
+    ];
+
+    paused_rework_state -> f17 [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.8
     ];
 
     f16 -> f16_target [
@@ -981,11 +937,6 @@ digraph FailureRoutingAndTerminalOutcomes {
 
     f17 -> f17_target [
       color="#2F6DB0",
-      penwidth=1.6
-    ];
-
-    no_next_authority -> phase_demand_outcomes [
-      color="#177E89",
       penwidth=1.6
     ];
 
@@ -999,14 +950,15 @@ digraph FailureRoutingAndTerminalOutcomes {
       constraint=false
     ];
 
-    human_disposition -> phase_demand_outcomes [
-      color="#B7791F",
+    human_success_disposition -> incident_closure_block [
+      arrowhead=tee,
+      color="#B23A48",
       style=dashed,
-      penwidth=1.7,
+      penwidth=2.0,
       constraint=false
     ];
 
-    human_disposition -> incident_closure_block [
+    human_non_success_disposition -> incident_closure_block [
       arrowhead=tee,
       color="#B23A48",
       style=dashed,
@@ -1016,42 +968,57 @@ digraph FailureRoutingAndTerminalOutcomes {
 
     {
       rank=same;
+      production_evidence;
       human_stop;
+      paused_rework_state;
+    }
+
+    {
+      rank=same;
       business_acceptance;
-    }
-
-    {
-      rank=same;
       rt;
-      r10;
     }
 
     {
       rank=same;
-      no_next_authority;
-      f17;
-      f16;
-      human_disposition;
+      accepted_product_result;
+      business_nonaccepted;
+      pd_non_success_recommendation;
+    }
+
+    {
+      rank=same;
+      r10;
+      pd_success_recommendation;
+      human_non_success_disposition;
+    }
+
+    {
+      rank=same;
+      human_success_disposition;
+      success_outcomes;
+      non_success_outcomes;
       incident_closure_block;
     }
 
     {
       rank=same;
-      phase_demand_outcomes;
-      f17_target;
+      f16;
       f16_target;
+      f17;
+      f17_target;
     }
 
-    // Layout only: success and RT remain parallel, never a merged terminal route.
-    human_stop -> business_acceptance [
-      style=invis,
-      weight=100
-    ];
-
-    rt -> r10 [
-      style=invis,
-      weight=100
-    ];
+    // Layout only: compact vertical stacks preserve three independent tracks.
+    paused_rework_state -> human_stop -> production_evidence [style=invis, weight=100];
+    rt -> business_acceptance [style=invis, weight=100];
+    pd_non_success_recommendation -> business_nonaccepted ->
+      accepted_product_result [style=invis, weight=100];
+    human_non_success_disposition -> pd_success_recommendation ->
+      r10 [style=invis, weight=100];
+    incident_closure_block -> non_success_outcomes ->
+      success_outcomes -> human_success_disposition [style=invis, weight=100];
+    f17_target -> f17 -> f16_target -> f16 [style=invis, weight=100];
   }
 
   {
@@ -1070,7 +1037,7 @@ digraph FailureRoutingAndTerminalOutcomes {
     label=""
   ];
 
-  // Layout only: one ordered fan-out fixes the four swimlanes top-to-bottom.
+  // Layout only: one ordered fan-out fixes the swimlanes top-to-bottom.
   lane_order_seed -> diagnostic_anchor [style=invis, weight=100];
   lane_order_seed -> corrective_anchor [style=invis, weight=100];
   lane_order_seed -> authority_anchor [style=invis, weight=100];
