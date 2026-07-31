@@ -238,7 +238,7 @@ digraph TeamBattleMap {
       ];
 
       product_output [
-        label="[EVIDENCE]\nDirector Decision Case\nProduct Definition Package\nImpact Freeze",
+        label="[ART]\nDirector Decision Case\nProduct Definition Package\nImpact Freeze",
         group="column_1",
         shape=note,
         style=filled,
@@ -323,7 +323,7 @@ digraph TeamBattleMap {
       ];
 
       proof_output [
-        label="[EVIDENCE]\nTest Design Package\nTech Lead Package\nBounded Task Packets",
+        label="[ART]\nTest Design Package\nTech Lead Package\nBounded Task Packets",
         group="column_2",
         shape=note,
         style=filled,
@@ -423,7 +423,7 @@ digraph TeamBattleMap {
       ];
 
       build_output [
-        label="[BUILD EVIDENCE]\nPhase Success Baseline\nCandidate · Test Manifest\nTest Admission · Test Outcome",
+        label="[ART]\nPhase Success Baseline\nCandidate · Test Manifest\nTest Admission · Test Outcome",
         group="column_3",
         shape=note,
         style=filled,
@@ -568,7 +568,7 @@ digraph TeamBattleMap {
       ];
 
       quality_output [
-        label="[EVIDENCE]\nRelease Package\nProduction Outcome\nProduction Verification\nEvidence",
+        label="[ART]\nRelease Package\nProduction Outcome\nProduction Verification\nEvidence",
         group="column_4",
         shape=note,
         style=filled,
@@ -706,7 +706,7 @@ digraph TeamBattleMap {
       ];
 
       outcome_output [
-        label="[EVIDENCE]\nBusiness Acceptance Record\nCloseout Recommendation\nPhase Outcome · Demand Outcome",
+        label="[ART]\nBusiness Acceptance Record\nCloseout Recommendation\nPhase Outcome · Demand Outcome",
         group="column_5",
         shape=note,
         style=filled,

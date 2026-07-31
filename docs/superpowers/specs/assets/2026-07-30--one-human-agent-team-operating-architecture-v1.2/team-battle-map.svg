@@ -502,7 +502,7 @@
 <polygon fill="#e7f7f6" stroke="#177e89" stroke-width="1.5" points="479.13,-389.4 316.87,-389.4 316.87,-329.76 485.13,-329.76 485.13,-383.4 479.13,-389.4"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="479.13,-389.4 479.13,-383.4"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="485.13,-383.4 479.13,-383.4"/>
-<text text-anchor="middle" x="401" y="-373.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[EVIDENCE]</text>
+<text text-anchor="middle" x="401" y="-373.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[ART]</text>
 <text text-anchor="middle" x="401" y="-360.94" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Director Decision Case</text>
 <text text-anchor="middle" x="401" y="-348.19" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Product Definition Package</text>
 <text text-anchor="middle" x="401" y="-335.44" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Impact Freeze</text>
@@ -533,7 +533,7 @@
 <polygon fill="#e7f7f6" stroke="#177e89" stroke-width="1.5" points="724.38,-389.4 587.62,-389.4 587.62,-329.76 730.38,-329.76 730.38,-383.4 724.38,-389.4"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="724.38,-389.4 724.38,-383.4"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="730.38,-383.4 724.38,-383.4"/>
-<text text-anchor="middle" x="659" y="-373.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[EVIDENCE]</text>
+<text text-anchor="middle" x="659" y="-373.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[ART]</text>
 <text text-anchor="middle" x="659" y="-360.94" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Test Design Package</text>
 <text text-anchor="middle" x="659" y="-348.19" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Tech Lead Package</text>
 <text text-anchor="middle" x="659" y="-335.44" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Bounded Task Packets</text>
@@ -597,7 +597,7 @@
 <polygon fill="#e7f7f6" stroke="#177e89" stroke-width="1.5" points="1043.76,-389.4 864.24,-389.4 864.24,-329.76 1049.76,-329.76 1049.76,-383.4 1043.76,-389.4"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="1043.76,-389.4 1043.76,-383.4"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="1049.76,-383.4 1043.76,-383.4"/>
-<text text-anchor="middle" x="957" y="-373.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[BUILD EVIDENCE]</text>
+<text text-anchor="middle" x="957" y="-373.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[ART]</text>
 <text text-anchor="middle" x="957" y="-360.94" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Phase Success Baseline</text>
 <text text-anchor="middle" x="957" y="-348.19" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Candidate · Test Manifest</text>
 <text text-anchor="middle" x="957" y="-335.44" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Test Admission · Test Outcome</text>
@@ -655,7 +655,7 @@
 <polygon fill="#e7f7f6" stroke="#177e89" stroke-width="1.5" points="1298.01,-395.78 1161.99,-395.78 1161.99,-323.39 1304.01,-323.39 1304.01,-389.78 1298.01,-395.78"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="1298.01,-395.78 1298.01,-389.78"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="1304.01,-389.78 1298.01,-389.78"/>
-<text text-anchor="middle" x="1233" y="-380.06" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[EVIDENCE]</text>
+<text text-anchor="middle" x="1233" y="-380.06" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[ART]</text>
 <text text-anchor="middle" x="1233" y="-367.31" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Release Package</text>
 <text text-anchor="middle" x="1233" y="-354.56" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Production Outcome</text>
 <text text-anchor="middle" x="1233" y="-341.81" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Production Verification</text>
@@ -725,7 +725,7 @@
 <polygon fill="#e7f7f6" stroke="#177e89" stroke-width="1.5" points="1666.01,-389.4 1457.99,-389.4 1457.99,-329.76 1672.01,-329.76 1672.01,-383.4 1666.01,-389.4"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="1666.01,-389.4 1666.01,-383.4"/>
 <polyline fill="none" stroke="#177e89" stroke-width="1.5" points="1672.01,-383.4 1666.01,-383.4"/>
-<text text-anchor="middle" x="1565" y="-373.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[EVIDENCE]</text>
+<text text-anchor="middle" x="1565" y="-373.69" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">[ART]</text>
 <text text-anchor="middle" x="1565" y="-360.94" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Business Acceptance Record</text>
 <text text-anchor="middle" x="1565" y="-348.19" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Closeout Recommendation</text>
 <text text-anchor="middle" x="1565" y="-335.44" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="12.00" fill="#132a44">Phase Outcome · Demand Outcome</text>
