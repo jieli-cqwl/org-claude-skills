@@ -7,9 +7,9 @@ digraph TeamBattleMap {
     splines=ortho,
     outputorder=edgesfirst,
     bgcolor="#F6F8FB",
-    pad="0.28",
-    nodesep="0.28",
-    ranksep="0.50",
+    pad="0.20",
+    nodesep="0.14",
+    ranksep="0.38",
     labelloc=t,
     labeljust=l,
     label="ONE-HUMAN + AGENT TEAM\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R4\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
@@ -25,8 +25,8 @@ digraph TeamBattleMap {
     fillcolor="#FFFFFF",
     fontname="Helvetica",
     fontcolor="#132A44",
-    fontsize=10,
-    margin="0.12,0.08",
+    fontsize=11.5,
+    margin="0.08,0.06",
     penwidth=1.1
   ];
 
@@ -34,7 +34,7 @@ digraph TeamBattleMap {
     color="#64748B",
     fontname="Helvetica",
     fontcolor="#334155",
-    fontsize=9,
+    fontsize=10.5,
     arrowsize=0.7,
     penwidth=1.2
   ];
@@ -50,10 +50,10 @@ digraph TeamBattleMap {
     fontsize=15;
     penwidth=1.6;
     style="rounded,filled";
-    margin=16;
+    margin=14;
 
     human_co_create [
-      label="[H]\nco-create value/direction",
+      label="[H]\nco-create\nvalue/direction",
       group="column_1",
       color="#B7791F",
       fillcolor="#FFF3C4",
@@ -62,7 +62,7 @@ digraph TeamBattleMap {
     ];
 
     human_accept_artifact [
-      label="[H]\naccept exact artifact",
+      label="[H]\naccept exact\nartifact",
       color="#B7791F",
       fillcolor="#FFF3C4",
       fontname="Helvetica-Bold",
@@ -70,7 +70,7 @@ digraph TeamBattleMap {
     ];
 
     human_invoke_owner [
-      label="[H]\ninvoke next Owner",
+      label="[H]\ninvoke next\nOwner",
       group="column_2",
       color="#B7791F",
       fillcolor="#FFF3C4",
@@ -79,7 +79,7 @@ digraph TeamBattleMap {
     ];
 
     human_test_deployment [
-      label="[H]\nexecute test deployment",
+      label="[H]\nexecute test\ndeployment",
       group="column_3",
       color="#B7791F",
       fillcolor="#FFF3C4",
@@ -88,7 +88,7 @@ digraph TeamBattleMap {
     ];
 
     human_production_deployment [
-      label="[H]\nexecute production deployment",
+      label="[H]\nexecute production\ndeployment",
       group="column_4",
       color="#B7791F",
       fillcolor="#FFF3C4",
@@ -97,7 +97,7 @@ digraph TeamBattleMap {
     ];
 
     human_business_disposition [
-      label="[H]\nbusiness acceptance/disposition",
+      label="[H]\nbusiness acceptance\n/disposition",
       group="column_5",
       color="#B7791F",
       fillcolor="#FFF3C4",
@@ -106,24 +106,24 @@ digraph TeamBattleMap {
     ];
 
     human_action_law [
-      label="[CONTROL LAW]\nACCEPT ≠ INVOKE ≠ ACTUAL START\n≠ EXTERNAL ACTION ≠ OUTCOME\nrevalidate current authority at every Owner start",
+      label="[CONTROL LAW]\nACCEPT ≠ INVOKE\n≠ ACTUAL START\n≠ EXTERNAL ACTION\n≠ OUTCOME\nrevalidate current authority\nat every Owner start",
       shape=note,
       style=filled,
       color="#B7791F",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold",
-      fontsize=9,
+      fontsize=10.5,
       penwidth=1.4
     ];
 
     human_safety_authority [
-      label="[H-AUTHORITY]\nSTOP · ROLLBACK · CONTAINMENT\nINCIDENT AUTHORITY",
+      label="[H-AUTHORITY]\nSTOP · ROLLBACK\nCONTAINMENT · INCIDENT AUTHORITY",
       shape=note,
       style=filled,
       color="#B7791F",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold",
-      fontsize=9,
+      fontsize=10.5,
       penwidth=1.4
     ];
 
@@ -177,7 +177,7 @@ digraph TeamBattleMap {
     fontsize=15;
     penwidth=1.8;
     style="rounded,filled";
-    margin=18;
+    margin=14;
 
     subgraph cluster_product {
       label="01 PRODUCT DEFINITION";
@@ -190,16 +190,16 @@ digraph TeamBattleMap {
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
-      margin=14;
+      margin=10;
 
       product_purpose [
-        label="Find the right problem and freeze\nthe complete product boundary.",
+        label="Find the right problem\nand freeze the complete\nproduct boundary.",
         group="column_1",
         color="#132A44",
         fillcolor="#132A44",
         fontcolor="#FFFFFF",
         fontname="Helvetica-Bold",
-        fontsize=10
+        fontsize=12
       ];
 
       product_director [
@@ -209,10 +209,10 @@ digraph TeamBattleMap {
       ];
 
       product_manager [
-        label="[AO] Product Manager\nActors · User touchpoints · Main/exception flows\nObjects · States · Rules · Permissions · AC",
+        label="[AO] Product Manager\nActors · User touchpoints\nMain/exception flows\nObjects · States · Rules\nPermissions · AC",
         group="column_1",
         fontname="Helvetica-Bold",
-        fontsize=9
+        fontsize=12
       ];
 
       product_impact_owner [
@@ -226,7 +226,7 @@ digraph TeamBattleMap {
         style="rounded,dashed,filled",
         color="#64748B",
         fillcolor="#F8FAFC",
-        fontsize=9
+        fontsize=10.5
       ];
 
       product_architecture_owner [
@@ -234,18 +234,18 @@ digraph TeamBattleMap {
         style="rounded,dashed,filled",
         color="#64748B",
         fillcolor="#F8FAFC",
-        fontsize=9
+        fontsize=10.5
       ];
 
       product_output [
-        label="[ART]\nDirector Decision Case\nProduct Definition Package · Impact Freeze",
+        label="[EVIDENCE]\nDirector Decision Case\nProduct Definition Package\nImpact Freeze",
         group="column_1",
         shape=note,
         style=filled,
         color="#177E89",
         fillcolor="#E7F7F6",
         fontname="Helvetica-Bold",
-        fontsize=9,
+        fontsize=12,
         penwidth=1.5
       ];
 
@@ -298,16 +298,16 @@ digraph TeamBattleMap {
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
-      margin=14;
+      margin=10;
 
       proof_purpose [
-        label="Define how success will be proved,\nthen bound the work.",
+        label="Define how success\nwill be proved,\nthen bound the work.",
         group="column_2",
         color="#132A44",
         fillcolor="#132A44",
         fontcolor="#FFFFFF",
         fontname="Helvetica-Bold",
-        fontsize=10
+        fontsize=12
       ];
 
       proof_test_design_owner [
@@ -323,14 +323,14 @@ digraph TeamBattleMap {
       ];
 
       proof_output [
-        label="[ART]\nTest Design Package · Tech Lead Package\nBounded Task Packets",
+        label="[EVIDENCE]\nTest Design Package\nTech Lead Package\nBounded Task Packets",
         group="column_2",
         shape=note,
         style=filled,
         color="#177E89",
         fillcolor="#E7F7F6",
         fontname="Helvetica-Bold",
-        fontsize=9,
+        fontsize=12,
         penwidth=1.5
       ];
 
@@ -342,9 +342,9 @@ digraph TeamBattleMap {
         fillcolor="#FFFFFF",
         fontcolor="#174B80",
         fontname="Helvetica-Bold",
-        fontsize=7.5,
+        fontsize=12,
         height=0.25,
-        margin="0.04,0.02"
+        margin="0.03,0.02"
       ];
 
       proof_purpose -> proof_test_design_owner -> proof_tech_lead ->
@@ -366,51 +366,51 @@ digraph TeamBattleMap {
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
-      margin=14;
+      margin=10;
 
       build_purpose [
-        label="Produce one verified immutable Candidate\nready for test deployment.",
+        label="Produce one verified\nimmutable Candidate\nready for test deployment.",
         group="column_3",
         color="#132A44",
         fillcolor="#132A44",
         fontcolor="#FFFFFF",
         fontname="Helvetica-Bold",
-        fontsize=10
+        fontsize=12
       ];
 
       build_development_owner [
         label="[AO] Development Owner\nUNIQUE CODE-CHANGE DOMAIN",
         group="column_3",
         fontname="Helvetica-Bold",
-        fontsize=9
+        fontsize=11
       ];
 
       build_developer [
         label="[AE] Developer",
         color="#7890AA",
         fillcolor="#EEF4FA",
-        fontsize=9
+        fontsize=10.5
       ];
 
       build_code_fixer [
         label="[AE] Code Fixer",
         color="#7890AA",
         fillcolor="#EEF4FA",
-        fontsize=9
+        fontsize=10.5
       ];
 
       build_verifier [
         label="[AE] Verifier",
         color="#7890AA",
         fillcolor="#EEF4FA",
-        fontsize=9
+        fontsize=10.5
       ];
 
       build_code_reviewer [
         label="[AE] Code Reviewer",
         color="#7890AA",
         fillcolor="#EEF4FA",
-        fontsize=9
+        fontsize=10.5
       ];
 
       build_test_deployment [
@@ -423,14 +423,14 @@ digraph TeamBattleMap {
       ];
 
       build_output [
-        label="[ART]\nPhase Success Baseline · Candidate\nTest Manifest · Test Admission · Test Outcome",
+        label="[BUILD EVIDENCE]\nPhase Success Baseline\nCandidate · Test Manifest\nTest Admission · Test Outcome",
         group="column_3",
         shape=note,
         style=filled,
         color="#177E89",
         fillcolor="#E7F7F6",
         fontname="Helvetica-Bold",
-        fontsize=9,
+        fontsize=12,
         penwidth=1.5
       ];
 
@@ -442,9 +442,9 @@ digraph TeamBattleMap {
         fillcolor="#FFFFFF",
         fontcolor="#174B80",
         fontname="Helvetica-Bold",
-        fontsize=7.5,
+        fontsize=12,
         height=0.25,
-        margin="0.04,0.02"
+        margin="0.03,0.02"
       ];
 
       build_purpose -> build_development_owner [
@@ -519,37 +519,37 @@ digraph TeamBattleMap {
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
-      margin=14;
+      margin=10;
 
       quality_purpose [
-        label="Independently qualify the Candidate\nand verify production.",
+        label="Independently qualify\nthe Candidate and\nverify production.",
         group="column_4",
         color="#132A44",
         fillcolor="#132A44",
         fontcolor="#FFFFFF",
         fontname="Helvetica-Bold",
-        fontsize=10
+        fontsize=12
       ];
 
       quality_owner [
         label="[AO] Quality Owner\nNO CODE CHANGE",
         group="column_4",
         fontname="Helvetica-Bold",
-        fontsize=9
+        fontsize=11
       ];
 
       quality_qa_executor [
         label="[AE] QA Executor",
         color="#7890AA",
         fillcolor="#EEF4FA",
-        fontsize=9
+        fontsize=10.5
       ];
 
       quality_analyst [
         label="[AE] Quality Analyst",
         color="#7890AA",
         fillcolor="#EEF4FA",
-        fontsize=9
+        fontsize=10.5
       ];
 
       quality_production_deployment [
@@ -568,14 +568,14 @@ digraph TeamBattleMap {
       ];
 
       quality_output [
-        label="[ART]\nRelease Package · Production Outcome\nProduction Verification Evidence",
+        label="[EVIDENCE]\nRelease Package\nProduction Outcome\nProduction Verification\nEvidence",
         group="column_4",
         shape=note,
         style=filled,
         color="#177E89",
         fillcolor="#E7F7F6",
         fontname="Helvetica-Bold",
-        fontsize=9,
+        fontsize=12,
         penwidth=1.5
       ];
 
@@ -587,9 +587,9 @@ digraph TeamBattleMap {
         fillcolor="#FFFFFF",
         fontcolor="#174B80",
         fontname="Helvetica-Bold",
-        fontsize=7.5,
+        fontsize=12,
         height=0.25,
-        margin="0.04,0.02"
+        margin="0.03,0.02"
       ];
 
       quality_purpose -> quality_owner [
@@ -647,20 +647,20 @@ digraph TeamBattleMap {
       fontsize=17;
       penwidth=1.7;
       style="rounded,filled";
-      margin=14;
+      margin=10;
 
       outcome_purpose [
-        label="Judge the real business result\nand close honestly.",
+        label="Judge the real\nbusiness result\nand close honestly.",
         group="column_5",
         color="#132A44",
         fillcolor="#132A44",
         fontcolor="#FFFFFF",
         fontname="Helvetica-Bold",
-        fontsize=10
+        fontsize=12
       ];
 
       outcome_business_acceptance [
-        label="[H] Business Acceptance",
+        label="[H]\nBusiness Acceptance",
         group="column_5",
         color="#B7791F",
         fillcolor="#FFF3C4",
@@ -675,7 +675,7 @@ digraph TeamBattleMap {
       ];
 
       outcome_disposition [
-        label="[H] Phase & Demand Disposition",
+        label="[H]\nPhase & Demand\nDisposition",
         group="column_5",
         color="#B7791F",
         fillcolor="#FFF3C4",
@@ -684,36 +684,36 @@ digraph TeamBattleMap {
       ];
 
       outcome_phase_authority_guard [
-        label="[AUTHORITY GUARD]\nF16 new Phase XOR F17 same-Phase resume\nterminal identities never revive",
+        label="[AUTHORITY GUARD]\nF16 new Phase XOR\nF17 same-Phase resume\nterminal identities never revive",
         shape=note,
         style=filled,
         color="#B7791F",
         fillcolor="#FFFFFF",
         fontname="Helvetica-Bold",
-        fontsize=8.5,
+        fontsize=10.5,
         penwidth=1.3
       ];
 
       outcome_terminal_guard [
-        label="[TERMINAL]\nRT = NON-SUCCESS · R10 = ONLY SUCCESS ROUTE",
+        label="[TERMINAL]\nRT = NON-SUCCESS\nR10 = ONLY SUCCESS ROUTE",
         shape=note,
         style=filled,
         color="#B23A48",
         fillcolor="#FFFFFF",
         fontname="Helvetica-Bold",
-        fontsize=8.5,
+        fontsize=10.5,
         penwidth=1.3
       ];
 
       outcome_output [
-        label="[ART]\nBusiness Acceptance Record · Closeout Recommendation\nPhase Outcome · Demand Outcome",
+        label="[EVIDENCE]\nBusiness Acceptance Record\nCloseout Recommendation\nPhase Outcome · Demand Outcome",
         group="column_5",
         shape=note,
         style=filled,
         color="#177E89",
         fillcolor="#E7F7F6",
         fontname="Helvetica-Bold",
-        fontsize=9,
+        fontsize=12,
         penwidth=1.5
       ];
 
@@ -725,9 +725,9 @@ digraph TeamBattleMap {
         fillcolor="#FFFFFF",
         fontcolor="#174B80",
         fontname="Helvetica-Bold",
-        fontsize=7.5,
+        fontsize=12,
         height=0.25,
-        margin="0.04,0.02"
+        margin="0.03,0.02"
       ];
 
       outcome_purpose -> outcome_business_acceptance ->
@@ -830,7 +830,7 @@ digraph TeamBattleMap {
     fontsize=15;
     penwidth=1.6;
     style="rounded,filled";
-    margin=16;
+    margin=14;
 
     state_baseline [
       label="[STATE]\nPhase Success Baseline",
@@ -903,7 +903,7 @@ digraph TeamBattleMap {
     fontsize=15;
     penwidth=1.7;
     style="rounded,filled";
-    margin=16;
+    margin=14;
 
     failure_gap [
       label="failure/gap",
@@ -915,60 +915,61 @@ digraph TeamBattleMap {
     ];
 
     failure_diagnose [
-      label="diagnose domain",
+      label="diagnose\ndomain",
       color="#B23A48",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold"
     ];
 
     failure_owner [
-      label="earliest wrong Owner",
+      label="earliest wrong\nOwner",
       color="#B23A48",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold"
     ];
 
     failure_invalidate [
-      label="invalidate affected evidence",
+      label="invalidate affected\nevidence",
       color="#B23A48",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold"
     ];
 
     failure_reenter [
-      label="re-enter every affected gate",
+      label="re-enter every\naffected gate",
       color="#B23A48",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold"
     ];
 
     failure_guard [
-      label="UNKNOWN cause remains DIAGNOSTIC\nfailed/indeterminate environment action ≠ success",
+      label="UNKNOWN cause remains DIAGNOSTIC\nfailed/indeterminate\nenvironment action ≠ success",
       shape=note,
       style=filled,
       color="#B23A48",
       fillcolor="#FFFFFF",
-      fontsize=9
+      fontname="Helvetica-Bold",
+      fontsize=10.5
     ];
 
     failure_incident [
-      label="[INCIDENT]\nIncident Case closes independently\nProduct closeout does not close it",
+      label="[INCIDENT]\nIncident Case closes\nindependently\nProduct closeout\ndoes not close it",
       shape=note,
       style=filled,
       color="#B23A48",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold",
-      fontsize=9
+      fontsize=10.5
     ];
 
     failure_return_rule [
-      label="[RETURN ROUTER]\nR00–R09 selects exactly one route-named Owner\nall affected gates rerun",
+      label="[RETURN ROUTER]\nR00–R09 selects exactly one\nroute-named Owner\nall affected gates rerun",
       shape=note,
       style=filled,
       color="#B23A48",
       fillcolor="#FFFFFF",
       fontname="Helvetica-Bold",
-      fontsize=9
+      fontsize=10.5
     ];
 
     {
