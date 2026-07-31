@@ -360,7 +360,23 @@ digraph ArtifactsVersionsAndState {
     ];
 
     action_authorization [
-      label="[H]\nAuthorized Action\nC[n] + M[n] · consumed once",
+      label="[H][CURRENT AUTH]\nAuthorized Action\nC[n] + M[n]\nconsumed once · current identity only",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=2.0
+    ];
+
+    action_authorization_candidate_next [
+      label="[H][NEXT AUTH]\nAuthorized Action\nC[n+1] + M[C[n+1], env]\nconsumed once",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=2.0
+    ];
+
+    action_authorization_manifest_next [
+      label="[H][NEXT AUTH]\nAuthorized Action\nC[n] + M[n+1]\nconsumed once",
       color="#B7791F",
       fillcolor="#FFF3C4",
       fontname="Helvetica-Bold",
@@ -368,7 +384,7 @@ digraph ArtifactsVersionsAndState {
     ];
 
     action_attempt [
-      label="[ACTION]\nAttempt\n≤ 1 side effect",
+      label="[ACTION]\nAttempt\nconsumes one exact\nAuthorized Action identity\n≤ 1 side effect",
       color="#7890AA",
       fillcolor="#EEF4FA",
       fontname="Helvetica-Bold"
@@ -415,6 +431,16 @@ digraph ArtifactsVersionsAndState {
       fontname="Helvetica-Bold",
       penwidth=1.8,
       peripheries=2
+    ];
+
+    release_candidate_manifest_next [
+      label="[ART][NEXT]\nApplicable Manifest\nM[C[n+1], env]\nfor Candidate C[n+1]",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontname="Helvetica-Bold",
+      penwidth=1.6
     ];
 
     identity_candidate_gates [
@@ -543,7 +569,15 @@ digraph ArtifactsVersionsAndState {
       constraint=false
     ];
 
-    release_candidate_next -> identity_candidate_gates [
+    release_candidate_next -> release_candidate_manifest_next [
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.8,
+      constraint=false
+    ];
+
+    release_candidate_manifest_next -> identity_candidate_gates [
       xlabel="invalidates + reruns",
       style=dashed,
       color="#B23A48",
@@ -552,7 +586,7 @@ digraph ArtifactsVersionsAndState {
       constraint=false
     ];
 
-    identity_candidate_gates -> action_authorization [
+    identity_candidate_gates -> action_authorization_candidate_next [
       style=dashed,
       color="#B23A48",
       fontcolor="#8F2635",
@@ -584,10 +618,24 @@ digraph ArtifactsVersionsAndState {
       constraint=false
     ];
 
-    identity_manifest_gates -> action_authorization [
+    identity_manifest_gates -> action_authorization_manifest_next [
       style=dashed,
       color="#B23A48",
       fontcolor="#8F2635",
+      penwidth=1.7,
+      constraint=false
+    ];
+
+    action_authorization_candidate_next -> action_attempt [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.7,
+      constraint=false
+    ];
+
+    action_authorization_manifest_next -> action_attempt [
+      color="#B7791F",
+      style=dashed,
       penwidth=1.7,
       constraint=false
     ];
@@ -601,7 +649,34 @@ digraph ArtifactsVersionsAndState {
       constraint=false
     ];
 
+    identity_prior_evidence -> release_candidate_manifest_next [
+      arrowhead=tee,
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.9,
+      constraint=false
+    ];
+
     identity_prior_evidence -> release_manifest_next [
+      arrowhead=tee,
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.9,
+      constraint=false
+    ];
+
+    action_authorization -> action_authorization_candidate_next [
+      arrowhead=tee,
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      penwidth=1.9,
+      constraint=false
+    ];
+
+    action_authorization -> action_authorization_manifest_next [
       arrowhead=tee,
       style=dashed,
       color="#B23A48",
@@ -636,6 +711,7 @@ digraph ArtifactsVersionsAndState {
       release_candidate;
       identity_candidate_changed;
       release_candidate_next;
+      release_candidate_manifest_next;
       identity_candidate_gates;
     }
 
@@ -645,6 +721,13 @@ digraph ArtifactsVersionsAndState {
       identity_manifest_changed;
       release_manifest_next;
       identity_manifest_gates;
+    }
+
+    {
+      rank=same;
+      action_authorization;
+      action_authorization_candidate_next;
+      action_authorization_manifest_next;
     }
 
     {
