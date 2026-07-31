@@ -12,7 +12,7 @@ digraph AuthorityAndTeamTopology {
     ranksep="0.56",
     labelloc=t,
     labeljust=l,
-    label="AUTHORITY AND TEAM TOPOLOGY\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R5\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
+    label="AUTHORITY AND TEAM TOPOLOGY\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R4\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
     fontname="Helvetica-Bold",
     fontsize=24,
     fontcolor="#132A44"
@@ -498,9 +498,9 @@ digraph AuthorityAndTeamTopology {
   }
 
   subgraph cluster_execution_plane {
-    label="BOUNDED EXECUTION PLANE · EXECUTES ONLY INSIDE THE PARENT OWNER DOMAIN";
+    label="BOUNDED EXECUTION PLANE\nEXECUTES ONLY INSIDE THE\nPARENT OWNER DOMAIN";
     labelloc=t;
-    labeljust=l;
+    labeljust=r;
     color="#7890AA";
     fillcolor="#EDF2F7";
     fontname="Helvetica-Bold";
@@ -511,7 +511,7 @@ digraph AuthorityAndTeamTopology {
     margin=18;
 
     subgraph cluster_development_execution {
-      label="DEVELOPMENT EXECUTION AGENTS · DEVELOPMENT OWNER ONLY";
+      label="DEVELOPMENT\nEXECUTION AGENTS\nDEVELOPMENT OWNER ONLY";
       labelloc=t;
       labeljust=l;
       color="#2F6DB0";
@@ -556,37 +556,18 @@ digraph AuthorityAndTeamTopology {
         rank=same;
         developer;
         code_fixer;
-      }
-
-      {
-        rank=same;
         verifier;
         code_reviewer;
       }
 
-      developer -> code_fixer [
+      developer -> code_fixer -> verifier -> code_reviewer [
         style=invis,
         weight=20
-      ];
-
-      verifier -> code_reviewer [
-        style=invis,
-        weight=20
-      ];
-
-      developer -> verifier [
-        style=invis,
-        weight=24
-      ];
-
-      code_fixer -> code_reviewer [
-        style=invis,
-        weight=24
       ];
     }
 
     subgraph cluster_quality_execution {
-      label="QUALITY EXECUTION AGENTS · QUALITY OWNER ONLY";
+      label="QUALITY EXECUTION AGENTS\nQUALITY OWNER ONLY";
       labelloc=t;
       labeljust=l;
       color="#2F6DB0";
@@ -613,11 +594,37 @@ digraph AuthorityAndTeamTopology {
         fontsize=9
       ];
 
+      {
+        rank=same;
+        qa_executor;
+        quality_analyst;
+      }
+
       qa_executor -> quality_analyst [
         style=invis,
         weight=20
       ];
     }
+
+    execution_label_clearance [
+      label="",
+      shape=box,
+      style=invis,
+      width=1.75,
+      height=0.01,
+      fixedsize=true
+    ];
+
+    {
+      rank=same;
+      quality_analyst;
+      execution_label_clearance;
+    }
+
+    quality_analyst -> execution_label_clearance [
+      style=invis,
+      weight=20
+    ];
 
     {
       rank=same;
@@ -761,15 +768,15 @@ digraph AuthorityAndTeamTopology {
   ];
 
   development_owner -> developer [
-    label="delegates bounded work",
+    taillabel="delegates bounded work",
+    labeldistance=7.0,
+    labelangle=55,
     color="#2F6DB0",
     fontcolor="#174B80",
     penwidth=2.0,
     arrowsize=0.8,
-    tailport=s,
-    headport=n,
-    sametail="development_owner_fanout",
-    constraint=false
+    tailport=sw,
+    headport=w
   ];
 
   development_owner -> code_fixer [
@@ -778,9 +785,7 @@ digraph AuthorityAndTeamTopology {
     penwidth=2.0,
     arrowsize=0.8,
     tailport=s,
-    headport=n,
-    sametail="development_owner_fanout",
-    constraint=false
+    headport=e
   ];
 
   development_owner -> verifier [
@@ -788,10 +793,8 @@ digraph AuthorityAndTeamTopology {
     fontcolor="#174B80",
     penwidth=2.0,
     arrowsize=0.8,
-    tailport=s,
-    headport=n,
-    sametail="development_owner_fanout",
-    constraint=false
+    tailport=se,
+    headport=w
   ];
 
   development_owner -> code_reviewer [
@@ -799,32 +802,28 @@ digraph AuthorityAndTeamTopology {
     fontcolor="#174B80",
     penwidth=2.0,
     arrowsize=0.8,
-    tailport=s,
-    headport=n,
-    sametail="development_owner_fanout",
-    constraint=false
+    tailport=e,
+    headport=e
   ];
 
   quality_owner -> qa_executor [
-    label="delegates bounded work",
     color="#2F6DB0",
     fontcolor="#174B80",
     penwidth=2.0,
     arrowsize=0.8,
     tailport=s,
-    headport=n,
-    sametail="quality_owner_fanout",
-    constraint=false
+    headport=w
   ];
 
   quality_owner -> quality_analyst [
+    taillabel="delegates bounded work",
+    labeldistance=7.0,
+    labelangle=55,
     color="#2F6DB0",
     fontcolor="#174B80",
     penwidth=2.0,
     arrowsize=0.8,
-    tailport=s,
-    headport=n,
-    sametail="quality_owner_fanout",
-    constraint=false
+    tailport=e,
+    headport=e
   ];
 }
