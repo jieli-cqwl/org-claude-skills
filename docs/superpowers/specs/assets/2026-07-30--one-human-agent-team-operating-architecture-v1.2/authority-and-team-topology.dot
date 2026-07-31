@@ -818,7 +818,7 @@ digraph AuthorityAndTeamTopology {
   quality_owner -> quality_analyst [
     taillabel="delegates bounded work",
     labeldistance=7.0,
-    labelangle=55,
+    labelangle=30,
     color="#2F6DB0",
     fontcolor="#174B80",
     penwidth=2.0,

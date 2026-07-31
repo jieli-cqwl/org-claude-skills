@@ -189,7 +189,7 @@
 <title>quality_owner:e&#45;&gt;quality_analyst:e</title>
 <path fill="none" stroke="#2f6db0" stroke-width="2" d="M1137.11,-350.98C1337.12,-350.98 1393.19,-345.78 1581,-277 1692.76,-236.07 1749.44,-241.8 1811.11,-140 1811.89,-138.72 1812.79,-135.86 1813.39,-132.8"/>
 <polygon fill="#2f6db0" stroke="#2f6db0" stroke-width="2" points="1816.19,-132.62 1812.47,-125.01 1810.63,-133.28 1816.19,-132.62"/>
-<text text-anchor="middle" x="1177.48" y="-404.59" font-family="Helvetica,sans-Serif" font-size="8.50" fill="#174b80">delegates bounded work</text>
+<text text-anchor="middle" x="1197.87" y="-382.17" font-family="Helvetica,sans-Serif" font-size="8.50" fill="#174b80">delegates bounded work</text>
 </g>
 <!-- development_boundary&#45;&gt;quality_boundary -->
 <!-- development_boundary&#45;&gt;authority_boundary -->
