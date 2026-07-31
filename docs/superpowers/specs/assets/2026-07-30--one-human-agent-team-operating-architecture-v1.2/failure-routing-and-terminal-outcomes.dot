@@ -7,12 +7,12 @@ digraph FailureRoutingAndTerminalOutcomes {
     splines=ortho,
     outputorder=edgesfirst,
     bgcolor="#F6F8FB",
-    pad="0.12",
-    nodesep="0.06",
+    pad="0.10",
+    nodesep="0.04",
     ranksep="0.14",
     labelloc=t,
     labeljust=l,
-    label="FAILURE ROUTING AND REAL COMPLETION\nTARGET ARCHITECTURE · V1.2 · VIEW R5\nM0 MANUAL CONTROL · NOT RUNTIME-ACTIVE",
+    label="FAILURE ROUTING AND REAL COMPLETION\nTARGET ARCHITECTURE · V1.2 · VIEW R4\nM0 MANUAL CONTROL · NOT RUNTIME-ACTIVE",
     fontname="Helvetica-Bold",
     fontsize=20,
     fontcolor="#132A44"
@@ -47,7 +47,7 @@ digraph FailureRoutingAndTerminalOutcomes {
     fontsize=14;
     penwidth=1.7;
     style="rounded,filled";
-    margin=6;
+    margin=4;
 
     diagnostic_anchor [
       shape=point,
@@ -225,7 +225,7 @@ digraph FailureRoutingAndTerminalOutcomes {
     fontsize=14;
     penwidth=1.7;
     style="rounded,filled";
-    margin=6;
+    margin=4;
 
     corrective_anchor [
       shape=point,
@@ -418,7 +418,7 @@ digraph FailureRoutingAndTerminalOutcomes {
     fontsize=14;
     penwidth=1.7;
     style="rounded,filled";
-    margin=6;
+    margin=4;
 
     authority_anchor [
       shape=point,
@@ -447,12 +447,29 @@ digraph FailureRoutingAndTerminalOutcomes {
     ];
 
     r08_ready [
-      label="[R08 EXIT]\nTRUSTWORTHY STATE + FRESH AUTHORITY",
+      label="[R08 STATE]\nTRUSTWORTHY CURRENT\nENV / PERMISSION / ACTION",
       shape=note,
       style=filled,
       color="#177E89",
       fillcolor="#E7F7F6",
       penwidth=1.7
+    ];
+
+    r08_fresh_action_authority [
+      label="[H-GATE]\nFRESH ACTION AUTHORITY",
+      tooltip="Fresh Human authority is current for the exact reconciled action identity",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
+      penwidth=2.0
+    ];
+
+    r08_action_resume [
+      label="[NAMED ACTION RESUME]\nOWNER · REQUIRED GATES\nINVOKE ≠ ACTUAL START ≠ OUTCOME",
+      color="#2F6DB0",
+      fillcolor="#EEF4FA",
+      penwidth=1.6
     ];
 
     r09 [
@@ -561,6 +578,17 @@ digraph FailureRoutingAndTerminalOutcomes {
       penwidth=1.7
     ];
 
+    r08_ready -> r08_fresh_action_authority [
+      color="#B7791F",
+      style=dashed,
+      penwidth=1.9
+    ];
+
+    r08_fresh_action_authority -> r08_action_resume [
+      color="#2F6DB0",
+      penwidth=1.7
+    ];
+
     r09 -> r09_block [
       color="#B23A48",
       penwidth=2.0
@@ -630,12 +658,14 @@ digraph FailureRoutingAndTerminalOutcomes {
 
     {
       rank=same;
+      r08_fresh_action_authority;
       ir00;
       ir01;
     }
 
     {
       rank=same;
+      r08_action_resume;
       ir02;
       ir03;
       r09_exit;
@@ -651,8 +681,8 @@ digraph FailureRoutingAndTerminalOutcomes {
     r09 -> r08 [style=invis, weight=100];
     r09_block -> human_reconcile [style=invis, weight=100];
     human_containment -> r08_ready [style=invis, weight=100];
-    ir01 -> ir00 [style=invis, weight=100];
-    r09_exit -> ir03 -> ir02 [style=invis, weight=100];
+    r08_fresh_action_authority -> ir01 -> ir00 [style=invis, weight=100];
+    r08_action_resume -> r09_exit -> ir03 -> ir02 [style=invis, weight=100];
     r09_resume -> fresh_resume_authority [style=invis, weight=100];
   }
 
@@ -667,7 +697,7 @@ digraph FailureRoutingAndTerminalOutcomes {
     fontsize=14;
     penwidth=1.7;
     style="rounded,filled";
-    margin=6;
+    margin=4;
 
     completion_anchor [
       shape=point,
@@ -740,7 +770,7 @@ digraph FailureRoutingAndTerminalOutcomes {
     ];
 
     success_outcomes [
-      label="[SUCCESS OUTCOMES]\nPHASE SUCCESSFULLY CLOSED\nDEMAND COMPLETE / NONTERMINAL",
+      label="[PHASE SUCCESS OUTCOME]\nSUCCESSFULLY CLOSED\nAUTHORITY-ABSORBING",
       shape=note,
       style=filled,
       color="#177E89",
@@ -784,12 +814,40 @@ digraph FailureRoutingAndTerminalOutcomes {
     ];
 
     non_success_outcomes [
-      label="[NON-SUCCESS OUTCOMES]\nPHASE TERMINATED NON-SUCCESS\nDEMAND DEFERRED / TERMINATED\nNONTERMINAL",
+      label="[PHASE NON-SUCCESS OUTCOME]\nHONESTLY TERMINATED\nAUTHORITY-ABSORBING",
       shape=note,
       style=filled,
       color="#B23A48",
       fillcolor="#FFF1F2",
       fontcolor="#8F2635",
+      penwidth=2.0
+    ];
+
+    demand_terminal_outcomes [
+      label="[DEMAND TERMINAL]\nCOMPLETE / TERMINATED\nNO F16 · NO F17",
+      shape=note,
+      style=filled,
+      color="#64748B",
+      fillcolor="#F8FAFC",
+      penwidth=1.7
+    ];
+
+    demand_nonterminal_outcome [
+      label="[DEMAND NONTERMINAL]\nCONTINUE / DEFERRED\nF16 ELIGIBLE ONLY",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#E7F7F6",
+      fontcolor="#0F6269",
+      penwidth=1.8
+    ];
+
+    human_next_phase_authority [
+      label="[H-GATE][F16]\nFRESH NEXT-PHASE\nAUTHORITY",
+      shape=diamond,
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontcolor="#7A4B00",
       penwidth=2.0
     ];
 
@@ -803,7 +861,7 @@ digraph FailureRoutingAndTerminalOutcomes {
     ];
 
     f16 [
-      label="[F16] NEW PHASE\nPRIOR PHASE AUTHORITY-ABSORBING\nNO F17 / COMPETING AUTHORITY",
+      label="[F16] NEW PHASE\n→ PRODUCT DIRECTOR\nPRIOR PHASE AUTHORITY-ABSORBING\nNO F17 / COMPETING AUTHORITY",
       color="#2F6DB0",
       fillcolor="#EEF4FA",
       penwidth=1.7
@@ -814,13 +872,6 @@ digraph FailureRoutingAndTerminalOutcomes {
       color="#2F6DB0",
       fillcolor="#EEF4FA",
       penwidth=1.7
-    ];
-
-    f16_target [
-      label="[AO] PRODUCT DIRECTOR\nNEW PHASE",
-      color="#2F6DB0",
-      fillcolor="#FFFFFF",
-      penwidth=1.5
     ];
 
     f17_target [
@@ -912,13 +963,33 @@ digraph FailureRoutingAndTerminalOutcomes {
       penwidth=2.0
     ];
 
-    success_outcomes -> f16 [
+    success_outcomes -> demand_terminal_outcomes [
+      color="#64748B",
+      penwidth=1.6
+    ];
+
+    non_success_outcomes -> demand_terminal_outcomes [
+      color="#64748B",
+      penwidth=1.6
+    ];
+
+    success_outcomes -> demand_nonterminal_outcome [
+      color="#177E89",
+      penwidth=1.8
+    ];
+
+    non_success_outcomes -> demand_nonterminal_outcome [
+      color="#177E89",
+      penwidth=1.8
+    ];
+
+    demand_nonterminal_outcome -> human_next_phase_authority [
       color="#B7791F",
       style=dashed,
       penwidth=1.8
     ];
 
-    non_success_outcomes -> f16 [
+    human_next_phase_authority -> f16 [
       color="#B7791F",
       style=dashed,
       penwidth=1.8
@@ -928,11 +999,6 @@ digraph FailureRoutingAndTerminalOutcomes {
       color="#B7791F",
       style=dashed,
       penwidth=1.8
-    ];
-
-    f16 -> f16_target [
-      color="#2F6DB0",
-      penwidth=1.6
     ];
 
     f17 -> f17_target [
@@ -998,13 +1064,15 @@ digraph FailureRoutingAndTerminalOutcomes {
       human_success_disposition;
       success_outcomes;
       non_success_outcomes;
+      demand_terminal_outcomes;
       incident_closure_block;
     }
 
     {
       rank=same;
+      demand_nonterminal_outcome;
+      human_next_phase_authority;
       f16;
-      f16_target;
       f17;
       f17_target;
     }
@@ -1016,9 +1084,12 @@ digraph FailureRoutingAndTerminalOutcomes {
       accepted_product_result [style=invis, weight=100];
     human_non_success_disposition -> pd_success_recommendation ->
       r10 [style=invis, weight=100];
-    incident_closure_block -> non_success_outcomes ->
+    incident_closure_block -> demand_terminal_outcomes ->
+      non_success_outcomes ->
       success_outcomes -> human_success_disposition [style=invis, weight=100];
-    f17_target -> f17 -> f16_target -> f16 [style=invis, weight=100];
+    f17_target -> f17 -> f16 ->
+      human_next_phase_authority -> demand_nonterminal_outcome
+      [style=invis, weight=100];
   }
 
   {
