@@ -174,9 +174,9 @@
 <!-- r08&#45;&gt;human_reconcile -->
 <g id="edge32" class="edge">
 <title>r08&#45;&gt;human_reconcile</title>
-<path fill="none" stroke="#a16207" stroke-width="1.9" stroke-dasharray="5,2" d="M988.97,-958.7C988.97,-958.7 1175.32,-958.7 1175.32,-958.7"/>
-<polygon fill="#a16207" stroke="#a16207" stroke-width="1.9" points="1175.32,-961.22 1182.52,-958.7 1175.32,-956.18 1175.32,-961.22"/>
-<text text-anchor="middle" x="1047.27" y="-950.15" font-family="PingFang SC" font-size="9.00" fill="#40536d">Human authority</text>
+<path fill="none" stroke="#a16207" stroke-width="1.9" stroke-dasharray="5,2" d="M989.83,-958.7C989.83,-958.7 1175.34,-958.7 1175.34,-958.7"/>
+<polygon fill="#a16207" stroke="#a16207" stroke-width="1.9" points="1175.34,-961.22 1182.54,-958.7 1175.34,-956.18 1175.34,-961.22"/>
+<text text-anchor="middle" x="1047.71" y="-950.15" font-family="PingFang SC" font-size="9.00" fill="#40536d">Human authority</text>
 </g>
 <!-- human_reconcile&#45;&gt;r08_ready -->
 <g id="edge33" class="edge">
@@ -590,11 +590,11 @@
 <!-- r08 -->
 <g id="node22" class="node">
 <title>r08</title>
-<path fill="#fff4d6" stroke="#a16207" stroke-width="1.9" d="M1001.68,-948.36C1001.68,-948.36 890.67,-1035 890.67,-1035 885.94,-1038.69 875.21,-1042.38 869.21,-1042.38 869.21,-1042.38 633.34,-1042.38 633.34,-1042.38 627.34,-1042.38 616.61,-1038.69 611.88,-1035 611.88,-1035 500.87,-948.36 500.87,-948.36 496.14,-944.67 496.14,-937.28 500.87,-933.59 500.87,-933.59 611.88,-846.95 611.88,-846.95 616.61,-843.26 627.34,-839.57 633.34,-839.57 633.34,-839.57 869.21,-839.57 869.21,-839.57 875.21,-839.57 885.94,-843.26 890.67,-846.95 890.67,-846.95 1001.68,-933.59 1001.68,-933.59 1006.41,-937.28 1006.41,-944.67 1001.68,-948.36"/>
-<text text-anchor="middle" x="751.27" y="-980.48" font-family="PingFang SC" font-size="20.00" fill="#a16207">[R08] AUTHORITY</text>
-<text text-anchor="middle" x="751.27" y="-951.23" font-family="PingFang SC" font-size="20.00" fill="#a16207">ENV · PERMISSION</text>
-<text text-anchor="middle" x="751.27" y="-921.98" font-family="PingFang SC" font-size="20.00" fill="#a16207">DEPENDENCY · PRECONDITION</text>
-<text text-anchor="middle" x="751.27" y="-892.73" font-family="PingFang SC" font-size="20.00" fill="#a16207">ACTION</text>
+<path fill="#fdecec" stroke="#b42318" stroke-width="2.1" d="M1001.68,-948.36C1001.68,-948.36 890.67,-1035 890.67,-1035 885.94,-1038.69 875.21,-1042.38 869.21,-1042.38 869.21,-1042.38 633.34,-1042.38 633.34,-1042.38 627.34,-1042.38 616.61,-1038.69 611.88,-1035 611.88,-1035 500.87,-948.36 500.87,-948.36 496.14,-944.67 496.14,-937.28 500.87,-933.59 500.87,-933.59 611.88,-846.95 611.88,-846.95 616.61,-843.26 627.34,-839.57 633.34,-839.57 633.34,-839.57 869.21,-839.57 869.21,-839.57 875.21,-839.57 885.94,-843.26 890.67,-846.95 890.67,-846.95 1001.68,-933.59 1001.68,-933.59 1006.41,-937.28 1006.41,-944.67 1001.68,-948.36"/>
+<text text-anchor="middle" x="751.27" y="-980.48" font-family="PingFang SC" font-size="20.00" fill="#b42318">[R08] AUTHORITY</text>
+<text text-anchor="middle" x="751.27" y="-951.23" font-family="PingFang SC" font-size="20.00" fill="#b42318">ENV · PERMISSION</text>
+<text text-anchor="middle" x="751.27" y="-921.98" font-family="PingFang SC" font-size="20.00" fill="#b42318">DEPENDENCY · PRECONDITION</text>
+<text text-anchor="middle" x="751.27" y="-892.73" font-family="PingFang SC" font-size="20.00" fill="#b42318">ACTION</text>
 </g>
 <!-- human_reconcile -->
 <g id="node23" class="node">

@@ -113,14 +113,14 @@ digraph TeamBattleMap {
     ];
 
     human_action_law [
-      label="[CONTROL LAW]\nACCEPT ≠ INVOKE\n≠ ACTUAL START\n≠ EXTERNAL ACTION\n≠ OUTCOME\nrevalidate current authority\nat every Owner start",
+      label="[H]\n[CONTROL LAW]\nACCEPT ≠ INVOKE\n≠ ACTUAL START\n≠ EXTERNAL ACTION\n≠ OUTCOME\nrevalidate current authority\nat every Owner start",
       shape=note,
       style=filled,
       color="#A16207",
       fillcolor="#FFF4D6",
       fontname="PingFang SC",
       fontsize=10.5,
-      penwidth=1.4
+      penwidth=2.0
     ];
 
     human_safety_authority [

@@ -589,6 +589,16 @@ digraph AuthorityAndTeamTopology {
       style="rounded,filled";
       margin=13;
 
+      development_title_clearance [
+        label="",
+        shape=box,
+        // layout only
+        style=invis,
+        width=2.0,
+        height=0.01,
+        fixedsize=true
+      ];
+
       node [
         color="#66768D",
         fillcolor="#F3F5F8",
@@ -626,13 +636,14 @@ digraph AuthorityAndTeamTopology {
 
       {
         rank=same;
+        development_title_clearance;
         developer;
         code_fixer;
         verifier;
         code_reviewer;
       }
 
-      developer -> code_fixer -> verifier -> code_reviewer [
+      development_title_clearance -> developer -> code_fixer -> verifier -> code_reviewer [
         // layout only
         style=invis,
         weight=20
@@ -651,6 +662,16 @@ digraph AuthorityAndTeamTopology {
       penwidth=1.5;
       style="rounded,filled";
       margin=13;
+
+      quality_title_clearance [
+        label="",
+        shape=box,
+        // layout only
+        style=invis,
+        width=2.25,
+        height=0.01,
+        fixedsize=true
+      ];
 
       node [
         color="#66768D",
@@ -675,11 +696,12 @@ digraph AuthorityAndTeamTopology {
 
       {
         rank=same;
+        quality_title_clearance;
         qa_executor;
         quality_analyst;
       }
 
-      qa_executor -> quality_analyst [
+      quality_title_clearance -> qa_executor -> quality_analyst [
         // layout only
         style=invis,
         weight=20
@@ -855,7 +877,9 @@ digraph AuthorityAndTeamTopology {
   ];
 
   development_owner -> developer [
-    xlabel="delegates bounded work",
+    taillabel="delegates bounded work",
+    labeldistance=7.0,
+    labelangle=55,
     color="#24466F",
     fontcolor="#24466F",
     penwidth=2.0,
@@ -888,7 +912,9 @@ digraph AuthorityAndTeamTopology {
     penwidth=2.0,
     arrowsize=0.8,
     tailport=e,
-    headport=e
+    headport=e,
+    // layout only
+    minlen=2
   ];
 
   quality_owner -> qa_executor [
@@ -901,7 +927,9 @@ digraph AuthorityAndTeamTopology {
   ];
 
   quality_owner -> quality_analyst [
-    xlabel="delegates bounded work",
+    taillabel="delegates bounded work",
+    labeldistance=11.0,
+    labelangle=30,
     color="#24466F",
     fontcolor="#24466F",
     penwidth=2.0,

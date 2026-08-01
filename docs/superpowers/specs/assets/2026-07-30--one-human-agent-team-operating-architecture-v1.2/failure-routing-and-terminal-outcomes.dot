@@ -504,12 +504,12 @@ digraph FailureRoutingAndTerminalOutcomes {
     r08 [
       label="[R08] AUTHORITY\nENV · PERMISSION\nDEPENDENCY · PRECONDITION\nACTION",
       shape=hexagon,
-      color="#A16207",
-      fillcolor="#FFF4D6",
-      fontcolor="#A16207",
+      color="#B42318",
+      fillcolor="#FDECEC",
+      fontcolor="#B42318",
       fontsize=20,
       margin="0.08,0.05",
-      penwidth=1.9
+      penwidth=2.1
     ];
 
     human_reconcile [
