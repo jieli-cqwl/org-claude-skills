@@ -7,9 +7,9 @@
 - Human visual acceptance: failed.
 - Forward-use authority: none.
 
-The R4 suite was too dense for normal human use and depended on the superseded V1.2 candidate. The current visual contract is the single Chinese L0 map defined by:
+The R4 suite was too dense for normal human use and depended on the superseded V1.2 candidate. The current visual contract is the single Chinese Team architecture map defined by:
 
-[`2026-08-03--one-human-agent-team-operating-architecture-l0--design.md`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md)
+[`一人 + Agent Team 架构`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md)
 
 The rejected written visual design remains recoverable from Git:
 

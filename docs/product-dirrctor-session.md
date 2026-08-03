@@ -1,6 +1,6 @@
 # Product Director Session Export
 
-> **Historical conversation only.** Its continuation prompt was invalidated by the 2026-08-03 architecture reset. Do not use this export to resume implementation or skip macro review. The current target-design source is [`2026-08-03--one-human-agent-team-operating-architecture-l0--design.md`](superpowers/specs/2026-08-03--one-human-agent-team-operating-architecture-l0--design.md).
+> **Historical conversation only.** Its continuation prompt was invalidated by the 2026-08-03 architecture reset. Do not use this export to resume implementation or skip macro review. The current target-design source is [`一人 + Agent Team 架构`](superpowers/specs/2026-08-03--one-human-agent-team-operating-architecture-l0--design.md).
 
 This is a human-readable export of a local Codex session. It is not an official Codex import package.
 

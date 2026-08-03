@@ -9,4 +9,4 @@ These DOT, SVG, and PNG files are retained as recoverable design evidence only.
 
 The current visual contract is defined by:
 
-[`../../2026-08-03--one-human-agent-team-operating-architecture-l0--design.md`](../../2026-08-03--one-human-agent-team-operating-architecture-l0--design.md)
+[`一人 + Agent Team 架构`](../../2026-08-03--one-human-agent-team-operating-architecture-l0--design.md)

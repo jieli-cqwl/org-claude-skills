@@ -6,9 +6,9 @@
 - Historical result: R4 rendered, human visual acceptance failed.
 - Superseded semantic input: V1.2 candidate.
 
-The next visual plan must be written from the current L0 design only:
+The next visual plan must be written from the current Team architecture only:
 
-[`2026-08-03--one-human-agent-team-operating-architecture-l0--design.md`](../specs/2026-08-03--one-human-agent-team-operating-architecture-l0--design.md)
+[`一人 + Agent Team 架构`](../specs/2026-08-03--one-human-agent-team-operating-architecture-l0--design.md)
 
 The previous implementation plan remains recoverable from Git:
 
