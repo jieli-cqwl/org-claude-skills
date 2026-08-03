@@ -538,6 +538,8 @@ def _dirty_paths(repo_root: Path) -> tuple[str, ...]:
         if not record:
             continue
         status, path = record[:2], record[3:]
+        if path.startswith("tools/eval/results/rule-runtime/"):
+            continue
         paths.append(path)
         if "R" in status or "C" in status:
             index += 1

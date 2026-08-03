@@ -24,7 +24,7 @@ _KNOWN_EVENT_TYPES = frozenset(
     }
 )
 _KNOWN_ITEM_TYPES = frozenset(
-    {"agent_message", "command_execution", "reasoning", "file_change", "mcp_tool_call", "web_search"}
+    {"agent_message", "command_execution", "reasoning", "file_change", "mcp_tool_call", "todo_list", "web_search"}
 )
 
 
@@ -242,6 +242,8 @@ def _normal_path(value: str, runtime_codex_home: Path) -> tuple[Path | None, boo
         ("./.codex/", codex_home),
         (".agents/", home / ".agents"),
         ("./.agents/", home / ".agents"),
+        ("$HOME/.agents/", home / ".agents"),
+        ("${HOME}/.agents/", home / ".agents"),
     )
     for prefix, root in substitutions:
         if value.startswith(prefix):

@@ -84,7 +84,8 @@ def build_grader_prompt(case: EvalCase, grader_instructions: str, response: str)
     }
     return (
         "Return only JSON matching the supplied output schema. Judge the response against this "
-        "scenario; do not infer unavailable context.\n\n"
+        "scenario; do not infer unavailable context. behavior_verdict must be FAIL if any expected "
+        "behavior is unmet, any anti-pattern is present, or any blocking failure is present; otherwise PASS.\n\n"
         + json.dumps(payload, ensure_ascii=False, sort_keys=True)
     )
 

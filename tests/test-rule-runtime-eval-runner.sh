@@ -240,6 +240,22 @@ expect_contract_error dirty_runtime_source_uncovered run_dry
 git -C "$REPO" checkout -- shared/rules/document-governance.md
 printf '\n' >> "$REPO/shared/assistant.md"
 
+GENERATED_RULE_RUNTIME_RESULT="$REPO/tools/eval/results/rule-runtime/round-3/generated.json"
+mkdir -p "$(dirname "$GENERATED_RULE_RUNTIME_RESULT")"
+printf '{"local_only":true}\n' > "$GENERATED_RULE_RUNTIME_RESULT"
+run_dry > "$TMP_ROOT/generated-results-resolution.json"
+python3 - "$TMP_ROOT/generated-results-resolution.json" <<'PY' || fail "generated rule-runtime results changed candidate identity"
+import json
+import sys
+from pathlib import Path
+
+dirty_paths = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))["candidate"]["dirty_paths"]
+if any(path.startswith("tools/eval/results/rule-runtime/") for path in dirty_paths):
+    raise SystemExit("generated rule-runtime result was included in candidate dirty paths")
+if "shared/assistant.md" not in dirty_paths:
+    raise SystemExit("candidate dirty runtime path disappeared while filtering generated results")
+PY
+
 SOURCE_CODEX_HOME="$TMP_ROOT/source-codex-home"
 FAKE_INSTALLER="$ROOT/tests/fixtures/rule-runtime-eval/fake-install.sh"
 FAKE_CODEX="$ROOT/tests/fixtures/rule-runtime-eval/fake-codex.py"
@@ -668,6 +684,35 @@ if not safe_shell_route.route_evidence_available or not safe_shell_route.route_p
 if set(safe_shell_route.read_contract_ids) != {"collaboration", "code-changes", "code-comments"}:
     raise SystemExit("safe shell reader commands lost an installed target")
 
+todo_events = [
+    {"type": event_type, "item": {"id": "todo-1", "type": "todo_list"}}
+    for event_type in ("item.started", "item.updated", "item.completed")
+]
+todo_route = classify_route_reads([*passed_events, *todo_events], (scene,), runtime_home)
+if not todo_route.route_evidence_available or not todo_route.route_pass:
+    raise SystemExit(f"todo list events made route evidence uncertain: {todo_route}")
+
+agent_skill_paths = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-agent-skills",
+            "type": "command_execution",
+            "command": (
+                "cat $HOME/.agents/skills/using-superpowers/SKILL.md "
+                "${HOME}/.agents/skills/test-driven-development/SKILL.md "
+                "$HOME/.codex/reference/协作判断.md"
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "read",
+        },
+    }
+]
+agent_skill_route = classify_route_reads(agent_skill_paths, (scene,), runtime_home)
+if not agent_skill_route.route_evidence_available or not agent_skill_route.route_pass:
+    raise SystemExit(f"HOME agent skill paths made route evidence uncertain: {agent_skill_route}")
+
 background_shell = [
     {
         "type": "item.completed",
@@ -1072,6 +1117,12 @@ for expected in (case.prompt, case.expected_behaviors[0], case.anti_patterns[0],
 for forbidden in ("candidate", "baseline", "26e63dca", "git diff", "runtime source body"):
     if forbidden in prompt.lower():
         raise SystemExit(f"blind prompt exposed forbidden configuration context: {forbidden!r}")
+strict_behavior_verdict_rule = (
+    "behavior_verdict must be FAIL if any expected behavior is unmet, any anti-pattern is present, "
+    "or any blocking failure is present; otherwise PASS."
+)
+if strict_behavior_verdict_rule not in prompt:
+    raise SystemExit("blind prompt omitted the strict behavior verdict rule")
 
 passed = json.loads((fixtures / "grading-pass.json").read_text(encoding="utf-8"))
 validated = validate_grader_output(passed, case)
