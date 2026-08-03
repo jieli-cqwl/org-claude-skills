@@ -136,7 +136,7 @@ Visible prose is Chinese. Canonical English role names remain visible beside sho
 
 #### One Agent Team header
 
-- `一个可替换的 Agent Team｜5 个专业交付阶段（不是 5 个 Team）`
+- `一个 Agent Team｜五段专业交付闭环`
 - Accountability badge: `阶段整合者负责一致性与路线；不得覆盖专业 Owner 结论`
 - Legend items: `阶段整合者`, `专业 Owner`, `执行者`, `按需 Owner`, `人工部署边界`
 
@@ -145,10 +145,10 @@ Visible prose is Chinese. Canonical English role names remain visible beside sho
 | Stage | Purpose | Integrator | Professional Owners / Executors | Stage result |
 |---|---|---|---|---|
 | `01 产品定义收敛` | `从模糊需求收敛出值得做、可验收、影响可解释且保护存量行为的产品定义` | `Product Director｜产品定义整合` | `Product Manager｜业务流程与产品行为`; `Impact Owner｜影响与保留义务`; `UX Owner｜按需`; `Architecture Owner｜按需`; `目标行为 · 保留行为 · 禁止副作用` | `产品定义就绪` |
-| `02 验证与计划` | `把每项产品义务转成证明方案，以及可实施、可部署、可观测、可恢复的计划` | `Tech Lead｜验证与计划整合` | `Test Design Owner｜先定义证明义务 → Tech Lead｜再形成实施与部署计划` | `验证与计划就绪` |
+| `02 测试设计与实施规划` | `编码前先明确如何证明产品义务，再形成实施、部署、观测与恢复计划` | `Tech Lead｜测试与实施方案整合` | `Test Design Owner｜先定义测试与证明义务 → Tech Lead｜再形成实施与部署计划` | `测试设计与实施计划就绪` |
 | `03 开发交付` | `TDD 实施，并由隔离上下文完成验证与评审，固定精确发布身份` | `Development Owner｜开发交付整合` | `Developer`; `Verifier`; `Code Reviewer`; `修复能力｜开发域内` | `可提测发布身份 + 开发证据` |
-| `04 独立质量验收` | `对测试环境中的精确发布身份做独立质量判断；Quality 不修改代码` | `Quality Owner｜质量验收整合` | `QA Executor`; `缺陷回到具体责任 Owner` | `可发布身份 + 独立质量结论` |
-| `05 生产验证与产品阶段决策` | `验证线上精确身份，并对真实业务结果作诚实处置` | `Product Director｜产品收口整合` | four separate fact cells defined below | `真实生产结果 + 产品阶段决策` |
+| `04 独立质量验收` | `在测试环境对指定发布身份执行独立测试并形成质量结论` | `Quality Owner｜质量验收整合` | `QA Executor`; `Quality 不修改代码`; `缺陷回到具体责任 Owner`; `保留证据`; `修正后由原独立方复验` | `可发布身份 + 独立质量结论` |
+| `05 生产验证与产品阶段决策` | `验证线上指定发布身份，并对真实业务结果分别形成技术事实、业务判断与最终处置` | `Product Director｜产品收口整合` | four separate fact cells defined below | `真实生产结果 + 产品阶段决策` |
 
 Stage 1 contains a visible loop labelled:
 
@@ -174,6 +174,8 @@ Stage 5 contains four separate, equally weighted cells:
 3. `Product Director｜收口建议`
 4. `Human｜Phase / Demand 最终处置`
 
+Use one positive navigation line above the cells: `生产验证 · 业务验收 · 收口建议 · 最终处置`.
+
 Do not merge the four cells into a generic `GO`, `上线成功`, or `需求完成` box.
 
 #### Deployment boundaries
@@ -183,11 +185,11 @@ Do not merge the four cells into a generic `GO`, `上线成功`, or `需求完�
 
 #### Shared Coordination and Assurance Foundation
 
-- Foundation title: `共享协调与保障底座｜不是第六阶段`
+- Foundation title: `共享协调与保障底座`
 - Block 1: `交付控制记录` / `当前阶段与 Owner · 权威版本 · 发布身份 · 证据有效性 · 阻塞 · 回流目标 · 待人工动作`
 - Block 2: `最小充分上下文` / `Owner 权威成果 → 接收方视图 → 人类决策视图 → 接收校验`
 - Block 3: `权限与独立性` / `最小权限 · 敏感信息隔离 · 独立角色使用新上下文`
-- Block 4: `Delivery Assurance Owner｜Agent Team 横向交付保障` / `独立检查路由、状态连续性、上下文、权限、追踪与安全停止；不同于 Quality Owner，不属于五阶段`
+- Block 4: `Delivery Assurance Owner` / `Agent Team 横向交付保障` / `独立检查路由、状态、上下文、权限与追踪` / `异常时安全停止并保留证据`
 
 #### Generic return and stop law
 
@@ -433,17 +435,33 @@ CONCEPT_VISIBLE_TOKENS = {
     "forward-integrator-route": ("阶段整合者推荐下一 Owner", "准备视图"),
     "forward-human-authorize": ("人工 AUTHORIZE / 触发",),
     "forward-recipient-accept": ("接收方 ACCEPT",),
-    "agent-team": ("一个可替换的 Agent Team", "5 个专业交付阶段", "不是 5 个 Team"),
+    "agent-team": ("一个 Agent Team｜五段专业交付闭环",),
     "stage-product-definition": ("01 产品定义收敛", "从模糊需求收敛", "产品定义就绪"),
-    "stage-verification-planning": ("02 验证与计划", "证明方案", "验证与计划就绪"),
+    "stage-verification-planning": (
+        "02 测试设计与实施规划",
+        "编码前先明确如何证明产品义务",
+        "再形成实施、部署、观测与恢复计划",
+        "测试设计与实施计划就绪",
+    ),
     "stage-development-delivery": ("03 开发交付", "TDD 实施", "可提测发布身份"),
-    "stage-independent-quality": ("04 独立质量验收", "Quality 不修改代码", "独立质量结论"),
-    "stage-production-closeout": ("05 生产验证与产品阶段决策", "真实业务结果", "产品阶段决策"),
+    "stage-independent-quality": (
+        "04 独立质量验收",
+        "在测试环境对指定发布身份",
+        "执行独立测试并形成质量结论",
+        "Quality 不修改代码",
+        "可发布身份 + 独立质量结论",
+    ),
+    "stage-production-closeout": (
+        "05 生产验证与产品阶段决策",
+        "验证线上指定发布身份，并对真实业务结果",
+        "分别形成技术事实、业务判断与最终处置",
+        "生产验证 · 业务验收 · 收口建议 · 最终处置",
+    ),
     "product-definition-convergence": (
         "Product Director ↔ Product Manager ↔ Impact Owner",
         "按需 UX / Architecture",
     ),
-    "proof-before-implementation-plan": ("先定义证明义务", "再形成实施与部署计划"),
+    "proof-before-implementation-plan": ("先定义测试与证明义务", "再形成实施与部署计划"),
     "specialist-accountability-rule": ("不得覆盖专业 Owner 结论",),
     "behavior-obligation-trace": (
         "目标行为 · 保留行为 · 禁止副作用",
@@ -453,11 +471,16 @@ CONCEPT_VISIBLE_TOKENS = {
     ),
     "test-deployment": ("人工测试部署边界", "Quality 核验实际身份", "未知 → 停止"),
     "production-deployment": ("人工生产部署边界", "部署 ≠ 生产验证 ≠ 业务成功", "未知 → 停止"),
-    "shared-foundation": ("共享协调与保障底座", "不是第六阶段"),
+    "shared-foundation": ("共享协调与保障底座",),
     "delivery-control-record": ("交付控制记录", "当前阶段与 Owner", "证据有效性", "回流目标"),
     "minimum-sufficient-context": ("最小充分上下文", "Owner 权威成果", "接收方视图", "接收校验"),
     "permission-context-isolation": ("权限与独立性", "最小权限", "独立角色使用新上下文"),
-    "agent-workflow-evaluation": ("Delivery Assurance Owner", "独立检查路由", "安全停止"),
+    "agent-workflow-evaluation": (
+        "Delivery Assurance Owner",
+        "Agent Team 横向交付保障",
+        "独立检查路由、状态、上下文、权限与追踪",
+        "异常时安全停止并保留证据",
+    ),
     "accountable-return-safe-stop": ("最早的具体责任 Owner 接责", "安全停止并升级", "不得伪装成功"),
     "return-finding-custody": ("保留证据",),
     "return-earliest-owner": ("最早的具体责任 Owner 接责",),
@@ -484,8 +507,11 @@ ROLE_INSTANCE_VISIBLE_TOKENS = {
     ("impact-owner", "stage-product-definition"): ("Impact Owner", "影响与保留义务"),
     ("ux-owner", "stage-product-definition"): ("UX Owner", "按需"),
     ("architecture-owner", "stage-product-definition"): ("Architecture Owner", "按需"),
-    ("test-design-owner", "stage-verification-planning"): ("Test Design Owner", "先定义证明义务"),
-    ("tech-lead", "stage-verification-planning"): ("Tech Lead", "验证与计划整合"),
+    ("test-design-owner", "stage-verification-planning"): (
+        "Test Design Owner",
+        "先定义测试与证明义务",
+    ),
+    ("tech-lead", "stage-verification-planning"): ("Tech Lead", "测试与实施方案整合"),
     ("development-owner", "stage-development-delivery"): ("Development Owner", "开发交付整合"),
     ("developer", "stage-development-delivery"): ("Developer",),
     ("verifier", "stage-development-delivery"): ("Verifier",),
@@ -499,6 +525,12 @@ ROLE_INSTANCE_VISIBLE_TOKENS = {
 FORBIDDEN_VISIBLE_PATTERNS = (
     re.compile(r"\b(?:F|R|IR)[-_]?\d+\b", re.IGNORECASE),
     re.compile(r"\b(?:flow|route)[-_ ]?(?:id|\d+|[A-Z])\b", re.IGNORECASE),
+)
+FORBIDDEN_DEFENSIVE_VISIBLE_FRAGMENTS = (
+    "不是 5 个 Team",
+    "不是第六阶段",
+    "四个事实彼此独立，不能合并为 GO",
+    "不同于 Quality Owner，不属于五阶段",
 )
 FORBIDDEN_CANONICAL_PATTERNS = (
     re.compile(r"(?:f|r|ir)\d+", re.IGNORECASE),
@@ -1132,6 +1164,43 @@ class OneHumanAgentTeamArchitectureMapTests(unittest.TestCase):
         for fragment in FORBIDDEN_CANONICAL_FRAGMENTS:
             self.assertNotIn(fragment.casefold(), forbidden_text, fragment)
 
+    def test_visible_copy_distinguishes_stage_two_planning_from_stage_four_execution_without_defensive_prose(
+        self,
+    ) -> None:
+        self.assert_visible_tokens(
+            self.concept("stage-verification-planning"),
+            (
+                "02 测试设计与实施规划",
+                "编码前先明确如何证明产品义务，",
+                "再形成实施、部署、观测与恢复计划",
+                "测试与实施方案整合",
+                "先定义测试与证明义务",
+                "再形成实施与部署计划",
+                "测试设计与实施计划就绪",
+            ),
+            "stage 2 must read as design and implementation planning",
+        )
+        self.assert_visible_tokens(
+            self.concept("stage-independent-quality"),
+            (
+                "04 独立质量验收",
+                "在测试环境对指定发布身份",
+                "执行独立测试并形成质量结论",
+                "Quality 不修改代码",
+                "缺陷回到具体责任 Owner",
+                "保留证据",
+                "修正后由原独立方复验",
+            ),
+            "stage 4 must read as independent test execution",
+        )
+        visible_text = compact_text(self.visible_text())
+        for fragment in FORBIDDEN_DEFENSIVE_VISIBLE_FRAGMENTS:
+            self.assertNotIn(
+                compact_text(fragment),
+                visible_text,
+                f"defensive visible copy must be removed: {fragment!r}",
+            )
+
     def test_png_is_complete_decodable_and_bound_to_the_svg(self) -> None:
         payload = PNG_PATH.read_bytes()
         self.assertEqual(payload[:8], b"\x89PNG\r\n\x1a\n")
@@ -1328,7 +1397,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 tests/test-one-human-agent-team-architecture-m
 xmllint --noout "$MAP_SVG"
 ```
 
-Expected: eight unittest cases PASS and `xmllint` exits `0` without output. If adding the non-rendered digest attribute changes the PNG bytes in the installed renderer, update the attribute to the new digest, render once more, and require two consecutive identical digest values before proceeding.
+Expected: nine unittest cases PASS and `xmllint` exits `0` without output. If adding the non-rendered digest attribute changes the PNG bytes in the installed renderer, update the attribute to the new digest, render once more, and require two consecutive identical digest values before proceeding.
 
 - [ ] **Step 7: Prove the focused gate sees the new test**
 
@@ -1656,7 +1725,7 @@ git diff --check
 
 Expected:
 
-- eight map unittest cases PASS;
+- nine map unittest cases PASS;
 - valid XML;
 - docs/context profile PASS, apart from the existing non-blocking Product Manager soft-budget warning;
 - `git diff --check` exits `0`;

@@ -158,7 +158,7 @@ Customer problem or business opportunity
 1. Product Definition Convergence
         ├─ DISCOVERY / NO-GO / PAUSE → truthful non-forward outcome
         ↓ Product Definition Readiness
-2. Verification & Planning
+2. Test Design & Implementation Planning
         ↓
 3. Development Delivery
         ↓
@@ -293,7 +293,7 @@ Each applicable obligation must remain traceable into impact, proof design, impl
 
 **Stage exit:** `Product Definition Readiness` exists only when every required or activated Owner has `GO`, skips are explicit and reopenable, preserved and forbidden behavior is explicit, no blocking contradiction remains, and Product Director attests composite readiness without overriding another Owner.
 
-### 2. Verification & Planning｜验证与计划
+### 2. Test Design & Implementation Planning｜测试设计与实施规划
 
 **Question:** How will every accepted obligation be proved, and how will the solution be implemented, deployed, observed, and recovered safely?
 
@@ -313,7 +313,7 @@ Each applicable obligation must remain traceable into impact, proof design, impl
 - Test Design obligations are not suggestions: Tech Lead and Quality may extend them but cannot silently remove or rewrite them.
 - A plan that reveals an upstream contradiction, uncovered impact, unprovable obligation, or material architecture need returns to the accountable Owner and reopens affected results.
 
-**Stage exit:** `Verification & Planning Readiness` exists only when Test Design Owner and Tech Lead both have `GO`, their results are mutually consistent, deployment and recovery obligations are represented, and Tech Lead attests composite readiness without overriding Test Design.
+**Stage exit:** `Test Design & Implementation Planning Readiness` exists only when Test Design Owner and Tech Lead both have `GO`, their results are mutually consistent, deployment and recovery obligations are represented, and Tech Lead attests composite readiness without overriding Test Design.
 
 The human co-creates or authorizes material architecture and risk trade-offs, but is not required to review every technical task.
 
@@ -330,7 +330,7 @@ The human co-creates or authorizes material architecture and risk trade-offs, bu
 - **Code Reviewer** — independently reviews code quality, risk, and maintainability.
 - **Code Fixer / repair capability** — corrects confirmed implementation defects and triggers fresh evaluation of affected proof.
 
-**Entry:** Development consumes the current Product Definition Readiness and Verification & Planning Readiness. Executors may receive narrower task views, but Development Owner remains responsible for mapping every applicable upstream obligation to implementation and proof.
+**Entry:** Development consumes the current Product Definition Readiness and Test Design & Implementation Planning Readiness. Executors may receive narrower task views, but Development Owner remains responsible for mapping every applicable upstream obligation to implementation and proof.
 
 **Stage exit:** `Test-ready Release Identity & Development Evidence` exists only when planned work is complete, required tests pass, fresh-context verification and code review pass, no unresolved Development blocker remains, deployment preparation is executable, and the exact release identity is fixed.
 
@@ -347,7 +347,7 @@ A failed, partial, mismatched, or unknown deployment outcome stops the success p
 
 ### 4. Independent Quality Acceptance｜独立质量验收
 
-**Question:** Does independent evidence for the exact deployed release identity support production release?
+**Question:** Does independent test execution in the test environment against the designated deployed release identity produce a trustworthy quality conclusion for production release?
 
 **Stage Result Integrator and accountable Owner:** Quality Owner.
 
