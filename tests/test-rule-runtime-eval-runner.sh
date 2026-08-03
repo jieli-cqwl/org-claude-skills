@@ -684,6 +684,71 @@ if not safe_shell_route.route_evidence_available or not safe_shell_route.route_p
 if set(safe_shell_route.read_contract_ids) != {"collaboration", "code-changes", "code-comments"}:
     raise SystemExit("safe shell reader commands lost an installed target")
 
+wc_then_reader = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-wc-then-reader",
+            "type": "command_execution",
+            "command": (
+                f"/bin/zsh -lc 'wc -l {runtime_home}/reference/协作判断.md && "
+                f"sed -n \"1,3p\" {runtime_home}/reference/协作判断.md'"
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "3 /runtime/.codex/reference/协作判断.md\nread",
+        },
+    }
+]
+wc_then_reader_route = classify_route_reads(wc_then_reader, (scene,), runtime_home)
+if not wc_then_reader_route.route_evidence_available or not wc_then_reader_route.route_pass:
+    raise SystemExit(f"wc metadata probe blocked a later reader: {wc_then_reader_route}")
+if wc_then_reader_route.read_contract_ids != ("collaboration",):
+    raise SystemExit("wc metadata probe counted as route evidence")
+
+wc_only = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-wc-only",
+            "type": "command_execution",
+            "command": f"/bin/zsh -lc 'wc -l {runtime_home}/reference/协作判断.md'",
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "3 /runtime/.codex/reference/协作判断.md",
+        },
+    }
+]
+wc_only_route = classify_route_reads(wc_only, (scene,), runtime_home)
+if not wc_only_route.route_evidence_available or wc_only_route.route_pass:
+    raise SystemExit(f"wc-only metadata probe became route evidence: {wc_only_route}")
+if wc_only_route.read_contract_ids:
+    raise SystemExit("wc-only metadata probe recorded a route read")
+
+wc_wrong_mode = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-wc-wrong-mode",
+            "type": "command_execution",
+            "command": (
+                f"/bin/zsh -lc 'wc -w {runtime_home.resolve()}/reference/协作判断.md && "
+                f"sed -n \"1,3p\" {runtime_home.resolve()}/reference/协作判断.md'"
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "3 /runtime/.codex/reference/协作判断.md\nread",
+        },
+    }
+]
+wc_wrong_mode_route = classify_route_reads(wc_wrong_mode, (scene,), runtime_home)
+if (
+    wc_wrong_mode_route.route_evidence_available
+    or wc_wrong_mode_route.route_pass
+    or not wc_wrong_mode_route.parser_uncertain
+):
+    raise SystemExit("wc command outside the -l metadata probe form was accepted")
+
 todo_events = [
     {"type": event_type, "item": {"id": "todo-1", "type": "todo_list"}}
     for event_type in ("item.started", "item.updated", "item.completed")

@@ -181,6 +181,8 @@ def _shell_read_targets(
         return set(), _mentions_target(script, expected_targets)
     targets: set[Path] = set()
     for command_tokens in commands:
+        if _is_wc_line_probe(command_tokens, expected_targets, runtime_codex_home):
+            continue
         if not command_tokens or Path(command_tokens[0]).name not in _READERS:
             return set(), _mentions_target(script, expected_targets)
         command_targets, command_uncertain = _direct_read_targets(
@@ -190,6 +192,15 @@ def _shell_read_targets(
             return set(), True
         targets.update(command_targets)
     return targets, False
+
+
+def _is_wc_line_probe(
+    tokens: list[str], expected_targets: set[Path], runtime_codex_home: Path
+) -> bool:
+    if len(tokens) != 3 or Path(tokens[0]).name != "wc" or tokens[1] != "-l":
+        return False
+    target, uncertain = _normal_path(tokens[2], runtime_codex_home)
+    return not uncertain and target in expected_targets
 
 
 def _split_safe_shell_commands(tokens: list[str]) -> list[list[str]] | None:
