@@ -668,6 +668,27 @@ if not safe_shell_route.route_evidence_available or not safe_shell_route.route_p
 if set(safe_shell_route.read_contract_ids) != {"collaboration", "code-changes", "code-comments"}:
     raise SystemExit("safe shell reader commands lost an installed target")
 
+background_shell = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-background-shell",
+            "type": "command_execution",
+            "command": "/bin/zsh -lc 'cat $HOME/.codex/reference/协作判断.md & true'",
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "read",
+        },
+    }
+]
+background_shell_route = classify_route_reads(background_shell, (scene,), runtime_home)
+if (
+    background_shell_route.route_evidence_available
+    or background_shell_route.route_pass
+    or not background_shell_route.parser_uncertain
+):
+    raise SystemExit("background shell command was accepted as route evidence")
+
 newline_mixed = [
     {
         "type": "item.completed",

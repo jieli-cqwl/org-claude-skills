@@ -171,9 +171,12 @@ def _shell_read_targets(
     if any(operator in script for operator in ("||", "|", "\n", "`", "$()", "<", ">")):
         return set(), _mentions_target(script, expected_targets)
     try:
-        commands = _split_safe_shell_commands(_shell_tokens(script))
+        script_tokens = _shell_tokens(script)
     except ValueError:
         return set(), _mentions_target(script, expected_targets)
+    if "&" in script_tokens:
+        return set(), True
+    commands = _split_safe_shell_commands(script_tokens)
     if commands is None:
         return set(), _mentions_target(script, expected_targets)
     targets: set[Path] = set()
@@ -201,7 +204,7 @@ def _split_safe_shell_commands(tokens: list[str]) -> list[list[str]] | None:
             commands.append(command)
             command = []
             continue
-        if token in {"||", "|", "<", ">", "<<", ">>"}:
+        if token in {"&", "||", "|", "<", ">", "<<", ">>"}:
             return None
         command.append(token)
     if not command:
