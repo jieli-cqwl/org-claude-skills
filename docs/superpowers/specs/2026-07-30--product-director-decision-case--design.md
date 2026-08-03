@@ -1,13 +1,13 @@
 # Product Director Decision Case Design
 
-> **Revalidation required before forward use.** This design was derived from the superseded V1.2 candidate. Preserve it as detailed design evidence, but do not implement it or treat it as the accepted Product Director contract until it is realigned with the [current L0 architecture](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md) during the Product Director design stage.
+> **Revalidation required before forward use.** This design was derived from the superseded V1.2 candidate. Preserve it as detailed design evidence, but do not implement it or treat it as the accepted Product Director contract until it is realigned with the current [`一人 + Agent Team 架构`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md) during the Product Director design stage.
 
 ## Status
 
-- Design status: `BLOCKED_PENDING_L0_REALIGNMENT`; prior section approvals do not constitute approval against the current L0 baseline.
+- Design status: `BLOCKED_PENDING_TEAM_ARCHITECTURE_REALIGNMENT`; prior section approvals do not constitute approval against the current Team architecture.
 - Runtime status: not implemented.
 - Authority: design input only. This document does not replace current runtime Skills, canonical schemas, `contracts/standard-chain.yaml`, or active standard-chain artifacts.
-- Activation boundary: do not register this document in `contracts/active-doc-scope.yaml`, create an implementation plan from it, or implement it before L0 realignment and renewed human approval.
+- Activation boundary: do not register this document in `contracts/active-doc-scope.yaml`, create an implementation plan from it, or implement it before Team-architecture realignment and renewed human approval.
 
 ## Objective
 
@@ -52,7 +52,7 @@ This design covers:
 
 `human → product-director → product-manager`
 
-This section was originally derived from the superseded V1.2 flow and route model. Those identifiers are no longer current requirements. Realignment must start from the [`L0 Operating Architecture`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md), not from the old `F00/F01/R01/R10` contract.
+This section was originally derived from the superseded V1.2 flow and route model. Those identifiers are no longer current requirements. Realignment must start from the [`一人 + Agent Team 架构`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md), not from the old `F00/F01/R01/R10` contract.
 
 It does not redesign Product Manager's WHAT authority, Impact Owner, Architecture, Test Design, Development Owner, Quality Owner, or deployment behavior. It defines only the Product Manager intake and receipt contract needed to prove that a Director output is consumable without inventing or changing WHY.
 

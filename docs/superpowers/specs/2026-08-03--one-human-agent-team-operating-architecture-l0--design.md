@@ -1,9 +1,9 @@
-# One-Human + Agent Team L0 Operating Architecture
+# 一人 + Agent Team 架构
 
 ## Status
 
-- Architecture level: `L0` macro operating architecture.
-- Baseline revision: `L0-R1`.
+- Internal architecture level: `L0`; this is not part of the human-facing title.
+- Baseline revision: `L0-R2`.
 - Content status: approved through human co-creation on 2026-08-03.
 - Written specification status: pending final human review.
 - Runtime status: not implemented.
@@ -15,13 +15,19 @@
 
 The team is organized as:
 
-> **one Human Control Plane + five professional outcome systems + two human deployment gates + one accountable return law**
+> **one Human Control Plane + five professional outcome Teams + two human deployment gates + one accountable return law**
 
-This is not a chain of Agents passing documents and it is not a fully autonomous multi-Agent runtime. It is a human-governed operating architecture in which professional systems produce accepted outcomes, use bounded execution context, and return defects to the earliest accountable system.
+This is not a chain of Agents passing documents and it is not a fully autonomous multi-Agent runtime. It is a human-governed Team architecture in which professional Teams produce accepted outcomes, use bounded execution context, and return defects to the earliest accountable Team or Owner.
+
+## Team Semantics
+
+A professional **Team** is a logical, outcome-oriented collaboration unit. It is defined by one mission, contributing roles, a boundary result, and return responsibility.
+
+Team does **not** mean fixed staffing, a permanently running group of Agent instances, or permission for peer Owners to invoke one another autonomously. The same Agent may assume different roles at different times, and the same Owner may contribute to more than one Team. In `M0`, every cross-Owner handoff still requires human authorization and invocation.
 
 ## Goal
 
-Enable one human to direct a replaceable Agent team—from Codex, Claude, or another capable provider—from an ambiguous customer need to a truthful production and product outcome while preserving:
+Enable one human to direct a replaceable Agent Team—from Codex, Claude, or another capable provider—from an ambiguous customer need to a truthful production and product outcome while preserving:
 
 - human authority over value, material trade-offs, stage authorization, deployment, business acceptance, and final Phase/Demand disposition;
 - professional separation between product definition, proof design, planning, development, independent quality, production verification, and product closeout;
@@ -32,9 +38,9 @@ Enable one human to direct a replaceable Agent team—from Codex, Claude, or ano
 
 ## Acceptance Scope
 
-The L0 architecture is acceptable only when a human and a fresh Agent can both determine:
+The architecture is acceptable only when a human and a fresh Agent can both determine:
 
-1. what the five professional systems are and what outcome each owns;
+1. what the five professional Teams are and what outcome each owns;
 2. who co-creates, who authorizes, who executes, and who independently verifies;
 3. what permits forward movement and who invokes the next Owner in `M0`;
 4. where test and production deployment occur and why they remain human gates;
@@ -49,14 +55,14 @@ The architecture is not accepted merely because every role appears on a diagram.
 This baseline defines:
 
 - the Human Control Plane;
-- the five professional outcome systems;
+- the five professional outcome Teams;
 - conditional UX and Architecture activation authority;
 - the two human deployment gates;
 - the minimum-sufficient cross-Owner handoff model;
 - the normal forward path;
 - the generic accountable return law;
 - truthful production and product closeout semantics;
-- the content contract for the single Chinese L0 team battle map.
+- the content contract for the single Chinese Team architecture map.
 
 It deliberately does **not** define:
 
@@ -84,34 +90,34 @@ The essential complexity is not code generation. It is preserving truth and resp
 - deployment changes the environment but does not prove technical or business success;
 - the human must retain high-consequence authority without becoming a task coordinator.
 
-The selected structure puts each unavoidable complexity behind one accountable system boundary and keeps unresolved details evolvable.
+The selected structure puts each unavoidable complexity behind one accountable Team boundary and keeps unresolved details evolvable.
 
-## L0 Topology
+## Architecture Topology
 
 The architecture has three simultaneous structures:
 
 1. **Human Control Plane** — cross-cutting authority and human-executed external actions.
-2. **Professional outcome path** — five systems that move the work from demand to truthful closeout.
-3. **Accountable return network** — failures return to the earliest system that owns the defective definition, decision, implementation, proof, or environment action.
+2. **Professional outcome path** — five Teams that move the work from demand to truthful closeout.
+3. **Accountable return network** — failures return to the earliest Team or Owner that owns the defective definition, decision, implementation, proof, or environment action.
 
 The dominant forward path is:
 
 ```text
 Customer problem or business opportunity
         ↓
-1. Product Definition System
+1. Product Definition Team
         ↓
-2. Proof & Planning System
+2. Proof & Planning Team
         ↓
-3. Development Delivery System
+3. Development Delivery Team
         ↓
 Human: approve test entry and execute test deployment
         ↓
-4. Quality Acceptance System
+4. Quality Acceptance Team
         ↓
 Human: approve release and execute production deployment
         ↓
-5. Production Outcome & Product Closeout System
+5. Production Outcome & Product Closeout Team
         ├─ Quality Owner: production verification
         ├─ Human: business acceptance
         ├─ Product Director: closeout recommendation
@@ -145,17 +151,17 @@ Human approval authorizes progression. It does not convert an assumption into fa
 
 ### M0 invocation rule
 
-- The human invokes the named professional Owner at every cross-Owner handoff, including handoffs between Owners inside the same professional system.
+- The human invokes the named professional Owner at every cross-Owner handoff, including handoffs between Owners inside the same professional Team.
 - That single invocation begins with the recipient's bounded intake check; `ACCEPT` permits the same invocation to continue into professional work, while `CLARIFY` or `REJECT` stops before that work begins.
 - That Owner autonomously coordinates its bounded executors.
 - The human does not schedule Developer, Verifier, Code Reviewer, Code Fixer, or QA Executor loops.
 - Cross-Owner autonomous invocation is deferred until the manual operating model has been proven.
 
-## Professional Outcome Systems
+## Professional Outcome Teams
 
-A named system boundary result is a human-accepted composition of the current authoritative results owned by its contributing Owners and any required external outcome. It is a boundary view, not a new shared truth. Each underlying conclusion remains the responsibility of its original Owner, and human acceptance does not replace that professional responsibility or the next recipient's intake acceptance.
+A named Team boundary result is a human-accepted composition of the current authoritative results owned by its contributing Owners and any required external outcome. It is a boundary view, not a new shared truth. Each underlying conclusion remains the responsibility of its original Owner, and human acceptance does not replace that professional responsibility or the next recipient's intake acceptance.
 
-### 1. Product Definition System
+### 1. Product Definition Team｜产品定义团队
 
 **Question:** Why should this be solved, for whom, in what current boundary, through what product solution, and with what impact understood?
 
@@ -169,11 +175,11 @@ A named system boundary result is a human-accepted composition of the current au
 
 **Boundary result:** `Approved Product & Solution Baseline`.
 
-The macro responsibility order is Product Director → Product Manager → Impact Owner → conditional UX/Architecture resolution → consolidated Product Definition `GO`. This order assigns responsibility; it does not define the internal method of any role.
+The macro responsibility order is Product Director → Product Manager → Impact Owner → conditional UX/Architecture resolution → consolidated Product Definition Team `GO`. This order assigns responsibility; it does not define the internal method of any role.
 
 The boundary result covers the approved product definition and business-success criteria, an accepted impact-completeness conclusion with declared coverage limits and no known blocking omission, and either an accepted UX/Architecture result or an explicit justified skip. Every activated role must reach `GO`. A downstream-affecting unresolved issue or unclassified unknown cannot be passed to Proof & Planning.
 
-### 2. Proof & Planning System
+### 2. Proof & Planning Team｜验证与计划团队
 
 **Question:** How will success be proved, and how will the accepted solution be implemented safely?
 
@@ -186,13 +192,13 @@ The boundary result covers the approved product definition and business-success 
 
 - Test Design consumes Product, Impact, and every activated or explicitly skipped UX/Architecture result.
 - Tech Lead consumes the complete upstream baseline and Test Design; planning cannot reduce or rewrite either.
-- A missing, contradictory, or materially changed upstream obligation returns to its owning system.
+- A missing, contradictory, or materially changed upstream obligation returns to its owning Team or Owner.
 
 **Boundary result:** `Approved Verification Design & Development Plan`.
 
 The human reviews whether the proposed proof, material risk, and trade-offs are acceptable. The human is not expected to review every technical task.
 
-### 3. Development Delivery System
+### 3. Development Delivery Team｜开发交付团队
 
 **Question:** Has the accepted solution been implemented correctly and proved enough to enter independent quality testing?
 
@@ -213,9 +219,9 @@ Verifier and Code Reviewer are separate proof surfaces from the implementer, but
 
 **Entry boundary:** Development consumes the complete `Approved Product & Solution Baseline` and `Approved Verification Design & Development Plan`. A bounded executor may receive a narrower task-specific view, but every applicable upstream obligation must remain mapped and provable through the Development Owner.
 
-The result may leave this system only when planned work is complete, required tests pass, verification and code review pass, no unresolved development blocker remains, and the exact candidate is fixed. The human then decides whether to deploy that candidate to the test environment.
+The result may leave this Team only when planned work is complete, required tests pass, verification and code review pass, no unresolved development blocker remains, and the exact candidate is fixed. The human then decides whether to deploy that candidate to the test environment.
 
-### 4. Quality Acceptance System
+### 4. Quality Acceptance Team｜质量验收团队
 
 **Question:** Does independent evidence for the exact deployed candidate support production release?
 
@@ -232,11 +238,11 @@ Quality does not change code. A confirmed implementation defect returns to Devel
 
 The human accepts or rejects the release conclusion and, if accepted, executes production deployment.
 
-### 5. Production Outcome & Product Closeout System
+### 5. Production Outcome & Product Closeout Team｜生产结果与产品闭环团队
 
 **Question:** Did the exact approved version run correctly in production, deliver accepted business value, and reach an honest product-stage disposition?
 
-**Entry boundary:** This system consumes the current Product & Solution Baseline, the exact `Release-ready Candidate`, its Independent Quality Conclusion, and a trustworthy production-deployment result for that same candidate.
+**Entry boundary:** This Team consumes the current Product & Solution Baseline, the exact `Release-ready Candidate`, its Independent Quality Conclusion, and a trustworthy production-deployment result for that same candidate.
 
 **Activities and authority:**
 
@@ -261,7 +267,7 @@ Conditional activation follows one macro control:
 2. the human authorizes the decision and manually invokes an activated Owner in `M0`;
 3. the human may request activation even when the Agent recommends skip;
 4. a skip preserves a short rationale and a condition that would reopen the decision;
-5. once activated, the Owner must reach `GO` before the Product Definition System can complete.
+5. once activated, the Owner must reach `GO` before the Product Definition Team can complete.
 
 The exact activation checklists are intentionally deferred to the corresponding Owner designs.
 
@@ -310,7 +316,7 @@ Human `GO` and recipient `ACCEPT` are different facts: the former grants authori
 
 ### Forward law
 
-A cross-Owner transition, whether inside one professional system or between systems, requires all of the following:
+A cross-Owner transition, whether inside one professional Team or between Teams, requires all of the following:
 
 1. the current Owner's boundary result is professionally acceptable;
 2. no unresolved producer-owned blocker or unclassified unknown is hidden in the handoff;
@@ -320,20 +326,20 @@ A cross-Owner transition, whether inside one professional system or between syst
 
 ### Return law
 
-Every finding is first recorded, classified, and returned to the earliest system accountable for the defective definition, decision, implementation, proof, or environment action:
+Every finding is first recorded, classified, and returned to the earliest Team or Owner accountable for the defective definition, decision, implementation, proof, or environment action:
 
-- product goal, scenario, scope, or acceptance defect → Product Definition System;
+- product goal, scenario, scope, or acceptance defect → Product Definition Team;
 - impact omission → Impact Owner within Product Definition;
 - UX or architecture defect → the corresponding conditional Owner;
 - proof-design defect → Test Design Owner;
-- implementation or code-quality defect → Development Delivery System;
-- test execution or quality-judgment defect → Quality Acceptance System;
+- implementation or code-quality defect → Development Delivery Team;
+- test execution or quality-judgment defect → Quality Acceptance Team;
 - deployment or environment anomaly → stop at the corresponding human deployment boundary, preserve the truthful outcome, classify the cause, and return correction to the professional or external capability actually accountable for code, deployment definition, architecture, or environment;
 - unknown cause → diagnosis first; no guessed fix.
 
 The human deployment boundary owns authorization, execution, and truthful recording—not automatic technical diagnosis or repair. When an external action fails without a known cause, the professional Owner that proposed that action owns or commissions bounded diagnosis until an accountable correction route is named. If classification reveals no accountable capability, the L0 responsibility model must be reopened rather than making the human silently fill the gap.
 
-The downstream system may not repair an upstream responsibility or continue with an unresolved upstream blocker. A substantive upstream change invalidates only the downstream results and handoff views that actually depend on it; those dependencies must be re-evaluated before reuse.
+The downstream Team may not repair an upstream responsibility or continue with an unresolved upstream blocker. A substantive upstream change invalidates only the downstream results and handoff views that actually depend on it; those dependencies must be re-evaluated before reuse.
 
 ## Truthful Completion Semantics
 
@@ -363,7 +369,7 @@ Rejected for `M0`. Automation before the role boundaries and evidence contracts 
 
 It may become suitable after repeated manual runs show stable inputs, outputs, gates, return routes, and acceptable human load.
 
-### C. Human-governed professional systems with bounded Owner domains
+### C. Human-governed professional Teams with bounded Owner domains
 
 Selected. It keeps one human in control of consequential decisions while allowing autonomous executor loops inside bounded Owner domains. Manual cross-Owner invocation is a learning and safety mechanism, not the final automation model.
 
@@ -383,30 +389,30 @@ The L0 baseline does not pretend the following are solved:
 - whether manual Owner invocation creates excessive human load;
 - which gates can later be automated without weakening authority or evidence;
 - how Codex, Claude, and other providers differ in tool access and context behavior;
-- whether the `qft-tenants` target scenario exposes a missing system or misplaced responsibility.
+- whether the `qft-tenants` target scenario exposes a missing Team or misplaced responsibility.
 
-Any evidence that a responsibility has no accountable system, two systems own the same final decision, a downstream role must routinely reconstruct upstream work, or the human must coordinate executor loops reopens this architecture rather than being patched inside a Skill.
+Any evidence that a responsibility has no accountable Team or Owner, two Teams claim the same final decision, a downstream role must routinely reconstruct upstream work, or the human must coordinate executor loops reopens this architecture rather than being patched inside a Skill.
 
-## Chinese L0 Team Battle Map Contract
+## Chinese Team Architecture Map Contract
 
-The next visual implementation is one Chinese L0 architecture map. It must show:
+The next visual implementation is one Chinese Team architecture map. It must show:
 
 - a cross-cutting Human Control Plane;
-- five professional systems in the dominant left-to-right order;
-- each system's purpose, accountable roles, and boundary result;
+- five professional Teams in the dominant left-to-right order;
+- each Team's purpose, accountable roles, and boundary result;
 - UX Owner and Architecture Owner as conditional roles;
-- the human test-deployment gate between Systems 3 and 4;
-- the human production-deployment gate between Systems 4 and 5;
-- Product Director and human closeout at the end of System 5;
+- the human test-deployment gate between Teams 3 and 4;
+- the human production-deployment gate between Teams 4 and 5;
+- Product Director and human closeout at the end of Team 5;
 - the shared minimum-sufficient handoff rule;
 - one generic accountable return law;
 - explicit target status: `M0 manual control · not runtime-active`.
 
-The L0 map must not show flow IDs, route IDs, schemas, state machines, incident subflows, automation mechanics, detailed finding types, Task Packets, or the `qft-tenants` case.
+The map must not show flow IDs, route IDs, schemas, state machines, incident subflows, automation mechanics, detailed finding types, Task Packets, or the `qft-tenants` case.
 
 Visual success requires a first-time Chinese-speaking reader at normal desktop scale to identify within seconds:
 
-1. what each system does;
+1. what each Team does;
 2. who owns it;
 3. what comes next;
 4. where the human co-creates, authorizes, deploys, and decides;
@@ -416,7 +422,7 @@ If those questions require zooming into paragraph nodes or reading a separate sp
 
 ## Design Sequence After Written Approval
 
-1. Plan and implement the single Chinese L0 team battle map from this document only.
+1. Plan and implement the single Chinese Team architecture map from this document only.
 2. Obtain human semantic and visual acceptance of that map.
 3. Design each Owner domain separately, starting with Product Director and its Product Manager intake boundary.
 4. Search official and community Skill sources for each approved capability boundary.
