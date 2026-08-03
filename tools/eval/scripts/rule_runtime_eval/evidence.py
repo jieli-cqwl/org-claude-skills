@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import re
 import shlex
 
 from rule_runtime_eval.contracts import SceneContract
@@ -151,14 +152,14 @@ def _read_targets(
     try:
         tokens = _shell_tokens(command)
     except ValueError:
-        return set(), _mentions_target(command, expected_targets)
+        return set(), _mentions_target(command, expected_targets, runtime_codex_home)
     if not tokens:
         return set(), False
     executable = Path(tokens[0]).name
     if executable in _SHELLS:
         return _shell_read_targets(tokens, expected_targets, runtime_codex_home)
     if executable not in _READERS:
-        return set(), False
+        return set(), _mentions_target_alias(command, expected_targets, runtime_codex_home)
     return _direct_read_targets(tokens, expected_targets, runtime_codex_home)
 
 
@@ -166,25 +167,27 @@ def _shell_read_targets(
     tokens: list[str], expected_targets: set[Path], runtime_codex_home: Path
 ) -> tuple[set[Path], bool]:
     if len(tokens) != 3 or tokens[1] != "-lc":
-        return set(), _mentions_target(" ".join(tokens), expected_targets)
+        return set(), _mentions_target(" ".join(tokens), expected_targets, runtime_codex_home)
     script = tokens[2]
     if any(operator in script for operator in ("||", "|", "\n", "`", "$()", "<", ">")):
-        return set(), _mentions_target(script, expected_targets)
+        return set(), _mentions_target(script, expected_targets, runtime_codex_home)
     try:
         script_tokens = _shell_tokens(script)
     except ValueError:
-        return set(), _mentions_target(script, expected_targets)
+        return set(), _mentions_target(script, expected_targets, runtime_codex_home)
     if "&" in script_tokens:
         return set(), True
     commands = _split_safe_shell_commands(script_tokens)
     if commands is None:
-        return set(), _mentions_target(script, expected_targets)
+        return set(), _mentions_target(script, expected_targets, runtime_codex_home)
     targets: set[Path] = set()
     for command_tokens in commands:
-        if _is_wc_line_probe(command_tokens, expected_targets, runtime_codex_home):
+        if _is_wc_line_probe(command_tokens, runtime_codex_home):
+            continue
+        if _is_neutral_diagnostic(command_tokens):
             continue
         if not command_tokens or Path(command_tokens[0]).name not in _READERS:
-            return set(), _mentions_target(script, expected_targets)
+            return set(), _mentions_target(script, expected_targets, runtime_codex_home)
         command_targets, command_uncertain = _direct_read_targets(
             command_tokens, expected_targets, runtime_codex_home
         )
@@ -194,13 +197,32 @@ def _shell_read_targets(
     return targets, False
 
 
-def _is_wc_line_probe(
-    tokens: list[str], expected_targets: set[Path], runtime_codex_home: Path
-) -> bool:
-    if len(tokens) != 3 or Path(tokens[0]).name != "wc" or tokens[1] != "-l":
+def _is_wc_line_probe(tokens: list[str], runtime_codex_home: Path) -> bool:
+    if len(tokens) < 3 or Path(tokens[0]).name != "wc" or tokens[1] != "-l":
         return False
-    target, uncertain = _normal_path(tokens[2], runtime_codex_home)
-    return not uncertain and target in expected_targets
+    allowed_roots = (runtime_codex_home.resolve(), runtime_codex_home.parent / ".agents" / "skills")
+    for value in tokens[2:]:
+        target, uncertain = _normal_path(value, runtime_codex_home)
+        if uncertain or target is None or not any(_is_relative_to(target, root) for root in allowed_roots):
+            return False
+    return True
+
+
+def _is_neutral_diagnostic(tokens: list[str]) -> bool:
+    if not tokens:
+        return False
+    executable = Path(tokens[0]).name
+    return (executable == "pwd" and len(tokens) == 1) or (
+        executable == "printenv" and tokens[1:] == ["HOME"]
+    )
+
+
+def _is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
 
 
 def _split_safe_shell_commands(tokens: list[str]) -> list[list[str]] | None:
@@ -228,7 +250,7 @@ def _direct_read_targets(
     tokens: list[str], expected_targets: set[Path], runtime_codex_home: Path
 ) -> tuple[set[Path], bool]:
     if not tokens or Path(tokens[0]).name not in _READERS:
-        return set(), _mentions_target(" ".join(tokens), expected_targets)
+        return set(), _mentions_target(" ".join(tokens), expected_targets, runtime_codex_home)
     if any(token in {";", "&&", "||", "|", "<", ">", "<<", ">>"} for token in tokens[1:]):
         return set(), True
     targets: set[Path] = set()
@@ -265,8 +287,42 @@ def _normal_path(value: str, runtime_codex_home: Path) -> tuple[Path | None, boo
     return (None, True) if "$" in value else (path.resolve(), False)
 
 
-def _mentions_target(value: str, expected_targets: set[Path]) -> bool:
-    return any(str(target) in value for target in expected_targets)
+def _mentions_target(
+    value: str, expected_targets: set[Path], runtime_codex_home: Path
+) -> bool:
+    return any(str(target) in value for target in expected_targets) or _mentions_target_alias(
+        value, expected_targets, runtime_codex_home
+    )
+
+
+def _mentions_target_alias(
+    value: str, expected_targets: set[Path], runtime_codex_home: Path
+) -> bool:
+    codex_home = runtime_codex_home.resolve()
+    aliases: set[str] = set()
+    for target in expected_targets:
+        try:
+            relative = target.relative_to(codex_home)
+        except ValueError:
+            continue
+        suffix = relative.as_posix()
+        aliases.update(
+            {
+                f"$CODEX_HOME/{suffix}",
+                f"${{CODEX_HOME}}/{suffix}",
+                f"$HOME/.codex/{suffix}",
+                f"${{HOME}}/.codex/{suffix}",
+                f".codex/{suffix}",
+                f"./.codex/{suffix}",
+            }
+        )
+    return any(_alias_mentioned(value, alias) for alias in aliases)
+
+
+def _alias_mentioned(value: str, alias: str) -> bool:
+    if not alias.startswith(".codex/"):
+        return alias in value
+    return re.search(rf"(?<![/\w.-]){re.escape(alias)}", value) is not None
 
 
 def _shell_tokens(command: str) -> list[str]:

@@ -725,6 +725,78 @@ if not wc_only_route.route_evidence_available or wc_only_route.route_pass:
 if wc_only_route.read_contract_ids:
     raise SystemExit("wc-only metadata probe recorded a route read")
 
+wc_multi_then_readers = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-wc-multi-then-readers",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'wc -l "
+                '"$HOME/.agents/skills/using-superpowers/SKILL.md" '
+                '"${HOME}/.agents/skills/verification-before-completion/SKILL.md" '
+                '"$HOME/.codex/reference/协作判断.md" '
+                '"$CODEX_HOME/rules/code-changes.md" && '
+                'sed -n "1,3p" "$HOME/.codex/reference/协作判断.md" && '
+                'head -n 3 "$CODEX_HOME/rules/code-changes.md"\''
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "metadata\nread",
+        },
+    }
+]
+wc_multi_then_readers_route = classify_route_reads(
+    wc_multi_then_readers, (scene, code_changes), runtime_home
+)
+if not wc_multi_then_readers_route.route_evidence_available or not wc_multi_then_readers_route.route_pass:
+    raise SystemExit(f"multi-operand wc probe blocked later readers: {wc_multi_then_readers_route}")
+if set(wc_multi_then_readers_route.read_contract_ids) != {"collaboration", "code-changes"}:
+    raise SystemExit("multi-operand wc probe counted as route evidence or lost a later reader")
+
+wc_multi_only = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-wc-multi-only",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'wc -l "
+                '"$HOME/.agents/skills/using-superpowers/SKILL.md" '
+                '"$HOME/.codex/reference/协作判断.md"\''
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "metadata",
+        },
+    }
+]
+wc_multi_only_route = classify_route_reads(wc_multi_only, (scene,), runtime_home)
+if not wc_multi_only_route.route_evidence_available or wc_multi_only_route.route_pass:
+    raise SystemExit(f"multi-operand wc-only probe became route evidence: {wc_multi_only_route}")
+if wc_multi_only_route.read_contract_ids:
+    raise SystemExit("multi-operand wc-only probe recorded a route read")
+
+wc_unsafe_operand = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-wc-unsafe-operand",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'wc -l /etc/passwd && "
+                'sed -n "1,3p" "$HOME/.codex/reference/协作判断.md"\''
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "metadata\nread",
+        },
+    }
+]
+wc_unsafe_operand_route = classify_route_reads(wc_unsafe_operand, (scene,), runtime_home)
+if wc_unsafe_operand_route.route_evidence_available or not wc_unsafe_operand_route.parser_uncertain:
+    raise SystemExit("wc -l accepted an operand outside the runtime and agent-skill roots")
+
 wc_wrong_mode = [
     {
         "type": "item.completed",
@@ -748,6 +820,47 @@ if (
     or not wc_wrong_mode_route.parser_uncertain
 ):
     raise SystemExit("wc command outside the -l metadata probe form was accepted")
+
+for diagnostic in ("pwd", "printenv HOME"):
+    diagnostic_then_reader = [
+        {
+            "type": "item.completed",
+            "item": {
+                "id": f"command-{diagnostic.replace(' ', '-')}-then-reader",
+                "type": "command_execution",
+                "command": (
+                    f"/bin/zsh -lc '{diagnostic} && "
+                    'tail -n 3 "$HOME/.codex/reference/协作判断.md"\''
+                ),
+                "exit_code": 0,
+                "status": "completed",
+                "aggregated_output": "diagnostic\nread",
+            },
+        }
+    ]
+    diagnostic_route = classify_route_reads(diagnostic_then_reader, (scene,), runtime_home)
+    if not diagnostic_route.route_evidence_available or not diagnostic_route.route_pass:
+        raise SystemExit(f"benign diagnostic blocked a later reader: {diagnostic}: {diagnostic_route}")
+
+env_then_reader = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-env-then-reader",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'env && "
+                'tail -n 3 "$HOME/.codex/reference/协作判断.md"\''
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "environment\nread",
+        },
+    }
+]
+env_then_reader_route = classify_route_reads(env_then_reader, (scene,), runtime_home)
+if env_then_reader_route.route_evidence_available or not env_then_reader_route.parser_uncertain:
+    raise SystemExit("env was accepted as a neutral diagnostic")
 
 todo_events = [
     {"type": event_type, "item": {"id": "todo-1", "type": "todo_list"}}
@@ -815,6 +928,30 @@ newline_mixed = [
 newline_mixed_route = classify_route_reads(newline_mixed, (scene,), runtime_home)
 if newline_mixed_route.route_evidence_available or newline_mixed_route.route_pass:
     raise SystemExit("newline-separated mixed shell command was accepted as route evidence")
+
+unsupported_target_aliases = (
+    "$HOME/.codex/reference/协作判断.md",
+    "${HOME}/.codex/reference/协作判断.md",
+    "$CODEX_HOME/reference/协作判断.md",
+    ".codex/reference/协作判断.md",
+)
+for index, target_alias in enumerate(unsupported_target_aliases):
+    unsupported_alias = [
+        {
+            "type": "item.completed",
+            "item": {
+                "id": f"command-unsupported-alias-{index}",
+                "type": "command_execution",
+                "command": f"awk 'BEGINFILE {{ exit }}' {target_alias}",
+                "exit_code": 0,
+                "status": "completed",
+                "aggregated_output": "ignored",
+            },
+        }
+    ]
+    unsupported_alias_route = classify_route_reads(unsupported_alias, (scene,), runtime_home)
+    if unsupported_alias_route.route_evidence_available or not unsupported_alias_route.parser_uncertain:
+        raise SystemExit(f"unsupported command target alias was silently missed: {target_alias}")
 
 missed = classify_route_reads(fixture("route-read-miss.jsonl"), (scene,), runtime_home)
 if not missed.route_evidence_available or missed.route_pass:
