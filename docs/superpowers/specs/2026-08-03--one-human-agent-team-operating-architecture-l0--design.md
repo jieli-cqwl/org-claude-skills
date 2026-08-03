@@ -5,10 +5,10 @@
 - Internal architecture level: `L0`; this is not part of the human-facing title.
 - Baseline revision: `L0-R3`.
 - Approved direction: one human, one provider-replaceable Agent Team, and five professional delivery stages.
-- Written specification status: `DRAFT — pending final human review`.
+- Written specification status: `APPROVED — final human review completed on 2026-08-03`.
 - Runtime status: not implemented.
 - Operating mode: `M0`, a temporary learning mode with manual cross-Owner activation and human-controlled deployment.
-- Current authority: this document is the sole current macro target-design candidate. It must not drive visual implementation, Owner implementation, or runtime changes until written approval.
+- Current authority: this document is the sole approved macro target-design baseline. It authorizes planning the single Chinese macro architecture map defined below; it does not yet authorize visual implementation, Owner implementation, or runtime changes.
 - Supersession boundary: the 2026-07-30 V1.2 candidate and its R4 visual suite are historical design evidence, not current inputs for forward design or implementation.
 
 ## Decision
