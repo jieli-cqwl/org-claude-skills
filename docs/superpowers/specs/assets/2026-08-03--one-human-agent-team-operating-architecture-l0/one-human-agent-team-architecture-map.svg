@@ -8,7 +8,7 @@
      data-architecture="one-human-agent-team"
      data-baseline="L0-R3"
      data-status="m0-manual-not-runtime-active"
-     data-png-sha256="a6be7dd8e32b7884f2012999a4fd0154a11a04615b391f605e92daaaa05c34e6">
+     data-png-sha256="9fd635f9353493c12a5c3813118802d96d6afad5b660f8bb4edcbe25d9d2d364">
   <title id="map-title">一人 + Agent Team 架构</title>
   <desc id="map-description">一个人类治理层、一个 Agent Team、五个专业交付阶段、两个人工部署边界，以及共享协调与保障底座。</desc>
   <defs>
@@ -341,13 +341,13 @@
          data-role-type="professional-owner"
          data-placement="cross-cutting"
          data-team-membership="agent-team">
-        <rect x="1386" y="1008" width="438" height="84" rx="6" fill="#F5F1FF" stroke="#6D5BD0"/>
-        <text x="1400" y="1027" font-size="14" fill="#6750A4">Delivery Assurance Owner｜专业 Owner</text>
-        <text x="1400" y="1046" font-size="14" fill="#6750A4">Agent Team 横向交付保障</text>
-        <text x="1400" y="1065" font-size="14" fill="#4E3D80">独立检查路由、状态、上下文、权限与追踪</text>
-        <text x="1400" y="1084" font-size="14" fill="#4E3D80">安全停止；不同于 Quality Owner，不属于五阶段</text>
+        <rect x="1386" y="1006" width="438" height="72" rx="6" fill="#F5F1FF" stroke="#6D5BD0"/>
+        <text x="1400" y="1023" font-size="14" fill="#6750A4">Delivery Assurance Owner｜专业 Owner</text>
+        <text x="1400" y="1040" font-size="14" fill="#6750A4">Agent Team 横向交付保障</text>
+        <text x="1400" y="1057" font-size="14" fill="#4E3D80">独立检查路由、状态、上下文、权限与追踪</text>
+        <text x="1400" y="1074" font-size="14" fill="#4E3D80">安全停止；不同于 Quality Owner，不属于五阶段</text>
       </g>
-      <text x="1386" y="1108" font-size="14" fill="#596579">评估系统，不接管产品质量、路线或代码</text>
+      <text x="1386" y="1096" font-size="14" fill="#596579">评估系统，不接管产品质量、路线或代码</text>
     </g>
   </g>
 
