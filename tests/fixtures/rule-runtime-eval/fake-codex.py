@@ -18,6 +18,22 @@ def _verdicts(schema: dict, field: str, value: bool) -> list[dict]:
     ]
 
 
+def _emit_stderr() -> None:
+    value = os.environ.get("FAKE_CODEX_STDERR", "")
+    if os.environ.get("FAKE_CODEX_STDERR_INCLUDE_RUNTIME_PATHS") == "1":
+        install_log = Path(os.environ["FAKE_INSTALL_LOG"])
+        value = "\n".join(
+            (
+                value,
+                f"HOME={os.environ.get('HOME', '')}",
+                f"CODEX_HOME={os.environ.get('CODEX_HOME', '')}",
+                install_log.read_text(encoding="utf-8"),
+            )
+        )
+    if value:
+        print(value, file=sys.stderr)
+
+
 def main() -> int:
     args = sys.argv[1:]
     mode = os.environ.get("FAKE_CODEX_MODE", "pass")
@@ -45,6 +61,9 @@ def main() -> int:
             "added_ceremony_without_decision_value": False,
             "rationale": "fixture grading result",
         }
+        if mode == "behavior_fail":
+            grading["expectations"][0]["met"] = False
+            grading["behavior_verdict"] = "FAIL"
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(grading, ensure_ascii=False), encoding="utf-8")
         grader_log = os.environ.get("FAKE_GRADER_LOG")
@@ -56,6 +75,7 @@ def main() -> int:
             }
             with Path(grader_log).open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(payload, sort_keys=True) + "\n")
+        _emit_stderr()
         return 0
     log_path = os.environ.get("FAKE_CODEX_LOG")
     if log_path:
@@ -134,8 +154,7 @@ def main() -> int:
     if mode != "missing_output":
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text("fake response\n", encoding="utf-8")
-    if os.environ.get("FAKE_CODEX_STDERR"):
-        print(os.environ["FAKE_CODEX_STDERR"], file=sys.stderr)
+    _emit_stderr()
     return 0
 
 

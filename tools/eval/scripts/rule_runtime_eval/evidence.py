@@ -253,6 +253,8 @@ def _direct_read_targets(
         return set(), _mentions_target(" ".join(tokens), expected_targets, runtime_codex_home)
     if any(token in {";", "&&", "||", "|", "<", ">", "<<", ">>"} for token in tokens[1:]):
         return set(), True
+    if _provably_zero_content_reader(tokens):
+        return set(), False
     targets: set[Path] = set()
     for token in tokens[1:]:
         target, uncertain = _normal_path(token, runtime_codex_home)
@@ -261,6 +263,32 @@ def _direct_read_targets(
         if target is not None:
             targets.add(target)
     return targets & expected_targets, False
+
+
+def _provably_zero_content_reader(tokens: list[str]) -> bool:
+    """Reject supported reader forms whose own options guarantee no file content."""
+
+    executable = Path(tokens[0]).name
+    arguments = tokens[1:]
+    if executable in {"head", "tail"}:
+        for index, value in enumerate(arguments):
+            if value in {"-n", "--lines", "-c", "--bytes"} and index + 1 < len(arguments) and arguments[index + 1] == "0":
+                return True
+            if value in {"-0", "-n0", "--lines=0", "-c0", "--bytes=0"}:
+                return True
+        return False
+    if executable != "sed":
+        return False
+    quiet = any(value in {"-n", "--quiet", "--silent"} or value.startswith("-n") for value in arguments)
+    if not quiet:
+        return False
+    program_predecessors = {"-e", "--expression", "-n", "--quiet", "--silent"}
+    for index, value in enumerate(arguments):
+        if value in {"", "0p"} and (index == 0 or arguments[index - 1] in program_predecessors):
+            return True
+        if value in {"-e0p", "--expression=", "--expression=0p"}:
+            return True
+    return False
 
 
 def _normal_path(value: str, runtime_codex_home: Path) -> tuple[Path | None, bool]:

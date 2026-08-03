@@ -90,6 +90,12 @@ def write_json(path: Path, payload: object) -> None:
     path.write_bytes(_json_bytes(payload, indent=2) + b"\n")
 
 
+def redact_stderr(value: str, source: str) -> str:
+    """Withhold auth-adjacent process stderr while preserving its presence."""
+
+    return f"[{source} stderr withheld]\n" if value else ""
+
+
 def _json_bytes(payload: object, *, indent: int | None = None) -> bytes:
     return json.dumps(
         payload,

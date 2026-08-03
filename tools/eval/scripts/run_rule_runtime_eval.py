@@ -136,6 +136,9 @@ def main(argv: list[str] | None = None) -> int:
             timeout_seconds=args.timeout_sec,
             output_root=output_root,
             keep_workspaces=args.keep_workspaces,
+            installed_runtime_targets=tuple(
+                scene.installed_path for scene in execution_contract.scene_contracts
+            ),
             after_install=lambda workspaces, installations, judge: _execute_cases(
                 execution_contract,
                 execution_profile,
@@ -159,7 +162,7 @@ def main(argv: list[str] | None = None) -> int:
             prepared["model_calls"] = executions["model_calls"]
         write_json(output_root / "workspace-preparation.json", prepared)
         print(json.dumps(prepared, ensure_ascii=False, sort_keys=True, indent=2))
-        return 0
+        return 0 if _suite_verdict(workspace_summary) in {"PASS", "DIAGNOSTIC_PASS"} else 1
     except ContractError as exc:
         _emit_error(exc.code, exc.message)
         return 2
@@ -195,7 +198,14 @@ def _execute_cases(
         for workspace in configurations:
             run_dir = output_root / "runs" / workspace.id / case.pack_id / case.id
             installation = installation_by_id[workspace.id]
-            identity = _evidence_identity(acceptance, case, workspace, settings, codex_version or "unavailable")
+            identity = _evidence_identity(
+                acceptance,
+                case,
+                workspace,
+                installation,
+                settings,
+                codex_version or "unavailable",
+            )
             evidence_path = str(run_dir.relative_to(output_root) / "execution.json")
             if codex_version is None:
                 _write_execution(run_dir, workspace, case, "INFRA_BLOCKED_CODEX_VERSION", identity=identity)
@@ -289,6 +299,7 @@ def _evidence_identity(
     contract: object,
     case: EvalCase,
     workspace: RuntimeWorkspace,
+    installation: dict[str, object],
     settings: ExecutionSettings,
     codex_version: str,
 ) -> dict[str, object]:
@@ -299,15 +310,16 @@ def _evidence_identity(
         _relative(acceptance.repo_root, source): sha256_file(workspace.repo_root / _relative(acceptance.repo_root, source))
         for source in acceptance.runtime_sources
     }
+    installed_hashes = installation.get("installed_runtime_target_hashes")
+    if not isinstance(installed_hashes, list) or not installed_hashes:
+        raise WorkspaceError(
+            "installed_runtime_identity_missing",
+            "installed runtime target hashes are required for evidence identity",
+        )
     grader = acceptance.case_pack_by_id[case.pack_id].grader
     return {
         "configuration": sha256_json({"commit": workspace.commit, "dirty_paths": workspace.dirty_paths}),
-        "runtime": sha256_json(
-            {
-                "source_hashes": runtime_hashes,
-                "installed_targets": [scene.installed_path.as_posix() for scene in acceptance.scene_contracts],
-            }
-        ),
+        "runtime": sha256_json({"installed_target_hashes": installed_hashes}),
         "case": sha256_json(
             {
                 "prompt": case.prompt,
@@ -326,7 +338,19 @@ def _evidence_identity(
         "reasoning": settings.reasoning_effort,
         "runner": _runner_identity(),
         "runtime_source_hashes": runtime_hashes,
+        "installed_runtime_target_hashes": installed_hashes,
     }
+
+
+def _suite_verdict(workspace_summary: dict[str, object]) -> str | None:
+    executions = workspace_summary.get("executions")
+    if not isinstance(executions, dict):
+        return None
+    suite = executions.get("suite")
+    if not isinstance(suite, dict):
+        return None
+    verdict = suite.get("verdict")
+    return verdict if isinstance(verdict, str) else None
 
 
 def _grader_instructions(contract: object, case: EvalCase) -> str:

@@ -104,6 +104,8 @@ def project_suite_decision(profile: Mapping[str, object], pairs: list[Mapping[st
         blockers.append("focused suite requires 8 complete candidate/baseline pairs")
     if any(pair.get("candidate_outcome") not in {"pass", "route_pass_behavior_fail"} for pair in complete):
         blockers.append("candidate route evidence did not pass every complete case")
+    if any(pair.get("candidate_outcome") not in {"pass", "behavior_pass_route_fail"} for pair in complete):
+        blockers.append("candidate behavior did not pass every complete case")
     if any(_has_blocking_failure(pair.get("candidate")) for pair in complete):
         blockers.append("candidate blocking failure observed")
     average = _candidate_anchor_average(complete)

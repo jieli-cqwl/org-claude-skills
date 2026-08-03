@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 from typing import Callable, Mapping
 
-from rule_runtime_eval.common import CommandResult, run_command, sha256_file, write_json
+from rule_runtime_eval.common import CommandResult, redact_stderr, run_command, sha256_file, write_json
 
 
 _WORKSPACE_PREFIX = "rule-runtime-eval-"
@@ -95,6 +95,7 @@ def prepare_runtime_workspaces(
     timeout_seconds: int,
     output_root: Path,
     keep_workspaces: bool,
+    installed_runtime_targets: tuple[Path, ...],
     after_install: Callable[[tuple[RuntimeWorkspace, ...], tuple[dict[str, object], ...], RuntimeWorkspace], dict[str, object]] | None = None,
 ) -> dict[str, object]:
     """Install runtimes and optionally execute while their isolated homes remain alive."""
@@ -120,6 +121,7 @@ def prepare_runtime_workspaces(
                 installer_bin,
                 timeout_seconds,
                 output_root,
+                installed_runtime_targets,
             )
         ]
         for baseline in _unique_baselines(baseline_commits):
@@ -141,6 +143,7 @@ def prepare_runtime_workspaces(
                     installer_bin,
                     timeout_seconds,
                     output_root,
+                    installed_runtime_targets,
                 )
             )
         judge = _create_runtime_workspace(
@@ -156,6 +159,8 @@ def prepare_runtime_workspaces(
             "judge_context": judge_context,
             "workspace_retained": keep_workspaces,
         }
+        if keep_workspaces:
+            summary["retained_workspace_root"] = str(workspace_root)
         if after_install is not None:
             summary["executions"] = after_install(tuple(workspaces), tuple(prepared), judge)
         return summary
@@ -202,6 +207,7 @@ def _prepare_configuration(
     installer_bin: Path | None,
     timeout_seconds: int,
     output_root: Path,
+    installed_runtime_targets: tuple[Path, ...],
 ) -> dict[str, object]:
     context = seed_codex_context(source_codex_home, workspace.codex_home)
     command = _installer_command(workspace.repo_root, installer_bin)
@@ -211,6 +217,10 @@ def _prepare_configuration(
         env=_installer_env(workspace),
         timeout_seconds=timeout_seconds,
     )
+    installed_hashes, missing_targets = _installed_runtime_target_hashes(
+        workspace.codex_home, installed_runtime_targets
+    )
+    install_ready = result.returncode == 0 and not result.timed_out and not missing_targets
     manifest = {
         "configuration": {
             "id": workspace.id,
@@ -219,6 +229,9 @@ def _prepare_configuration(
         },
         "context": context,
         "runtime_source_hashes": _runtime_source_hashes(workspace.repo_root, acceptance_pack),
+        "installed_runtime_target_hashes": installed_hashes,
+        "missing_runtime_targets": missing_targets,
+        "runtime_target_status": "READY" if not missing_targets else "INFRA_BLOCKED",
         "install": _install_evidence(result, source_codex_home, workspace),
         "live_execution_status": "READY" if context["auth_available"] else "INFRA_BLOCKED",
     }
@@ -226,8 +239,10 @@ def _prepare_configuration(
     return {
         "id": workspace.id,
         "commit": workspace.commit,
-        "install_status": "READY" if result.returncode == 0 and not result.timed_out else "INFRA_BLOCKED",
+        "install_status": "READY" if install_ready else "INFRA_BLOCKED",
         "live_execution_status": "READY" if context["auth_available"] else "INFRA_BLOCKED",
+        "installed_runtime_target_hashes": installed_hashes,
+        "missing_runtime_targets": missing_targets,
     }
 
 
@@ -360,6 +375,30 @@ def _runtime_source_hashes(repo_root: Path, acceptance_pack: Path) -> list[dict[
     return hashes
 
 
+def _installed_runtime_target_hashes(
+    codex_home: Path, installed_runtime_targets: tuple[Path, ...]
+) -> tuple[list[dict[str, str]], list[str]]:
+    """Hash declared files from the installed runtime, never from repository sources."""
+
+    root = codex_home.resolve()
+    hashes: list[dict[str, str]] = []
+    missing: list[str] = []
+    for relative_path in sorted({path.as_posix() for path in installed_runtime_targets}):
+        target = (root / relative_path).resolve()
+        try:
+            target.relative_to(root)
+        except ValueError as exc:
+            raise WorkspaceError(
+                "runtime_target_outside_codex_home",
+                "installed runtime target escaped evaluator Codex home",
+            ) from exc
+        if not target.is_file():
+            missing.append(relative_path)
+            continue
+        hashes.append({"path": relative_path, "sha256": sha256_file(target)})
+    return hashes, missing
+
+
 def _install_evidence(
     result: CommandResult, source_codex_home: Path, workspace: RuntimeWorkspace
 ) -> dict[str, object]:
@@ -378,7 +417,7 @@ def _install_evidence(
         "ended_at": result.ended_at,
         "duration_seconds": result.duration_seconds,
         "stdout": _redact_installer_stdout(result.stdout, hidden_paths),
-        "stderr": "[installer stderr withheld]" if result.stderr else "",
+        "stderr": redact_stderr(result.stderr, "installer"),
     }
 
 

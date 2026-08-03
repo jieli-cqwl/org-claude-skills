@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 from typing import Mapping
 
-from rule_runtime_eval.common import CommandResult, run_command, write_json
+from rule_runtime_eval.common import CommandResult, redact_stderr, run_command, write_json
 from rule_runtime_eval.contracts import EvalCase
 from rule_runtime_eval.workspace import RuntimeWorkspace
 
@@ -158,7 +158,9 @@ def run_blind_grader(
             judge_cwd.rmdir()
         except OSError:
             pass
-    (run_dir / "grader.stderr.log").write_text(result.stderr, encoding="utf-8")
+    (run_dir / "grader.stderr.log").write_text(
+        redact_stderr(result.stderr, "grader"), encoding="utf-8"
+    )
     process = _process_evidence(result)
     if result.timed_out or result.returncode != 0:
         return {"state": "INFRA_BLOCKED_GRADER", "process": process}

@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 import time
 
-from rule_runtime_eval.common import CommandResult
+from rule_runtime_eval.common import CommandResult, redact_stderr
 from rule_runtime_eval.contracts import EvalCase
 from rule_runtime_eval.workspace import RuntimeWorkspace
 
@@ -84,7 +84,8 @@ def run_executor(
     ended_at = datetime.now(UTC)
     (run_dir / "executor.jsonl").write_bytes(_as_bytes(stdout))
     (run_dir / "executor.log").write_text(
-        "[executor stderr withheld]\n" if stderr else "", encoding="utf-8"
+        redact_stderr(_as_bytes(stderr).decode("utf-8", errors="replace"), "executor"),
+        encoding="utf-8",
     )
     return CommandResult(
         args=args,

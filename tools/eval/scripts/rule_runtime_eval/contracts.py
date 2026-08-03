@@ -242,8 +242,11 @@ def _load_profiles(payload: Mapping[str, object]) -> tuple[DiagnosticProfile, ..
         )
         runs = entry.get("runs_per_configuration")
         threshold = entry.get("anchor_threshold")
-        if not isinstance(runs, int) or runs < 1:
-            raise ContractError("profile_runs_invalid", "profile runs must be a positive integer")
+        if not isinstance(runs, int) or isinstance(runs, bool) or runs != 1:
+            raise ContractError(
+                "profile_runs_unsupported",
+                "this evaluator supports exactly one run per configuration",
+            )
         if not isinstance(threshold, (int, float)):
             raise ContractError("profile_anchor_threshold_invalid", "profile anchor threshold must be numeric")
         lightness_policy = entry.get("lightness_policy")

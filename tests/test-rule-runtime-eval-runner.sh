@@ -38,6 +38,27 @@ if payload.get("code") != sys.argv[2]:
 PY
 }
 
+expect_workspace_error() {
+  local expected_code="$1"
+  shift
+
+  set +e
+  "$@" >"$TMP_ROOT/stdout" 2>"$TMP_ROOT/stderr"
+  local status=$?
+  set -e
+
+  test "$status" -eq 1 || fail "expected workspace exit 1, got $status"
+  python3 - "$TMP_ROOT/stderr" "$expected_code" <<'PY' || fail "missing expected workspace error"
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if payload.get("code") != sys.argv[2]:
+    raise SystemExit(f"expected {sys.argv[2]!r}, got {payload.get('code')!r}")
+PY
+}
+
 run_dry() {
   python3 "$RUNNER" \
     --repo-root "$REPO" \
@@ -230,6 +251,31 @@ PY
 expect_contract_error assistant_runtime_source_missing run_dry
 
 git -C "$REPO" checkout -- docs/rule-runtime--team-readiness/acceptance-pack.json
+python3 - "$REPO" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1]) / "docs/rule-runtime--team-readiness/acceptance-pack.json"
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["diagnostic_profiles"][0]["runs_per_configuration"] = 2
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_contract_error profile_runs_unsupported run_dry
+
+python3 - "$REPO" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1]) / "docs/rule-runtime--team-readiness/acceptance-pack.json"
+payload = json.loads(path.read_text(encoding="utf-8"))
+payload["diagnostic_profiles"][0]["runs_per_configuration"] = 1.0
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+expect_contract_error profile_runs_unsupported run_dry
+
+git -C "$REPO" checkout -- docs/rule-runtime--team-readiness/acceptance-pack.json
 printf '\n' >> "$REPO/shared/reference/performance-and-efficiency.md"
 expect_contract_error dirty_runtime_source_uncovered run_dry
 
@@ -278,6 +324,20 @@ printf 'hooks = ["%s"]\nplugins = ["%s"]\nagent_role = "%s"\nproject = "%s"\nsec
 printf 'forbidden global instruction\n' > "$SOURCE_CODEX_HOME/AGENTS.md"
 printf 'forbidden global rule\n' > "$SOURCE_CODEX_HOME/rules/poison.md"
 chmod +x "$FAKE_INSTALLER"
+
+expect_workspace_error source_codex_home_invalid python3 "$RUNNER" \
+  --repo-root "$REPO" \
+  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --profile focused-v1 \
+  --case-source candidate \
+  --baseline-ref assistant-entry=f9cbf552 \
+  --baseline-ref sql-schema-comments=68abd950 \
+  --model gpt-5 \
+  --reasoning-effort high \
+  --output-root tools/eval/results/rule-runtime-eval-workspace-error-test \
+  --installer-bin "$FAKE_INSTALLER" \
+  --codex-bin "$FAKE_CODEX" \
+  --source-codex-home "$TMP_ROOT/missing-source-codex-home"
 
 PYTHONPATH="$ROOT/tools/eval/scripts" python3 - "$SOURCE_CODEX_HOME" "$TMP_ROOT/seeded-codex-home" <<'PY' || fail "seeded Codex context retained source configuration"
 import sys
@@ -340,6 +400,32 @@ if "shared/assistant.md" not in candidate["configuration"]["dirty_paths"]:
     raise SystemExit("candidate dirty runtime path is not recorded")
 if not candidate["runtime_source_hashes"]:
     raise SystemExit("candidate runtime hashes are missing")
+installed_hashes = candidate.get("installed_runtime_target_hashes")
+if not isinstance(installed_hashes, list) or len(installed_hashes) != 13:
+    raise SystemExit("candidate installed runtime target hashes are missing")
+source_by_target = {
+    "rules/code-changes.md": "shared/rules/code-changes.md",
+    "rules/completion-claims.md": "shared/rules/completion-claims.md",
+    "reference/协作判断.md": "shared/reference/协作判断.md",
+    "reference/测试规范.md": "shared/reference/测试规范.md",
+    "reference/code-structure-reuse.md": "shared/reference/code-structure-reuse.md",
+    "reference/code-comments.md": "shared/reference/code-comments.md",
+    "reference/error-handling.md": "shared/reference/error-handling.md",
+    "reference/constants-and-configuration.md": "shared/reference/constants-and-configuration.md",
+    "reference/performance-and-efficiency.md": "shared/reference/performance-and-efficiency.md",
+    "reference/技术方案设计.md": "shared/reference/技术方案设计.md",
+    "reference/impact-analysis.md": "shared/reference/impact-analysis.md",
+    "reference/系统调试.md": "shared/reference/系统调试.md",
+    "reference/全栈开发.md": "shared/reference/全栈开发.md",
+}
+import hashlib
+actual_by_target = {item["path"]: item["sha256"] for item in installed_hashes}
+expected_by_target = {
+    target: hashlib.sha256(b"fake-installed\n" + (repo / source).read_bytes()).hexdigest()
+    for target, source in source_by_target.items()
+}
+if actual_by_target != expected_by_target:
+    raise SystemExit("manifest did not hash installed runtime target content")
 
 baselines = summary["baseline_commits"]
 for baseline in baselines:
@@ -398,7 +484,8 @@ for path in result_root.rglob("*"):
             raise SystemExit("sensitive auth data leaked through persisted evidence")
 PY
 
-PYTHONPATH="$ROOT/tools/eval/scripts" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 - "$TMP_ROOT" "$FAKE_INSTALLER" <<'PY' || fail "default installer path evidence is not redacted"
+PYTHONPATH="$ROOT/tools/eval/scripts" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" \
+  FAKE_INSTALL_SKIP_RUNTIME_TARGETS=1 python3 - "$TMP_ROOT" "$FAKE_INSTALLER" <<'PY' || fail "default installer path evidence is not redacted"
 import json
 import shutil
 import stat
@@ -504,19 +591,29 @@ TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
   --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_CODEX_HOME" \
   --keep-workspaces > "$TMP_ROOT/keep-summary.json"
-python3 - "$EVALUATOR_TMP" "$FOREIGN_PREFIXED_ROOT" <<'PY' || fail "keep-workspaces did not retain exactly evaluator-owned roots"
+python3 - "$EVALUATOR_TMP" "$FOREIGN_PREFIXED_ROOT" "$TMP_ROOT/keep-summary.json" <<'PY' || fail "keep-workspaces did not report exactly the retained evaluator-owned root"
+import json
 import sys
 from pathlib import Path
 
 roots = [path for path in Path(sys.argv[1]).glob("rule-runtime-eval-*") if path != Path(sys.argv[2])]
 if len(roots) != 1 or not roots[0].is_dir():
     raise SystemExit("expected one retained evaluator workspace root")
+summary = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
+retained = summary.get("retained_workspace_root")
+if not isinstance(retained, str) or Path(retained).resolve() != roots[0].resolve():
+    raise SystemExit("summary omitted the retained evaluator workspace root")
+serialized = json.dumps(summary, ensure_ascii=False)
+for forbidden in ("placeholder-auth-secret", "placeholder-config-secret"):
+    if forbidden in serialized:
+        raise SystemExit(f"retained workspace summary leaked {forbidden!r}")
 PY
 
 SOURCE_WITHOUT_AUTH="$TMP_ROOT/source-without-auth"
 RESULT_NO_AUTH_ROOT="tools/eval/results/rule-runtime-eval-test-no-auth"
 mkdir "$SOURCE_WITHOUT_AUTH"
 printf 'placeholder-config-secret\n' > "$SOURCE_WITHOUT_AUTH/config.toml"
+set +e
 TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
   --repo-root "$REPO" \
   --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
@@ -530,6 +627,9 @@ TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
   --installer-bin "$FAKE_INSTALLER" \
   --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_WITHOUT_AUTH" > "$TMP_ROOT/no-auth-summary.json"
+no_auth_status=$?
+set -e
+test "$no_auth_status" -eq 1 || fail "missing-auth live diagnostic exited $no_auth_status instead of 1"
 python3 - "$TMP_ROOT/no-auth-summary.json" <<'PY' || fail "missing auth was not marked as an execution blocker"
 import json
 import sys
@@ -540,6 +640,40 @@ if any(item.get("live_execution_status") != "INFRA_BLOCKED" for item in summary[
     raise SystemExit("missing auth did not block live execution")
 if summary.get("model_calls") != 0:
     raise SystemExit("install-blocked configurations counted skipped executor calls")
+PY
+
+RESULT_MISSING_TARGET_ROOT="tools/eval/results/rule-runtime-eval-test-missing-target"
+set +e
+TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" \
+  FAKE_INSTALL_SKIP_TARGET="rules/code-changes.md" python3 "$RUNNER" \
+  --repo-root "$REPO" \
+  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --profile focused-v1 \
+  --case-source candidate \
+  --baseline-ref assistant-entry=f9cbf552 \
+  --baseline-ref sql-schema-comments=68abd950 \
+  --model gpt-5 \
+  --reasoning-effort high \
+  --output-root "$RESULT_MISSING_TARGET_ROOT" \
+  --installer-bin "$FAKE_INSTALLER" \
+  --codex-bin "$FAKE_CODEX" \
+  --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/missing-target-summary.json"
+missing_target_status=$?
+set -e
+test "$missing_target_status" -eq 1 || fail "missing installed runtime target exited $missing_target_status instead of 1"
+python3 - "$TMP_ROOT/missing-target-summary.json" <<'PY' || fail "missing installed runtime target was not infrastructure-blocked"
+import json
+import sys
+from pathlib import Path
+
+summary = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if summary.get("model_calls") != 0:
+    raise SystemExit("missing installed target did not block model execution")
+for installation in summary.get("installations", []):
+    if installation.get("install_status") != "INFRA_BLOCKED":
+        raise SystemExit("missing installed target left installation ready")
+    if installation.get("missing_runtime_targets") != ["rules/code-changes.md"]:
+        raise SystemExit("missing installed target was not identified")
 PY
 
 set +e
@@ -842,6 +976,37 @@ for diagnostic in ("pwd", "printenv HOME"):
     if not diagnostic_route.route_evidence_available or not diagnostic_route.route_pass:
         raise SystemExit(f"benign diagnostic blocked a later reader: {diagnostic}: {diagnostic_route}")
 
+zero_content_commands = (
+    f"/bin/zsh -lc 'head -n 0 {runtime_home}/reference/协作判断.md && pwd'",
+    f"/bin/zsh -lc 'head -n0 {runtime_home}/reference/协作判断.md && pwd'",
+    f"/bin/zsh -lc 'head -c 0 {runtime_home}/reference/协作判断.md && pwd'",
+    f"/bin/zsh -lc 'tail --lines=0 {runtime_home}/reference/协作判断.md && pwd'",
+    f"/bin/zsh -lc 'tail --bytes=0 {runtime_home}/reference/协作判断.md && pwd'",
+    f"/bin/zsh -lc \"sed -n '0p' {runtime_home}/reference/协作判断.md && pwd\"",
+    f"/bin/zsh -lc \"sed -n '' {runtime_home}/reference/协作判断.md && pwd\"",
+    f"/bin/zsh -lc \"sed -n -e '' {runtime_home}/reference/协作判断.md && pwd\"",
+    f"/bin/zsh -lc \"sed -n -e0p {runtime_home}/reference/协作判断.md && pwd\"",
+    f"/bin/zsh -lc \"sed --quiet --expression='' {runtime_home}/reference/协作判断.md && pwd\"",
+    f"/bin/zsh -lc \"sed --quiet --expression=0p {runtime_home}/reference/协作判断.md && pwd\"",
+)
+for index, command in enumerate(zero_content_commands):
+    zero_content = [
+        {
+            "type": "item.completed",
+            "item": {
+                "id": f"command-zero-content-{index}",
+                "type": "command_execution",
+                "command": command,
+                "exit_code": 0,
+                "status": "completed",
+                "aggregated_output": str(runtime_home.parent),
+            },
+        }
+    ]
+    zero_route = classify_route_reads(zero_content, (scene,), runtime_home)
+    if zero_route.route_pass or zero_route.read_contract_ids:
+        raise SystemExit(f"zero-content reader became route evidence: {command}: {zero_route}")
+
 env_then_reader = [
     {
         "type": "item.completed",
@@ -995,7 +1160,10 @@ PY
 EXECUTION_ROOT="tools/eval/results/rule-runtime-eval-execution-test"
 FAKE_CODEX_LOG="$TMP_ROOT/fake-codex.log"
 FAKE_GRADER_LOG="$TMP_ROOT/fake-grader.log"
-FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_LOG="$FAKE_CODEX_LOG" FAKE_GRADER_LOG="$FAKE_GRADER_LOG" python3 "$RUNNER" \
+: > "$FAKE_INSTALL_LOG"
+FAKE_CODEX_STDERR="token=grader-token Authorization: Basic grader-authorization Bearer grader-bearer cookie=grader-cookie session=grader-session password=grader-password api_key=grader-api-key source=$SOURCE_CODEX_HOME temp=$EVALUATOR_TMP" \
+  FAKE_CODEX_STDERR_INCLUDE_RUNTIME_PATHS=1 \
+  FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_LOG="$FAKE_CODEX_LOG" FAKE_GRADER_LOG="$FAKE_GRADER_LOG" python3 "$RUNNER" \
   --repo-root "$REPO" \
   --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
   --profile focused-v1 \
@@ -1008,13 +1176,13 @@ FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_LOG="$FAKE_CODEX_LOG" FAKE_GRADE
   --installer-bin "$FAKE_INSTALLER" \
   --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/execution-summary.json"
-python3 - "$REPO" "$EXECUTION_ROOT" "$FAKE_CODEX_LOG" "$FAKE_GRADER_LOG" "$TMP_ROOT/execution-summary.json" <<'PY' || fail "executor and blind grader evidence is invalid"
+python3 - "$REPO" "$EXECUTION_ROOT" "$FAKE_CODEX_LOG" "$FAKE_GRADER_LOG" "$TMP_ROOT/execution-summary.json" "$SOURCE_CODEX_HOME" "$EVALUATOR_TMP" <<'PY' || fail "executor and blind grader evidence is invalid"
 import json
 import sys
 from collections import defaultdict
 from pathlib import Path
 
-repo, result_root, log_path, grader_log_path, run_summary_path = map(Path, sys.argv[1:])
+repo, result_root, log_path, grader_log_path, run_summary_path, source_home, evaluator_tmp = map(Path, sys.argv[1:])
 result_root = repo / result_root
 records = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
 if not records:
@@ -1047,14 +1215,56 @@ if not (run / "executor.jsonl").is_file() or not (run / "outputs/response.md").i
 grading = json.loads((run / "execution.json").read_text(encoding="utf-8"))
 if grading.get("grading_state") != "GRADER_OK" or grading.get("grading", {}).get("behavior_verdict") != "PASS":
     raise SystemExit("successful blind grader evidence is missing")
+manifest = json.loads((result_root / "runtime-manifests/candidate.json").read_text(encoding="utf-8"))
+installed_hashes = manifest.get("installed_runtime_target_hashes")
+identity = evidence.get("identity", {})
+if identity.get("installed_runtime_target_hashes") != installed_hashes:
+    raise SystemExit("evidence identity omitted installed runtime target hashes")
+import hashlib
+runtime_payload = json.dumps(
+    {"installed_target_hashes": installed_hashes},
+    ensure_ascii=False,
+    sort_keys=True,
+    separators=(",", ":"),
+).encode("utf-8")
+if identity.get("runtime") != hashlib.sha256(runtime_payload).hexdigest():
+    raise SystemExit("runtime identity was not derived from installed target hashes")
 grader_records = [json.loads(line) for line in grader_log_path.read_text(encoding="utf-8").splitlines()]
 if not grader_records:
     raise SystemExit("fake blind grader was not invoked")
-configured_homes = {Path(record["home"]) for record in records}
+configured_homes = {
+    Path(record[key]).resolve()
+    for record in records
+    for key in ("home", "codex_home")
+}
+judge_homes = {
+    Path(record[key]).resolve()
+    for record in grader_records
+    for key in ("home", "codex_home")
+}
+for stderr_path in result_root.glob("runs/*/*/*/grader.stderr.log"):
+    persisted = stderr_path.read_text(encoding="utf-8")
+    if persisted != "[grader stderr withheld]\n":
+        raise SystemExit("grader stderr did not use the shared withholding boundary")
+    for forbidden in (
+        "grader-token",
+        "grader-authorization",
+        "grader-bearer",
+        "grader-cookie",
+        "grader-session",
+        "grader-password",
+        "grader-api-key",
+        str(source_home.resolve()),
+        str(evaluator_tmp.resolve()),
+        *(str(path) for path in configured_homes | judge_homes),
+    ):
+        if forbidden in persisted:
+            raise SystemExit(f"grader stderr leaked {forbidden!r}")
+configured_runtime_homes = {Path(record["home"]) for record in records}
 for record in grader_records:
     home = Path(record["home"])
     codex_home = Path(record["codex_home"])
-    if home in configured_homes:
+    if home in configured_runtime_homes:
         raise SystemExit("grader reused a candidate or baseline HOME")
     if (codex_home / "rules").exists() or (codex_home / "reference").exists():
         raise SystemExit("grader HOME contains installed runtime rules")
@@ -1074,7 +1284,37 @@ if comparison.get("pairs") != suite_summary.get("pairs"):
     raise SystemExit("standalone comparison projection drifted from summary")
 PY
 
+BEHAVIOR_FAILURE_ROOT="tools/eval/results/rule-runtime-eval-behavior-failure-test"
+set +e
+FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=behavior_fail python3 "$RUNNER" \
+  --repo-root "$REPO" \
+  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --profile focused-v1 \
+  --case-source candidate \
+  --baseline-ref assistant-entry=f9cbf552 \
+  --baseline-ref sql-schema-comments=68abd950 \
+  --model gpt-5 \
+  --reasoning-effort high \
+  --output-root "$BEHAVIOR_FAILURE_ROOT" \
+  --installer-bin "$FAKE_INSTALLER" \
+  --codex-bin "$FAKE_CODEX" \
+  --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/behavior-failure-summary.json"
+behavior_failure_status=$?
+set -e
+test "$behavior_failure_status" -eq 1 || fail "behavior-failing live diagnostic exited $behavior_failure_status instead of 1"
+python3 - "$REPO" "$BEHAVIOR_FAILURE_ROOT" <<'PY' || fail "behavior failure did not remain visible in suite evidence"
+import json
+import sys
+from pathlib import Path
+
+repo, result_root = map(Path, sys.argv[1:])
+summary = json.loads((repo / result_root / "summary.json").read_text(encoding="utf-8"))
+if summary.get("decision", {}).get("verdict") != "FAIL":
+    raise SystemExit("behavior failure did not produce suite FAIL")
+PY
+
 MODEL_CALL_PROCESS_ROOT="tools/eval/results/rule-runtime-eval-model-call-process-test"
+set +e
 FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=process python3 "$RUNNER" \
   --repo-root "$REPO" \
   --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
@@ -1088,6 +1328,9 @@ FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=process python3 "$RUNNER" \
   --installer-bin "$FAKE_INSTALLER" \
   --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/model-call-process-summary.json"
+process_status=$?
+set -e
+test "$process_status" -eq 1 || fail "process-blocked live diagnostic exited $process_status instead of 1"
 python3 - "$TMP_ROOT/model-call-process-summary.json" <<'PY' || fail "failed executor invocations were not counted"
 import json
 import sys
@@ -1099,6 +1342,7 @@ if summary.get("model_calls") != 16:
 PY
 
 VERSION_FAILURE_ROOT="tools/eval/results/rule-runtime-eval-version-failure-test"
+set +e
 FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=version_failure python3 "$RUNNER" \
   --repo-root "$REPO" \
   --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
@@ -1112,6 +1356,9 @@ FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=version_failure python3 "$R
   --installer-bin "$FAKE_INSTALLER" \
   --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/version-failure-summary.json"
+version_status=$?
+set -e
+test "$version_status" -eq 1 || fail "version-blocked live diagnostic exited $version_status instead of 1"
 python3 - "$REPO" "$VERSION_FAILURE_ROOT" <<'PY' || fail "Codex version failure was accepted as fresh evidence"
 import json
 import sys
@@ -1168,6 +1415,7 @@ for mode, expected in (
 PY
 
 UNKNOWN_ROOT="tools/eval/results/rule-runtime-eval-unknown-shape-test"
+set +e
 FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=unknown_shape python3 "$RUNNER" \
   --repo-root "$REPO" \
   --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
@@ -1181,6 +1429,9 @@ FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=unknown_shape python3 "$RUN
   --installer-bin "$FAKE_INSTALLER" \
   --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/unknown-summary.json"
+unknown_status=$?
+set -e
+test "$unknown_status" -eq 1 || fail "unknown-shape live diagnostic exited $unknown_status instead of 1"
 python3 - "$REPO" "$UNKNOWN_ROOT" <<'PY' || fail "unknown JSONL shape did not visibly block"
 import json
 import sys
@@ -1200,6 +1451,7 @@ PY
 
 for mode in timeout_malformed process_malformed missing_output_malformed; do
   PRECEDENCE_ROOT="tools/eval/results/rule-runtime-eval-$mode-test"
+  set +e
   FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE="$mode" python3 "$RUNNER" \
     --repo-root "$REPO" \
     --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
@@ -1214,6 +1466,9 @@ for mode in timeout_malformed process_malformed missing_output_malformed; do
     --codex-bin "$FAKE_CODEX" \
     --timeout-sec 1 \
     --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/$mode-summary.json"
+  precedence_status=$?
+  set -e
+  test "$precedence_status" -eq 1 || fail "$mode live diagnostic exited $precedence_status instead of 1"
   python3 - "$REPO" "$PRECEDENCE_ROOT" "$mode" <<'PY' || fail "execution-state precedence is invalid"
 import json
 import sys
@@ -1240,6 +1495,7 @@ printf '#!/usr/bin/env python3\n' > "$NON_EXECUTABLE_CODEX"
 for codex_bin in "$TMP_ROOT/missing-codex" "$NON_EXECUTABLE_CODEX"; do
   launch_name="$(basename "$codex_bin")"
   LAUNCH_FAILURE_ROOT="tools/eval/results/rule-runtime-eval-$launch_name-test"
+  set +e
   FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
     --repo-root "$REPO" \
     --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
@@ -1253,6 +1509,9 @@ for codex_bin in "$TMP_ROOT/missing-codex" "$NON_EXECUTABLE_CODEX"; do
     --installer-bin "$FAKE_INSTALLER" \
     --codex-bin "$codex_bin" \
     --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/$launch_name-summary.json"
+  launch_status=$?
+  set -e
+  test "$launch_status" -eq 1 || fail "$launch_name live diagnostic exited $launch_status instead of 1"
   python3 - "$REPO" "$LAUNCH_FAILURE_ROOT" <<'PY' || fail "Codex version probe failure did not produce per-case infrastructure evidence"
 import json
 import sys
