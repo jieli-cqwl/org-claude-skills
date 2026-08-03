@@ -8,7 +8,7 @@
      data-architecture="one-human-agent-team"
      data-baseline="L0-R3"
      data-status="m0-manual-not-runtime-active"
-     data-png-sha256="9fd635f9353493c12a5c3813118802d96d6afad5b660f8bb4edcbe25d9d2d364">
+     data-png-sha256="6899bfe2cac616ce89ebf1afc19701ceab8bb51c3550eaf86df377238e77011e">
   <title id="map-title">一人 + Agent Team 架构</title>
   <desc id="map-description">一个人类治理层、一个 Agent Team、五个专业交付阶段、两个人工部署边界，以及共享协调与保障底座。</desc>
   <defs>
@@ -90,7 +90,7 @@
 
   <g data-concept="agent-team" data-kind="agent-team">
     <rect data-visual="agent-team-container" class="layer" x="60" y="302" width="1800" height="592" rx="12" fill="#F7FAFF" stroke="#173B63"/>
-    <text x="82" y="332" font-size="24" fill="#173B63">一个可替换的 Agent Team｜5 个专业交付阶段（不是 5 个 Team）</text>
+    <text x="82" y="332" font-size="24" fill="#173B63">一个 Agent Team｜五段专业交付闭环</text>
     <text x="82" y="360" font-size="14" fill="#46627F">图例：阶段整合者 · 专业 Owner · 执行者 · 按需 Owner · 人工部署边界</text>
 
     <g data-concept="specialist-accountability-rule">
@@ -150,24 +150,24 @@
 
     <g data-concept="stage-verification-planning" data-kind="delivery-stage" data-order="2" data-integrator="tech-lead">
       <rect data-visual="stage-card" class="stage" x="472" y="378" width="292" height="438" rx="10" fill="#FFFFFF" stroke="#B7C5D8"/>
-      <text x="488" y="407" font-size="20" fill="#173B63">02 验证与计划</text>
-      <text x="488" y="431" font-size="14" fill="#596579">把每项产品义务转成证明方案，</text>
-      <text x="488" y="450" font-size="14" fill="#596579">以及可实施、可部署、可恢复的计划</text>
+      <text x="488" y="407" font-size="20" fill="#173B63">02 测试设计与实施规划</text>
+      <text x="488" y="431" font-size="14" fill="#596579">编码前先明确如何证明产品义务，</text>
+      <text x="488" y="450" font-size="14" fill="#596579">再形成实施、部署、观测与恢复计划</text>
 
       <g data-role-id="tech-lead" data-role-type="professional-owner">
         <rect x="488" y="464" width="260" height="48" rx="6" fill="#E8F1FF" stroke="#1E5AA8"/>
         <text x="500" y="484" font-size="14" fill="#1E5AA8">阶段整合者｜Tech Lead</text>
-        <text x="500" y="503" font-size="14" fill="#1E5AA8">验证与计划整合</text>
+        <text x="500" y="503" font-size="14" fill="#1E5AA8">测试与实施方案整合</text>
       </g>
       <g data-concept="proof-before-implementation-plan">
         <rect x="488" y="522" width="260" height="176" rx="7" fill="#F7FAFF" stroke="#46627F"/>
-        <text x="502" y="548" font-size="16" fill="#173B63">先定义证明义务</text>
+        <text x="502" y="548" font-size="16" fill="#173B63">先定义测试与证明义务</text>
         <text x="502" y="574" font-size="16" fill="#173B63">再形成实施与部署计划</text>
         <g data-role-id="test-design-owner" data-role-type="professional-owner">
           <rect x="502" y="590" width="232" height="64" rx="6" fill="#EAF7F5" stroke="#0F766E"/>
           <text x="514" y="610" font-size="14" fill="#0F766E">专业 Owner</text>
           <text x="514" y="628" font-size="14" fill="#0F766E">Test Design Owner</text>
-          <text x="514" y="646" font-size="14" fill="#0F766E">先定义证明义务</text>
+          <text x="514" y="646" font-size="14" fill="#0F766E">先定义测试与证明义务</text>
         </g>
         <text x="502" y="682" font-size="14" fill="#596579">目标 / 保留 / 禁止 / 边界 / 回归 / 风险</text>
       </g>
@@ -175,7 +175,7 @@
       <text x="502" y="740" font-size="14" fill="#1E5AA8">实施 · 部署 · 可观测 · 恢复</text>
       <text x="502" y="760" font-size="14" fill="#1E5AA8">计划必须消费证明方案</text>
       <rect x="488" y="774" width="260" height="28" rx="5" fill="#EAF7F5" stroke="#0F766E"/>
-      <text x="556" y="794" font-size="14" fill="#0F766E">验证与计划就绪</text>
+      <text x="538" y="794" font-size="14" fill="#0F766E">测试设计与实施计划就绪</text>
     </g>
 
     <g data-concept="stage-development-delivery" data-kind="delivery-stage" data-order="3" data-integrator="development-owner">
@@ -220,8 +220,8 @@
     <g data-concept="stage-independent-quality" data-kind="delivery-stage" data-order="4" data-integrator="quality-owner">
       <rect data-visual="stage-card" class="stage" x="1156" y="378" width="292" height="438" rx="10" fill="#FFFFFF" stroke="#B7C5D8"/>
       <text x="1172" y="407" font-size="20" fill="#173B63">04 独立质量验收</text>
-      <text x="1172" y="431" font-size="14" fill="#596579">对测试环境中的精确发布身份</text>
-      <text x="1172" y="450" font-size="14" fill="#596579">做独立质量判断；Quality 不修改代码</text>
+      <text x="1172" y="431" font-size="14" fill="#596579">在测试环境对指定发布身份</text>
+      <text x="1172" y="450" font-size="14" fill="#596579">执行独立测试并形成质量结论</text>
 
       <g data-role-id="quality-owner" data-role-type="professional-owner">
         <rect x="1172" y="464" width="260" height="50" rx="6" fill="#E8F1FF" stroke="#1E5AA8"/>
@@ -231,23 +231,21 @@
       <g data-role-id="qa-executor" data-role-type="executor">
         <rect x="1172" y="532" width="260" height="54" rx="6" fill="#F0F2F5" stroke="#596579"/>
         <text x="1184" y="554" font-size="14" fill="#596579">执行者｜QA Executor</text>
-        <text x="1184" y="576" font-size="14" fill="#364152">独立验证目标、保留与禁止行为</text>
+        <text x="1184" y="576" font-size="14" fill="#364152">Quality 不修改代码</text>
       </g>
-      <rect x="1172" y="604" width="260" height="118" rx="6" fill="#FFF1F0" stroke="#B42318"/>
+      <rect x="1172" y="604" width="260" height="92" rx="6" fill="#FFF1F0" stroke="#B42318"/>
       <text x="1184" y="632" font-size="14" fill="#B42318">缺陷回到具体责任 Owner</text>
-      <text x="1184" y="658" font-size="14" fill="#B42318">保留证据 · 不代改代码</text>
+      <text x="1184" y="658" font-size="14" fill="#B42318">保留证据</text>
       <text x="1184" y="684" font-size="14" fill="#B42318">修正后由原独立方复验</text>
-      <text x="1184" y="710" font-size="14" fill="#B42318">失败或未知不得洗成通过</text>
-      <rect x="1172" y="752" width="260" height="50" rx="5" fill="#EAF7F5" stroke="#0F766E"/>
-      <text x="1202" y="774" font-size="14" fill="#0F766E">可发布身份 + 独立质量结论</text>
-      <text x="1240" y="794" font-size="14" fill="#0F766E">独立质量结论</text>
+      <rect x="1172" y="774" width="260" height="28" rx="5" fill="#EAF7F5" stroke="#0F766E"/>
+      <text x="1202" y="794" font-size="14" fill="#0F766E">可发布身份 + 独立质量结论</text>
     </g>
 
     <g data-concept="stage-production-closeout" data-kind="delivery-stage" data-order="5" data-integrator="product-director">
       <rect data-visual="stage-card" class="stage" x="1498" y="378" width="292" height="438" rx="10" fill="#FFFFFF" stroke="#B7C5D8"/>
       <text x="1514" y="407" font-size="19" fill="#173B63">05 生产验证与产品阶段决策</text>
-      <text x="1514" y="431" font-size="14" fill="#596579">验证线上精确身份，并对真实业务结果</text>
-      <text x="1514" y="450" font-size="14" fill="#596579">作诚实处置；部署不等于业务成功</text>
+      <text x="1506" y="431" font-size="14" fill="#596579">验证线上指定发布身份，并对真实业务结果</text>
+      <text x="1514" y="450" font-size="14" fill="#596579">分别形成技术事实、业务判断与最终处置</text>
 
       <g data-role-id="quality-owner" data-role-type="professional-owner">
         <rect x="1514" y="464" width="124" height="52" rx="6" fill="#EAF7F5" stroke="#0F766E"/>
@@ -269,8 +267,7 @@
           <text x="1658" y="672" font-size="14" fill="#1E5AA8">收口建议</text>
         </g>
       </g>
-      <text x="1514" y="548" font-size="14" fill="#596579">四个事实彼此独立，不能合并为 GO</text>
-      <text x="1514" y="576" font-size="14" fill="#596579">生产验证 · 业务验收 · 收口建议 · 最终处置</text>
+      <text x="1514" y="558" font-size="14" fill="#596579">生产验证 · 业务验收 · 收口建议 · 最终处置</text>
 
       <g data-concept="business-acceptance" data-owner="human">
         <rect data-visual="final-fact" x="1514" y="704" width="124" height="72" rx="6" fill="#FFF6DC" stroke="#9A6700"/>
@@ -309,7 +306,7 @@
 
   <g data-concept="shared-foundation" data-kind="cross-cutting-foundation">
     <rect data-visual="shared-foundation-layer" class="layer" x="60" y="914" width="1800" height="202" rx="12" fill="#F4F0FF" stroke="#6750A4"/>
-    <text x="82" y="946" font-size="24" fill="#6750A4">共享协调与保障底座｜不是第六阶段</text>
+    <text x="82" y="946" font-size="24" fill="#6750A4">共享协调与保障底座</text>
 
     <g data-concept="delivery-control-record">
       <rect x="80" y="960" width="420" height="140" rx="8" fill="#FFFFFF" stroke="#6750A4"/>
@@ -335,19 +332,16 @@
     </g>
     <g data-concept="agent-workflow-evaluation">
       <rect x="1370" y="960" width="470" height="140" rx="8" fill="#FFFFFF" stroke="#6750A4"/>
-      <text x="1386" y="982" font-size="17" fill="#6750A4">Delivery Assurance Owner</text>
-      <text x="1386" y="1001" font-size="14" fill="#6750A4">Agent Team 横向交付保障</text>
       <g data-role-id="delivery-assurance-owner"
          data-role-type="professional-owner"
          data-placement="cross-cutting"
          data-team-membership="agent-team">
-        <rect x="1386" y="1006" width="438" height="72" rx="6" fill="#F5F1FF" stroke="#6D5BD0"/>
-        <text x="1400" y="1023" font-size="14" fill="#6750A4">Delivery Assurance Owner｜专业 Owner</text>
-        <text x="1400" y="1040" font-size="14" fill="#6750A4">Agent Team 横向交付保障</text>
-        <text x="1400" y="1057" font-size="14" fill="#4E3D80">独立检查路由、状态、上下文、权限与追踪</text>
-        <text x="1400" y="1074" font-size="14" fill="#4E3D80">安全停止；不同于 Quality Owner，不属于五阶段</text>
+        <rect x="1386" y="974" width="438" height="110" rx="6" fill="#F5F1FF" stroke="#6D5BD0"/>
+        <text x="1400" y="997" font-size="17" fill="#6750A4">Delivery Assurance Owner</text>
+        <text x="1400" y="1024" font-size="14" fill="#6750A4">Agent Team 横向交付保障</text>
+        <text x="1400" y="1051" font-size="14" fill="#4E3D80">独立检查路由、状态、上下文、权限与追踪</text>
+        <text x="1400" y="1078" font-size="14" fill="#4E3D80">异常时安全停止并保留证据</text>
       </g>
-      <text x="1386" y="1096" font-size="14" fill="#596579">评估系统，不接管产品质量、路线或代码</text>
     </g>
   </g>
 
