@@ -1,5 +1,7 @@
 # Product Director Session Export
 
+> **Historical conversation only.** Its continuation prompt was invalidated by the 2026-08-03 architecture reset. Do not use this export to resume implementation or skip macro review. The current target-design source is [`2026-08-03--one-human-agent-team-operating-architecture-l0--design.md`](superpowers/specs/2026-08-03--one-human-agent-team-operating-architecture-l0--design.md).
+
 This is a human-readable export of a local Codex session. It is not an official Codex import package.
 
 ## Metadata
@@ -22,9 +24,9 @@ This is a human-readable export of a local Codex session. It is not an official 
 - Excluded: developer/system instructions, hidden reasoning, tool call arguments, tool outputs, raw subagent internals, token accounting, and local runtime metadata beyond the summary above.
 - Purpose: cross-machine review and continuation context. Do not treat this file as the canonical product/process source of truth; use checked-in specs and plans for that.
 
-## Continuation Prompt
+## Historical Continuation Prompt — Invalid
 
-Use this prompt when starting a new Codex session on another machine:
+The following prompt is retained only as session provenance. Do not execute it:
 
 ~~~~~~~~text
 请先读取 AGENTS.md，然后读取 docs/product-dirrctor-session.md 和 docs/superpowers/specs/2026-07-30--product-director-decision-case--design.md。
