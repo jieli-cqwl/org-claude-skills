@@ -21,6 +21,12 @@ All four Critical, both Important, and the low-risk Minor findings are addressed
 - Red: the new empty-program `sed` regression observed `route_pass=True` with the target listed in `read_contract_ids` even though output came only from `pwd`.
 - Green: empty and explicit zero-print quiet `sed` forms now produce no route pass or read contract identity, while supported nonzero readers remain green.
 
+## Scoped Re-review Addendum
+
+The follow-up regression reproduced `sed -ne '' $HOME/.codex/reference/协作判断.md && pwd` as `route_pass=True` with the contract incorrectly recorded as read. The parser now treats only combined short options matching `-n+e` as an empty/`0p` script predecessor, covering `-ne` and repeated-quiet `-nne` without admitting non-equivalent option orders. Both zero-output forms are rejected, while `sed -n '1,3p'` remains a supported route read. No live model was rerun.
+
+Scoped verification passed the evaluator runner, test-signal assertion checker, team-readiness pack, Python/shell syntax checks, and `git diff --check`.
+
 ## Verification
 
 - `bash tests/test-rule-runtime-team-readiness-pack.sh`: exit `0`; `[PASS] rule runtime team readiness pack`.

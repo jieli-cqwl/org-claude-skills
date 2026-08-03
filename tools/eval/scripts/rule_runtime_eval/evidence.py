@@ -284,7 +284,11 @@ def _provably_zero_content_reader(tokens: list[str]) -> bool:
         return False
     program_predecessors = {"-e", "--expression", "-n", "--quiet", "--silent"}
     for index, value in enumerate(arguments):
-        if value in {"", "0p"} and (index == 0 or arguments[index - 1] in program_predecessors):
+        previous_is_program_option = index > 0 and (
+            arguments[index - 1] in program_predecessors
+            or re.fullmatch(r"-n+e", arguments[index - 1]) is not None
+        )
+        if value in {"", "0p"} and (index == 0 or previous_is_program_option):
             return True
         if value in {"-e0p", "--expression=", "--expression=0p"}:
             return True

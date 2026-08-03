@@ -985,6 +985,8 @@ zero_content_commands = (
     f"/bin/zsh -lc \"sed -n '0p' {runtime_home}/reference/协作判断.md && pwd\"",
     f"/bin/zsh -lc \"sed -n '' {runtime_home}/reference/协作判断.md && pwd\"",
     f"/bin/zsh -lc \"sed -n -e '' {runtime_home}/reference/协作判断.md && pwd\"",
+    f"/bin/zsh -lc \"sed -ne '' $HOME/.codex/reference/协作判断.md && pwd\"",
+    f"/bin/zsh -lc \"sed -nne '' $HOME/.codex/reference/协作判断.md && pwd\"",
     f"/bin/zsh -lc \"sed -n -e0p {runtime_home}/reference/协作判断.md && pwd\"",
     f"/bin/zsh -lc \"sed --quiet --expression='' {runtime_home}/reference/协作判断.md && pwd\"",
     f"/bin/zsh -lc \"sed --quiet --expression=0p {runtime_home}/reference/协作判断.md && pwd\"",
