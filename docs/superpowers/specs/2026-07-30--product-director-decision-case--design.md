@@ -1,13 +1,13 @@
 # Product Director Decision Case Design
 
-> **Revalidation required before forward use.** This design was derived from the superseded V1.2 candidate. Preserve it as detailed design evidence, but do not implement it or treat it as the accepted Product Director contract until it is realigned with the current [`一人 + Agent Team 架构`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md) during the Product Director design stage.
+> **Revalidation required before forward use.** This design was derived from the superseded V1.2 candidate. Preserve it as detailed design evidence, but do not implement it or treat it as the accepted Product Director contract until the current [`一人 + Agent Team 架构`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md) receives final written approval and this design is realigned during the Product Director design stage.
 
 ## Status
 
-- Design status: `BLOCKED_PENDING_TEAM_ARCHITECTURE_REALIGNMENT`; prior section approvals do not constitute approval against the current Team architecture.
+- Design status: `BLOCKED_PENDING_OPERATING_ARCHITECTURE_REALIGNMENT`; prior section approvals do not constitute approval against the current operating architecture.
 - Runtime status: not implemented.
 - Authority: design input only. This document does not replace current runtime Skills, canonical schemas, `contracts/standard-chain.yaml`, or active standard-chain artifacts.
-- Activation boundary: do not register this document in `contracts/active-doc-scope.yaml`, create an implementation plan from it, or implement it before Team-architecture realignment and renewed human approval.
+- Activation boundary: do not register this document in `contracts/active-doc-scope.yaml`, create an implementation plan from it, or implement it before operating-architecture realignment and renewed human approval.
 
 ## Objective
 
