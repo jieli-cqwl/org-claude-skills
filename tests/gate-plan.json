@@ -2671,6 +2671,21 @@
       "tags": [],
       "parallel_safe": true,
       "timeout_sec": 120
+    },
+    {
+      "id": "one-human-agent-team-architecture-map",
+      "command": [
+        "python3",
+        "tests/test-one-human-agent-team-architecture-map.py"
+      ],
+      "area": "docs",
+      "tier": "full",
+      "tags": [
+        "docs",
+        "python"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 60
     }
   ]
 }
