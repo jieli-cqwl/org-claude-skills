@@ -7,9 +7,11 @@
 - Runtime implementation: never activated.
 - Forward-use authority: none.
 
-The sole current macro target-design source is:
+The sole current macro target-design candidate is:
 
 [`一人 + Agent Team 架构`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md)
+
+It cannot drive visual, Owner, or runtime implementation before final written approval.
 
 V1.2 prematurely fixed flow IDs, route IDs, artifact identities, state machines, incident mechanics, activation strategy, and four visual projections before the macro operating architecture and its human view were accepted. None of those details are current requirements. They may be reconsidered only inside a later, explicitly approved detailed design.
 

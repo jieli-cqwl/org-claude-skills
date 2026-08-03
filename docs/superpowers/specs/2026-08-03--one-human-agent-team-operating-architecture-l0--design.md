@@ -3,429 +3,656 @@
 ## Status
 
 - Internal architecture level: `L0`; this is not part of the human-facing title.
-- Baseline revision: `L0-R2`.
-- Content status: approved through human co-creation on 2026-08-03.
-- Written specification status: pending final human review.
+- Baseline revision: `L0-R3`.
+- Approved direction: one human, one provider-replaceable Agent Team, and five professional delivery stages.
+- Written specification status: `DRAFT — pending final human review`.
 - Runtime status: not implemented.
-- Operating mode: `M0`, with manual cross-Owner invocation and human-executed deployment.
-- Current semantic source: this document is the only current macro baseline for the next visual and per-Owner designs.
+- Operating mode: `M0`, a temporary learning mode with manual cross-Owner activation and human-controlled deployment.
+- Current authority: this document is the sole current macro target-design candidate. It must not drive visual implementation, Owner implementation, or runtime changes until written approval.
 - Supersession boundary: the 2026-07-30 V1.2 candidate and its R4 visual suite are historical design evidence, not current inputs for forward design or implementation.
 
 ## Decision
 
-The team is organized as:
+The selected architecture is:
 
-> **one Human Control Plane + five professional outcome Teams + two human deployment gates + one accountable return law**
+> **one Human Governance Layer + one provider-replaceable Agent Team + five professional delivery stages + two human-controlled deployment boundaries + one shared coordination and assurance foundation + accountable return and stop laws**
 
-This is not a chain of Agents passing documents and it is not a fully autonomous multi-Agent runtime. It is a human-governed Team architecture in which professional Teams produce accepted outcomes, use bounded execution context, and return defects to the earliest accountable Team or Owner.
+The five stages are lifecycle boundaries, not five fixed Teams. `Agent Team` names the complete set of professional Agent roles only once at the organization level.
 
-## Team Semantics
-
-A professional **Team** is a logical, outcome-oriented collaboration unit. It is defined by one mission, contributing roles, a boundary result, and return responsibility.
-
-Team does **not** mean fixed staffing, a permanently running group of Agent instances, or permission for peer Owners to invoke one another autonomously. The same Agent may assume different roles at different times, and the same Owner may contribute to more than one Team. In `M0`, every cross-Owner handoff still requires human authorization and invocation.
+This is not a chain of chat sessions passing summaries, a collection of permanent Agent instances, or a fully autonomous multi-Agent runtime. Professional Owners remain accountable for their own conclusions; stage integration cannot overwrite those conclusions; the human controls consequential decisions without becoming the workflow router or the auditor of every professional detail.
 
 ## Goal
 
-Enable one human to direct a replaceable Agent Team—from Codex, Claude, or another capable provider—from an ambiguous customer need to a truthful production and product outcome while preserving:
+Enable one human to direct a replaceable Agent Team—from Codex, Claude, or another capable provider—from an ambiguous customer need to a truthful delivery or non-delivery product disposition and, when authorized, a truthful production outcome while preserving:
 
-- human authority over value, material trade-offs, stage authorization, deployment, business acceptance, and final Phase/Demand disposition;
-- professional separation between product definition, proof design, planning, development, independent quality, production verification, and product closeout;
-- autonomous execution loops inside each Owner domain without making the human coordinate individual executors;
-- minimum-sufficient, provider-neutral context between Owners;
-- explicit responsibility for upstream defects and no silent debt transfer downstream;
-- manual control before any automation is designed.
+- human authority over value, material trade-offs, authorization, deployment actions, business acceptance, and final Phase/Demand disposition;
+- human-Agent co-creation where product meaning or material architecture trade-offs require business judgment;
+- professional separation between product definition, impact, proof design, planning, implementation, independent review, quality acceptance, production verification, and product closeout;
+- autonomous execution inside bounded Owner domains without making the human coordinate executors, assemble professional results, or invent routes;
+- minimum-sufficient, provider-neutral context and recoverable control state across Owners, sessions, and providers;
+- explicit protection of existing behavior, compatibility obligations, and forbidden side effects;
+- explicit responsibility, evidence invalidation, safe stopping, and no silent debt transfer downstream;
+- manual learning before cross-Owner automation.
 
 ## Acceptance Scope
 
-The architecture is acceptable only when a human and a fresh Agent can both determine:
+The architecture is acceptable only when a human and a fresh Agent can both determine, without relying on prior chat history:
 
-1. what the five professional Teams are and what outcome each owns;
-2. who co-creates, who authorizes, who executes, and who independently verifies;
-3. what permits forward movement and who invokes the next Owner in `M0`;
-4. where test and production deployment occur and why they remain human gates;
-5. what crosses an Owner boundary and what remains out of downstream context;
-6. where a discovered problem returns and which evidence must be re-evaluated;
-7. why deployment, production verification, business acceptance, Phase success, and Demand completion are different facts.
+1. why there is one Agent Team and why the five boxes are delivery stages rather than five Teams;
+2. who owns each professional conclusion, who integrates each stage exit, and what neither may override;
+3. what the human co-creates, authorizes, triggers, deploys, accepts, and finally decides;
+4. who recommends the next Owner and prepares the next bounded context in `M0`;
+5. what the current stage, Owner, authoritative revision, and—when applicable—release identity, deployment outcome, evidence-validity state, blocker, and return target are;
+6. who owns current control-state continuity and who independently assures the Agent delivery system itself;
+7. what permits forward movement, what forces return, and what causes safe stop or human escalation;
+8. how target behavior, preserved behavior, forbidden behavior, and proof obligations remain connected;
+9. why deployment, production verification, business acceptance, Phase success, and Demand completion are different facts.
 
-The architecture is not accepted merely because every role appears on a diagram. Its boundaries and control laws must prevent unresolved upstream problems, stale evidence, context flooding, responsibility laundering, and false completion.
+The architecture is not accepted merely because all roles appear on a diagram. It must prevent unresolved upstream debt, stale evidence, context flooding, responsibility laundering, fake independence, failure washing, approval fatigue, and false completion.
 
 ## Scope Boundary
 
 This baseline defines:
 
-- the Human Control Plane;
-- the five professional outcome Teams;
+- the Human Governance Layer;
+- the one-Agent-Team organization model and role types;
+- five professional delivery stages and their result integrators;
 - conditional UX and Architecture activation authority;
-- the two human deployment gates;
+- the two human-controlled deployment boundaries;
+- the shared coordination and assurance responsibilities;
 - the minimum-sufficient cross-Owner handoff model;
-- the normal forward path;
-- the generic accountable return law;
+- the normal forward path, accountable return law, and safe-stop law;
 - truthful production and product closeout semantics;
-- the content contract for the single Chinese Team architecture map.
+- the acceptance contract for the single Chinese macro architecture map.
 
 It deliberately does **not** define:
 
 - Skill prompts, detailed internal methods, or role procedures beyond the explicitly approved Development TDD expectation;
-- artifact fields, schemas, file layouts, IDs, token limits, or storage;
+- artifact schemas, file layouts, field names, IDs, token limits, persistence technology, or dependency algorithms;
 - Task Packet format or executor dispatch protocol;
 - exact UX or Architecture activation checklists;
-- detailed finding taxonomies, route tables, state machines, incident protocols, retries, or recovery algorithms;
+- detailed finding taxonomies, route tables, state machines, retry counts, budgets, incident protocols, or recovery runbooks;
 - automated cross-Owner orchestration;
-- deployment implementation;
-- provider-specific Codex or Claude behavior;
-- project-specific requirements or the `qft-tenants` acceptance case.
+- deployment tooling or provider-specific Codex/Claude behavior;
+- portfolio strategy, market-wide opportunity prioritization, and roadmap governance before a selected Demand enters Product Director;
+- project-specific requirements or the solution to the `qft-tenants` acceptance case.
 
-Those are later designs. They may satisfy this baseline but may not silently expand or redefine it.
+Those are later designs. They may implement this baseline but may not silently expand or redefine it.
+
+## Concept Model
+
+### Organization concepts
+
+- **Human Business Owner** — the human with final business authority, material trade-off authority, deployment authorization, business-acceptance authority, and final Phase/Demand disposition authority.
+- **Agent Team** — the complete logical collection of provider-replaceable professional Agent roles. It is not five subteams, fixed staffing, or a promise that one running Agent can be replaced mid-task without loss.
+- **Professional Owner** — a role accountable for one professional responsibility and its authoritative result. Product Director, Product Manager, Impact Owner, UX Owner, Architecture Owner, Test Design Owner, Tech Lead, Development Owner, Quality Owner, and Delivery Assurance Owner are all Professional Owners regardless of title suffix.
+- **Executor** — a bounded role delegated by a Professional Owner. It does not own cross-Owner progression or redefine authoritative obligations.
+
+### Workflow and responsibility concepts
+
+- **Professional Delivery Stage** — a lifecycle boundary in the Demand-delivery path. Stage 1 evaluates the Demand and may form an authorized Active Phase; Stages 2–5 progress that Active Phase. A stage groups related professional outcomes for navigation; it is not an independently invocable Team.
+- **Stage Result Integrator** — the named Professional Owner responsible for detecting missing, contradictory, stale, or mutually invalidated results; preparing the stage decision view; and recommending the next accountable route. The integrator cannot waive or rewrite another Owner's professional `GO`.
+- **Owner Domain** — one Professional Owner's responsibility, bounded working context, authoritative result, delegated executors, and internal completion criteria.
+- **Stage Exit Readiness** — a derived readiness view showing that every required underlying Owner result and external outcome is current and mutually consistent. It is not a new source of professional truth.
+
+### Information concepts
+
+- **Owner Authoritative Result** — the single current source for one Owner's accepted decisions, constraints, obligations, evidence limits, classified unknowns, and reopen conditions.
+- **Recipient-Specific View** — a minimum-sufficient projection from one or more authoritative results for a named recipient. It is not a new truth and cannot silently rewrite the source.
+- **Human Decision View** — a concise projection that states the one decision required, Agent recommendation, evidence strength, material risks and unknowns, next route, and invalidation effect. The human is not required to reconstruct these from full professional artifacts.
+- **Delivery Control Record** — the lightweight cross-session control truth for the current Demand and, when one exists, Active Phase: current stage, active Owner, authoritative revisions, applicable release identity, deployment outcomes, valid or invalid downstream results, current finding custodian, blocker, recommended route, and pending human action. It references professional truth instead of copying it.
+
+### Business concepts
+
+- **Demand** — the broader customer problem or business investment object. It may contain no authorized Phase, one Phase, or multiple sequential Phases.
+- **Active Phase** — the Product Director's currently authorized minimum independent value boundary. It is not one of the five delivery stages.
+
+### Distinct control facts
+
+The architecture never collapses these facts into a generic human `GO`.
+
+Every cross-Owner transition uses:
+
+```text
+Producing Owner GO
+        ↓ professional result is acceptable within that Owner's responsibility
+Human AUTHORIZE
+        ↓ business authority permits the recommended transition
+Recipient ACCEPT
+        ↓ the named recipient can work without inventing missing meaning
+```
+
+A delivery-stage exit additionally requires all mandatory Owner `GO`s, applicable external outcomes, and a current consistency check before `Stage Exit Readiness`. A deployment produces a separate `Deployment Outcome`. Final business closure produces separate Phase and Demand dispositions. None of these facts substitutes for another.
 
 ## Why This Structure Exists
 
-The essential complexity is not code generation. It is preserving truth and responsibility while work moves through different professional concerns:
+The essential complexity is not code generation. It is preserving truth, independence, and responsibility while work moves through different professional concerns:
 
-- the initial customer statement may not express the real need;
-- a small request may affect many business and system surfaces;
-- implementation and independent proof should not share one biased narrative;
-- quality findings may originate in product, impact, UX, architecture, proof design, code, or environment;
-- an Agent needs enough context to act correctly, but full upstream process creates noise and confirmation bias;
-- deployment changes the environment but does not prove technical or business success;
-- the human must retain high-consequence authority without becoming a task coordinator.
+- the customer's sentence may describe a symptom or proposed solution rather than the real need;
+- a small visible change may affect many business objects, data states, permissions, integrations, and preserved paths;
+- impact knowledge grows as product, architecture, code, tests, and runtime expose new evidence;
+- an implementation and its proof must not share one biased reasoning history;
+- Agent roles need sufficient context, but complete upstream process creates noise and confirmation bias;
+- separate Owner results do not by themselves reveal the current stage, exact version, invalidated evidence, or next route;
+- deployment changes an environment but does not prove technical or business success;
+- business value may require an observation period;
+- the human must retain consequential authority without becoming a document assembler, technical auditor, workflow router, or incident diagnostician.
 
-The selected structure puts each unavoidable complexity behind one accountable Team boundary and keeps unresolved details evolvable.
+The selected structure separates organization, lifecycle, professional responsibility, control state, and evidence instead of forcing all five concepts into one kind of box.
 
 ## Architecture Topology
 
-The architecture has three simultaneous structures:
+The architecture has five simultaneous structures:
 
-1. **Human Control Plane** — cross-cutting authority and human-executed external actions.
-2. **Professional outcome path** — five Teams that move the work from demand to truthful closeout.
-3. **Accountable return network** — failures return to the earliest Team or Owner that owns the defective definition, decision, implementation, proof, or environment action.
+1. **Human Governance Layer** — cross-cutting business authority and human-controlled external actions.
+2. **One Agent Team** — Professional Owners and their bounded Executors.
+3. **Professional delivery path** — five lifecycle stages from demand definition to truthful product disposition.
+4. **Shared coordination and assurance foundation** — recoverable state, bounded context, release identity, permissions, isolation, trace, and Agent-workflow evaluation.
+5. **Accountable return and stop network** — findings return to a specific accountable Owner; unsafe or non-progressing work stops rather than looping or guessing.
 
-The dominant forward path is:
+The dominant path is:
 
 ```text
 Customer problem or business opportunity
         ↓
-1. Product Definition Team
+1. Product Definition Convergence
+        ├─ DISCOVERY / NO-GO / PAUSE → truthful non-forward outcome
+        ↓ Product Definition Readiness
+2. Verification & Planning
         ↓
-2. Proof & Planning Team
+3. Development Delivery
         ↓
-3. Development Delivery Team
+Human-controlled test deployment boundary
         ↓
-Human: approve test entry and execute test deployment
+4. Independent Quality Acceptance
         ↓
-4. Quality Acceptance Team
+Human-controlled production deployment boundary
         ↓
-Human: approve release and execute production deployment
+5. Production Verification & Product Stage Decision
         ↓
-5. Production Outcome & Product Closeout Team
-        ├─ Quality Owner: production verification
-        ├─ Human: business acceptance
-        ├─ Product Director: closeout recommendation
-        └─ Human: separate Phase / Demand disposition
-                    ↓
-Truthful outcome: successful Phase close, completed or continuing Demand,
-next Phase, rework, pause, or termination
+Truthful result: Phase success, observation pending, next Phase,
+rework, Demand completion or continuation, pause, termination, or NO-GO
 ```
 
-This dominant path is not a waterfall. Forward movement is conditional on professional acceptance; failed or invalid inputs return through accountability, not merely to the previous box.
+This dominant path is not a waterfall. Product definition converges through internal feedback, later evidence can reopen affected upstream truth, and failed work returns by responsibility rather than merely to the previous stage.
 
-## Human Control Plane
+## Human Governance Layer
 
 ### Mission
 
-The human is the Business Owner and final authority, not the coordinator of individual Agent tasks.
+The human is the Business Owner and final consequential authority, not the coordinator of Agent tasks or the substitute for missing professional accountability.
 
 ### Human authority
 
 The human:
 
-- co-creates product direction and key architecture choices;
-- accepts or rejects the Owner boundary results required for forward movement;
-- authorizes and manually invokes the next Owner in `M0`;
-- authorizes conditional UX and Architecture activation or skip;
-- executes test deployment and production deployment;
+- co-creates product direction and material architecture choices;
+- confirms business reality, value, constraints, and acceptable trade-offs;
+- reviews a bounded Human Decision View and authorizes or rejects the recommended transition;
+- manually triggers the named next Owner in `M0`;
+- authorizes and executes an already prepared test or production deployment action;
 - performs business acceptance;
-- makes the final Phase and Demand disposition.
+- records the final Phase and Demand disposition.
 
-Human approval authorizes progression. It does not convert an assumption into fact, a professional gap into a pass, or a failed deployment into a trustworthy outcome.
+The human does not have to prove impact completeness, architecture correctness, test-design sufficiency, code quality, or technical root cause. Human authorization does not convert an assumption into fact, a professional gap into `GO`, failed evidence into a pass, or an unknown business outcome into success.
 
-### M0 invocation rule
+### M0 manual-activation rule
 
-- The human invokes the named professional Owner at every cross-Owner handoff, including handoffs between Owners inside the same professional Team.
-- That single invocation begins with the recipient's bounded intake check; `ACCEPT` permits the same invocation to continue into professional work, while `CLARIFY` or `REJECT` stops before that work begins.
-- That Owner autonomously coordinates its bounded executors.
-- The human does not schedule Developer, Verifier, Code Reviewer, Code Fixer, or QA Executor loops.
-- Cross-Owner autonomous invocation is deferred until the manual operating model has been proven.
+`M0` is a temporary learning overlay used to prove role boundaries and outputs before automation. It is not the intended permanent operating burden.
 
-## Professional Outcome Teams
+- A producing Owner updates only its authoritative result and proposes a route.
+- The current Stage Result Integrator is the sole Agent authority for the cross-Owner route recommendation, Human Decision View, Recipient-Specific View, and proposed Delivery Control Record transition.
+- The human authorizes and manually triggers that recommendation; the human never resolves competing routes, assembles context, or calculates evidence invalidation.
+- The recipient invocation begins with bounded intake. `ACCEPT` completes active-Owner transfer and permits the same invocation to continue; `CLARIFY` or `REJECT` stops professional work until the input is safe.
+- Entry into a new delivery stage begins with that stage's Result Integrator, which establishes currentness and then routes to any required contributing Owner.
+- An Owner autonomously coordinates its bounded Executors. The human never schedules Developer, Verifier, Code Reviewer, Code Fixer, or QA Executor loops.
+- If the human is unavailable, work stops at the current safe boundary. No Agent may silently cross an Owner, test-deployment, or production-deployment boundary.
 
-A named Team boundary result is a human-accepted composition of the current authoritative results owned by its contributing Owners and any required external outcome. It is a boundary view, not a new shared truth. Each underlying conclusion remains the responsibility of its original Owner, and human acceptance does not replace that professional responsibility or the next recipient's intake acceptance.
+Cross-Owner automation may be considered only after repeated normal and failure-path runs show stable routing, reliable intake rejection, recoverable state, independent contexts, repeatable deployment, acceptable human load, and Agent-workflow evaluation evidence.
 
-### 1. Product Definition Team｜产品定义团队
+## One Agent Team
 
-**Question:** Why should this be solved, for whom, in what current boundary, through what product solution, and with what impact understood?
+The Agent Team contains professional roles, not permanent Agent processes. A provider or model may fill different roles at different times, but role responsibility and context boundaries remain stable.
 
-**Roles:**
+### Professional Owners
 
-- **Product Director** — co-creates the real problem, root need, value, and current Phase boundary.
-- **Product Manager** — defines product actors, scenarios, product solution, and product acceptance.
-- **Impact Owner** — establishes whether relevant business and system impact has been understood completely enough to proceed.
-- **UX Owner** — conditionally resolves material experience design obligations.
-- **Architecture Owner** — conditionally resolves material technical architecture obligations.
+- Product Director
+- Product Manager
+- Impact Owner
+- UX Owner, when activated
+- Architecture Owner, when activated
+- Test Design Owner
+- Tech Lead
+- Development Owner
+- Quality Owner
+- Delivery Assurance Owner, as a cross-cutting assurance role outside the five-stage professional outcome path
 
-**Boundary result:** `Approved Product & Solution Baseline`.
+### Bounded execution roles
 
-The macro responsibility order is Product Director → Product Manager → Impact Owner → conditional UX/Architecture resolution → consolidated Product Definition Team `GO`. This order assigns responsibility; it does not define the internal method of any role.
+- Developer
+- Verifier
+- Code Reviewer
+- Code Fixer or equivalent repair capability under Development Owner
+- QA Executor
 
-The boundary result covers the approved product definition and business-success criteria, an accepted impact-completeness conclusion with declared coverage limits and no known blocking omission, and either an accepted UX/Architecture result or an explicit justified skip. Every activated role must reach `GO`. A downstream-affecting unresolved issue or unclassified unknown cannot be passed to Proof & Planning.
+The exact decision to implement Code Fixer as a distinct Agent instance, a fresh repair context, or a Developer repair mode is deferred to the Development Owner design. Its responsibility remains inside Development; Quality never changes code.
 
-### 2. Proof & Planning Team｜验证与计划团队
+### Independence rule
 
-**Question:** How will success be proved, and how will the accepted solution be implemented safely?
+Logical role separation is insufficient. For the same change, Developer and the roles that certify it—Verifier, Code Reviewer, and Quality—must not share an implementation-polluted Workbench.
 
-**Roles:**
+The same provider or model may be reused, but an independent role must start from a fresh bounded context and independently read authoritative obligations, the actual candidate, and relevant evidence. The implementer's full reasoning history and self-conclusion are not proof inputs.
 
-- **Test Design Owner** — defines how the full accepted baseline will be proved.
-- **Tech Lead** — defines how the baseline will be implemented under the proof obligations and accepted constraints.
+Provider replaceability is guaranteed only at an accepted Owner boundary with recoverable authoritative results and a Delivery Control Record. Lossless replacement in the middle of an Owner's unfinished Workbench is not promised by L0.
 
-**Dependency rule:**
+### Cross-cutting assurance role
 
-- Test Design consumes Product, Impact, and every activated or explicitly skipped UX/Architecture result.
-- Tech Lead consumes the complete upstream baseline and Test Design; planning cannot reduce or rewrite either.
-- A missing, contradictory, or materially changed upstream obligation returns to its owning Team or Owner.
+**Delivery Assurance Owner** independently owns the assurance baseline and evaluation conclusion for whether the Agent delivery system itself preserves routing accountability, control-state continuity, minimum-sufficient context, permission boundaries, context independence, traceability, safe stopping, and provider/Skill change stability.
 
-**Boundary result:** `Approved Verification Design & Development Plan`.
+It does not own product quality, business acceptance, professional stage conclusions, routing decisions, or code changes. It evaluates evidence produced by the operating chain from a fresh bounded context.
 
-The human reviews whether the proposed proof, material risk, and trade-offs are acceptable. The human is not expected to review every technical task.
+Delivery Assurance Owner owns the mandatory assurance activation and reopen conditions. A Stage Result Integrator must recommend assurance invocation when one is met; any Professional Owner or recipient may raise a suspected control breach, and a mandatory condition cannot be waived by the stage being evaluated. In `M0`, the human manually triggers the named Delivery Assurance Owner but does not design the evaluation.
 
-### 3. Development Delivery Team｜开发交付团队
+Delivery Assurance Owner retains finding custody for an Agent-workflow assurance defect, may force a safe stop for a blocking control violation, routes correction to the specific Stage Result Integrator or Professional Owner accountable for the defective control, and independently re-evaluates after correction. It cannot perform that correction under the assurance role. If no corrective capability exists, the L0 responsibility model reopens.
+
+Exact checkpoint frequency, evaluation cases, thresholds, and tooling are deferred, but this responsibility may not be silently assigned to the human or to the same Stage Result Integrator being evaluated.
+
+## Five Professional Delivery Stages
+
+### 1. Product Definition Convergence｜产品定义收敛
+
+**Question:** Why should this be solved, for whom, what Active Phase—if any—should be authorized, through what product behavior, and with what known impact and preserved behavior?
+
+**Stage Result Integrator:** Product Director.
+
+**Entry:** A selected Demand signal and its available sources. The signal may be incomplete, solution-shaped, contradictory, or unsupported; it is evidence to investigate, not an accepted requirement.
+
+**Professional ownership:**
+
+- **Product Director** — owns the real problem, decision-relevant causal mechanism, value, investment logic, and Active Phase boundary.
+- **Product Manager** — owns actors, scenarios, business objects, states, rules, permissions, target product behavior, and product acceptance within the authorized Phase.
+- **Impact Owner** — owns evidence-backed coverage of relevant business and system impact, declared coverage limits, preserved behavior, and remaining coverage gaps.
+- **UX Owner** — conditionally owns material experience-design obligations.
+- **Architecture Owner** — conditionally owns material structural technical decisions.
+
+**Convergence law:**
+
+Product Director → Product Manager → Impact Owner is a responsibility discovery order, not a one-pass handoff chain. Current reality, provisional product definition, impact evidence, and conditional UX/Architecture results may reopen one another until they converge.
+
+An Architecture or UX result that materially changes behavior must trigger relevant Product Manager and Impact Owner re-evaluation. New system, code, test, or runtime evidence may later reopen only the affected authoritative results.
+
+**Behavior-obligation law:**
+
+The accepted product baseline must distinguish and preserve all three classes:
+
+1. target behavior that must change;
+2. current behavior and business invariants that must remain true;
+3. forbidden behavior and side effects that must not occur.
+
+Each applicable obligation must remain traceable into impact, proof design, implementation, independent quality, and production verification. A small requested change does not imply a small impact surface.
+
+**Stage exit:** `Product Definition Readiness` exists only when every required or activated Owner has `GO`, skips are explicit and reopenable, preserved and forbidden behavior is explicit, no blocking contradiction remains, and Product Director attests composite readiness without overriding another Owner.
+
+### 2. Verification & Planning｜验证与计划
+
+**Question:** How will every accepted obligation be proved, and how will the solution be implemented, deployed, observed, and recovered safely?
+
+**Stage Result Integrator:** Tech Lead.
+
+**Entry:** Current Product Definition Readiness. Tech Lead first establishes stage currentness and routes Test Design Owner; Tech Lead produces the implementation plan only after the Test Design result is available.
+
+**Professional ownership:**
+
+- **Test Design Owner** — owns the complete proof obligations and how target, preserved, forbidden, boundary, regression, and risk behavior will be demonstrated.
+- **Tech Lead** — owns the implementation plan, technical sequencing, deployment and migration approach, observability, recovery considerations, and material implementation trade-offs.
+
+**Dependency law:**
+
+- Test Design consumes current Product Director, Product Manager, Impact, and every activated or explicitly skipped UX/Architecture result.
+- Tech Lead consumes the same authoritative baseline plus Test Design.
+- Test Design obligations are not suggestions: Tech Lead and Quality may extend them but cannot silently remove or rewrite them.
+- A plan that reveals an upstream contradiction, uncovered impact, unprovable obligation, or material architecture need returns to the accountable Owner and reopens affected results.
+
+**Stage exit:** `Verification & Planning Readiness` exists only when Test Design Owner and Tech Lead both have `GO`, their results are mutually consistent, deployment and recovery obligations are represented, and Tech Lead attests composite readiness without overriding Test Design.
+
+The human co-creates or authorizes material architecture and risk trade-offs, but is not required to review every technical task.
+
+### 3. Development Delivery｜开发交付
 
 **Question:** Has the accepted solution been implemented correctly and proved enough to enter independent quality testing?
 
-**Accountable role:**
+**Stage Result Integrator and accountable Owner:** Development Owner.
 
-- **Development Owner** — owns the pre-test outcome and orchestrates the development loop; it is not defined as the primary coder.
-
-**Bounded execution roles:**
+**Bounded roles:**
 
 - **Developer** — implements with TDD and self-testing.
-- **Verifier** — verifies product obligations, acceptance behavior, and scope independently from the implementer inside the Development domain.
-- **Code Reviewer** — reviews code quality, risk, and maintainability independently from the implementer inside the Development domain.
-- **Code Fixer** — corrects confirmed implementation defects and triggers re-evaluation of affected proof.
+- **Verifier** — independently verifies applicable product obligations and acceptance behavior inside the Development domain.
+- **Code Reviewer** — independently reviews code quality, risk, and maintainability.
+- **Code Fixer / repair capability** — corrects confirmed implementation defects and triggers fresh evaluation of affected proof.
 
-Verifier and Code Reviewer are separate proof surfaces from the implementer, but neither owns the independent release-quality `GO`. They consume the authoritative obligations and relevant evidence, not the Developer's full reasoning history.
+**Entry:** Development consumes the current Product Definition Readiness and Verification & Planning Readiness. Executors may receive narrower task views, but Development Owner remains responsible for mapping every applicable upstream obligation to implementation and proof.
 
-**Boundary result:** `Test-ready Candidate & Development Evidence`.
+**Stage exit:** `Test-ready Release Identity & Development Evidence` exists only when planned work is complete, required tests pass, fresh-context verification and code review pass, no unresolved Development blocker remains, deployment preparation is executable, and the exact release identity is fixed.
 
-**Entry boundary:** Development consumes the complete `Approved Product & Solution Baseline` and `Approved Verification Design & Development Plan`. A bounded executor may receive a narrower task-specific view, but every applicable upstream obligation must remain mapped and provable through the Development Owner.
+Release identity is broader than a commit. It covers the build and every behavior-changing configuration, migration, feature flag, or dependency assumption required to make evidence and deployment claims truthful. Exact representation is deferred.
 
-The result may leave this Team only when planned work is complete, required tests pass, verification and code review pass, no unresolved development blocker remains, and the exact candidate is fixed. The human then decides whether to deploy that candidate to the test environment.
+### Human-Controlled Test Deployment Boundary
 
-### 4. Quality Acceptance Team｜质量验收团队
+- **Tech Lead** owns the approved deployment, migration, observability, and recovery design.
+- **Development Owner** owns the exact test-ready release identity, executable deployment preparation, preconditions, and supporting evidence.
+- **Human** authorizes and executes the already prepared deterministic action.
+- **Quality Owner** independently confirms the actually deployed identity and the trustworthiness of the deployment outcome before quality work begins.
 
-**Question:** Does independent evidence for the exact deployed candidate support production release?
+A failed, partial, mismatched, or unknown deployment outcome stops the success path. Development Owner initially retains finding custody and organizes bounded diagnosis until another accountable Owner or external capability `ACCEPT`s corrective responsibility. The human is not the default technical diagnostician.
 
-**Roles:**
+### 4. Independent Quality Acceptance｜独立质量验收
 
-- **Quality Owner** — owns quality scope, evidence sufficiency, finding classification, and the pre-release conclusion.
-- **QA Executor** — executes tests and records evidence under the Quality Owner.
+**Question:** Does independent evidence for the exact deployed release identity support production release?
 
-**Entry boundary:** Quality consumes the Product & Solution Baseline, Verification Design, exact test-ready candidate, and a trustworthy test-deployment result for that same candidate.
+**Stage Result Integrator and accountable Owner:** Quality Owner.
 
-Quality does not change code. A confirmed implementation defect returns to Development. Every candidate change invalidates affected Quality evidence and requires the relevant Development gates, human redeployment, and Quality revalidation.
+**Bounded role:**
 
-**Boundary result:** `Release-ready Candidate & Independent Quality Conclusion`.
+- **QA Executor** — executes tests and records reproducible evidence under Quality Owner.
 
-The human accepts or rejects the release conclusion and, if accepted, executes production deployment.
+**Entry:** Quality consumes the current product and impact obligations, Test Design, exact test-ready release identity, Development evidence, and a trustworthy test-deployment outcome for that same identity.
 
-### 5. Production Outcome & Product Closeout Team｜生产结果与产品闭环团队
+Quality Owner may expand independent coverage but cannot waive Test Design obligations, accept an unresolved upstream blocker, or change code. A confirmed implementation defect returns to Development Owner. A proof-design gap returns to Test Design Owner. A product, impact, UX, or architecture defect returns to that specific Professional Owner.
 
-**Question:** Did the exact approved version run correctly in production, deliver accepted business value, and reach an honest product-stage disposition?
+**Stage exit:** `Release-ready Identity & Independent Quality Conclusion` exists only when the current identity has sufficient independent evidence, all blocking findings are closed through their accountable Owners, and Quality Owner records an honest release conclusion and residual risk.
 
-**Entry boundary:** This Team consumes the current Product & Solution Baseline, the exact `Release-ready Candidate`, its Independent Quality Conclusion, and a trustworthy production-deployment result for that same candidate.
+Every behavior-changing release revision invalidates affected Quality evidence and requires the relevant upstream gates, human redeployment, and fresh Quality validation.
 
-**Activities and authority:**
+### Human-Controlled Production Deployment Boundary
 
-- **Quality Owner production verification** — independently verifies the exact approved production version, core paths, relevant data, permissions, integrations, risks, and continued applicability of the release conclusion. This is an activity of the existing Quality Owner, not a new Owner and not a code-changing role.
-- **Human business acceptance** — judges whether the production result solves the intended business problem. This is distinct from technical production verification.
-- **Product Director closeout** — consumes the original goal and Phase, production verification, business acceptance, and open product risks; recommends the Phase/Demand outcome and possible next Phase.
-- **Human final disposition** — records separate but consistent dispositions for the current Phase and the broader Demand, including successful Phase close, Demand completion or continuation, next Phase authorization, rework, pause, or termination.
+- **Tech Lead** owns the approved production deployment, migration, observability, and recovery design.
+- **Development Owner** owns the exact release-ready identity, executable production preparation, preconditions, and supporting evidence; it initially holds custody of an unknown technical deployment finding and organizes bounded diagnosis until another accountable Owner or external capability `ACCEPT`s it.
+- **Human** authorizes, executes, and truthfully records the already prepared action.
+- **Quality Owner** independently confirms the actually deployed identity and trustworthiness of the production-deployment outcome.
 
-No new Production Owner is introduced. Technical production truth remains with Quality Owner, product recommendation remains with Product Director, and final business authority remains with the human.
+Production deployment success is only an environment-action fact. A failed, partial, mismatched, stale, or unknown result stops the success path.
 
-**Boundary result:** `Truthful Production Result & Product Stage Decision`.
+Before production deployment begins, the human must be able to retain control until either deployment succeeds or recovery completes. Tech Lead and Development Owner must also provide a verified, scope-limited fail-safe containment, rollback, or isolation path that the human authorizes in advance. If the human becomes unavailable during an unsafe partial deployment, only that pre-authorized fail-safe may continue; no Agent may improvise broader action or resume normal progression. Exact incident mechanics remain deferred.
 
-This boundary result does not exist until production verification, human business acceptance, Product Director closeout recommendation, and the human's separate Phase/Demand dispositions have all produced truthful outcomes.
+### 5. Production Verification & Product Stage Decision｜生产验证与产品阶段决策
 
-A Phase is successful only when the exact approved version is deployed, production verification passes, human business acceptance passes, and the human records the Phase and Demand dispositions. A successful Phase does not by itself mean the entire Demand is complete.
+**Question:** Did the exact approved production release behave correctly, produce sufficient business evidence, and reach an honest Phase/Demand disposition?
+
+**Professional Stage Result Integrator:** Product Director. It owns closeout consistency, the observation plan and business-evidence sufficiency assessment, the recommendation, and control-state closure; it does not own the human's business judgment or final decision.
+
+**Entry:** Product Director establishes stage currentness and then routes production verification. This stage consumes the current product and impact obligations, exact release-ready identity, Independent Quality Conclusion, and a trustworthy production-deployment outcome for that same identity.
+
+**Distinct ownership:**
+
+- **Quality Owner production verification** — owns fresh technical and operational evidence for the exact production identity, core paths, relevant data, permissions, integrations, and continued applicability of the release conclusion.
+- **Human business acceptance** — owns the business judgment of whether observed production behavior addresses the intended problem under the accepted evidence limits.
+- **Product Director closeout** — owns comparison with the original Demand and Active Phase, product-risk assessment, and the Phase/Demand recommendation.
+- **Human final disposition** — owns the separate final decisions for the Active Phase and broader Demand.
+
+Quality's production fact, the human's business acceptance, and Product Director's recommendation cannot overwrite one another. Product Director integrates them into a consistent decision view; the human records the final disposition.
+
+Business value may require an observation period. Product Director owns the evidence-sufficiency assessment, observation plan, and next decision point. `PENDING` or `UNKNOWN` is a truthful non-success state while evidence is immature; elapsed time, deployment success, or technical verification cannot promote it to acceptance.
+
+**Stage result:** `Truthful Production Result & Product Stage Decision` may express Phase success, observation pending, rework, next Phase, Demand completion or continuation, pause, termination, or another non-success disposition supported by evidence.
+
+A successful Phase requires the exact approved identity to be deployed, production verification to pass, business acceptance to pass, and separate Phase/Demand dispositions to be recorded. Successful Phase completion does not by itself complete the Demand.
+
+Product Director's integration responsibility continues until the final human dispositions have been checked for structural consistency with Quality facts and business acceptance and the Delivery Control Record is updated. An inconsistency returns to the human for a new disposition; Product Director cannot edit the human judgment or Quality facts. `OBSERVATION PENDING` remains in Stage 5 under Product Director's closeout responsibility. An authorized next Phase returns through Product Director to Stage 1 with the prior Phase's truthful result preserved.
 
 ## Conditional UX and Architecture Activation
 
-Conditional activation follows one macro control:
+Product Director, as Product Definition Stage Result Integrator, owns the formal activation-or-skip recommendation and its presentation to the human. That recommendation must cite Product Manager and Impact Owner evidence; an unresolved material concern from either Owner blocks a skip.
 
-1. the Agent identifies the need and recommends activation or skip with evidence;
-2. the human authorizes the decision and manually invokes an activated Owner in `M0`;
-3. the human may request activation even when the Agent recommends skip;
-4. a skip preserves a short rationale and a condition that would reopen the decision;
-5. once activated, the Owner must reach `GO` before the Product Definition Team can complete.
+1. Product Manager and Impact Owner surface the applicable product, experience, and technical-impact evidence; Product Director integrates it into the accountable recommendation;
+2. the human authorizes that recommendation or requests activation despite a skip recommendation;
+3. the human manually triggers an activated Owner in `M0`;
+4. a skip records a short rationale and a condition that would reopen it;
+5. once activated, the Owner must reach `GO` before Product Definition Readiness;
+6. later evidence matching a reopen condition invalidates the skip and the dependent readiness view.
 
-The exact activation checklists are intentionally deferred to the corresponding Owner designs.
+Exact activation checklists remain deferred to the corresponding Owner designs.
 
-## Minimum-Sufficient Cross-Owner Handoff
+## Shared Coordination and Assurance Foundation
 
-The architecture rejects a universal “Owner Handoff Package.” That container would mix authoritative truth, downstream context, executor instructions, evidence, and history until it became either incomplete or noisy.
+This foundation is not a sixth delivery stage or a new professional Team. It provides cross-cutting operating properties that prevent the human and downstream Owners from reconstructing truth from chat history.
 
-The selected interface is:
+### 1. Recoverable control state
+
+The Delivery Control Record must make the current operating position and applicable identity recoverable across sessions and providers, including before an Active Phase is authorized. It references Owner results, release identity when one exists, evidence validity, deployment outcomes, current finding custodian, recommended route, and pending human action without becoming a second professional truth.
+
+Each producing Owner updates its authoritative result and submits a route proposal. The current Stage Result Integrator owns currentness of the Delivery Control Record during that stage, resolves the single recommended route under the architecture laws, prepares the decision and recipient views, and proposes the control transition. The recipient validates the input and currentness; its `ACCEPT` completes active-Owner transfer. On an accepted transition into a new stage, control-record currentness transfers to that stage's Result Integrator.
+
+### 2. Minimum-sufficient information flow
 
 ```text
-Owner Authoritative Result Source
+One or more Owner Authoritative Results
         ↓ recipient-specific projection
 Recipient-Specific Minimum-Sufficient View
         ↓
-Human accepts the outcome, authorizes, and invokes the named recipient
+Human Decision View → Human AUTHORIZE and manual trigger
         ↓
-Invocation begins with bounded Recipient Intake: ACCEPT / CLARIFY / REJECT
+Recipient Intake: ACCEPT / CLARIFY / REJECT
         ↓ ACCEPT only
-The same invocation proceeds into professional work
+Professional work
 ```
 
-### Logical surfaces
+Logical surfaces:
 
 - **Owner Workbench** — exploration, chats, drafts, tool output, and rejected alternatives; not passed by default.
-- **Owner Authoritative Result Source** — the Owner's current accepted decisions, constraints, obligations, risks, material assumptions, classified unknowns, reopen conditions, and evidence references; the single truth for that responsibility.
-- **Recipient-Specific Minimum-Sufficient View** — a projection from one or more authoritative sources for one recipient; never a new truth.
-- **Evidence Sources** — the discoverable, precisely addressable support for material conclusions; pulled only when the recipient needs to verify them.
-- **Process Archive** — chats, drafts, rejected experiments, raw tool output, and other work history; non-authoritative and not loaded by default.
-- **Recipient Intake Receipt** — `ACCEPT` means safe to proceed beyond intake; `CLARIFY` means retrieving or clarifying already referenced information without changing approved semantics; `REJECT` means the input is missing, conflicting, stale, inaccessible, unauthorized, or otherwise unsafe to consume.
+- **Owner Authoritative Result** — current professional truth for one responsibility.
+- **Recipient-Specific View** — minimum-sufficient projection for one named recipient.
+- **Human Decision View** — minimum-sufficient projection for one human decision.
+- **Evidence Index** — precise, accessible references to material support; detailed evidence is pulled only when needed.
+- **Process Archive** — non-authoritative work history; not loaded by default.
+- **Recipient Intake Receipt** — `ACCEPT`, `CLARIFY`, or `REJECT` with a specific accountable return.
 
-`Task Packet` exists only inside an Owner domain for bounded executors and is outside L0 cross-Owner architecture.
+Complete means complete coverage of the recipient's obligations, not complete document transfer. Information belongs in the active view when removing it could change permitted action, constraints, proof, risk treatment, evidence interpretation, invalidation, or return route.
 
-### Sufficiency rule
+The recipient defines what is required to discharge its responsibility. Producing Owners provide source mappings; the current Stage Result Integrator assembles the projection without rewriting them. Missing, conflicting, stale, inaccessible, or unauthorized input is rejected rather than guessed. A clarification that changes approved semantics is a rejection and requires a new authoritative result.
 
-“Complete” means complete coverage of the recipient's obligations, not full-document transfer. Information belongs in the active handoff only when removing it could change the recipient's permitted action, constraints, proof, risk treatment, or return route.
+A recipient rejection returns a specific reason and proposed accountable Owner to the current Stage Result Integrator. The integrator keeps the current active Owner unchanged, updates the Delivery Control Record, and applies the Return or Safe Stop Law; the human is not asked to invent the repair route.
 
-The recipient defines what is required to discharge its responsibility. The producer maps current authoritative truth to that requirement. The recipient must reject missing, conflicting, stale, inaccessible, or unauthorized input rather than guessing.
+Raw chats, full exploration history, chain-of-thought, obsolete revisions, complete logs, irrelevant documents, and repeated stable role rules are not passed by default. No summary-of-a-summary may silently replace binding business meaning.
 
-Any clarification that changes approved semantics is not `CLARIFY`; it becomes `REJECT` and returns to the responsible Owner for a new authoritative result.
+### 3. Permission and context isolation
 
-Raw chats, full exploration history, chain-of-thought, obsolete revisions, complete logs, irrelevant documents, and repeated stable role rules are not passed by default. When a rejected alternative creates a surviving downstream constraint, only the decision, short rationale, and impact are passed.
+Every Owner and Executor receives only the tools, filesystem scope, network access, credentials, data, and evidence needed for its bounded responsibility. Sensitive data is minimized and referenced rather than broadcast. Each Professional Owner owns enforcement evidence inside its domain; the current Stage Result Integrator blocks stage exit when required evidence is absent.
 
-Human `GO` and recipient `ACCEPT` are different facts: the former grants authority; the latter confirms professional sufficiency.
+Roles that require independent judgment use isolated Workbenches. Permission boundaries and context independence are separate controls: fresh context without least privilege is unsafe, while least privilege without fresh judgment does not create independent proof.
 
-## Forward and Return Control Laws
+### 4. Trace and Agent-workflow evaluation
 
-### Forward law
+Product verification proves the delivered software. Delivery Assurance Owner independently owns the conclusion on whether Agent-workflow trace and evaluation prove that the delivery system itself routes correctly, rejects bad handoffs, preserves obligations, respects permissions, stops safely, and remains stable across model or Skill changes.
 
-A cross-Owner transition, whether inside one professional Team or between Teams, requires all of the following:
+Exact tracing, evaluation cases, metrics, thresholds, and storage are later designs. Their architectural responsibility cannot be omitted simply because the first operating mode is manual.
 
-1. the current Owner's boundary result is professionally acceptable;
-2. no unresolved producer-owned blocker or unclassified unknown is hidden in the handoff;
-3. the human accepts the result, authorizes the named next Owner, and invokes its bounded intake;
-4. the recipient accepts the current minimum-sufficient view;
-5. required human external action, such as deployment, has a trustworthy result for the exact candidate.
+## Forward Control Law
 
-### Return law
+A cross-Owner transition, whether inside one stage or between stages, requires all of the following:
 
-Every finding is first recorded, classified, and returned to the earliest Team or Owner accountable for the defective definition, decision, implementation, proof, or environment action:
+1. the producing Owner has `GO` within its responsibility;
+2. no unresolved producer-owned blocker or unclassified unknown is hidden;
+3. every required underlying result is current and mutually consistent;
+4. the producing Owner submits a route proposal; the current Stage Result Integrator names the single recommended next Owner, prepares the route, and states invalidation and return effects;
+5. the Delivery Control Record identifies the same current revisions and, when applicable, exact release identity;
+6. the human `AUTHORIZE`s and manually triggers the named Owner in `M0`;
+7. the recipient `ACCEPT`s the minimum-sufficient view;
+8. any required deployment or external action has a trustworthy outcome for the exact identity.
 
-- product goal, scenario, scope, or acceptance defect → Product Definition Team;
-- impact omission → Impact Owner within Product Definition;
-- UX or architecture defect → the corresponding conditional Owner;
+No generic Team or Stage may be used as an ambiguous return address. The route must identify a specific accountable Professional Owner or a human-controlled external boundary.
+
+## Accountable Return Law
+
+Every finding is first recorded as reproducible evidence, then classified and returned to the earliest specific Owner accountable for the defective definition, decision, implementation, proof, or prepared external action:
+
+- problem, value, investment, or Active Phase defect → Product Director;
+- product actor, scenario, state, rule, permission, behavior, or acceptance defect → Product Manager;
+- impact omission, preserved-behavior gap, or coverage overclaim → Impact Owner;
+- experience-design defect → UX Owner;
+- structural technical decision defect → Architecture Owner;
 - proof-design defect → Test Design Owner;
-- implementation or code-quality defect → Development Delivery Team;
-- test execution or quality-judgment defect → Quality Acceptance Team;
-- deployment or environment anomaly → stop at the corresponding human deployment boundary, preserve the truthful outcome, classify the cause, and return correction to the professional or external capability actually accountable for code, deployment definition, architecture, or environment;
-- unknown cause → diagnosis first; no guessed fix.
+- implementation-plan, deployment-design, migration, observability, or recovery-plan defect → Tech Lead;
+- implementation, release preparation, or code-quality defect → Development Owner;
+- test execution, evidence interpretation, quality judgment, or production-verification defect → Quality Owner;
+- Delivery Control Record currentness, decision-view assembly, or cross-Owner route-preparation defect → the current Stage Result Integrator;
+- permission or context-isolation enforcement defect → the Professional Owner of the affected domain;
+- Agent-workflow assurance baseline, evaluation design, or assurance-conclusion defect → Delivery Assurance Owner;
+- Agent-workflow control breach identified by Delivery Assurance → Delivery Assurance Owner retains finding custody and reverification; the named Stage Result Integrator or domain Owner accepts corrective responsibility;
+- deployment authorization or execution-record defect → the corresponding Human-Controlled Deployment Boundary;
+- business-acceptance or final-disposition inconsistency → Human Governance Layer;
+- closeout comparison or recommendation defect → Product Director;
+- unknown cause outside a deployment boundary → the discovering Stage Result Integrator retains finding custody and organizes bounded diagnosis until a specific accountable Owner accepts it;
+- unknown cause at either deployment boundary → Development Owner initially retains finding custody and organizes bounded diagnosis until Tech Lead, another accountable Owner, or an external capability accepts it.
 
-The human deployment boundary owns authorization, execution, and truthful recording—not automatic technical diagnosis or repair. When an external action fails without a known cause, the professional Owner that proposed that action owns or commissions bounded diagnosis until an accountable correction route is named. If classification reveals no accountable capability, the L0 responsibility model must be reopened rather than making the human silently fill the gap.
+Before target acceptance, the discovering side retains **finding custody**: preserving evidence, keeping the issue visible, and preventing unsafe progression. The target Owner's `ACCEPT` transfers **corrective responsibility**; merely sending a finding does not. The original independent verification Owner retains **reverification responsibility** after correction. A routing dispute stops progression; it cannot be resolved by repeatedly throwing the finding between Owners or by making the human perform technical classification.
 
-The downstream Team may not repair an upstream responsibility or continue with an unresolved upstream blocker. A substantive upstream change invalidates only the downstream results and handoff views that actually depend on it; those dependencies must be re-evaluated before reuse.
+When a correction belongs to another delivery stage, control re-entry first passes through that stage's Result Integrator while the return record still names the specific corrective Owner. The integrator restores stage currentness and routes to that Owner; it cannot redirect, erase, or assume the named professional accountability without new evidence.
+
+Business non-acceptance is first evaluated by Product Director against the original Demand and Active Phase to distinguish an unmet accepted obligation, a changed business fact, immature evidence, or a possible new Demand. It is not automatically labeled as a product defect or operational incident.
+
+The human may change investment or accept declared residual risk, but cannot make failure, unknown, stale evidence, or an unmet obligation disappear. An approved baseline is never overwritten to wash away a failure: a material change creates a new revision, preserves the prior outcome, and causes each dependent Owner to re-evaluate affected evidence. When dependency is uncertain, reuse is not assumed.
+
+Impact analysis is progressive, not a one-time promise of completeness. Product, architecture, code, test, or runtime evidence that reveals a new impact reopens the relevant authoritative results and only the downstream conclusions that depend on them.
+
+## Safe Stop and Escalation Law
+
+Non-`GO` is a legitimate result, not a workflow defect. Product Director may conclude `DISCOVERY` or `NO-GO`; later stages may remain blocked, paused, waiting for evidence, or terminated truthfully.
+
+Every autonomous Owner loop must have a verifiable goal, bounded permissions and resources, failure thresholds, and a human escalation exit. Exact budgets and counts are detailed-design concerns, but these macro controls are mandatory:
+
+- re-entry after a failure requires new evidence, a changed input, or an explicit new decision;
+- repeated recurrence without new information, unresolved routing conflict, inaccessible mandatory evidence, or absence of an accountable capability stops the loop;
+- a missing capability reopens the L0 responsibility model instead of being silently assigned to the human;
+- human unavailability stops consequential progression at the current safe boundary;
+- production safety risk prioritizes containment, rollback, or isolation over normal workflow completion;
+- no Owner may lower obligations or fabricate completion merely to escape a loop.
 
 ## Truthful Completion Semantics
 
 The architecture keeps these facts separate:
 
-- commit is not development completion;
-- passing developer tests is not independent quality acceptance;
-- test deployment is not Quality `GO`;
+- commit is not Development completion;
+- passing Developer tests is not independent verification or review;
+- test deployment is not Quality acceptance;
+- Quality acceptance is not release authorization;
 - production deployment is not production verification;
-- production verification is not human business acceptance;
+- production verification is not business acceptance;
 - business acceptance is not a recorded Phase/Demand disposition;
-- Phase success does not necessarily complete the Demand.
+- Phase success does not necessarily complete the Demand;
+- observation pending is not success or failure until the promised evidence matures.
 
-Any failed, partial, stale, or unknown outcome stops the success path, is classified, and returns through the accountable return law. Business rejection is not automatically an operational incident; incident treatment is a later detailed design triggered by actual environment safety or operational risk.
+Any failed, partial, stale, mismatched, or unknown outcome stops the success path and remains visible. Business non-acceptance is a truthful product result, not automatically an operational incident.
 
 ## Options Considered
 
-### A. One end-to-end Agent coordinator
+### A. Five professional Teams
 
-Rejected for the target architecture. It minimizes visible roles but combines product judgment, implementation, proof, and release judgment in one context. That increases confirmation bias, hidden responsibility transfer, and human dependence on one Agent's narrative.
+Rejected. The five lifecycle boxes are not structurally equivalent: the first two contain peer Professional Owners, the next two are Owner-led execution structures, and the fifth combines professional results with Human Governance outcomes. Calling all five `Team` obscures ownership and forces extra explanation without improving operation.
 
-It may be suitable for low-risk prototypes where independent acceptance is not required.
+### B. One global end-to-end Agent coordinator
 
-### B. Fully autonomous multi-Agent runtime
+Rejected as the professional authority. It would combine product judgment, implementation narrative, proof, and release interpretation in one context, recreating confirmation bias and an accountability sink.
 
-Rejected for `M0`. Automation before the role boundaries and evidence contracts are proven would make failures faster but harder to diagnose. It also weakens the human's ability to learn where professional boundaries are wrong.
+Mechanical storage or routing support may execute under the current Stage Result Integrator's authority, but it owns no professional or business conclusion and is not a new Professional Owner at L0.
 
-It may become suitable after repeated manual runs show stable inputs, outputs, gates, return routes, and acceptable human load.
+### C. One Agent Team with five professional delivery stages
 
-### C. Human-governed professional Teams with bounded Owner domains
+Selected. It separates the organization chart from the lifecycle, preserves specialized Owner accountability, gives each stage an integrator without collectivizing truth, and keeps the human in consequential control without assigning workflow assembly.
 
-Selected. It keeps one human in control of consequential decisions while allowing autonomous executor loops inside bounded Owner domains. Manual cross-Owner invocation is a learning and safety mechanism, not the final automation model.
+### D. Fully autonomous cross-Owner runtime
 
-### D. Detailed V1.2 flow/state architecture as the macro baseline
+Rejected for `M0`. Automation before boundaries, state, evidence, failure routes, permissions, and human load are proven would make failures faster and harder to diagnose. Manual activation is retained as a temporary learning mechanism with explicit exit conditions.
 
-Rejected for the current phase. The previous candidate prematurely fixed flow IDs, route IDs, package identities, state machines, incident mechanics, and cutover rules before the macro team architecture and visual comprehension were accepted. Those materials remain historical evidence and may be reconsidered only during the relevant detailed designs.
+### E. Detailed V1.2 flow and state model as the macro baseline
+
+Rejected. The previous candidate fixed flow IDs, route IDs, package identities, state machines, incident mechanics, and cutover rules before the macro model and its human view were accepted. Those materials remain historical evidence only.
+
+## Architecture Acceptance Tests
+
+### Cold-reader test
+
+A first-time Chinese-speaking business/product reader at normal desktop scale must identify within seconds:
+
+1. one human governance layer, one Agent Team, and five delivery stages;
+2. what each stage accomplishes and who integrates its exit;
+3. which conclusions remain owned by specialist Owners;
+4. where the human co-creates, authorizes, deploys, accepts, and decides;
+5. who recommends the next route and where a defect returns;
+6. where current revision, release identity, and evidence validity are recovered.
+
+No noun may simultaneously mean organization, workflow stage, responsibility, state, and artifact. If understanding requires a glossary paragraph on the diagram, the visual has failed.
+
+### Golden target scenario
+
+The reserved `qft-tenants` future-tenant request is a whole-chain acceptance scenario, not a design input or a solution to encode here. A successful future run must prove that the architecture causes the Agent Team—without human reminders—to:
+
+- reconstruct the real need from the customer's incomplete sentence;
+- distinguish new target behavior, preserved current-tenant behavior, and forbidden side effects;
+- discover and trace broad business and system impact before planning while allowing later evidence to reopen it;
+- map every applicable obligation through proof, implementation, quality, and production;
+- preserve exact revision and release identity through repair and redeployment;
+- route newly found gaps to the correct Professional Owner;
+- separate technical production truth from business acceptance and final disposition.
+
+If the human must remind the Agent not to affect the current tenant, identify that a release changed, assemble missing context, or choose the technical return route, the architecture or downstream Owner design fails.
+
+### Required adversarial scenarios
+
+The golden case is necessary but insufficient. The future complete-chain validation must also include:
+
+- a legitimate `DISCOVERY` or `NO-GO` result;
+- Quality discovering an upstream product or proof-design defect;
+- a release revision invalidating prior verification or Quality evidence;
+- a failed, partial, or unknown deployment;
+- technical production verification passing while business acceptance fails or remains pending;
+- a new session or provider recovering from current authoritative results and the Delivery Control Record;
+- an autonomous loop reaching its stop or escalation boundary.
+
+## Chinese Macro Architecture Map Contract
+
+After written approval, the next visual implementation is one primary Chinese macro architecture map. It must show:
+
+- the Human Governance Layer with plain Chinese descriptions of its decisions and actions;
+- one overall Agent Team, with Professional Owner and Executor role types visibly distinguished;
+- five professional delivery stages in dominant left-to-right order;
+- the Stage Result Integrator for each stage and specialist ownership that cannot be overridden;
+- Product Definition as a convergence loop rather than a one-pass chain;
+- UX Owner and Architecture Owner as conditional roles;
+- the human-controlled test and production deployment boundaries;
+- the shared coordination and assurance foundation;
+- Delivery Assurance Owner as a cross-cutting role distinct from product Quality Owner;
+- one generic accountable return and safe-stop law;
+- the final separation of production verification, business acceptance, Product Director recommendation, and Human Phase/Demand disposition;
+- explicit target status: `M0 manual learning mode · not runtime-active`.
+
+The map must not show flow IDs, route IDs, schemas, state machines, detailed finding types, Task Packets, retry counts, incident subflows, automation mechanics, or the `qft-tenants` solution.
+
+The primary map is for navigation, not exhaustive specification. Detailed Owner designs and later orthogonal support views may add depth only after the macro map is semantically and visually accepted.
 
 ## Risks, Unknowns, and Reopen Conditions
 
 The L0 baseline does not pretend the following are solved:
 
-- whether every role name and grouping is optimal in real project use;
-- the precise boundary between Product Director and Product Manager;
-- exact Impact, UX, Architecture, Test Design, and Quality methods;
-- the physical form and size of authoritative results and recipient views;
-- how dependent downstream results are identified and invalidated;
-- whether manual Owner invocation creates excessive human load;
-- which gates can later be automated without weakening authority or evidence;
-- how Codex, Claude, and other providers differ in tool access and context behavior;
-- whether the `qft-tenants` target scenario exposes a missing Team or misplaced responsibility.
+- whether every role name and Stage Result Integrator mapping proves optimal in real project use;
+- the detailed boundary between Product Director and Product Manager;
+- exact Impact, UX, Architecture, Test Design, Development, Quality, and closeout methods;
+- the physical form and size of authoritative results, recipient views, Human Decision Views, and the Delivery Control Record;
+- how dependencies and selective evidence invalidation are represented and calculated;
+- exact permissions, sandbox, secrets, trace, Agent-evaluation, resource, and stop thresholds;
+- whether manual Owner activation creates excessive human load in repeated practice;
+- which gates can later be automated without weakening human authority or professional evidence;
+- how provider tool access and context behavior affect portability;
+- concurrent Demands or multiple live release identities;
+- whether the `qft-tenants` target and adversarial cases expose a missing responsibility or misplaced boundary.
 
-Any evidence that a responsibility has no accountable Team or Owner, two Teams claim the same final decision, a downstream role must routinely reconstruct upstream work, or the human must coordinate executor loops reopens this architecture rather than being patched inside a Skill.
-
-## Chinese Team Architecture Map Contract
-
-The next visual implementation is one Chinese Team architecture map. It must show:
-
-- a cross-cutting Human Control Plane;
-- five professional Teams in the dominant left-to-right order;
-- each Team's purpose, accountable roles, and boundary result;
-- UX Owner and Architecture Owner as conditional roles;
-- the human test-deployment gate between Teams 3 and 4;
-- the human production-deployment gate between Teams 4 and 5;
-- Product Director and human closeout at the end of Team 5;
-- the shared minimum-sufficient handoff rule;
-- one generic accountable return law;
-- explicit target status: `M0 manual control · not runtime-active`.
-
-The map must not show flow IDs, route IDs, schemas, state machines, incident subflows, automation mechanics, detailed finding types, Task Packets, or the `qft-tenants` case.
-
-Visual success requires a first-time Chinese-speaking reader at normal desktop scale to identify within seconds:
-
-1. what each Team does;
-2. who owns it;
-3. what comes next;
-4. where the human co-creates, authorizes, deploys, and decides;
-5. where a defect returns.
-
-If those questions require zooming into paragraph nodes or reading a separate specification, the visual has failed regardless of graphical polish.
+Any evidence that a responsibility has no accountable Owner, a Stage Result Integrator routinely overrides specialists, a downstream role reconstructs upstream work, an independent role inherits producer bias, control truth depends on chat history, or the human coordinates executors or technical routing reopens this architecture instead of being patched inside a Skill.
 
 ## Design Sequence After Written Approval
 
-1. Plan and implement the single Chinese Team architecture map from this document only.
-2. Obtain human semantic and visual acceptance of that map.
-3. Design each Owner domain separately, starting with Product Director and its Product Manager intake boundary.
+1. Invoke `writing-plans` to plan the single Chinese macro architecture map from this document only.
+2. Implement and obtain human semantic and visual acceptance of that map.
+3. Design each Professional Owner domain separately, starting with Product Director and its Product Manager intake boundary.
 4. Search official and community Skill sources for each approved capability boundary.
 5. Adapt or create provider-neutral Skills and validate them independently.
-6. Run the complete manual chain against the `qft-tenants` target scenario.
+6. Run the complete manual chain against the golden and adversarial acceptance scenarios.
 7. Consider cross-Owner automation only after repeated manual delivery proves the operating model.

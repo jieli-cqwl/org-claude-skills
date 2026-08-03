@@ -7,6 +7,6 @@ These DOT, SVG, and PNG files are retained as recoverable design evidence only.
 - No current specification links to these files.
 - Do not use them as target architecture views or inputs to the next visual implementation.
 
-The current visual contract is defined by:
+After final written macro approval, the future macro visual contract is defined by:
 
 [`一人 + Agent Team 架构`](../../2026-08-03--one-human-agent-team-operating-architecture-l0--design.md)
