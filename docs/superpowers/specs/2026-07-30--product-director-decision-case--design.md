@@ -1,6 +1,6 @@
 # Product Director Decision Case Design
 
-> **Revalidation required before forward use.** This design was derived from the superseded V1.2 candidate. Preserve it as detailed design evidence, but do not implement it or treat it as the accepted Product Director contract until the current [`一人 + Agent Team 架构`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md) receives final written approval and this design is realigned during the Product Director design stage.
+> **Revalidation required before forward use.** This design was derived from the superseded V1.2 candidate. The current [`一人 + Agent Team 架构`](2026-08-03--one-human-agent-team-operating-architecture-l0--design.md) received final written approval on 2026-08-03, but this detailed design remains blocked until it is realigned and separately approved during the Product Director design stage.
 
 ## Status
 

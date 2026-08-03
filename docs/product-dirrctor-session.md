@@ -1,6 +1,6 @@
 # Product Director Session Export
 
-> **Historical conversation only.** Its continuation prompt was invalidated by the 2026-08-03 architecture reset. Do not use this export to resume implementation or skip macro review. The current target-design candidate is [`一人 + Agent Team 架构`](superpowers/specs/2026-08-03--one-human-agent-team-operating-architecture-l0--design.md); it cannot drive visual or runtime implementation before final written approval.
+> **Historical conversation only.** Its continuation prompt was invalidated by the 2026-08-03 architecture reset. Do not use this export to resume implementation or skip the approved [`一人 + Agent Team 架构`](superpowers/specs/2026-08-03--one-human-agent-team-operating-architecture-l0--design.md). That baseline currently authorizes planning its single Chinese macro architecture map, not visual, Owner, or runtime implementation.
 
 This is a human-readable export of a local Codex session. It is not an official Codex import package.
 
