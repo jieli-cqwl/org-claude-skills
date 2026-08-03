@@ -154,6 +154,9 @@ def main(argv: list[str] | None = None) -> int:
             ),
         )
         prepared = {**resolution, "mode": "workspace_prepared", **workspace_summary}
+        executions = workspace_summary.get("executions")
+        if isinstance(executions, dict) and isinstance(executions.get("model_calls"), int):
+            prepared["model_calls"] = executions["model_calls"]
         write_json(output_root / "workspace-preparation.json", prepared)
         print(json.dumps(prepared, ensure_ascii=False, sort_keys=True, indent=2))
         return 0
@@ -185,6 +188,7 @@ def _execute_cases(
         item["pack_id"]: workspace_by_id[f"baseline-{item['commit']}"] for item in baseline_commits
     }
     records: list[dict[str, object]] = []
+    model_calls = 0
     codex_version = _codex_version(settings.codex_bin, output_root, settings.timeout_seconds)
     for case in cases:
         configurations = [workspace_by_id["candidate"], baseline_by_pack[case.pack_id]]
@@ -205,6 +209,7 @@ def _execute_cases(
                 records.append(_run_record(workspace, case, evidence_path, identity, "INFRA_BLOCKED_INSTALL"))
                 continue
             result = run_executor(case, workspace, run_dir, settings)
+            model_calls += 1
             jsonl_path = run_dir / "executor.jsonl"
             response_path = run_dir / "outputs" / "response.md"
             state = classify_execution_state(result, None, response_path)
@@ -243,6 +248,8 @@ def _execute_cases(
                 )
             except GradingError:
                 grader = {"state": "INFRA_BLOCKED_GRADER"}
+            if isinstance(grader.get("process"), dict):
+                model_calls += 1
             metrics = {
                 "irrelevant_successful_reads": len(set(all_runtime_route.read_contract_ids) - set(route.expected_contract_ids)),
                 "response_characters": len(response_path.read_text(encoding="utf-8")),
@@ -269,7 +276,13 @@ def _execute_cases(
         pairs,
     )
     render_reports(output_root, decision, pairs, coverage)
-    return {"records": records, "comparison": pairs, "suite": decision, "coverage": coverage}
+    return {
+        "records": records,
+        "comparison": pairs,
+        "suite": decision,
+        "coverage": coverage,
+        "model_calls": model_calls,
+    }
 
 
 def _evidence_identity(

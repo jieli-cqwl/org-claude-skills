@@ -100,7 +100,7 @@ def classify_route_reads(
             continue
         if not _completed_success(item):
             continue
-        targets, command_uncertain = _read_targets(command, set(expected_targets))
+        targets, command_uncertain = _read_targets(command, set(expected_targets), runtime_codex_home)
         uncertain = uncertain or command_uncertain
         read_ids.update(expected_targets[target] for target in targets)
 
@@ -145,7 +145,9 @@ def _installed_target(runtime_codex_home: Path, installed_path: Path) -> Path:
     return target
 
 
-def _read_targets(command: str, expected_targets: set[Path]) -> tuple[set[Path], bool]:
+def _read_targets(
+    command: str, expected_targets: set[Path], runtime_codex_home: Path
+) -> tuple[set[Path], bool]:
     try:
         tokens = _shell_tokens(command)
     except ValueError:
@@ -154,35 +156,97 @@ def _read_targets(command: str, expected_targets: set[Path]) -> tuple[set[Path],
         return set(), False
     executable = Path(tokens[0]).name
     if executable in _SHELLS:
-        return _shell_read_targets(tokens, expected_targets)
+        return _shell_read_targets(tokens, expected_targets, runtime_codex_home)
     if executable not in _READERS:
         return set(), False
-    return _direct_read_targets(tokens, expected_targets)
+    return _direct_read_targets(tokens, expected_targets, runtime_codex_home)
 
 
-def _shell_read_targets(tokens: list[str], expected_targets: set[Path]) -> tuple[set[Path], bool]:
+def _shell_read_targets(
+    tokens: list[str], expected_targets: set[Path], runtime_codex_home: Path
+) -> tuple[set[Path], bool]:
     if len(tokens) != 3 or tokens[1] != "-lc":
         return set(), _mentions_target(" ".join(tokens), expected_targets)
     script = tokens[2]
-    if any(operator in script for operator in (";", "&&", "||", "|", "\n", "`", "$()")):
+    if any(operator in script for operator in ("||", "|", "\n", "`", "$()", "<", ">")):
         return set(), _mentions_target(script, expected_targets)
     try:
-        return _direct_read_targets(_shell_tokens(script), expected_targets)
+        commands = _split_safe_shell_commands(_shell_tokens(script))
     except ValueError:
         return set(), _mentions_target(script, expected_targets)
+    if commands is None:
+        return set(), _mentions_target(script, expected_targets)
+    targets: set[Path] = set()
+    for command_tokens in commands:
+        if not command_tokens or Path(command_tokens[0]).name not in _READERS:
+            return set(), _mentions_target(script, expected_targets)
+        command_targets, command_uncertain = _direct_read_targets(
+            command_tokens, expected_targets, runtime_codex_home
+        )
+        if command_uncertain:
+            return set(), True
+        targets.update(command_targets)
+    return targets, False
 
 
-def _direct_read_targets(tokens: list[str], expected_targets: set[Path]) -> tuple[set[Path], bool]:
+def _split_safe_shell_commands(tokens: list[str]) -> list[list[str]] | None:
+    """Allow only reader commands joined by sequential shell operators."""
+
+    commands: list[list[str]] = []
+    command: list[str] = []
+    for token in tokens:
+        if token in {";", "&&"}:
+            if not command:
+                return None
+            commands.append(command)
+            command = []
+            continue
+        if token in {"||", "|", "<", ">", "<<", ">>"}:
+            return None
+        command.append(token)
+    if not command:
+        return None
+    commands.append(command)
+    return commands
+
+
+def _direct_read_targets(
+    tokens: list[str], expected_targets: set[Path], runtime_codex_home: Path
+) -> tuple[set[Path], bool]:
     if not tokens or Path(tokens[0]).name not in _READERS:
         return set(), _mentions_target(" ".join(tokens), expected_targets)
     if any(token in {";", "&&", "||", "|", "<", ">", "<<", ">>"} for token in tokens[1:]):
         return set(), True
-    targets = {_normal_path(token) for token in tokens[1:]}
+    targets: set[Path] = set()
+    for token in tokens[1:]:
+        target, uncertain = _normal_path(token, runtime_codex_home)
+        if uncertain:
+            return set(), True
+        if target is not None:
+            targets.add(target)
     return targets & expected_targets, False
 
 
-def _normal_path(value: str) -> Path:
-    return Path(value).expanduser().resolve()
+def _normal_path(value: str, runtime_codex_home: Path) -> tuple[Path | None, bool]:
+    codex_home = runtime_codex_home.resolve()
+    home = codex_home.parent
+    substitutions = (
+        ("$CODEX_HOME/", codex_home),
+        ("${CODEX_HOME}/", codex_home),
+        ("$HOME/.codex/", codex_home),
+        ("${HOME}/.codex/", codex_home),
+        (".codex/", codex_home),
+        ("./.codex/", codex_home),
+        (".agents/", home / ".agents"),
+        ("./.agents/", home / ".agents"),
+    )
+    for prefix, root in substitutions:
+        if value.startswith(prefix):
+            return (root / value[len(prefix) :]).resolve(), False
+    path = Path(value).expanduser()
+    if path.is_absolute():
+        return path.resolve(), False
+    return (None, True) if "$" in value else (path.resolve(), False)
 
 
 def _mentions_target(value: str, expected_targets: set[Path]) -> bool:

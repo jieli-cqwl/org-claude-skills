@@ -253,10 +253,32 @@ FOREIGN_PREFIXED_ROOT="$EVALUATOR_TMP/rule-runtime-eval-foreign"
 mkdir "$FOREIGN_PREFIXED_ROOT"
 printf 'foreign workspace marker\n' > "$FOREIGN_PREFIXED_ROOT/marker"
 printf 'placeholder-auth-secret\n' > "$SOURCE_CODEX_HOME/auth.json"
-printf 'placeholder-config-secret\n' > "$SOURCE_CODEX_HOME/config.toml"
+printf 'hooks = ["%s"]\nplugins = ["%s"]\nagent_role = "%s"\nproject = "%s"\nsecret = "placeholder-config-secret"\n' \
+  "$TMP_ROOT/source-hook.sh" \
+  "$TMP_ROOT/source-plugin" \
+  "$TMP_ROOT/source-agent.toml" \
+  "$REPO" \
+  > "$SOURCE_CODEX_HOME/config.toml"
 printf 'forbidden global instruction\n' > "$SOURCE_CODEX_HOME/AGENTS.md"
 printf 'forbidden global rule\n' > "$SOURCE_CODEX_HOME/rules/poison.md"
 chmod +x "$FAKE_INSTALLER"
+
+PYTHONPATH="$ROOT/tools/eval/scripts" python3 - "$SOURCE_CODEX_HOME" "$TMP_ROOT/seeded-codex-home" <<'PY' || fail "seeded Codex context retained source configuration"
+import sys
+from pathlib import Path
+
+from rule_runtime_eval.workspace import seed_codex_context
+
+source, target = map(Path, sys.argv[1:])
+context = seed_codex_context(source, target)
+if context != {"auth_available": True, "config_available": True}:
+    raise SystemExit(f"unexpected seeded context: {context}")
+if (target / "auth.json").read_text(encoding="utf-8") != "placeholder-auth-secret\n":
+    raise SystemExit("authentication was not seeded for live execution")
+config = (target / "config.toml").read_text(encoding="utf-8")
+if not config.strip() or any(value in config for value in ("hooks", "plugins", "agent_role", "project", "placeholder-config-secret")):
+    raise SystemExit("seeded configuration retained source-local runtime settings")
+PY
 
 run_workspace_prepare() {
   TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
@@ -500,6 +522,8 @@ from pathlib import Path
 summary = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 if any(item.get("live_execution_status") != "INFRA_BLOCKED" for item in summary["installations"]):
     raise SystemExit("missing auth did not block live execution")
+if summary.get("model_calls") != 0:
+    raise SystemExit("install-blocked configurations counted skipped executor calls")
 PY
 
 set +e
@@ -602,6 +626,8 @@ contract = load_acceptance_contract(
     root, root / "docs/rule-runtime--team-readiness/acceptance-pack.json"
 )
 scene = contract.scene_by_id["collaboration"]
+code_changes = contract.scene_by_id["code-changes"]
+code_comments = contract.scene_by_id["code-comments"]
 runtime_home = tmp / "runtime-home" / ".codex"
 
 def fixture(name: str) -> list[dict]:
@@ -618,6 +644,46 @@ if passed.observed_command_ids != ("command-read",):
     raise SystemExit("successful command event ID was not retained")
 if extract_final_agent_message(passed_events) != "final response":
     raise SystemExit("last completed agent message was not extracted")
+
+safe_shell = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-safe-shell",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'cat $HOME/.codex/reference/协作判断.md; "
+                "sed -n \"1,3p\" $CODEX_HOME/rules/code-changes.md && "
+                "nl -ba .agents/../.codex/reference/code-comments.md'"
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "read",
+        },
+    }
+]
+safe_shell_route = classify_route_reads(safe_shell, (scene, code_changes, code_comments), runtime_home)
+if not safe_shell_route.route_evidence_available or not safe_shell_route.route_pass:
+    raise SystemExit(f"safe shell reader commands were not recognized: {safe_shell_route}")
+if set(safe_shell_route.read_contract_ids) != {"collaboration", "code-changes", "code-comments"}:
+    raise SystemExit("safe shell reader commands lost an installed target")
+
+newline_mixed = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-newline-mixed",
+            "type": "command_execution",
+            "command": f"/bin/zsh -lc 'cat {runtime_home.resolve()}/reference/协作判断.md\nrm ignored'",
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "read",
+        },
+    }
+]
+newline_mixed_route = classify_route_reads(newline_mixed, (scene,), runtime_home)
+if newline_mixed_route.route_evidence_available or newline_mixed_route.route_pass:
+    raise SystemExit("newline-separated mixed shell command was accepted as route evidence")
 
 missed = classify_route_reads(fixture("route-read-miss.jsonl"), (scene,), runtime_home)
 if not missed.route_evidence_available or missed.route_pass:
@@ -674,13 +740,13 @@ FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_LOG="$FAKE_CODEX_LOG" FAKE_GRADE
   --installer-bin "$FAKE_INSTALLER" \
   --codex-bin "$FAKE_CODEX" \
   --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/execution-summary.json"
-python3 - "$REPO" "$EXECUTION_ROOT" "$FAKE_CODEX_LOG" "$FAKE_GRADER_LOG" <<'PY' || fail "executor and blind grader evidence is invalid"
+python3 - "$REPO" "$EXECUTION_ROOT" "$FAKE_CODEX_LOG" "$FAKE_GRADER_LOG" "$TMP_ROOT/execution-summary.json" <<'PY' || fail "executor and blind grader evidence is invalid"
 import json
 import sys
 from collections import defaultdict
 from pathlib import Path
 
-repo, result_root, log_path, grader_log_path = map(Path, sys.argv[1:])
+repo, result_root, log_path, grader_log_path, run_summary_path = map(Path, sys.argv[1:])
 result_root = repo / result_root
 records = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
 if not records:
@@ -730,11 +796,38 @@ if not (result_root / "summary.json").is_file() or not (result_root / "summary.m
     raise SystemExit("machine or human report projection is missing")
 coverage = json.loads((result_root / "coverage.json").read_text(encoding="utf-8"))
 comparison = json.loads((result_root / "comparison.json").read_text(encoding="utf-8"))
-summary = json.loads((result_root / "summary.json").read_text(encoding="utf-8"))
-if coverage != summary.get("coverage"):
+suite_summary = json.loads((result_root / "summary.json").read_text(encoding="utf-8"))
+run_summary = json.loads(run_summary_path.read_text(encoding="utf-8"))
+if run_summary.get("model_calls") != len(records) + len(grader_records):
+    raise SystemExit("successful executor and grader invocations were not counted")
+if coverage != suite_summary.get("coverage"):
     raise SystemExit("standalone coverage projection drifted from summary")
-if comparison.get("pairs") != summary.get("pairs"):
+if comparison.get("pairs") != suite_summary.get("pairs"):
     raise SystemExit("standalone comparison projection drifted from summary")
+PY
+
+MODEL_CALL_PROCESS_ROOT="tools/eval/results/rule-runtime-eval-model-call-process-test"
+FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=process python3 "$RUNNER" \
+  --repo-root "$REPO" \
+  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --profile focused-v1 \
+  --case-source candidate \
+  --baseline-ref assistant-entry=f9cbf552 \
+  --baseline-ref sql-schema-comments=68abd950 \
+  --model gpt-5 \
+  --reasoning-effort high \
+  --output-root "$MODEL_CALL_PROCESS_ROOT" \
+  --installer-bin "$FAKE_INSTALLER" \
+  --codex-bin "$FAKE_CODEX" \
+  --source-codex-home "$SOURCE_CODEX_HOME" > "$TMP_ROOT/model-call-process-summary.json"
+python3 - "$TMP_ROOT/model-call-process-summary.json" <<'PY' || fail "failed executor invocations were not counted"
+import json
+import sys
+from pathlib import Path
+
+summary = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if summary.get("model_calls") != 16:
+    raise SystemExit(f"expected 16 failed executor attempts, got {summary.get('model_calls')!r}")
 PY
 
 VERSION_FAILURE_ROOT="tools/eval/results/rule-runtime-eval-version-failure-test"

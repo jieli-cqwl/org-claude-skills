@@ -18,6 +18,7 @@ from rule_runtime_eval.common import CommandResult, run_command, sha256_file, wr
 
 _WORKSPACE_PREFIX = "rule-runtime-eval-"
 _CREATED_WORKSPACE_ROOTS: set[Path] = set()
+_SEEDED_CONFIG_MARKER = "# source configuration intentionally omitted for isolated evaluation\n"
 
 
 class WorkspaceError(RuntimeError):
@@ -44,18 +45,18 @@ class RuntimeWorkspace:
 
 
 def seed_codex_context(source_codex_home: Path, codex_home: Path) -> dict[str, bool]:
-    """Seed only execution credentials and optional configuration into a new home."""
+    """Seed authentication plus a non-secret configuration-presence marker."""
 
     source = source_codex_home.resolve()
     if not source.is_dir():
         raise WorkspaceError("source_codex_home_invalid", "source Codex home must be a directory")
     codex_home.mkdir(parents=True, exist_ok=False)
-    seeded: dict[str, bool] = {}
-    for filename, key in (("auth.json", "auth_available"), ("config.toml", "config_available")):
-        source_file = source / filename
-        seeded[key] = source_file.is_file()
-        if seeded[key]:
-            shutil.copyfile(source_file, codex_home / filename)
+    auth = source / "auth.json"
+    seeded = {"auth_available": auth.is_file(), "config_available": (source / "config.toml").is_file()}
+    if seeded["auth_available"]:
+        shutil.copyfile(auth, codex_home / "auth.json")
+    if seeded["config_available"]:
+        (codex_home / "config.toml").write_text(_SEEDED_CONFIG_MARKER, encoding="utf-8")
     return seeded
 
 
