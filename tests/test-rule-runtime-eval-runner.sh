@@ -940,6 +940,35 @@ if not wc_multi_only_route.route_evidence_available or wc_multi_only_route.route
 if wc_multi_only_route.read_contract_ids:
     raise SystemExit("multi-operand wc-only probe recorded a route read")
 
+wc_for_loop_then_reader = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-wc-for-loop-then-reader",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'for f in "
+                '"$HOME/.agents/skills/using-superpowers/SKILL.md" '
+                '"$HOME/.codex/reference/协作判断.md" '
+                '"$CODEX_HOME/rules/code-changes.md"; '
+                'do wc -l "$f"; done; '
+                'sed -n "1,3p" "$HOME/.codex/reference/协作判断.md"; '
+                'head -n 3 "$CODEX_HOME/rules/code-changes.md"\''
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "metadata\nread",
+        },
+    }
+]
+wc_for_loop_then_reader_route = classify_route_reads(
+    wc_for_loop_then_reader, (scene, code_changes), runtime_home
+)
+if not wc_for_loop_then_reader_route.route_evidence_available or not wc_for_loop_then_reader_route.route_pass:
+    raise SystemExit(f"wc for-loop metadata probe blocked later readers: {wc_for_loop_then_reader_route}")
+if set(wc_for_loop_then_reader_route.read_contract_ids) != {"collaboration", "code-changes"}:
+    raise SystemExit("wc for-loop probe counted as route evidence or lost a later reader")
+
 wc_unsafe_operand = [
     {
         "type": "item.completed",
@@ -959,6 +988,28 @@ wc_unsafe_operand = [
 wc_unsafe_operand_route = classify_route_reads(wc_unsafe_operand, (scene,), runtime_home)
 if wc_unsafe_operand_route.route_evidence_available or not wc_unsafe_operand_route.parser_uncertain:
     raise SystemExit("wc -l accepted an operand outside the runtime and agent-skill roots")
+
+wc_for_loop_unsafe_operand = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-wc-for-loop-unsafe-operand",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'for f in /etc/passwd "
+                '"$HOME/.codex/reference/协作判断.md"; '
+                'do wc -l "$f"; done; '
+                'sed -n "1,3p" "$HOME/.codex/reference/协作判断.md"\''
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "metadata\nread",
+        },
+    }
+]
+wc_for_loop_unsafe_operand_route = classify_route_reads(wc_for_loop_unsafe_operand, (scene,), runtime_home)
+if wc_for_loop_unsafe_operand_route.route_evidence_available or not wc_for_loop_unsafe_operand_route.parser_uncertain:
+    raise SystemExit("wc for-loop accepted an operand outside the runtime and agent-skill roots")
 
 wc_wrong_mode = [
     {

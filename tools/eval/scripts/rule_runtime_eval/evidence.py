@@ -191,6 +191,14 @@ def _shell_fragment_read_targets(
         script_tokens = _shell_tokens(fragment)
     except ValueError:
         return set(), _mentions_target(full_script, expected_targets, runtime_codex_home)
+    if script_tokens and script_tokens[0] == "for":
+        consumed, remaining, probe_uncertain = _consume_wc_for_loop_probe(script_tokens, runtime_codex_home)
+        if probe_uncertain:
+            return set(), True
+        if consumed:
+            script_tokens = remaining
+            if not script_tokens:
+                return set(), False
     if "&" in script_tokens:
         return set(), True
     commands = _split_safe_shell_commands(script_tokens)
@@ -222,6 +230,48 @@ def _is_wc_line_probe(tokens: list[str], runtime_codex_home: Path) -> bool:
         if uncertain or target is None or not any(_is_relative_to(target, root) for root in allowed_roots):
             return False
     return True
+
+
+def _is_wc_for_loop_probe(tokens: list[str], runtime_codex_home: Path) -> bool:
+    if len(tokens) < 9 or tokens[0] != "for" or tokens[2] != "in":
+        return False
+    variable = tokens[1]
+    if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", variable) is None:
+        return False
+    try:
+        separator_index = tokens.index(";")
+    except ValueError:
+        return False
+    values = tokens[3:separator_index]
+    if not values:
+        return False
+    expected_tail = ["do", "wc", "-l", f"${variable}", ";", "done"]
+    alternate_tail = ["do", "wc", "-l", f"${{{variable}}}", ";", "done"]
+    if tokens[separator_index + 1 :] not in (expected_tail, alternate_tail):
+        return False
+    allowed_roots = (runtime_codex_home.resolve(), runtime_codex_home.parent / ".agents" / "skills")
+    for value in values:
+        target, uncertain = _normal_path(value, runtime_codex_home)
+        if uncertain or target is None or not any(_is_relative_to(target, root) for root in allowed_roots):
+            return False
+    return True
+
+
+def _consume_wc_for_loop_probe(
+    tokens: list[str], runtime_codex_home: Path
+) -> tuple[bool, list[str], bool]:
+    try:
+        done_index = tokens.index("done")
+    except ValueError:
+        return False, tokens, True
+    if not _is_wc_for_loop_probe(tokens[: done_index + 1], runtime_codex_home):
+        return False, tokens, True
+    remaining = tokens[done_index + 1 :]
+    if not remaining:
+        return True, [], False
+    if remaining[0] != ";":
+        return False, tokens, True
+    return True, remaining[1:], False
 
 
 def _is_neutral_diagnostic(tokens: list[str]) -> bool:
