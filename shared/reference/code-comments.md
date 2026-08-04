@@ -6,8 +6,8 @@ Comments are for meaning the code cannot reveal. Prefer clearer code first: bett
 
 - Public boundaries, cross-module contracts, complex business rules, non-obvious constraints, high-risk failure conditions, and decisions affecting data consistency, permission, audit, idempotency, rollback, or user-visible behavior.
 - Compatibility logic, temporary bypasses, migration code, and retained old paths must name the caller or constraint being preserved plus the expiration or removal condition.
-- Database schema, tables, columns, enum/status values, constraints, and non-obvious indexes must explain business meaning, units, allowed values, and constraint semantics.
-- New DDL or migration review must distinguish the required schema semantics from dialect-specific comment syntax, check the project's existing migration/comment style, and fix the current change before merge; historical backfill is a separate migration-risk decision.
+- Database schema, tables, columns, enum/status values, constraints, and non-obvious indexes must explain business meaning, amount units and precision, status allowed values, time source/timezone, nullable/default meaning, and constraint/index semantics.
+- New DDL or migration review must distinguish required schema semantics from dialect-specific comment syntax, check the project's existing migration/comment style, and fix the current change before merge; historical backfill is a separate migration-risk decision.
 - Multi-table joins, aggregation/window logic, complex filters, sorting, pagination, data repair, and performance assumptions must explain business intent and key constraints.
 - SQL comments must not translate syntax; they must explain why the query filters, joins, sorts, paginates, or repairs data that way.
 - Concurrency, transactions, locks, retries, cache consistency, and idempotency logic must comment the invariant being protected and the failure conditions.

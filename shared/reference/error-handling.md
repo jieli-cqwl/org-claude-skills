@@ -8,7 +8,7 @@ Error handling must make failure visible, diagnosable, and recoverable; it must 
 - Silent failure, hidden fallback, empty catches, bare except blocks, and default returns without an error signal are forbidden.
 - Catch only expected error types; unexpected errors must keep an observable failure path.
 - Fallback, downgrade, and defaults need a valid condition, unchanged business semantics, and an observable failure or degraded state.
-- Retry, queue, fallback, and compensation paths must define owner, trigger, maximum attempts or bounded lifetime, idempotency and duplicate-effect protection, terminal failure handling, rollback or manual intervention, and verification evidence.
+- Retry, queue, async resend, fallback, and compensation paths must define owner, trigger, maximum attempts or bounded lifetime, idempotency and duplicate-effect protection, terminal failure handling, rollback or disable/manual intervention path, and verification evidence.
 
 ## Allowed Continuation
 

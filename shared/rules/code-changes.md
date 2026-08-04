@@ -14,7 +14,7 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - Comments must explain intent, invariants, boundaries, tradeoffs, failure modes, or non-obvious business rules; do not narrate obvious code.
 - Preserve failure semantics: propagate errors, return explicit failure/result states, or expose visible partial failure when continuation is valid; do not hide failed defaults or report fake success.
 - External API, network, database, process execution, remote filesystem, and long-running operations need timeouts, failure handling, cleanup, and observable failure states.
-- Auth, token, and permission logic must verify signature or issuer, expiry, revocation, tenant or audience, permission scope, and error semantics; reuse or change decisions require legacy caller regression.
+- Auth, token, and permission logic must verify signature or issuer, expiry, revocation, tenant or audience, permission scope, and error semantics; evidence must cover valid, missing, malformed or invalid, forged, expired, revoked, unauthorized, wrong-tenant or wrong-audience, and legacy caller paths.
 - User-visible errors must be understandable and must not expose secrets, stack traces, SQL, internal paths, or service internals.
 - Never hardcode secrets, tokens, passwords, credentials, environment-specific addresses, or deployment differences.
 - Cross-module constants are allowed only for stable public contracts; do not import another module's private constants across ownership boundaries.
