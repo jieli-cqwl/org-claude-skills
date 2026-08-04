@@ -31,6 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--repo-root", type=Path, required=True)
     parser.add_argument("--acceptance-pack", type=Path, required=True)
     parser.add_argument("--profile", required=True)
+    parser.add_argument("--case", action="append", default=[], metavar="PACK:ID")
     parser.add_argument("--case-source", required=True)
     parser.add_argument("--baseline-ref", action="append", default=[], metavar="PACK=REF")
     parser.add_argument("--model", required=True)
@@ -53,16 +54,18 @@ def resolve_dry_run(args: argparse.Namespace) -> dict[str, object]:
         raise ContractError("timeout_invalid", "timeout must be positive")
     acceptance_path = _repo_path(repo_root, args.acceptance_pack, "acceptance_pack_outside_repo")
     contract = load_acceptance_contract(repo_root, acceptance_path)
-    profile, cases = load_profile_cases(contract, args.profile, repo_root)
+    profile, profile_cases = load_profile_cases(contract, args.profile, repo_root)
+    cases = _filter_cases(profile_cases, args.case)
     selected_pack_ids = {case.pack_id for case in cases}
-    baseline_refs = parse_baseline_refs(args.baseline_ref, selected_pack_ids)
+    profile_pack_ids = {case.pack_id for case in profile_cases}
+    baseline_refs = parse_baseline_refs(args.baseline_ref, selected_pack_ids, profile_pack_ids)
     baseline_commits = [
         {
             "pack_id": pack_id,
             "ref": baseline_refs[pack_id],
             "commit": _resolve_git_ref(repo_root, baseline_refs[pack_id]),
         }
-        for pack_id in sorted(baseline_refs)
+        for pack_id in sorted(selected_pack_ids)
     ]
     candidate_head = _resolve_git_ref(repo_root, "HEAD")
     dirty_paths = _dirty_paths(repo_root)
@@ -121,7 +124,8 @@ def main(argv: list[str] | None = None) -> int:
             args.repo_root.resolve(),
             _repo_path(args.repo_root.resolve(), args.acceptance_pack, "acceptance_pack_outside_repo"),
         )
-        execution_profile, execution_cases = load_profile_cases(execution_contract, args.profile, args.repo_root.resolve())
+        execution_profile, profile_cases = load_profile_cases(execution_contract, args.profile, args.repo_root.resolve())
+        execution_cases = _filter_cases(profile_cases, args.case)
         source_codex_home = args.source_codex_home or Path(
             os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
         )
@@ -293,6 +297,28 @@ def _execute_cases(
         "coverage": coverage,
         "model_calls": model_calls,
     }
+
+
+def _filter_cases(cases: list[EvalCase], values: list[str]) -> list[EvalCase]:
+    """Keep an explicit diagnostic subset without inventing cases outside the profile."""
+
+    if not values:
+        return cases
+    requested: list[tuple[str, str]] = []
+    for value in values:
+        if value.count(":") != 1:
+            raise ContractError("case_filter_malformed", "case filter must use PACK:ID")
+        pack_id, case_id = value.split(":", 1)
+        if not pack_id or not case_id:
+            raise ContractError("case_filter_malformed", "case filter must use PACK:ID")
+        requested.append((pack_id, case_id))
+    if len(set(requested)) != len(requested):
+        raise ContractError("case_filter_duplicate", "case filter contains duplicate cases")
+    available = {(case.pack_id, case.id): case for case in cases}
+    unknown = [key for key in requested if key not in available]
+    if unknown:
+        raise ContractError("case_filter_unknown", "case filter references a case outside the selected profile")
+    return [available[key] for key in requested]
 
 
 def _evidence_identity(

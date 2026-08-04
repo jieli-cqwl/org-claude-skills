@@ -141,7 +141,11 @@ def load_profile_cases(
     return profile, selected_cases
 
 
-def parse_baseline_refs(values: list[str], selected_pack_ids: set[str]) -> dict[str, str]:
+def parse_baseline_refs(
+    values: list[str],
+    selected_pack_ids: set[str],
+    allowed_pack_ids: set[str] | None = None,
+) -> dict[str, str]:
     """Parse exact pack-to-ref mappings before callers build a lookup table."""
 
     mappings: list[tuple[str, str]] = []
@@ -154,7 +158,8 @@ def parse_baseline_refs(values: list[str], selected_pack_ids: set[str]) -> dict[
         mappings.append((pack_id, ref))
     _require_unique((pack_id for pack_id, _ in mappings), "baseline_ref_duplicate")
     mapping = dict(mappings)
-    unknown = set(mapping) - selected_pack_ids
+    allowed = selected_pack_ids if allowed_pack_ids is None else allowed_pack_ids
+    unknown = set(mapping) - allowed
     if unknown:
         raise ContractError("baseline_ref_unknown", "baseline mapping references an unknown selected pack")
     missing = selected_pack_ids - set(mapping)

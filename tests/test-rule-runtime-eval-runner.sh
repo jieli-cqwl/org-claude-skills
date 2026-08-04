@@ -117,6 +117,35 @@ if "prompt" in serialized or "Authorization" in serialized:
     raise SystemExit("resolution output contains sensitive or body content")
 PY
 
+run_dry \
+  --case assistant-entry:configuration-secret-hidden-default \
+  --case assistant-entry:fullstack-contract-shortcut \
+  >"$TMP_ROOT/case-filter-resolution.json"
+python3 - "$TMP_ROOT/case-filter-resolution.json" <<'PY' || fail "case-filter dry-run resolution is invalid"
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+selected = [f"{case['pack_id']}:{case['id']}" for case in payload["selected_cases"]]
+if selected != [
+    "assistant-entry:configuration-secret-hidden-default",
+    "assistant-entry:fullstack-contract-shortcut",
+]:
+    raise SystemExit(f"filtered selected cases mismatch: {selected}")
+baseline_packs = [item["pack_id"] for item in payload["baseline_commits"]]
+if baseline_packs != ["assistant-entry"]:
+    raise SystemExit(f"filtered baseline packs mismatch: {baseline_packs}")
+if payload.get("model_calls") != 0:
+    raise SystemExit("filtered dry-run recorded model calls")
+PY
+
+expect_contract_error case_filter_malformed run_dry --case assistant-entry
+expect_contract_error case_filter_duplicate run_dry \
+  --case assistant-entry:configuration-secret-hidden-default \
+  --case assistant-entry:configuration-secret-hidden-default
+expect_contract_error case_filter_unknown run_dry --case assistant-entry:not-real
+
 set +e
 python3 "$RUNNER" \
   --repo-root "$REPO" \
