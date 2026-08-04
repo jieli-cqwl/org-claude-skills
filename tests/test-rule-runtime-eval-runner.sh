@@ -969,6 +969,28 @@ if not wc_for_loop_then_reader_route.route_evidence_available or not wc_for_loop
 if set(wc_for_loop_then_reader_route.read_contract_ids) != {"collaboration", "code-changes"}:
     raise SystemExit("wc for-loop probe counted as route evidence or lost a later reader")
 
+parent_relative_reader = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-parent-relative-reader",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'sed -n \"1,3p\" ../.codex/reference/协作判断.md; "
+                "sed -n \"1,3p\" ../.codex/rules/code-changes.md'"
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "read",
+        },
+    }
+]
+parent_relative_reader_route = classify_route_reads(parent_relative_reader, (scene, code_changes), runtime_home)
+if not parent_relative_reader_route.route_evidence_available or not parent_relative_reader_route.route_pass:
+    raise SystemExit(f"parent-relative runtime readers were not recognized: {parent_relative_reader_route}")
+if set(parent_relative_reader_route.read_contract_ids) != {"collaboration", "code-changes"}:
+    raise SystemExit("parent-relative readers recorded the wrong route reads")
+
 wc_unsafe_operand = [
     {
         "type": "item.completed",

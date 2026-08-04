@@ -371,8 +371,10 @@ def _normal_path(value: str, runtime_codex_home: Path) -> tuple[Path | None, boo
         ("${HOME}/.codex/", codex_home),
         (".codex/", codex_home),
         ("./.codex/", codex_home),
+        ("../.codex/", codex_home),
         (".agents/", home / ".agents"),
         ("./.agents/", home / ".agents"),
+        ("../.agents/", home / ".agents"),
         ("$HOME/.agents/", home / ".agents"),
         ("${HOME}/.agents/", home / ".agents"),
     )
@@ -412,6 +414,7 @@ def _mentions_target_alias(
                 f"${{HOME}}/.codex/{suffix}",
                 f".codex/{suffix}",
                 f"./.codex/{suffix}",
+                f"../.codex/{suffix}",
             }
         )
     return any(_alias_mentioned(value, alias) for alias in aliases)
