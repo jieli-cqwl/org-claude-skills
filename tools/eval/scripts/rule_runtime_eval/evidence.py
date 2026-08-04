@@ -169,17 +169,33 @@ def _shell_read_targets(
     if len(tokens) != 3 or tokens[1] != "-lc":
         return set(), _mentions_target(" ".join(tokens), expected_targets, runtime_codex_home)
     script = tokens[2]
-    if any(operator in script for operator in ("||", "|", "\n", "`", "$()", "<", ">")):
+    if any(operator in script for operator in ("||", "|", "`", "$()", "<", ">")):
         return set(), _mentions_target(script, expected_targets, runtime_codex_home)
+    targets: set[Path] = set()
+    for fragment in script.splitlines():
+        if not fragment.strip():
+            continue
+        fragment_targets, fragment_uncertain = _shell_fragment_read_targets(
+            fragment, script, expected_targets, runtime_codex_home
+        )
+        if fragment_uncertain:
+            return set(), True
+        targets.update(fragment_targets)
+    return targets, False
+
+
+def _shell_fragment_read_targets(
+    fragment: str, full_script: str, expected_targets: set[Path], runtime_codex_home: Path
+) -> tuple[set[Path], bool]:
     try:
-        script_tokens = _shell_tokens(script)
+        script_tokens = _shell_tokens(fragment)
     except ValueError:
-        return set(), _mentions_target(script, expected_targets, runtime_codex_home)
+        return set(), _mentions_target(full_script, expected_targets, runtime_codex_home)
     if "&" in script_tokens:
         return set(), True
     commands = _split_safe_shell_commands(script_tokens)
     if commands is None:
-        return set(), _mentions_target(script, expected_targets, runtime_codex_home)
+        return set(), _mentions_target(full_script, expected_targets, runtime_codex_home)
     targets: set[Path] = set()
     for command_tokens in commands:
         if _is_wc_line_probe(command_tokens, runtime_codex_home):
@@ -187,7 +203,7 @@ def _shell_read_targets(
         if _is_neutral_diagnostic(command_tokens):
             continue
         if not command_tokens or Path(command_tokens[0]).name not in _READERS:
-            return set(), _mentions_target(script, expected_targets, runtime_codex_home)
+            return set(), _mentions_target(full_script, expected_targets, runtime_codex_home)
         command_targets, command_uncertain = _direct_read_targets(
             command_tokens, expected_targets, runtime_codex_home
         )

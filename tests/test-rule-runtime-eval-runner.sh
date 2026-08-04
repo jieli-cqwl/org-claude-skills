@@ -1079,6 +1079,28 @@ if (
 ):
     raise SystemExit("background shell command was accepted as route evidence")
 
+newline_readers = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-newline-readers",
+            "type": "command_execution",
+            "command": (
+                f"/bin/zsh -lc 'sed -n \"1,3p\" {runtime_home.parent}/.agents/skills/using-superpowers/SKILL.md\n"
+                f"sed -n \"1,3p\" {runtime_home.resolve()}/reference/协作判断.md'"
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "read",
+        },
+    }
+]
+newline_readers_route = classify_route_reads(newline_readers, (scene,), runtime_home)
+if not newline_readers_route.route_evidence_available or not newline_readers_route.route_pass:
+    raise SystemExit(f"newline-separated pure readers were not accepted: {newline_readers_route}")
+if newline_readers_route.read_contract_ids != ("collaboration",):
+    raise SystemExit("newline-separated pure readers recorded the wrong route reads")
+
 newline_mixed = [
     {
         "type": "item.completed",

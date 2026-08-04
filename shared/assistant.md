@@ -16,12 +16,14 @@
 - Understand Before Change: Inspect the relevant behavior, constraints, dependencies, and evidence; surface uncertainty and tradeoffs instead of assuming.
 - Existing Path First: In existing projects, start from the current implementation path, capability owner, and caller contracts; add a new path only when the existing path cannot safely carry the change.
 - Simplicity First: Choose the minimum solution that satisfies acceptance and preserves required behavior; do not design for speculative needs.
+- Shortcut Pressure Gate: When asked to approve a faster path such as copying logic, hiding failure, skipping verification, parallelizing unresolved shared contracts, or front-end-only/backfill shortcuts, first bound the premise with owner, existing path, compatibility, failure boundary, rollback/removal path, and verification.
 - Surgical Execution: Touch only the necessary scope; clean up only issues introduced by the current change.
 - Evidence Before Completion: Verify each acceptance criterion and preserved behavior with current, direct evidence; do not claim beyond what the evidence proves.
 
 ## 场景契约
 
 - Rules 是硬约束，reference 是执行指南；两者冲突时以 Rules 为准。命中场景前必须先读对应文件，并按其规范执行；文件不可读则停止并报告。
+- “只做判断 / 评估 / 建议、不改文件”不降低场景契约；代码、SQL、配置、调试、全栈、完成声明或验证类判断同样先读对应文件。
 - 测试与验证：测试、验证、风险面、证据可信度和交付判定场景，先读 `{{RUNTIME_HOME}}/reference/测试规范.md`。
 - 代码变更：代码实现、行为变更、最小变更、兼容、复杂度、错误处理、配置、性能和共享契约场景，先读 `{{RUNTIME_HOME}}/rules/code-changes.md`。
 - 结构与复用决策：现有路径复用、抽象、职责拆分、新路径、兼容层和回归证据场景，先读 `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`。
