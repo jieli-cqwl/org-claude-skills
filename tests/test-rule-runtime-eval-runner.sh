@@ -991,6 +991,72 @@ if not parent_relative_reader_route.route_evidence_available or not parent_relat
 if set(parent_relative_reader_route.read_contract_ids) != {"collaboration", "code-changes"}:
     raise SystemExit("parent-relative readers recorded the wrong route reads")
 
+shell_c_reader = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-shell-c-reader",
+            "type": "command_execution",
+            "command": (
+                f"/bin/zsh -c 'sed -n \"1,3p\" {runtime_home}/reference/协作判断.md; "
+                f"head -n 3 {runtime_home}/rules/code-changes.md'"
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "read",
+        },
+    }
+]
+shell_c_reader_route = classify_route_reads(shell_c_reader, (scene, code_changes), runtime_home)
+if not shell_c_reader_route.route_evidence_available or not shell_c_reader_route.route_pass:
+    raise SystemExit(f"shell -c reader commands were not recognized: {shell_c_reader_route}")
+
+reader_for_loop = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-reader-for-loop",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'for f in "
+                f"{runtime_home.parent}/.agents/skills/using-superpowers/SKILL.md "
+                f"{runtime_home}/reference/协作判断.md "
+                f"{runtime_home}/rules/code-changes.md; "
+                "do sed -n \"1,3p\" \"$f\"; done'"
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "read",
+        },
+    }
+]
+reader_for_loop_route = classify_route_reads(reader_for_loop, (scene, code_changes), runtime_home)
+if not reader_for_loop_route.route_evidence_available or not reader_for_loop_route.route_pass:
+    raise SystemExit(f"reader for-loop blocked route evidence: {reader_for_loop_route}")
+if set(reader_for_loop_route.read_contract_ids) != {"collaboration", "code-changes"}:
+    raise SystemExit("reader for-loop recorded the wrong route reads")
+
+reader_for_loop_unsafe_operand = [
+    {
+        "type": "item.completed",
+        "item": {
+            "id": "command-reader-for-loop-unsafe-operand",
+            "type": "command_execution",
+            "command": (
+                "/bin/zsh -lc 'for f in /etc/passwd "
+                f"{runtime_home}/reference/协作判断.md; "
+                "do sed -n \"1,3p\" \"$f\"; done'"
+            ),
+            "exit_code": 0,
+            "status": "completed",
+            "aggregated_output": "read",
+        },
+    }
+]
+reader_for_loop_unsafe_route = classify_route_reads(reader_for_loop_unsafe_operand, (scene,), runtime_home)
+if reader_for_loop_unsafe_route.route_evidence_available or not reader_for_loop_unsafe_route.parser_uncertain:
+    raise SystemExit("reader for-loop accepted an operand outside the runtime and agent-skill roots")
+
 wc_unsafe_operand = [
     {
         "type": "item.completed",

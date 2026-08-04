@@ -166,7 +166,7 @@ def _read_targets(
 def _shell_read_targets(
     tokens: list[str], expected_targets: set[Path], runtime_codex_home: Path
 ) -> tuple[set[Path], bool]:
-    if len(tokens) != 3 or tokens[1] != "-lc":
+    if len(tokens) != 3 or tokens[1] not in {"-lc", "-c"}:
         return set(), _mentions_target(" ".join(tokens), expected_targets, runtime_codex_home)
     script = tokens[2]
     if any(operator in script for operator in ("||", "|", "`", "$()", "<", ">")):
@@ -191,20 +191,25 @@ def _shell_fragment_read_targets(
         script_tokens = _shell_tokens(fragment)
     except ValueError:
         return set(), _mentions_target(full_script, expected_targets, runtime_codex_home)
+    targets: set[Path] = set()
     if script_tokens and script_tokens[0] == "for":
         consumed, remaining, probe_uncertain = _consume_wc_for_loop_probe(script_tokens, runtime_codex_home)
         if probe_uncertain:
-            return set(), True
+            consumed, loop_targets, remaining, loop_uncertain = _consume_reader_for_loop(
+                script_tokens, expected_targets, runtime_codex_home
+            )
+            if loop_uncertain:
+                return set(), True
+            targets.update(loop_targets)
         if consumed:
             script_tokens = remaining
             if not script_tokens:
-                return set(), False
+                return targets, False
     if "&" in script_tokens:
         return set(), True
     commands = _split_safe_shell_commands(script_tokens)
     if commands is None:
         return set(), _mentions_target(full_script, expected_targets, runtime_codex_home)
-    targets: set[Path] = set()
     for command_tokens in commands:
         if _is_wc_line_probe(command_tokens, runtime_codex_home):
             continue
@@ -219,6 +224,58 @@ def _shell_fragment_read_targets(
             return set(), True
         targets.update(command_targets)
     return targets, False
+
+
+def _consume_reader_for_loop(
+    tokens: list[str], expected_targets: set[Path], runtime_codex_home: Path
+) -> tuple[bool, set[Path], list[str], bool]:
+    try:
+        separator_index = tokens.index(";")
+        done_index = tokens.index("done")
+    except ValueError:
+        return False, set(), tokens, True
+    if len(tokens) < 9 or tokens[0] != "for" or tokens[2] != "in":
+        return False, set(), tokens, True
+    variable = tokens[1]
+    if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", variable) is None:
+        return False, set(), tokens, True
+    if separator_index + 1 >= len(tokens) or done_index <= separator_index + 2:
+        return False, set(), tokens, True
+    values = tokens[3:separator_index]
+    if not values or tokens[separator_index + 1] != "do":
+        return False, set(), tokens, True
+
+    body = tokens[separator_index + 2 : done_index]
+    if body and body[-1] == ";":
+        body = body[:-1]
+    variable_refs = {f"${variable}", f"${{{variable}}}"}
+    if not body or not any(token in variable_refs for token in body):
+        return False, set(), tokens, True
+    if any(token in {"&", "||", "|", "<", ">", "<<", ">>"} for token in body):
+        return False, set(), tokens, True
+
+    allowed_roots = (runtime_codex_home.resolve(), runtime_codex_home.parent / ".agents" / "skills")
+    targets: set[Path] = set()
+    for value in values:
+        value_target, value_uncertain = _normal_path(value, runtime_codex_home)
+        if value_uncertain or value_target is None or not any(
+            _is_relative_to(value_target, root) for root in allowed_roots
+        ):
+            return False, set(), tokens, True
+        command_tokens = [value if token in variable_refs else token for token in body]
+        command_targets, command_uncertain = _direct_read_targets(
+            command_tokens, expected_targets, runtime_codex_home
+        )
+        if command_uncertain:
+            return False, set(), tokens, True
+        targets.update(command_targets)
+
+    remaining = tokens[done_index + 1 :]
+    if not remaining:
+        return True, targets, [], False
+    if remaining[0] != ";":
+        return False, set(), tokens, True
+    return True, targets, remaining[1:], False
 
 
 def _is_wc_line_probe(tokens: list[str], runtime_codex_home: Path) -> bool:
