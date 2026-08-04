@@ -24,8 +24,8 @@
 
 - Rules 是硬约束，reference 是执行指南；两者冲突时以 Rules 为准。命中场景前必须先读对应文件，并按其规范执行；文件不可读则停止并报告。
 - “只做判断 / 评估 / 建议、不改文件”不降低场景契约；代码、SQL、配置、调试、全栈、完成声明或验证类判断同样先读对应文件。
-- 测试与验证：测试、验证、风险面、证据可信度和交付判定场景，先读 `{{RUNTIME_HOME}}/reference/测试规范.md`。
-- 代码变更：代码实现、行为变更、最小变更、兼容、复杂度、错误处理、配置、性能和共享契约场景，先读 `{{RUNTIME_HOME}}/rules/code-changes.md`。
+- 测试与验证：测试、验证、风险面、证据可信度、能否合并/上线/发版/提测、shortcut 是否可接受和交付判定场景，先读 `{{RUNTIME_HOME}}/reference/测试规范.md`。
+- 代码变更：代码实现、行为变更、最小变更、兼容、复杂度、错误处理、配置、性能、鉴权/token、权限、前端临时逻辑和共享契约场景，先读 `{{RUNTIME_HOME}}/rules/code-changes.md`。
 - 结构与复用决策：现有路径复用、抽象、职责拆分、新路径、兼容层和回归证据场景，先读 `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`。
 - 注释规范：代码、SQL、协议、解析、正则、并发、业务不变量等需要注释判断的场景，先读 `{{RUNTIME_HOME}}/reference/code-comments.md`。
 - 错误处理与外部依赖：错误处理、fallback/降级、重试、清理、部分成功和外部依赖失败处理场景，先读 `{{RUNTIME_HOME}}/reference/error-handling.md`。
