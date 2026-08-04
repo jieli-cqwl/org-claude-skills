@@ -7,7 +7,8 @@ Constants and configuration belong to the owner that can change them safely: sec
 - Secrets, tokens, passwords, private keys, private certificates, production accounts, and credentials must use environment variables or secret storage and be never committed.
 - Environment addresses, ports, deployment differences, runtime credentials, deployment paths, and host-specific paths belong in configuration or environment variables, not business logic.
 - Missing or invalid required configuration must produce an explicit failure; do not hide drift with a hidden default, string concatenation, copied test configuration, or sample credentials.
-- External dependency fallback must be explicit configuration with an owner, trigger, user-facing and operational semantics, rollback or disable path, and verification; never encode a backup credential or fake-success default in application code.
+- External dependency fallback must be explicit configuration with an owner, trigger, user-facing and operational semantics, terminal failure behavior, rollback or disable path, and verification; never encode a backup credential or fake-success default in application code.
+- Backup providers, async resend, and degraded modes are runtime-owned paths: short judgments must preserve owner, enable or disable switch, what happens if every provider fails, rollback, and verification.
 - User-visible messages belong to the existing message or i18n system.
 - Business constants, enums, and statuses belong to the owning domain, concept module, enum, or type system.
 
