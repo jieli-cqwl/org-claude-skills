@@ -26,4 +26,5 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - For errors, external calls, fallback, retries, cleanup, or partial success, read `{{RUNTIME_HOME}}/reference/error-handling.md`.
 - For constants, configuration, secrets, environment differences, or shared values, read `{{RUNTIME_HOME}}/reference/constants-and-configuration.md`.
 - For performance, batching, polling, async jobs, temp files, caching, large data, or database query cost, read `{{RUNTIME_HOME}}/reference/performance-and-efficiency.md`.
+- For frontend/backend contracts, frontend temporary calculation or display, backend field backfill, permission-visible behavior, or same-chain E2E verification, read `{{RUNTIME_HOME}}/reference/全栈开发.md`.
 - Test: Would a senior engineer accept this as the simplest maintainable change that fails loudly and preserves existing contracts? If not, simplify or surface the risk.
