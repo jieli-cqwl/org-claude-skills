@@ -62,7 +62,7 @@ PY
 run_dry() {
   python3 "$RUNNER" \
     --repo-root "$REPO" \
-    --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+    --eval-contract tools/eval/contracts/rule-runtime-eval.json \
     --profile focused-v1 \
     --case-source candidate \
     --baseline-ref assistant-entry=f9cbf552 \
@@ -149,7 +149,7 @@ expect_contract_error case_filter_unknown run_dry --case assistant-entry:not-rea
 set +e
 python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -167,7 +167,7 @@ expect_contract_error baseline_ref_malformed run_dry --baseline-ref assistant-en
 expect_contract_error output_root_outside_repo run_dry --output-root "$TMP_ROOT/outside-results"
 expect_contract_error baseline_ref_unresolved python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -177,7 +177,7 @@ expect_contract_error baseline_ref_unresolved python3 "$RUNNER" \
   --dry-run
 expect_contract_error case_source_unsupported python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source baseline \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -188,7 +188,7 @@ expect_contract_error case_source_unsupported python3 "$RUNNER" \
 expect_contract_error argument_parse_error python3 "$RUNNER"
 expect_contract_error argument_parse_error python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -272,39 +272,39 @@ import json
 import sys
 from pathlib import Path
 
-path = Path(sys.argv[1]) / "docs/rule-runtime--team-readiness/acceptance-pack.json"
+path = Path(sys.argv[1]) / "tools/eval/contracts/rule-runtime-eval.json"
 payload = json.loads(path.read_text(encoding="utf-8"))
 payload["runtime_sources"].remove("shared/assistant.md")
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 expect_contract_error assistant_runtime_source_missing run_dry
 
-git -C "$REPO" checkout -- docs/rule-runtime--team-readiness/acceptance-pack.json
+git -C "$REPO" checkout -- tools/eval/contracts/rule-runtime-eval.json
 python3 - "$REPO" <<'PY'
 import json
 import sys
 from pathlib import Path
 
-path = Path(sys.argv[1]) / "docs/rule-runtime--team-readiness/acceptance-pack.json"
+path = Path(sys.argv[1]) / "tools/eval/contracts/rule-runtime-eval.json"
 payload = json.loads(path.read_text(encoding="utf-8"))
-payload["diagnostic_profiles"][0]["runs_per_configuration"] = 2
+payload["diagnostic_profiles"][0]["runs_per_configuration"] = 1
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
-expect_contract_error profile_runs_unsupported run_dry
+expect_contract_error profile_runs_invalid run_dry
 
 python3 - "$REPO" <<'PY'
 import json
 import sys
 from pathlib import Path
 
-path = Path(sys.argv[1]) / "docs/rule-runtime--team-readiness/acceptance-pack.json"
+path = Path(sys.argv[1]) / "tools/eval/contracts/rule-runtime-eval.json"
 payload = json.loads(path.read_text(encoding="utf-8"))
 payload["diagnostic_profiles"][0]["runs_per_configuration"] = 1.0
 path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
-expect_contract_error profile_runs_unsupported run_dry
+expect_contract_error profile_runs_invalid run_dry
 
-git -C "$REPO" checkout -- docs/rule-runtime--team-readiness/acceptance-pack.json
+git -C "$REPO" checkout -- tools/eval/contracts/rule-runtime-eval.json
 printf '\n' >> "$REPO/shared/reference/performance-and-efficiency.md"
 expect_contract_error dirty_runtime_source_uncovered run_dry
 
@@ -356,7 +356,7 @@ chmod +x "$FAKE_INSTALLER"
 
 expect_workspace_error source_codex_home_invalid python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -388,7 +388,7 @@ PY
 run_workspace_prepare() {
   TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
     --repo-root "$REPO" \
-    --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+    --eval-contract tools/eval/contracts/rule-runtime-eval.json \
     --profile focused-v1 \
     --case-source candidate \
     --baseline-ref assistant-entry=f9cbf552 \
@@ -430,9 +430,10 @@ if "shared/assistant.md" not in candidate["configuration"]["dirty_paths"]:
 if not candidate["runtime_source_hashes"]:
     raise SystemExit("candidate runtime hashes are missing")
 installed_hashes = candidate.get("installed_runtime_target_hashes")
-if not isinstance(installed_hashes, list) or len(installed_hashes) != 13:
+if not isinstance(installed_hashes, list) or len(installed_hashes) != 15:
     raise SystemExit("candidate installed runtime target hashes are missing")
 source_by_target = {
+    "AGENTS.md": "shared/assistant.md",
     "rules/code-changes.md": "shared/rules/code-changes.md",
     "rules/completion-claims.md": "shared/rules/completion-claims.md",
     "reference/协作判断.md": "shared/reference/协作判断.md",
@@ -441,6 +442,7 @@ source_by_target = {
     "reference/code-comments.md": "shared/reference/code-comments.md",
     "reference/error-handling.md": "shared/reference/error-handling.md",
     "reference/constants-and-configuration.md": "shared/reference/constants-and-configuration.md",
+    "reference/authentication-and-authorization.md": "shared/reference/authentication-and-authorization.md",
     "reference/performance-and-efficiency.md": "shared/reference/performance-and-efficiency.md",
     "reference/技术方案设计.md": "shared/reference/技术方案设计.md",
     "reference/impact-analysis.md": "shared/reference/impact-analysis.md",
@@ -562,7 +564,7 @@ FAKE_INSTALL_REQUIRED_PYTHON_USER_SITE="$PYTHON_USER_SITE" \
 FAKE_INSTALL_STDOUT="$INSTALL_STDOUT" \
   TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
     --repo-root "$REPO" \
-    --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+    --eval-contract tools/eval/contracts/rule-runtime-eval.json \
     --profile focused-v1 \
     --case-source candidate \
     --baseline-ref assistant-entry=f9cbf552 \
@@ -608,7 +610,7 @@ PY
 : > "$FAKE_INSTALL_LOG"
 TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -645,7 +647,7 @@ printf 'placeholder-config-secret\n' > "$SOURCE_WITHOUT_AUTH/config.toml"
 set +e
 TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -676,7 +678,7 @@ set +e
 TMPDIR="$EVALUATOR_TMP" FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" \
   FAKE_INSTALL_SKIP_TARGET="rules/code-changes.md" python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -701,8 +703,10 @@ if summary.get("model_calls") != 0:
 for installation in summary.get("installations", []):
     if installation.get("install_status") != "INFRA_BLOCKED":
         raise SystemExit("missing installed target left installation ready")
-    if installation.get("missing_runtime_targets") != ["rules/code-changes.md"]:
+    if "rules/code-changes.md" not in installation.get("missing_runtime_targets", []):
         raise SystemExit("missing installed target was not identified")
+    if installation.get("unexpected_missing_runtime_targets") != ["rules/code-changes.md"]:
+        raise SystemExit("unexpected missing target boundary was not preserved")
 PY
 
 set +e
@@ -802,7 +806,7 @@ from rule_runtime_eval.contracts import load_acceptance_contract
 root = Path(sys.argv[1])
 tmp = Path(sys.argv[2])
 contract = load_acceptance_contract(
-    root, root / "docs/rule-runtime--team-readiness/acceptance-pack.json"
+    root, root / "tools/eval/contracts/rule-runtime-eval.json"
 )
 scene = contract.scene_by_id["collaboration"]
 code_changes = contract.scene_by_id["code-changes"]
@@ -1357,7 +1361,7 @@ FAKE_CODEX_STDERR="token=grader-token Authorization: Basic grader-authorization 
   FAKE_CODEX_STDERR_INCLUDE_RUNTIME_PATHS=1 \
   FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_LOG="$FAKE_CODEX_LOG" FAKE_GRADER_LOG="$FAKE_GRADER_LOG" python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -1391,12 +1395,12 @@ for record in records:
         raise SystemExit("executor used a source-repository case workspace")
     by_prompt[record["prompt_sha256"]].append(record)
 if not all(
-    len(group) == 2 and len({(item["model"], item["reasoning"]) for item in group}) == 1
+    len(group) == 4 and len({(item["model"], item["reasoning"]) for item in group}) == 1
     for group in by_prompt.values()
 ):
     raise SystemExit("candidate and baseline did not receive identical settings")
 
-run = result_root / "runs" / "candidate" / "assistant-entry" / "completion-claim-without-tests"
+run = result_root / "runs" / "candidate" / "assistant-entry" / "completion-claim-without-tests" / "run-01"
 evidence = json.loads((run / "execution.json").read_text(encoding="utf-8"))
 if evidence.get("state") != "EXECUTOR_OK":
     raise SystemExit(f"expected executor success, got {evidence.get('state')}")
@@ -1414,7 +1418,10 @@ if identity.get("installed_runtime_target_hashes") != installed_hashes:
     raise SystemExit("evidence identity omitted installed runtime target hashes")
 import hashlib
 runtime_payload = json.dumps(
-    {"installed_target_hashes": installed_hashes},
+    {
+        "installed_target_hashes": installed_hashes,
+        "missing_runtime_targets": manifest.get("missing_runtime_targets", []),
+    },
     ensure_ascii=False,
     sort_keys=True,
     separators=(",", ":"),
@@ -1434,7 +1441,7 @@ judge_homes = {
     for record in grader_records
     for key in ("home", "codex_home")
 }
-for stderr_path in result_root.glob("runs/*/*/*/grader.stderr.log"):
+for stderr_path in result_root.glob("runs/*/*/*/run-*/grader.stderr.log"):
     persisted = stderr_path.read_text(encoding="utf-8")
     if persisted != "[grader stderr withheld]\n":
         raise SystemExit("grader stderr did not use the shared withholding boundary")
@@ -1480,7 +1487,7 @@ BEHAVIOR_FAILURE_ROOT="tools/eval/results/rule-runtime-eval-behavior-failure-tes
 set +e
 FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=behavior_fail python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -1509,7 +1516,7 @@ MODEL_CALL_PROCESS_ROOT="tools/eval/results/rule-runtime-eval-model-call-process
 set +e
 FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=process python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -1529,15 +1536,15 @@ import sys
 from pathlib import Path
 
 summary = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-if summary.get("model_calls") != 16:
-    raise SystemExit(f"expected 16 failed executor attempts, got {summary.get('model_calls')!r}")
+if summary.get("model_calls") != 32:
+    raise SystemExit(f"expected 32 failed executor attempts, got {summary.get('model_calls')!r}")
 PY
 
 VERSION_FAILURE_ROOT="tools/eval/results/rule-runtime-eval-version-failure-test"
 set +e
 FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=version_failure python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -1557,9 +1564,9 @@ import sys
 from pathlib import Path
 
 repo, result_root = map(Path, sys.argv[1:])
-records = list((repo / result_root / "runs").glob("*/*/*/execution.json"))
-if len(records) != 16:
-    raise SystemExit(f"expected 16 version-blocked execution records, got {len(records)}")
+records = list((repo / result_root / "runs").glob("*/*/*/run-*/execution.json"))
+if len(records) != 32:
+    raise SystemExit(f"expected 32 version-blocked execution records, got {len(records)}")
 for path in records:
     evidence = json.loads(path.read_text(encoding="utf-8"))
     if evidence.get("state") != "INFRA_BLOCKED_CODEX_VERSION":
@@ -1583,7 +1590,7 @@ root, tmp, fake = map(Path, sys.argv[1:])
 home = tmp / "timeout-home"
 (home / ".codex").mkdir(parents=True)
 workspace = RuntimeWorkspace("timeout", root, "test", home, home / ".codex", home / "state", home / "skills", ())
-case = EvalCase("assistant-entry", "timeout", "prompt", ("behavior",), ("anti",), ("block",), (), {}, ())
+case = EvalCase("assistant-entry", "timeout", "prompt", ("behavior",), ("anti",), ("block",), (), {}, (), (), None)
 settings = ExecutionSettings(str(fake), "gpt-5", "high", 1)
 result = run_executor(case, workspace, tmp / "timeout-run", settings)
 if classify_execution_state(result, [], tmp / "timeout-run/outputs/response.md") != "INFRA_BLOCKED_TIMEOUT":
@@ -1610,7 +1617,7 @@ UNKNOWN_ROOT="tools/eval/results/rule-runtime-eval-unknown-shape-test"
 set +e
 FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE=unknown_shape python3 "$RUNNER" \
   --repo-root "$REPO" \
-  --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+  --eval-contract tools/eval/contracts/rule-runtime-eval.json \
   --profile focused-v1 \
   --case-source candidate \
   --baseline-ref assistant-entry=f9cbf552 \
@@ -1631,7 +1638,7 @@ from pathlib import Path
 
 repo, result_root = map(Path, sys.argv[1:])
 evidence = json.loads(
-    (repo / result_root / "runs/candidate/assistant-entry/completion-claim-without-tests/execution.json").read_text(
+    (repo / result_root / "runs/candidate/assistant-entry/completion-claim-without-tests/run-01/execution.json").read_text(
         encoding="utf-8"
     )
 )
@@ -1646,7 +1653,7 @@ for mode in timeout_malformed process_malformed missing_output_malformed; do
   set +e
   FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" FAKE_CODEX_MODE="$mode" python3 "$RUNNER" \
     --repo-root "$REPO" \
-    --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+    --eval-contract tools/eval/contracts/rule-runtime-eval.json \
     --profile focused-v1 \
     --case-source candidate \
     --baseline-ref assistant-entry=f9cbf552 \
@@ -1672,7 +1679,7 @@ expected = {
     "process_malformed": "INFRA_BLOCKED_PROCESS",
     "missing_output_malformed": "INFRA_BLOCKED_MISSING_OUTPUT",
 }[mode]
-records = list((Path(repo) / result_root / "runs").glob("*/*/*/execution.json"))
+records = list((Path(repo) / result_root / "runs").glob("*/*/*/run-*/execution.json"))
 if not records:
     raise SystemExit("runner did not write execution records")
 for path in records:
@@ -1690,7 +1697,7 @@ for codex_bin in "$TMP_ROOT/missing-codex" "$NON_EXECUTABLE_CODEX"; do
   set +e
   FAKE_INSTALL_LOG="$FAKE_INSTALL_LOG" python3 "$RUNNER" \
     --repo-root "$REPO" \
-    --acceptance-pack docs/rule-runtime--team-readiness/acceptance-pack.json \
+    --eval-contract tools/eval/contracts/rule-runtime-eval.json \
     --profile focused-v1 \
     --case-source candidate \
     --baseline-ref assistant-entry=f9cbf552 \
@@ -1710,8 +1717,8 @@ import sys
 from pathlib import Path
 
 repo, result_root = map(Path, sys.argv[1:])
-records = list((repo / result_root / "runs").glob("*/*/*/execution.json"))
-if len(records) != 16:
+records = list((repo / result_root / "runs").glob("*/*/*/run-*/execution.json"))
+if len(records) != 32:
     raise SystemExit(f"expected one record per candidate/baseline case, got {len(records)}")
 for path in records:
     evidence = json.loads(path.read_text(encoding="utf-8"))
@@ -1760,6 +1767,8 @@ case = EvalCase(
     ("AE-1",),
     {"AE-1": {"id": "AE-1", "anchor": "Decision is explicit and evidence-bound."}},
     ("completion-claims",),
+    (),
+    None,
 )
 grader = "Grade only the supplied response against the structured scenario."
 response = "The decision is blocked until direct evidence exists."
@@ -1857,7 +1866,7 @@ timeout = compute_freshness({"identity": identity, "execution_state": "INFRA_BLO
 if timeout["state"] != "INFRA_BLOCKED":
     raise SystemExit("executor timeout was not projected as infrastructure blocked")
 
-lightness_case = EvalCase("assistant-entry", "simple-question-lightness", "p", ("b",), ("a",), ("block",), ("AE-1",), case.anchor_definitions, ())
+lightness_case = EvalCase("assistant-entry", "simple-question-lightness", "p", ("b",), ("a",), ("block",), ("AE-1",), case.anchor_definitions, (), (), 1)
 lightness_candidate = dict(fresh, irrelevant_successful_reads=5, response_characters=240, grading=dict(passed, added_ceremony_without_decision_value=True))
 lightness_baseline = dict(fresh, irrelevant_successful_reads=2, response_characters=100)
 lightness_pair = compare_pair(lightness_case, lightness_candidate, lightness_baseline, (), ())

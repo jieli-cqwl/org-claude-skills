@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import json
 import os
 from pathlib import Path
 import re
@@ -86,7 +85,7 @@ def _create_workspace_root(parent: Path) -> Path:
 def prepare_runtime_workspaces(
     *,
     repo_root: Path,
-    acceptance_pack: Path,
+    runtime_source_paths: tuple[Path, ...],
     candidate_head: str,
     candidate_dirty_paths: tuple[str, ...],
     baseline_commits: list[Mapping[str, str]],
@@ -95,7 +94,7 @@ def prepare_runtime_workspaces(
     timeout_seconds: int,
     output_root: Path,
     keep_workspaces: bool,
-    installed_runtime_targets: tuple[Path, ...],
+    runtime_target_sources: Mapping[Path, Path],
     after_install: Callable[[tuple[RuntimeWorkspace, ...], tuple[dict[str, object], ...], RuntimeWorkspace], dict[str, object]] | None = None,
 ) -> dict[str, object]:
     """Install runtimes and optionally execute while their isolated homes remain alive."""
@@ -116,12 +115,12 @@ def prepare_runtime_workspaces(
         prepared = [
             _prepare_configuration(
                 candidate,
-                acceptance_pack,
+                runtime_source_paths,
                 source_codex_home,
                 installer_bin,
                 timeout_seconds,
                 output_root,
-                installed_runtime_targets,
+                runtime_target_sources,
             )
         ]
         for baseline in _unique_baselines(baseline_commits):
@@ -138,12 +137,12 @@ def prepare_runtime_workspaces(
             prepared.append(
                 _prepare_configuration(
                     baseline_workspace,
-                    acceptance_pack,
+                    runtime_source_paths,
                     source_codex_home,
                     installer_bin,
                     timeout_seconds,
                     output_root,
-                    installed_runtime_targets,
+                    runtime_target_sources,
                 )
             )
         judge = _create_runtime_workspace(
@@ -202,12 +201,12 @@ def _create_runtime_workspace(
 
 def _prepare_configuration(
     workspace: RuntimeWorkspace,
-    acceptance_pack: Path,
+    runtime_source_paths: tuple[Path, ...],
     source_codex_home: Path,
     installer_bin: Path | None,
     timeout_seconds: int,
     output_root: Path,
-    installed_runtime_targets: tuple[Path, ...],
+    runtime_target_sources: Mapping[Path, Path],
 ) -> dict[str, object]:
     context = seed_codex_context(source_codex_home, workspace.codex_home)
     command = _installer_command(workspace.repo_root, installer_bin)
@@ -218,9 +217,20 @@ def _prepare_configuration(
         timeout_seconds=timeout_seconds,
     )
     installed_hashes, missing_targets = _installed_runtime_target_hashes(
-        workspace.codex_home, installed_runtime_targets
+        workspace.codex_home, tuple(runtime_target_sources)
     )
-    install_ready = result.returncode == 0 and not result.timed_out and not missing_targets
+    source_hashes = _runtime_source_hashes(workspace.repo_root, runtime_source_paths)
+    unexpected_missing_targets = [
+        target
+        for target in missing_targets
+        if workspace.id == "candidate"
+        or (workspace.repo_root / runtime_target_sources[Path(target)]).is_file()
+    ]
+    install_ready = (
+        result.returncode == 0
+        and not result.timed_out
+        and not unexpected_missing_targets
+    )
     manifest = {
         "configuration": {
             "id": workspace.id,
@@ -228,9 +238,10 @@ def _prepare_configuration(
             "dirty_paths": list(workspace.dirty_paths),
         },
         "context": context,
-        "runtime_source_hashes": _runtime_source_hashes(workspace.repo_root, acceptance_pack),
+        "runtime_source_hashes": source_hashes,
         "installed_runtime_target_hashes": installed_hashes,
         "missing_runtime_targets": missing_targets,
+        "unexpected_missing_runtime_targets": unexpected_missing_targets,
         "runtime_target_status": "READY" if not missing_targets else "INFRA_BLOCKED",
         "install": _install_evidence(result, source_codex_home, workspace),
         "live_execution_status": "READY" if context["auth_available"] else "INFRA_BLOCKED",
@@ -243,6 +254,8 @@ def _prepare_configuration(
         "live_execution_status": "READY" if context["auth_available"] else "INFRA_BLOCKED",
         "installed_runtime_target_hashes": installed_hashes,
         "missing_runtime_targets": missing_targets,
+        "unexpected_missing_runtime_targets": unexpected_missing_targets,
+        "runtime_source_hashes": source_hashes,
     }
 
 
@@ -352,26 +365,22 @@ def _installer_env(workspace: RuntimeWorkspace) -> dict[str, str]:
     return env
 
 
-def _runtime_source_hashes(repo_root: Path, acceptance_pack: Path) -> list[dict[str, str]]:
-    pack = (repo_root / acceptance_pack).resolve()
-    try:
-        pack.relative_to(repo_root)
-        payload = json.loads(pack.read_text(encoding="utf-8"))
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
-        raise WorkspaceError("baseline_acceptance_pack_invalid", "runtime source list could not be loaded") from exc
-    sources = payload.get("runtime_sources") if isinstance(payload, dict) else None
-    if not isinstance(sources, list) or not sources or not all(isinstance(item, str) for item in sources):
-        raise WorkspaceError("baseline_runtime_sources_invalid", "runtime source list must be a non-empty string array")
-    hashes: list[dict[str, str]] = []
-    for relative_path in sources:
+def _runtime_source_hashes(
+    repo_root: Path, runtime_source_paths: tuple[Path, ...]
+) -> list[dict[str, object]]:
+    hashes: list[dict[str, object]] = []
+    for relative_path in runtime_source_paths:
         source = (repo_root / relative_path).resolve()
         try:
             source.relative_to(repo_root)
         except ValueError as exc:
             raise WorkspaceError("baseline_runtime_source_outside_repo", "runtime source escaped repository") from exc
-        if not source.is_file():
-            raise WorkspaceError("baseline_runtime_source_missing", "baseline runtime source is missing")
-        hashes.append({"path": relative_path, "sha256": sha256_file(source)})
+        hashes.append(
+            {
+                "path": relative_path.as_posix(),
+                "sha256": sha256_file(source) if source.is_file() else None,
+            }
+        )
     return hashes
 
 

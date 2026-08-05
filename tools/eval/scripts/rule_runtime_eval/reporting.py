@@ -60,9 +60,12 @@ def compare_pair(
     candidate_outcome = _outcome(candidate)
     baseline_outcome = _outcome(baseline)
     relevant_sources = sorted(set(changed_sources) & set(expected_scene_sources))
-    attribution = None
+    association = None
     if candidate_outcome != baseline_outcome and relevant_sources:
-        attribution = {"changed_sources": relevant_sources, "reason": "changed_sources_intersect_expected_scenes"}
+        association = {
+            "changed_sources": relevant_sources,
+            "reason": "bundle_level_difference_associated_with_relevant_changed_sources",
+        }
     marginal_effect = (
         {"result": "observed_difference", "candidate": candidate_outcome, "baseline": baseline_outcome}
         if candidate_outcome != baseline_outcome
@@ -72,7 +75,8 @@ def compare_pair(
         **_pair_base(case, "COMPLETE", candidate, baseline),
         "candidate_outcome": candidate_outcome,
         "baseline_outcome": baseline_outcome,
-        "attribution": attribution,
+        "attribution": None,
+        "association": association,
         "marginal_effect": marginal_effect,
         "evidence": _evidence_links(candidate, baseline),
     }
@@ -98,10 +102,17 @@ def project_suite_decision(profile: Mapping[str, object], pairs: list[Mapping[st
     """Project the focused-suite rule without turning it into a promotion decision."""
 
     complete = [pair for pair in pairs if pair.get("state") == "COMPLETE"]
-    evidence_incomplete = len(pairs) != 8 or len(complete) != 8
+    expected_pair_count = profile.get("expected_pair_count", len(pairs))
+    evidence_incomplete = (
+        not isinstance(expected_pair_count, int)
+        or isinstance(expected_pair_count, bool)
+        or expected_pair_count < 1
+        or len(pairs) != expected_pair_count
+        or len(complete) != expected_pair_count
+    )
     blockers: list[str] = []
     if evidence_incomplete:
-        blockers.append("focused suite requires 8 complete candidate/baseline pairs")
+        blockers.append("selected scope does not have every required candidate/baseline pair")
     if any(pair.get("candidate_outcome") not in {"pass", "route_pass_behavior_fail"} for pair in complete):
         blockers.append("candidate route evidence did not pass every complete case")
     if any(pair.get("candidate_outcome") not in {"pass", "behavior_pass_route_fail"} for pair in complete):
@@ -119,11 +130,20 @@ def project_suite_decision(profile: Mapping[str, object], pairs: list[Mapping[st
     elif average < float(threshold):
         blockers.append("candidate expected-anchor average is below profile threshold")
     marginal_case = profile.get("marginal_effect_case")
-    marginal = next((pair for pair in complete if pair.get("case") == marginal_case), None)
-    if marginal is None or not isinstance(marginal.get("marginal_effect"), dict):
+    selected_case_ids = {pair.get("case") for pair in pairs}
+    if marginal_case in selected_case_ids and not any(
+        pair.get("case") == marginal_case and isinstance(pair.get("marginal_effect"), dict)
+        for pair in complete
+    ):
         evidence_incomplete = True
-        blockers.append("named SQL marginal-effect case is incomplete")
-    lightness = _lightness_projection(profile.get("lightness_policy"), complete)
+        blockers.append("selected marginal-effect case is incomplete")
+    lightness_policy = profile.get("lightness_policy")
+    lightness_case = lightness_policy.get("case") if isinstance(lightness_policy, Mapping) else None
+    lightness = (
+        _lightness_projection(lightness_policy, complete)
+        if lightness_case in selected_case_ids
+        else {"state": "NOT_SELECTED", "material_regression": False}
+    )
     if lightness["state"] == "INCOMPLETE":
         evidence_incomplete = True
         blockers.append("lightness case is incomplete")
@@ -132,12 +152,26 @@ def project_suite_decision(profile: Mapping[str, object], pairs: list[Mapping[st
         blockers.append("focused profile lightness policy is invalid")
     elif lightness["material_regression"]:
         blockers.append("candidate has a material lightness regression")
+    observed_uplift = any(
+        pair.get("candidate_outcome") == "pass" and pair.get("baseline_outcome") != "pass"
+        for pair in complete
+    )
+    verdict = (
+        "INFRA_BLOCKED"
+        if evidence_incomplete
+        else "FAIL"
+        if blockers
+        else "PASS"
+        if observed_uplift
+        else "NO_OBSERVED_UPLIFT"
+    )
     return {
-        "verdict": "INFRA_BLOCKED" if evidence_incomplete else ("PASS" if not blockers else "FAIL"),
+        "verdict": verdict,
         "scope": profile.get("id"),
         "blockers": blockers,
         "complete_pairs": len(complete),
         "candidate_anchor_average": average,
+        "observed_uplift": observed_uplift,
         "lightness": lightness,
     }
 
@@ -183,12 +217,12 @@ def render_reports(
             f"| {pair.get('case', 'unknown')} | {pair.get('state', 'unknown')} | "
             f"{pair.get('candidate_outcome', 'n/a')} | {pair.get('baseline_outcome', 'n/a')} | {evidence or 'n/a'} |"
         )
-    lines.extend(["", "## Changed-Source Attribution", ""])
-    attributions = [pair for pair in pairs if pair.get("attribution")]
-    if attributions:
-        lines.extend(f"- {pair.get('case')}: {pair.get('attribution')}" for pair in attributions)
+    lines.extend(["", "## Changed-Source Association", ""])
+    associations = [pair for pair in pairs if pair.get("association")]
+    if associations:
+        lines.extend(f"- {pair.get('case')}: {pair.get('association')}" for pair in associations)
     else:
-        lines.append("- No attributable difference was observed in complete fresh pairs.")
+        lines.append("- No bundle-level association was observed in complete fresh pairs.")
     lines.extend(["", "## Coverage/Freshness", "", f"- Fresh-covered runtime sources: {len(coverage.get('covered_sources', []))}", f"- Runtime sources without fresh selected evidence: {', '.join(coverage.get('uncovered_sources', [])) or 'none'}", "", "## Risks, Unknowns and Next Decision", "", "- Missing, stale, or infrastructure-blocked evidence remains unresolved evidence, not behavior attribution.", "- Review the linked run evidence before any separately governed next decision.", ""])
     (output_root / "summary.md").parent.mkdir(parents=True, exist_ok=True)
     (output_root / "summary.md").write_text("\n".join(lines), encoding="utf-8")
@@ -201,6 +235,7 @@ def _pair_base(case: EvalCase, state: str, candidate: Mapping[str, object] | Non
         "candidate": candidate,
         "baseline": baseline,
         "attribution": None,
+        "association": None,
         "evidence": _evidence_links(candidate, baseline),
     }
 

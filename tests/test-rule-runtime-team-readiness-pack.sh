@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PACK="$ROOT/docs/rule-runtime--team-readiness/acceptance-pack.json"
+EVAL_CONTRACT="$ROOT/tools/eval/contracts/rule-runtime-eval.json"
 README="$ROOT/docs/rule-runtime--team-readiness/README.md"
 RUN_RECORD_JSON="$ROOT/docs/rule-runtime--team-readiness/run-record-2026-05-31.json"
 RUN_RECORD_VALIDATOR="$ROOT/tools/community/validate_rule_runtime_run_record.py"
@@ -15,13 +16,14 @@ fail() {
 }
 
 test -f "$PACK" || fail "missing rule runtime acceptance pack"
+test -f "$EVAL_CONTRACT" || fail "missing rule runtime eval contract"
 test -f "$README" || fail "missing rule runtime acceptance README"
 test -f "$RUN_RECORD_JSON" || fail "missing rule runtime machine-readable run record"
 test -f "$RUN_RECORD_VALIDATOR" || fail "missing rule runtime run record validator"
 test -f "$FEEDBACK_STANDARD" || fail "missing rule runtime feedback judgment standard"
 test -f "$INTERNAL_JUDGE_SET" || fail "missing rule runtime internal judge set"
 
-python3 - "$README" "$PACK" "$INTERNAL_JUDGE_SET" "$FEEDBACK_STANDARD" <<'PY' || fail "rule runtime readiness active files contain ambiguous reuse wording"
+python3 - "$README" "$PACK" "$EVAL_CONTRACT" "$INTERNAL_JUDGE_SET" "$FEEDBACK_STANDARD" <<'PY' || fail "rule runtime readiness active files contain ambiguous reuse wording"
 import sys
 from pathlib import Path
 
@@ -56,7 +58,7 @@ if violations:
     raise SystemExit("\n".join(violations))
 PY
 
-python3 - "$ROOT" "$PACK" <<'PY' || fail "rule runtime acceptance pack contract violated"
+python3 - "$ROOT" "$PACK" "$EVAL_CONTRACT" <<'PY' || fail "rule runtime acceptance pack contract violated"
 import json
 import subprocess
 import sys
@@ -64,6 +66,7 @@ from pathlib import Path
 
 root = Path(sys.argv[1])
 pack = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+eval_contract = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
 
 expected_runtime_sources = {
     "shared/assistant.md",
@@ -76,6 +79,7 @@ expected_runtime_sources = {
     "shared/reference/code-comments.md",
     "shared/reference/error-handling.md",
     "shared/reference/constants-and-configuration.md",
+    "shared/reference/authentication-and-authorization.md",
     "shared/reference/performance-and-efficiency.md",
     "shared/reference/测试规范.md",
     "shared/reference/impact-analysis.md",
@@ -117,6 +121,11 @@ expected_scene_contracts = {
     "constants-and-configuration": {
         "runtime_source": "shared/reference/constants-and-configuration.md",
         "installed_path": "reference/constants-and-configuration.md",
+        "activation": "scene",
+    },
+    "authentication-and-authorization": {
+        "runtime_source": "shared/reference/authentication-and-authorization.md",
+        "installed_path": "reference/authentication-and-authorization.md",
         "activation": "scene",
     },
     "performance": {
@@ -208,14 +217,16 @@ require(
     and "Codex-only controlled pilot" in pack.get("pilot_start_status_contract", ""),
     "pilot_start_status_contract must define Codex-only-only promotion boundary",
 )
-scene_contracts = pack.get("scene_contracts")
+for evaluator_field in ("runtime_sources", "scene_contracts", "case_packs", "diagnostic_profiles"):
+    require(evaluator_field not in pack, f"rollout pack must not redefine evaluator field: {evaluator_field}")
+scene_contracts = eval_contract.get("scene_contracts")
 require(isinstance(scene_contracts, list), "scene_contracts must be a list")
-require(len(scene_contracts) == 13, "scene_contracts must define exactly 13 scenes")
+require(len(scene_contracts) == 14, "scene_contracts must define exactly 14 scenes")
 scene_ids = [scene.get("id") for scene in scene_contracts]
 require(len(set(scene_ids)) == len(scene_ids), "scene_contract IDs must be unique")
 scene_by_id = {scene["id"]: scene for scene in scene_contracts}
 require(set(scene_by_id) == set(expected_scene_contracts), "scene_contract IDs mismatch")
-require(set(pack.get("runtime_sources", [])) == expected_runtime_sources, "runtime_sources mismatch")
+require(set(eval_contract.get("runtime_sources", [])) == expected_runtime_sources, "runtime_sources mismatch")
 for scene_id, expected in expected_scene_contracts.items():
     scene = scene_by_id[scene_id]
     require(
@@ -223,12 +234,12 @@ for scene_id, expected in expected_scene_contracts.items():
         f"{scene_id} scene contract mismatch",
     )
     source = scene["runtime_source"]
-    require(source in pack["runtime_sources"], f"{scene_id} source is absent from runtime_sources")
+    require(source in eval_contract["runtime_sources"], f"{scene_id} source is absent from runtime_sources")
     require((root / source).is_file(), f"{scene_id} source does not exist: {source}")
 pre_execution = {scene_id for scene_id, scene in scene_by_id.items() if scene["activation"] == "pre_execution"}
 require(pre_execution == {"collaboration"}, "only collaboration may use pre_execution")
 
-case_packs = pack.get("case_packs")
+case_packs = eval_contract.get("case_packs")
 require(isinstance(case_packs, list), "case_packs must be a list")
 case_pack_by_id = {item.get("id"): item for item in case_packs}
 require(set(case_pack_by_id) == {"assistant-entry", "sql-schema-comments"}, "case pack IDs mismatch")
@@ -253,15 +264,15 @@ for pack_id, case_pack in case_pack_by_id.items():
         "cases": {case["id"]: case for case in evals},
     }
 
-profiles = pack.get("diagnostic_profiles")
+profiles = eval_contract.get("diagnostic_profiles")
 require(isinstance(profiles, list), "diagnostic_profiles must be a list")
 profile_by_id = {profile.get("id"): profile for profile in profiles}
-require(set(profile_by_id) == {"focused-v1"}, "diagnostic profile IDs mismatch")
+require(set(profile_by_id) == {"focused-v1", "generalization-v1"}, "diagnostic profile IDs mismatch")
 focused = profile_by_id["focused-v1"]
 selected_pairs = [f"{item.get('pack')}:{item.get('id')}" for item in focused.get("cases", [])]
 require(selected_pairs == expected_focused_cases, "focused-v1 cases mismatch")
 require(len(selected_pairs) == len(set(selected_pairs)) == 8, "focused-v1 cases must be eight unique pairs")
-require(focused.get("runs_per_configuration") == 1, "focused-v1 runs_per_configuration mismatch")
+require(focused.get("runs_per_configuration") == 2, "focused-v1 runs_per_configuration mismatch")
 require(focused.get("anchor_threshold") == 1.6, "focused-v1 anchor_threshold mismatch")
 require(focused.get("marginal_effect_case") == expected_focused_cases[0], "focused-v1 marginal_effect_case mismatch")
 require(focused["marginal_effect_case"] in selected_pairs, "marginal_effect_case must be selected")
@@ -272,6 +283,20 @@ require(lightness_policy["case"] in selected_pairs, "lightness policy case must 
 require(lightness_policy.get("max_irrelevant_read_delta") == 2, "lightness read delta mismatch")
 require(lightness_policy.get("max_response_length_ratio") == 2.0, "lightness response ratio mismatch")
 require(lightness_policy.get("requires_grader_ceremony_signal") is True, "lightness ceremony signal mismatch")
+generalization = profile_by_id["generalization-v1"]
+require(generalization.get("runs_per_configuration") == 2, "generalization-v1 must repeat each configuration")
+require(
+    [f"{item.get('pack')}:{item.get('id')}" for item in generalization.get("cases", [])]
+    == [
+        "assistant-entry:opaque-service-token-contract",
+        "assistant-entry:mobile-oauth-401-boundary",
+        "assistant-entry:worker-entitlement-dual-source",
+        "assistant-entry:bounded-temporary-compatibility",
+        "assistant-entry:readme-copy-near-miss",
+        "assistant-entry:auth-concept-near-miss",
+    ],
+    "generalization-v1 cases mismatch",
+)
 
 selected_cases = []
 for qualified_case in selected_pairs:
@@ -289,7 +314,7 @@ covered_sources = {"shared/assistant.md"}
 for scene_id, scene in scene_by_id.items():
     if scene["activation"] == "pre_execution" or any(scene_id in case["expected_scene_contracts"] for case in selected_cases):
         covered_sources.add(scene["runtime_source"])
-unverified_scope = set(pack["runtime_sources"]) - covered_sources
+unverified_scope = set(eval_contract["runtime_sources"]) - covered_sources
 require(
     unverified_scope == {
         "shared/rules/document-governance.md",

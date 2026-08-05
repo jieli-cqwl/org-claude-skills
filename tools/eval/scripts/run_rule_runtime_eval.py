@@ -29,7 +29,13 @@ class ContractArgumentParser(argparse.ArgumentParser):
 def build_parser() -> argparse.ArgumentParser:
     parser = ContractArgumentParser(description="Resolve rule-runtime evaluation contracts")
     parser.add_argument("--repo-root", type=Path, required=True)
-    parser.add_argument("--acceptance-pack", type=Path, required=True)
+    parser.add_argument(
+        "--eval-contract",
+        "--acceptance-pack",
+        dest="acceptance_pack",
+        type=Path,
+        required=True,
+    )
     parser.add_argument("--profile", required=True)
     parser.add_argument("--case", action="append", default=[], metavar="PACK:ID")
     parser.add_argument("--case-source", required=True)
@@ -68,6 +74,7 @@ def resolve_dry_run(args: argparse.Namespace) -> dict[str, object]:
         for pack_id in sorted(selected_pack_ids)
     ]
     candidate_head = _resolve_git_ref(repo_root, "HEAD")
+    _validate_baseline_commits(repo_root, candidate_head, baseline_commits)
     dirty_paths = _dirty_paths(repo_root)
     source_records = _source_hashes(contract, selected_pack_ids)
     required_scenes = _required_scenes(contract, cases)
@@ -93,6 +100,8 @@ def resolve_dry_run(args: argparse.Namespace) -> dict[str, object]:
                 "id": case.id,
                 "expected_scene_contracts": list(case.expected_scene_contracts),
                 "required_scene_contracts": list(required_scenes[(case.pack_id, case.id)]),
+                "forbidden_scene_contracts": list(case.forbidden_scene_contracts),
+                "max_successful_scene_reads": case.max_successful_scene_reads,
                 "expected_behavior_ids": list(case.expected_behavior_ids),
                 "anti_pattern_ids": list(case.anti_pattern_ids),
                 "blocking_failure_ids": list(case.blocking_failure_ids),
@@ -131,7 +140,10 @@ def main(argv: list[str] | None = None) -> int:
         )
         workspace_summary = prepare_runtime_workspaces(
             repo_root=args.repo_root.resolve(),
-            acceptance_pack=args.acceptance_pack,
+            runtime_source_paths=tuple(
+                Path(_relative(execution_contract.repo_root, source))
+                for source in execution_contract.runtime_sources
+            ),
             candidate_head=resolution["candidate"]["head"],
             candidate_dirty_paths=tuple(resolution["candidate"]["dirty_paths"]),
             baseline_commits=resolution["baseline_commits"],
@@ -140,9 +152,7 @@ def main(argv: list[str] | None = None) -> int:
             timeout_seconds=args.timeout_sec,
             output_root=output_root,
             keep_workspaces=args.keep_workspaces,
-            installed_runtime_targets=tuple(
-                scene.installed_path for scene in execution_contract.scene_contracts
-            ),
+            runtime_target_sources=_installed_runtime_target_sources(execution_contract),
             after_install=lambda workspaces, installations, judge: _execute_cases(
                 execution_contract,
                 execution_profile,
@@ -197,80 +207,190 @@ def _execute_cases(
     records: list[dict[str, object]] = []
     model_calls = 0
     codex_version = _codex_version(settings.codex_bin, output_root, settings.timeout_seconds)
+    candidate_installation = installation_by_id["candidate"]
+    candidate_runtime_ready = (
+        candidate_installation.get("install_status") == "READY"
+        and candidate_installation.get("live_execution_status") == "READY"
+    )
     for case in cases:
-        configurations = [workspace_by_id["candidate"], baseline_by_pack[case.pack_id]]
-        for workspace in configurations:
-            run_dir = output_root / "runs" / workspace.id / case.pack_id / case.id
-            installation = installation_by_id[workspace.id]
-            identity = _evidence_identity(
-                acceptance,
-                case,
-                workspace,
-                installation,
-                settings,
-                codex_version or "unavailable",
-            )
-            evidence_path = str(run_dir.relative_to(output_root) / "execution.json")
-            if codex_version is None:
-                _write_execution(run_dir, workspace, case, "INFRA_BLOCKED_CODEX_VERSION", identity=identity)
-                records.append(_run_record(workspace, case, evidence_path, identity, "INFRA_BLOCKED_CODEX_VERSION"))
-                continue
-            if (
-                installation.get("install_status") != "READY"
-                or installation.get("live_execution_status") != "READY"
+        candidate_workspace = workspace_by_id["candidate"]
+        baseline_workspace = baseline_by_pack[case.pack_id]
+        configuration_by_id = {
+            candidate_workspace.id: candidate_workspace,
+            baseline_workspace.id: baseline_workspace,
+        }
+        for run_index in range(1, profile.runs_per_configuration + 1):
+            for workspace_id in _configuration_order(
+                run_index, candidate_workspace.id, baseline_workspace.id
             ):
-                _write_execution(run_dir, workspace, case, "INFRA_BLOCKED_INSTALL", identity=identity)
-                records.append(_run_record(workspace, case, evidence_path, identity, "INFRA_BLOCKED_INSTALL"))
-                continue
-            result = run_executor(case, workspace, run_dir, settings)
-            model_calls += 1
-            jsonl_path = run_dir / "executor.jsonl"
-            response_path = run_dir / "outputs" / "response.md"
-            state = classify_execution_state(result, None, response_path)
-            if state != "EXECUTOR_OK":
-                _write_execution(run_dir, workspace, case, state, result=result, identity=identity)
-                records.append(_run_record(workspace, case, evidence_path, identity, state))
-                continue
-            try:
-                events = load_jsonl(jsonl_path)
-            except ValueError:
-                _write_execution(run_dir, workspace, case, "INFRA_BLOCKED_EVENT_SHAPE", result=result, identity=identity)
-                records.append(_run_record(workspace, case, evidence_path, identity, "INFRA_BLOCKED_EVENT_SHAPE"))
-                continue
-            state = classify_execution_state(result, events, response_path)
-            if state != "EXECUTOR_OK":
-                _write_execution(run_dir, workspace, case, state, result=result, identity=identity)
-                records.append(_run_record(workspace, case, evidence_path, identity, state))
-                continue
-            expected_contracts = _expected_contracts(acceptance, case)
-            route = classify_route_reads(events, expected_contracts, workspace.codex_home)
-            if not route.route_evidence_available:
-                state = "INFRA_BLOCKED_EVENT_SHAPE"
-            all_runtime_route = classify_route_reads(events, tuple(acceptance.scene_contracts), workspace.codex_home)
-            try:
-                grader = run_blind_grader(
-                    case,
-                    _grader_instructions(acceptance, case),
-                    response_path,
-                    judge,
-                    tuple(workspaces),
-                    run_dir,
-                    codex_bin=settings.codex_bin,
-                    model=settings.model,
-                    reasoning_effort=settings.reasoning_effort,
-                    timeout_seconds=settings.timeout_seconds,
+                workspace = configuration_by_id[workspace_id]
+                run_dir = (
+                    output_root
+                    / "runs"
+                    / workspace.id
+                    / case.pack_id
+                    / case.id
+                    / f"run-{run_index:02d}"
                 )
-            except GradingError:
-                grader = {"state": "INFRA_BLOCKED_GRADER"}
-            if isinstance(grader.get("process"), dict):
+                installation = installation_by_id[workspace.id]
+                identity = _evidence_identity(
+                    acceptance,
+                    case,
+                    workspace,
+                    installation,
+                    settings,
+                    codex_version or "unavailable",
+                )
+                evidence_path = str(run_dir.relative_to(output_root) / "execution.json")
+                if codex_version is None:
+                    _write_execution(
+                        run_dir,
+                        workspace,
+                        case,
+                        "INFRA_BLOCKED_CODEX_VERSION",
+                        identity=identity,
+                    )
+                    records.append(
+                        _run_record(
+                            workspace,
+                            case,
+                            evidence_path,
+                            identity,
+                            "INFRA_BLOCKED_CODEX_VERSION",
+                            run_index=run_index,
+                        )
+                    )
+                    continue
+                if not candidate_runtime_ready or (
+                    installation.get("install_status") != "READY"
+                    or installation.get("live_execution_status") != "READY"
+                ):
+                    _write_execution(
+                        run_dir,
+                        workspace,
+                        case,
+                        "INFRA_BLOCKED_INSTALL",
+                        identity=identity,
+                    )
+                    records.append(
+                        _run_record(
+                            workspace,
+                            case,
+                            evidence_path,
+                            identity,
+                            "INFRA_BLOCKED_INSTALL",
+                            run_index=run_index,
+                        )
+                    )
+                    continue
+                result = run_executor(case, workspace, run_dir, settings)
                 model_calls += 1
-            metrics = {
-                "irrelevant_successful_reads": len(set(all_runtime_route.read_contract_ids) - set(route.expected_contract_ids)),
-                "response_characters": len(response_path.read_text(encoding="utf-8")),
-            }
-            _write_execution(run_dir, workspace, case, state, result=result, route=route, identity=identity, grader=grader, metrics=metrics)
-            records.append(_run_record(workspace, case, evidence_path, identity, state, route, grader, metrics))
-    pairs = _comparison_projection(acceptance, cases, records, baseline_by_pack)
+                jsonl_path = run_dir / "executor.jsonl"
+                response_path = run_dir / "outputs" / "response.md"
+                state = classify_execution_state(result, None, response_path)
+                if state != "EXECUTOR_OK":
+                    _write_execution(run_dir, workspace, case, state, result=result, identity=identity)
+                    records.append(
+                        _run_record(
+                            workspace, case, evidence_path, identity, state, run_index=run_index
+                        )
+                    )
+                    continue
+                try:
+                    events = load_jsonl(jsonl_path)
+                except ValueError:
+                    _write_execution(
+                        run_dir,
+                        workspace,
+                        case,
+                        "INFRA_BLOCKED_EVENT_SHAPE",
+                        result=result,
+                        identity=identity,
+                    )
+                    records.append(
+                        _run_record(
+                            workspace,
+                            case,
+                            evidence_path,
+                            identity,
+                            "INFRA_BLOCKED_EVENT_SHAPE",
+                            run_index=run_index,
+                        )
+                    )
+                    continue
+                state = classify_execution_state(result, events, response_path)
+                if state != "EXECUTOR_OK":
+                    _write_execution(run_dir, workspace, case, state, result=result, identity=identity)
+                    records.append(
+                        _run_record(
+                            workspace, case, evidence_path, identity, state, run_index=run_index
+                        )
+                    )
+                    continue
+                expected_contracts = _expected_contracts(acceptance, case)
+                route = classify_route_reads(
+                    events,
+                    expected_contracts,
+                    workspace.codex_home,
+                    observed_contracts=tuple(acceptance.scene_contracts),
+                    forbidden_contract_ids=case.forbidden_scene_contracts,
+                    max_successful_scene_reads=case.max_successful_scene_reads,
+                )
+                if not route.route_evidence_available:
+                    state = "INFRA_BLOCKED_EVENT_SHAPE"
+                try:
+                    grader = run_blind_grader(
+                        case,
+                        _grader_instructions(acceptance, case),
+                        response_path,
+                        judge,
+                        tuple(workspaces),
+                        run_dir,
+                        codex_bin=settings.codex_bin,
+                        model=settings.model,
+                        reasoning_effort=settings.reasoning_effort,
+                        timeout_seconds=settings.timeout_seconds,
+                    )
+                except GradingError:
+                    grader = {"state": "INFRA_BLOCKED_GRADER"}
+                if isinstance(grader.get("process"), dict):
+                    model_calls += 1
+                metrics = {
+                    "irrelevant_successful_reads": len(set(route.read_contract_ids) - set(route.expected_contract_ids)),
+                    "response_characters": len(response_path.read_text(encoding="utf-8")),
+                }
+                _write_execution(
+                    run_dir,
+                    workspace,
+                    case,
+                    state,
+                    result=result,
+                    route=route,
+                    identity=identity,
+                    grader=grader,
+                    metrics=metrics,
+                    run_index=run_index,
+                )
+                records.append(
+                    _run_record(
+                        workspace,
+                        case,
+                        evidence_path,
+                        identity,
+                        state,
+                        route,
+                        grader,
+                        metrics,
+                        run_index=run_index,
+                    )
+                )
+    pairs = _comparison_projection(
+        acceptance,
+        cases,
+        records,
+        baseline_by_pack,
+        profile.runs_per_configuration,
+    )
     coverage = coverage_projection(
         tuple(_relative(acceptance.repo_root, source) for source in acceptance.runtime_sources),
         [
@@ -286,6 +406,7 @@ def _execute_cases(
             "anchor_threshold": profile.anchor_threshold,
             "marginal_effect_case": profile.marginal_effect_case,
             "lightness_policy": dict(profile.lightness_policy),
+            "expected_pair_count": len(cases) * profile.runs_per_configuration,
         },
         pairs,
     )
@@ -332,9 +453,16 @@ def _evidence_identity(
     """Hash all inputs that can make a semantic verdict no longer comparable."""
 
     acceptance = contract
+    installed_source_hashes = installation.get("runtime_source_hashes")
+    if not isinstance(installed_source_hashes, list):
+        raise WorkspaceError(
+            "runtime_source_identity_missing",
+            "runtime source hashes are required for evidence identity",
+        )
     runtime_hashes = {
-        _relative(acceptance.repo_root, source): sha256_file(workspace.repo_root / _relative(acceptance.repo_root, source))
-        for source in acceptance.runtime_sources
+        str(item["path"]): item.get("sha256")
+        for item in installed_source_hashes
+        if isinstance(item, dict) and isinstance(item.get("path"), str)
     }
     installed_hashes = installation.get("installed_runtime_target_hashes")
     if not isinstance(installed_hashes, list) or not installed_hashes:
@@ -345,13 +473,21 @@ def _evidence_identity(
     grader = acceptance.case_pack_by_id[case.pack_id].grader
     return {
         "configuration": sha256_json({"commit": workspace.commit, "dirty_paths": workspace.dirty_paths}),
-        "runtime": sha256_json({"installed_target_hashes": installed_hashes}),
+        "runtime": sha256_json(
+            {
+                "installed_target_hashes": installed_hashes,
+                "missing_runtime_targets": installation.get("missing_runtime_targets", []),
+            }
+        ),
         "case": sha256_json(
             {
                 "prompt": case.prompt,
                 "expectations": case.expected_behaviors,
                 "anti_patterns": case.anti_patterns,
                 "blocking_failures": case.blocking_failures,
+                "expected_scene_contracts": case.expected_scene_contracts,
+                "forbidden_scene_contracts": case.forbidden_scene_contracts,
+                "max_successful_scene_reads": case.max_successful_scene_reads,
                 "anchors": {
                     identifier: dict(definition)
                     for identifier, definition in case.anchor_definitions.items()
@@ -425,12 +561,15 @@ def _run_record(
     route: object | None = None,
     grader: dict[str, object] | None = None,
     metrics: dict[str, object] | None = None,
+    *,
+    run_index: int = 1,
 ) -> dict[str, object]:
     """Create an in-memory report input from persisted run evidence fields."""
 
     record: dict[str, object] = {
         "configuration": workspace.id,
         "case": f"{case.pack_id}:{case.id}",
+        "run_index": run_index,
         "identity": identity,
         "execution_state": execution_state,
         "route_pass": route.route_pass if route is not None else False,
@@ -449,26 +588,31 @@ def _comparison_projection(
     cases: list[EvalCase],
     records: list[dict[str, object]],
     baseline_by_pack: dict[str, RuntimeWorkspace],
+    runs_per_configuration: int,
 ) -> list[dict[str, object]]:
     acceptance = contract
     record_by_configuration_case = {
-        (str(record["configuration"]), str(record["case"])): record for record in records
+        (str(record["configuration"]), str(record["case"]), int(record.get("run_index", 1))): record
+        for record in records
     }
     pairs: list[dict[str, object]] = []
     for case in cases:
         case_key = f"{case.pack_id}:{case.id}"
-        candidate = record_by_configuration_case.get(("candidate", case_key))
-        baseline = record_by_configuration_case.get((baseline_by_pack[case.pack_id].id, case_key))
-        changed_sources = _changed_runtime_sources(candidate, baseline)
-        pairs.append(
-            compare_pair(
+        for run_index in range(1, runs_per_configuration + 1):
+            candidate = record_by_configuration_case.get(("candidate", case_key, run_index))
+            baseline = record_by_configuration_case.get(
+                (baseline_by_pack[case.pack_id].id, case_key, run_index)
+            )
+            changed_sources = _changed_runtime_sources(candidate, baseline)
+            pair = compare_pair(
                 case,
                 candidate,
                 baseline,
                 changed_sources,
                 tuple(_case_sources(acceptance, case)),
             )
-        )
+            pair["run_index"] = run_index
+            pairs.append(pair)
     return pairs
 
 
@@ -496,10 +640,12 @@ def _changed_runtime_sources(
 
 def _case_sources(contract: object, case: EvalCase) -> list[str]:
     acceptance = contract
-    return [
+    sources = ["shared/assistant.md"]
+    sources.extend(
         _relative(acceptance.repo_root, scene.runtime_source)
         for scene in _expected_contracts(acceptance, case)
-    ]
+    )
+    return list(dict.fromkeys(sources))
 
 
 def _expected_contracts(contract: object, case: EvalCase) -> tuple[SceneContract, ...]:
@@ -519,11 +665,13 @@ def _write_execution(
     identity: dict[str, object] | None = None,
     grader: dict[str, object] | None = None,
     metrics: dict[str, object] | None = None,
+    run_index: int = 1,
 ) -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     payload: dict[str, object] = {
         "configuration": workspace.id,
         "case": {"pack_id": case.pack_id, "id": case.id},
+        "run_index": run_index,
         "state": state,
     }
     if result is not None:
@@ -541,6 +689,8 @@ def _write_execution(
             "parser_uncertain": route.parser_uncertain,
             "expected_contract_ids": list(route.expected_contract_ids),
             "read_contract_ids": list(route.read_contract_ids),
+            "forbidden_read_contract_ids": list(route.forbidden_read_contract_ids),
+            "exceeded_max_successful_scene_reads": route.exceeded_max_successful_scene_reads,
             "observed_event_ids": list(route.observed_event_ids),
             "observed_command_ids": list(route.observed_command_ids),
         }
@@ -567,6 +717,57 @@ def _resolve_git_ref(repo_root: Path, ref: str) -> str:
     if completed.returncode != 0:
         raise ContractError("baseline_ref_unresolved", "Git ref could not be resolved")
     return completed.stdout.strip()
+
+
+def _validate_baseline_commits(
+    repo_root: Path, candidate_head: str, baseline_commits: list[dict[str, str]]
+) -> None:
+    for baseline in baseline_commits:
+        commit = baseline.get("commit")
+        if commit == candidate_head:
+            raise ContractError(
+                "baseline_matches_candidate",
+                "comparative baseline must be distinct from the candidate commit",
+            )
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "merge-base", "--is-ancestor", str(commit), candidate_head],
+            capture_output=True,
+            check=False,
+        )
+        if completed.returncode != 0:
+            raise ContractError(
+                "baseline_not_ancestor",
+                "comparative baseline must be an ancestor of the candidate commit",
+            )
+
+
+def _installed_runtime_targets(contract: object) -> tuple[Path, ...]:
+    return tuple(_installed_runtime_target_sources(contract))
+
+
+def _installed_runtime_target_sources(contract: object) -> dict[Path, Path]:
+    sources = {Path("AGENTS.md"): Path("shared/assistant.md")}
+    sources.update(
+        {
+            scene.installed_path: (
+                Path(_relative(contract.repo_root, scene.runtime_source))
+                if scene.runtime_source.is_absolute()
+                else scene.runtime_source
+            )
+            for scene in contract.scene_contracts
+        }
+    )
+    return sources
+
+
+def _configuration_order(
+    run_index: int, candidate_id: str, baseline_id: str
+) -> tuple[str, str]:
+    return (
+        (candidate_id, baseline_id)
+        if run_index % 2 == 1
+        else (baseline_id, candidate_id)
+    )
 
 
 def _dirty_paths(repo_root: Path) -> tuple[str, ...]:

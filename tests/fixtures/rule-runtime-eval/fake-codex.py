@@ -121,6 +121,7 @@ def main() -> int:
         "reference/code-comments.md",
         "reference/error-handling.md",
         "reference/constants-and-configuration.md",
+        "reference/authentication-and-authorization.md",
         "reference/performance-and-efficiency.md",
         "reference/技术方案设计.md",
         "reference/impact-analysis.md",
@@ -130,6 +131,8 @@ def main() -> int:
     events = []
     for relative_path in installed_paths:
         path = codex_home / relative_path
+        if not path.is_file():
+            continue
         events.append(
             {
                 "type": "item.completed",

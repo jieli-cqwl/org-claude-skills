@@ -599,10 +599,10 @@
       "timeout_sec": 60
     },
     {
-      "id": "rule-runtime-eval-runner",
+      "id": "rule-runtime-eval-contracts",
       "command": [
         "bash",
-        "tests/test-rule-runtime-eval-runner.sh"
+        "tests/test-rule-runtime-eval-contracts.sh"
       ],
       "area": "install-runtime",
       "tier": "quick",
@@ -611,7 +611,23 @@
         "eval-contract"
       ],
       "parallel_safe": true,
-      "timeout_sec": 120
+      "timeout_sec": 30
+    },
+    {
+      "id": "rule-runtime-eval-runner",
+      "command": [
+        "bash",
+        "tests/test-rule-runtime-eval-runner.sh"
+      ],
+      "area": "install-runtime",
+      "tier": "full",
+      "tags": [
+        "runtime-surface",
+        "eval-contract",
+        "full-only"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 300
     },
     {
       "id": "codex-hook-trust-audit",
