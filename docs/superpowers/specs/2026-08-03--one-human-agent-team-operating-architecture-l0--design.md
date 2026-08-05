@@ -751,7 +751,7 @@ Any evidence that a responsibility has no accountable Owner, a Stage Result Inte
 ## Design Sequence After B+ Written Approval
 
 1. Write and obtain explicit approval of the B+ projection contract above — completed on 2026-08-05.
-2. Invoke `writing-plans` to replace the rejected high-density candidate through the existing SVG/PNG/test path.
+2. Create the replacement implementation plan — completed on 2026-08-05: [B+ L0 map implementation plan](../plans/2026-08-05--one-human-agent-team-bplus-l0-map.md).
 3. Implement a new `DRAFT` SVG/PNG candidate and prove structure, rendering, density, desktop readability, and fresh-context comprehension.
 4. Obtain explicit human semantic and visual approval of the exact committed SVG/PNG bytes before publication.
 5. Publish the accepted non-normative projection and close only the L0 visual gate.
