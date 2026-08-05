@@ -14,7 +14,7 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - Comments must explain intent, invariants, boundaries, tradeoffs, failure modes, or non-obvious business rules; do not narrate obvious code.
 - Preserve failure semantics: propagate errors, return explicit failure/result states, or expose visible partial failure when continuation is valid; do not hide failed defaults or report fake success.
 - External API, network, database, process execution, remote filesystem, and long-running operations need timeouts, failure handling, cleanup, and observable failure states.
-- Authentication and authorization changes must identify the credential or session mechanism, trust boundary, capability owner, protected resource, and applicable integrity, freshness, revocation, scope, isolation, and rejection semantics; verification must derive accepted and rejected paths from that mechanism and cover affected legacy callers.
+- For authentication or authorization changes, identify mechanism, trust boundary, owner, resource, rejection semantics, and legacy evidence; read `{{RUNTIME_HOME}}/reference/authentication-and-authorization.md`.
 - User-visible errors must be understandable and must not expose secrets, stack traces, SQL, internal paths, or service internals.
 - Never hardcode secrets, tokens, passwords, credentials, environment-specific addresses, or deployment differences.
 - Cross-module constants are allowed only for stable public contracts; do not import another module's private constants across ownership boundaries.
@@ -25,7 +25,6 @@ Code must solve the requested problem without adding hidden risk, unnecessary co
 - For comments, SQL, schema, concurrency, protocol, parsing, regex, or business invariants, read `{{RUNTIME_HOME}}/reference/code-comments.md`.
 - For errors, external calls, fallback, retries, cleanup, or partial success, read `{{RUNTIME_HOME}}/reference/error-handling.md`.
 - For constants, configuration, secrets, environment differences, or shared values, read `{{RUNTIME_HOME}}/reference/constants-and-configuration.md`.
-- For credentials, sessions, tokens, API keys, authorization, tenant isolation, or protected-resource access, read `{{RUNTIME_HOME}}/reference/authentication-and-authorization.md`.
 - For performance, batching, polling, async jobs, temp files, caching, large data, or database query cost, read `{{RUNTIME_HOME}}/reference/performance-and-efficiency.md`.
 - For frontend/backend contracts, frontend temporary calculation or display, backend field backfill, permission-visible behavior, or same-chain E2E verification, read `{{RUNTIME_HOME}}/reference/全栈开发.md`.
 - Test: Would a senior engineer accept this as the simplest maintainable change that fails loudly and preserves existing contracts? If not, simplify or surface the risk.
