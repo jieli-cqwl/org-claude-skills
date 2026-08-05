@@ -241,7 +241,9 @@ expected_refs = {
     "{{RUNTIME_HOME}}/reference/code-comments.md",
     "{{RUNTIME_HOME}}/reference/error-handling.md",
     "{{RUNTIME_HOME}}/reference/constants-and-configuration.md",
+    "{{RUNTIME_HOME}}/reference/authentication-and-authorization.md",
     "{{RUNTIME_HOME}}/reference/performance-and-efficiency.md",
+    "{{RUNTIME_HOME}}/reference/全栈开发.md",
 }
 if refs != expected_refs:
     raise SystemExit(f"unexpected reference set: {sorted(refs)}")
