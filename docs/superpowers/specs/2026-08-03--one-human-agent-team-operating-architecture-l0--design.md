@@ -6,9 +6,11 @@
 - Baseline revision: `L0-R3`.
 - Approved direction: one human, one provider-replaceable Agent Team, and five professional delivery stages.
 - Written specification status: `APPROVED — final human review completed on 2026-08-03`.
+- B+ L0 visual direction: `APPROVED — written projection contract approved by the Human on 2026-08-05`.
+- Formal SVG/PNG projection status: `DRAFT — the current high-density candidate was rejected for forward publication and its bytes are not approved`.
 - Runtime status: not implemented.
 - Operating mode: `M0`, a temporary learning mode with manual cross-Owner activation and human-controlled deployment.
-- Current authority: this document is the sole approved macro target-design baseline. It authorizes planning the single Chinese macro architecture map defined below; it does not yet authorize visual implementation, Owner implementation, or runtime changes.
+- Current authority: this document is the sole approved macro target-design baseline and the only source of architecture semantics. The approved B+ section below records how that architecture may be projected for human navigation; it does not create a second semantic source. It authorizes planning and implementing a replacement `DRAFT` SVG/PNG candidate through the existing projection path. It does not approve any SVG/PNG bytes or authorize publication, Owner implementation, Skill changes, or runtime automation.
 - Supersession boundary: the 2026-07-30 V1.2 candidate and its R4 visual suite are historical design evidence, not current inputs for forward design or implementation.
 
 ## Decision
@@ -571,16 +573,17 @@ Rejected. The previous candidate fixed flow IDs, route IDs, package identities, 
 
 ### Cold-reader test
 
-A first-time Chinese-speaking business/product reader at normal desktop scale must identify within seconds:
+The L0 map is a navigation view, not a role inventory or operating manual. A first-time Chinese-speaking business/product reader at normal desktop scale must be able to:
 
-1. one human governance layer, one Agent Team, and five delivery stages;
-2. what each stage accomplishes and who integrates its exit;
-3. which conclusions remain owned by specialist Owners;
-4. where the human co-creates, authorizes, deploys, accepts, and decides;
-5. who recommends the next route and where a defect returns;
-6. where current revision, release identity, and evidence validity are recovered.
+1. identify within 10 seconds one Human, one Agent Team, and five delivery stages in order;
+2. identify within 60 seconds why each stage exists, which Stage Result Integrator advances it, and what observable fact must be true before the next party can take responsibility;
+3. locate the two human-controlled deployment boundaries and distinguish deployment from Quality acceptance, production verification, business acceptance, and final Phase/Demand disposition;
+4. explain the cross-Owner handoff sequence without interpreting human authorization as professional proof;
+5. locate the shared support rules and the accountable return and safe-stop rule.
 
-No noun may simultaneously mean organization, workflow stage, responsibility, state, and artifact. If understanding requires a glossary paragraph on the diagram, the visual has failed.
+Detailed specialist ownership, artifacts, state fields, invalidation mechanics, and role procedures remain in this written specification and later Owner-domain designs. Their omission from L0 is deliberate visual prioritization, not semantic deletion.
+
+No noun may simultaneously mean organization, workflow stage, responsibility, state, and artifact. If understanding L0 requires a glossary paragraph on the diagram, or if every professional detail is promoted to first-screen weight, the visual has failed.
 
 ### Golden target scenario
 
@@ -610,24 +613,122 @@ The golden case is necessary but insufficient. The future complete-chain validat
 
 ## Chinese Macro Architecture Map Contract
 
-After written approval, the next visual implementation is one primary Chinese macro architecture map. It must show:
+### B+ view boundary
 
-- the Human Governance Layer with plain Chinese descriptions of its decisions and actions;
-- one overall Agent Team, with Professional Owner and Executor role types visibly distinguished;
-- five professional delivery stages in dominant left-to-right order;
-- the Stage Result Integrator for each stage and specialist ownership that cannot be overridden;
-- Product Definition as a convergence loop rather than a one-pass chain;
-- UX Owner and Architecture Owner as conditional roles;
-- the human-controlled test and production deployment boundaries;
-- the shared coordination and assurance foundation;
-- Delivery Assurance Owner as a cross-cutting role distinct from product Quality Owner;
-- one generic accountable return and safe-stop law;
-- the final separation of production verification, business acceptance, Product Director recommendation, and Human Phase/Demand disposition;
-- explicit target status: `M0 manual learning mode · not runtime-active`.
+The approved direction is **B+**: deliver one clean L0 map now. L0 answers four questions only:
 
-The map must not show flow IDs, route IDs, schemas, state machines, detailed finding types, Task Packets, retry counts, incident subflows, automation mechanics, or the `qft-tenants` solution.
+1. what the Human retains and what the Agent Team performs;
+2. what the five delivery stages are and why each exists;
+3. who advances each stage and what observable completion fact permits handoff;
+4. where human deployment control, shared support, accountable return, and safe stop sit around the main path.
 
-The primary map is for navigation, not exhaustive specification. Detailed Owner designs and later orthogonal support views may add depth only after the macro map is semantically and visually accepted.
+L0 is not a complete role map, SOP, artifact catalogue, state machine, or assurance manual. Professional Owner and Executor details remain authoritative in this document even when they are not rendered as individual L0 cards.
+
+The map must not show flow IDs, route IDs, schemas, state machines, detailed finding types, Task Packets, retry counts, incident subflows, automation mechanics, or the `qft-tenants` solution. It must not reintroduce those details through tiny footnotes, nested cards, hidden metadata, or a glossary embedded on the canvas.
+
+### Exact visible content
+
+The formal map uses the following Chinese-first copy. Canonical English role names may appear as secondary labels.
+
+**Header**
+
+- Title: `一人 + Agent Team 架构`
+- Proposition: `一个人保留业务最终责任，一支 AI 专业团队分工完成分析、开发、验证和结果闭环`
+- Status: `目标架构｜当前尚未运行`
+- Initial operation: `首轮方式：跨专业交接先由人手动批准并启动`
+
+**Human band**
+
+- Band title: `人负责的决定和动作`
+- Boundary: `不负责任务调度或替专业角色证明技术正确`
+- Group 1: `一起定方向，决定重大取舍` / `产品方向 · 重大架构与风险取舍`
+- Group 2: `批准下一步并执行部署` / `批准推荐的下一责任人 · 执行已准备好的测试/生产部署`
+- Group 3: `验收业务结果并决定下一步` / `业务验收 · 分别决定本次范围和整体需求的去向`
+
+**Cross-Owner handoff line**
+
+```text
+专业负责人确认结果可交接
+→ 阶段负责人检查是否齐全一致并说明下一步
+→ 人批准并启动
+→ 下一负责人确认信息足够并接手
+```
+
+`阶段负责人` is the visible Chinese description of the applicable Stage Result Integrator. It checks currentness and consistency and recommends the next route; it cannot replace or rewrite a Professional Owner conclusion.
+
+**Five-stage path**
+
+| Stage | Why it exists | Stage Result Integrator | 本阶段完成标准 | Necessary secondary note |
+|---|---|---|---|---|
+| `01 产品定义收敛` | `确认为什么做、为谁做、本次做到哪里，以及必须改变、保持和禁止什么。` | `Product Director` | `必需专业结论及按需启用/跳过决定已确认且一致；本次范围、目标/保留/禁止行为和影响边界清楚，无阻塞问题。` | `也允许得出继续发现、暂停或不做。` |
+| `02 测试设计与实施规划` | `先定义每项产品承诺怎么验证，再制定开发、部署、观察和恢复计划。` | `Tech Lead` | `验证要求与实施、部署、观察和恢复计划均已确认且一致；没有未解决的上游阻塞。` | `Test Design Owner 先定义验证要求，Tech Lead 再据此规划。` |
+| `03 实现与开发验证` | `按计划实现，并在开发域内由独立上下文完成功能验证和代码审查。` | `Development Owner` | `计划工作和必需测试已完成；独立验证与代码审查通过，无开发阻塞；待测版本及影响行为的配置、迁移、开关和依赖已锁定，部署准备可执行。` | — |
+| `04 独立质量验收` | `在测试环境独立验证实际版本，形成质量判断，而不是让开发自证。` | `Quality Owner` | `指定测试版本的必需独立验证已完成；阻塞问题已关闭；质量结论与剩余风险已记录。` | `Quality 只给质量结论，不自己改代码，也不替 Human 做发布授权。` |
+| `05 生产验证与产品决策` | `核对线上真实结果，并分别形成技术事实、业务判断和最终决定。` | `Product Director` | `线上实际版本已核对；技术结果、业务验收、本次范围与整体需求的决定已分别记录；观察中或未知不算成功。` | `Quality 生产验证 · Human 业务验收 · Product Director 下一步建议 · Human 最终决定。` |
+
+The prefix `本阶段完成标准` is visible on every stage card. Abstract labels such as `产品定义就绪`, `可提测发布身份`, `可发布身份`, or `真实结果与阶段处置` must not substitute for the observable facts above.
+
+**Why the Stage 3 → 4 boundary exists**
+
+`提测` is not a sixth stage, a ritual, or a completion status. The boundary exists to transfer one deterministic, development-proven candidate into an independent Quality judgment:
+
+```text
+Development Owner confirms the Stage 3 completion facts
+→ Human approves and executes the prepared test-environment deployment
+→ Quality confirms the actually deployed version and deployment evidence
+→ Quality accepts responsibility and begins Stage 4
+```
+
+The visible test boundary uses:
+
+- `Human｜批准并执行已准备好的测试环境部署`
+- `Quality｜确认实际部署版本与部署证据`
+
+The visible production boundary uses:
+
+- `Human｜批准并执行已准备好的生产部署`
+- `Quality｜确认线上实际版本与部署证据`
+
+Deployment failure, partial success, version mismatch, or unknown identity stops the success path. Deployment never proves Quality acceptance, production behavior, or business success.
+
+**Shared support and failure handling**
+
+- Obligation trace: `要改变什么 · 必须保持什么 · 绝不能发生什么 → 先定义如何验证 → 开发并独立复核 → 测试环境独立验收 → 核对线上真实结果`
+- Foundation title: `支撑全流程的共同规则`
+- Foundation item 1: `当前进度与版本事实`
+- Foundation item 2: `给下一负责人必需且足够的信息`
+- Foundation item 3: `最小权限 · 独立检查使用全新上下文`
+- Foundation item 4: `独立检查 Agent 协作机制是否可靠`
+- Return rule: `问题处理｜交给最早能修正根因的专业负责人；修完仍由原独立检查方复验。`
+- Stop rule: `停止条件｜证据不足、版本对不上、找不到负责者，或反复没有新证据 → 停止推进并请人决策。`
+
+### Visual grammar and density budget
+
+- Fixed implementation canvas: `1920×1080`, 16:9. Acceptance is performed from an actual `1440×810` render at 100% browser zoom, without horizontal scrolling, clipping, overlap, or text truncation.
+- Chinese is the primary explanatory language. Canonical English role names are secondary labels, not the main sentence structure.
+- The dominant scan path is: title and proposition → Human band → cross-Owner handoff → five stages left to right → shared support → return/stop.
+- Visual priority is: five-stage path first, Human authority and deployment gates second, shared support and failure rules third.
+- Repeated framed units are limited to the five stage cards and two deployment gates. Supporting regions may each use one containing frame; nested Owner/Executor card inventories are forbidden on L0. Removing a frame does not permit the same detail to return as unbounded text.
+- At the accepted `1440×810` render, the actual displayed type sizes are at least: title `30px`; stage title `18px`; purpose and completion copy `14px`; secondary notes and metadata `12.5px`. A uniformly scaled 1920×1080 source therefore uses at least `40px`, `24px`, `19px`, and `17px` respectively.
+- At `1440×810`, each stage card may use at most three rendered lines for purpose, two for the integrator, five for completion, and two for its optional note. Each Human group, foundation item, deployment-gate step, return rule, and stop rule may use at most two rendered lines. Text may not be shrunk to satisfy these limits.
+- Density passes only when the actual render meets those line, size, overflow, and clipping limits and fresh readers pass the 10-second and 60-second tasks. Counting containers alone is never acceptance evidence.
+- Blue carries the normal delivery path, gold carries Human authority and deployment control, purple carries shared support, and red is reserved for actual stop conditions. Color alone must not carry meaning.
+- Defensive prose such as `不是 5 个 Team`, `不是第六阶段`, or `四个事实彼此独立` is forbidden. The layout must communicate hierarchy without arguing with the reader.
+- SVG may contain structural markers for deterministic validation, but hidden prose, off-canvas text, zero-opacity content, or metadata-only semantics cannot satisfy a visible requirement.
+
+### Deferred L1 views
+
+No L1 view is in the current delivery scope. `阶段与责任` and `控制与失败` are named future problem-bounded views, not pre-authorized deliverables and not a fixed diagram suite. They may be designed only when the corresponding Owner-domain or M0 operating detail is mature enough to answer a real reader question without inventing missing semantics.
+
+Any future L1 remains a non-normative projection of this specification. It cannot become an independent source of roles, responsibilities, gates, states, or completion rules.
+
+### Projection options and trade-off
+
+- **Dense all-in-one L0 — rejected.** It preserves detail but gives every item equal visual weight; the current 1920×1200 draft proved that semantic completeness can still produce an unreadable navigation map.
+- **Prebuilt L0 plus a fixed L1 suite — rejected for now.** It would reduce L0 density but prematurely freeze detail that the Owner-domain and M0 designs have not yet proved.
+- **B+ — selected and approved in writing.** One clean L0 is implemented now; focused L1 views are created later only against real questions and mature source material.
+
+B+ deliberately trades first-screen completeness for truthful hierarchy. That trade-off is acceptable because the written specification remains the sole semantic source. Reopen B+ if readers cannot locate the five-stage path and Human gates, if critical omitted detail repeatedly causes wrong handoff decisions, or if a future L1 cannot be generated without changing L0 semantics.
 
 ## Risks, Unknowns, and Reopen Conditions
 
@@ -647,12 +748,15 @@ The L0 baseline does not pretend the following are solved:
 
 Any evidence that a responsibility has no accountable Owner, a Stage Result Integrator routinely overrides specialists, a downstream role reconstructs upstream work, an independent role inherits producer bias, control truth depends on chat history, or the human coordinates executors or technical routing reopens this architecture instead of being patched inside a Skill.
 
-## Design Sequence After Written Approval
+## Design Sequence After B+ Written Approval
 
-1. Invoke `writing-plans` to plan the single Chinese macro architecture map from this document only.
-2. Implement and obtain human semantic and visual acceptance of that map.
-3. Design each Professional Owner domain separately, starting with Product Director and its Product Manager intake boundary.
-4. Search official and community Skill sources for each approved capability boundary.
-5. Adapt or create provider-neutral Skills and validate them independently.
-6. Run the complete manual chain against the golden and adversarial acceptance scenarios.
-7. Consider cross-Owner automation only after repeated manual delivery proves the operating model.
+1. Write and obtain explicit approval of the B+ projection contract above — completed on 2026-08-05.
+2. Invoke `writing-plans` to replace the rejected high-density candidate through the existing SVG/PNG/test path.
+3. Implement a new `DRAFT` SVG/PNG candidate and prove structure, rendering, density, desktop readability, and fresh-context comprehension.
+4. Obtain explicit human semantic and visual approval of the exact committed SVG/PNG bytes before publication.
+5. Publish the accepted non-normative projection and close only the L0 visual gate.
+6. Design each Professional Owner domain separately, starting with Product Director and its Product Manager intake boundary.
+7. Search official and community Skill sources for each approved capability boundary.
+8. Adapt or create provider-neutral Skills and validate them independently.
+9. Run the complete manual chain against the golden and adversarial acceptance scenarios.
+10. Consider cross-Owner automation only after repeated manual delivery proves the operating model.
