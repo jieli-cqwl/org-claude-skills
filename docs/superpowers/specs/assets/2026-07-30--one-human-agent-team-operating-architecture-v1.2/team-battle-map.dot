@@ -1,0 +1,1174 @@
+digraph TeamBattleMap {
+  graph [
+    rankdir=TB,
+    newrank=true,
+    compound=true,
+    ordering=out,
+    splines=ortho,
+    outputorder=edgesfirst,
+    bgcolor="#F6F8FB",
+    pad="0.28",
+    nodesep="0.28",
+    ranksep="0.50",
+    labelloc=t,
+    labeljust=l,
+    label="ONE-HUMAN + AGENT TEAM\nTARGET OPERATING ARCHITECTURE · V1.2 · VIEW R4\nM0 MANUAL CONTROL · Human-governed · Agent-executed · Evidence-driven\nTARGET DESIGN · NOT RUNTIME-ACTIVE",
+    fontname="Helvetica-Bold",
+    fontsize=24,
+    fontcolor="#132A44"
+  ];
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#7890AA",
+    fillcolor="#FFFFFF",
+    fontname="Helvetica",
+    fontcolor="#132A44",
+    fontsize=10,
+    margin="0.12,0.08",
+    penwidth=1.1
+  ];
+
+  edge [
+    color="#64748B",
+    fontname="Helvetica",
+    fontcolor="#334155",
+    fontsize=9,
+    arrowsize=0.7,
+    penwidth=1.2
+  ];
+
+  subgraph cluster_human {
+    label="HUMAN CONTROL PLANE";
+    labelloc=t;
+    labeljust=l;
+    color="#B7791F";
+    fillcolor="#FFF8E7";
+    fontname="Helvetica-Bold";
+    fontcolor="#7A4B00";
+    fontsize=15;
+    penwidth=1.6;
+    style="rounded,filled";
+    margin=16;
+
+    human_co_create [
+      label="[H]\nco-create value/direction",
+      group="column_1",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_accept_artifact [
+      label="[H]\naccept exact artifact",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_invoke_owner [
+      label="[H]\ninvoke next Owner",
+      group="column_2",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_test_deployment [
+      label="[H]\nexecute test deployment",
+      group="column_3",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_production_deployment [
+      label="[H]\nexecute production deployment",
+      group="column_4",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_business_disposition [
+      label="[H]\nbusiness acceptance/disposition",
+      group="column_5",
+      color="#B7791F",
+      fillcolor="#FFF3C4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    human_action_law [
+      label="[CONTROL LAW]\nACCEPT ≠ INVOKE ≠ ACTUAL START\n≠ EXTERNAL ACTION ≠ OUTCOME\nrevalidate current authority at every Owner start",
+      shape=note,
+      style=filled,
+      color="#B7791F",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontsize=9,
+      penwidth=1.4
+    ];
+
+    human_safety_authority [
+      label="[H-AUTHORITY]\nSTOP · ROLLBACK · CONTAINMENT\nINCIDENT AUTHORITY",
+      shape=note,
+      style=filled,
+      color="#B7791F",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontsize=9,
+      penwidth=1.4
+    ];
+
+    {
+      rank=same;
+      human_co_create;
+      human_accept_artifact;
+      human_invoke_owner;
+      human_test_deployment;
+      human_production_deployment;
+      human_business_disposition;
+    }
+
+    {
+      rank=same;
+      human_action_law;
+      human_safety_authority;
+    }
+
+    human_co_create -> human_accept_artifact -> human_invoke_owner ->
+      human_test_deployment -> human_production_deployment ->
+      human_business_disposition [
+        style=invis,
+        weight=20
+      ];
+
+    human_co_create -> human_action_law [
+      style=invis,
+      weight=20
+    ];
+
+    human_production_deployment -> human_safety_authority [
+      style=invis,
+      weight=20
+    ];
+
+    human_action_law -> human_safety_authority [
+      style=invis,
+      weight=20
+    ];
+  }
+
+  subgraph cluster_main_path {
+    label="MAIN SYSTEM PATH · F01–F17 · HUMAN-MEDIATED HANDOFFS";
+    labelloc=t;
+    labeljust=l;
+    color="#132A44";
+    fillcolor="#EAF0F6";
+    fontname="Helvetica-Bold";
+    fontcolor="#132A44";
+    fontsize=15;
+    penwidth=1.8;
+    style="rounded,filled";
+    margin=18;
+
+    subgraph cluster_product {
+      label="01 PRODUCT DEFINITION";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      product_purpose [
+        label="Find the right problem and freeze\nthe complete product boundary.",
+        group="column_1",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      product_director [
+        label="[AO] Product Director",
+        group="column_1",
+        fontname="Helvetica-Bold"
+      ];
+
+      product_manager [
+        label="[AO] Product Manager\nActors · User touchpoints · Main/exception flows\nObjects · States · Rules · Permissions · AC",
+        group="column_1",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      product_impact_owner [
+        label="[AO] Impact Owner",
+        group="column_1",
+        fontname="Helvetica-Bold"
+      ];
+
+      product_ux_owner [
+        label="[AO][OPTIONAL]\nUX Owner",
+        style="rounded,dashed,filled",
+        color="#64748B",
+        fillcolor="#F8FAFC",
+        fontsize=9
+      ];
+
+      product_architecture_owner [
+        label="[AO][OPTIONAL]\nArchitecture Owner",
+        style="rounded,dashed,filled",
+        color="#64748B",
+        fillcolor="#F8FAFC",
+        fontsize=9
+      ];
+
+      product_output [
+        label="[ART]\nDirector Decision Case\nProduct Definition Package · Impact Freeze",
+        group="column_1",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      product_purpose -> product_director -> product_manager ->
+        product_impact_owner [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+
+      product_impact_owner -> product_ux_owner [
+        dir=none,
+        style=dashed,
+        color="#64748B"
+      ];
+
+      product_impact_owner -> product_architecture_owner [
+        dir=none,
+        style=dashed,
+        color="#64748B"
+      ];
+
+      product_ux_owner -> product_output [
+        dir=none,
+        style=dashed,
+        color="#64748B"
+      ];
+
+      product_architecture_owner -> product_output [
+        dir=none,
+        style=dashed,
+        color="#64748B"
+      ];
+
+      {
+        rank=same;
+        product_ux_owner;
+        product_architecture_owner;
+      }
+    }
+
+    subgraph cluster_proof {
+      label="02 PROOF & PLAN";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      proof_purpose [
+        label="Define how success will be proved,\nthen bound the work.",
+        group="column_2",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      proof_test_design_owner [
+        label="[AO] Test Design Owner",
+        group="column_2",
+        fontname="Helvetica-Bold"
+      ];
+
+      proof_tech_lead [
+        label="[AO] Tech Lead",
+        group="column_2",
+        fontname="Helvetica-Bold"
+      ];
+
+      proof_output [
+        label="[ART]\nTest Design Package · Tech Lead Package\nBounded Task Packets",
+        group="column_2",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      proof_handoff_in [
+        label="accepted\ndefinition",
+        shape=box,
+        style="rounded,filled",
+        color="#2F6DB0",
+        fillcolor="#FFFFFF",
+        fontcolor="#174B80",
+        fontname="Helvetica-Bold",
+        fontsize=7.5,
+        height=0.25,
+        margin="0.04,0.02"
+      ];
+
+      proof_purpose -> proof_test_design_owner -> proof_tech_lead ->
+        proof_output [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+    }
+
+    subgraph cluster_build {
+      label="03 BUILD";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      build_purpose [
+        label="Produce one verified immutable Candidate\nready for test deployment.",
+        group="column_3",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      build_development_owner [
+        label="[AO] Development Owner\nUNIQUE CODE-CHANGE DOMAIN",
+        group="column_3",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      build_developer [
+        label="[AE] Developer",
+        color="#7890AA",
+        fillcolor="#EEF4FA",
+        fontsize=9
+      ];
+
+      build_code_fixer [
+        label="[AE] Code Fixer",
+        color="#7890AA",
+        fillcolor="#EEF4FA",
+        fontsize=9
+      ];
+
+      build_verifier [
+        label="[AE] Verifier",
+        color="#7890AA",
+        fillcolor="#EEF4FA",
+        fontsize=9
+      ];
+
+      build_code_reviewer [
+        label="[AE] Code Reviewer",
+        color="#7890AA",
+        fillcolor="#EEF4FA",
+        fontsize=9
+      ];
+
+      build_test_deployment [
+        label="[H-GATE]\nTest Deployment",
+        group="column_3",
+        color="#B7791F",
+        fillcolor="#FFF3C4",
+        fontname="Helvetica-Bold",
+        penwidth=2.0
+      ];
+
+      build_output [
+        label="[ART]\nPhase Success Baseline · Candidate\nTest Manifest · Test Admission · Test Outcome",
+        group="column_3",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      build_handoff_in [
+        label="accepted proof\n& plan",
+        shape=box,
+        style="rounded,filled",
+        color="#2F6DB0",
+        fillcolor="#FFFFFF",
+        fontcolor="#174B80",
+        fontname="Helvetica-Bold",
+        fontsize=7.5,
+        height=0.25,
+        margin="0.04,0.02"
+      ];
+
+      build_purpose -> build_development_owner [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+
+      build_development_owner -> build_developer [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      build_development_owner -> build_code_fixer [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      build_developer -> build_verifier [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      build_code_fixer -> build_code_reviewer [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      build_verifier -> build_test_deployment [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      build_code_reviewer -> build_test_deployment [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      build_test_deployment -> build_output [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      {
+        rank=same;
+        build_developer;
+        build_code_fixer;
+      }
+
+      {
+        rank=same;
+        build_verifier;
+        build_code_reviewer;
+      }
+    }
+
+    subgraph cluster_quality {
+      label="04 QUALITY & RELEASE";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      quality_purpose [
+        label="Independently qualify the Candidate\nand verify production.",
+        group="column_4",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      quality_owner [
+        label="[AO] Quality Owner\nNO CODE CHANGE",
+        group="column_4",
+        fontname="Helvetica-Bold",
+        fontsize=9
+      ];
+
+      quality_qa_executor [
+        label="[AE] QA Executor",
+        color="#7890AA",
+        fillcolor="#EEF4FA",
+        fontsize=9
+      ];
+
+      quality_analyst [
+        label="[AE] Quality Analyst",
+        color="#7890AA",
+        fillcolor="#EEF4FA",
+        fontsize=9
+      ];
+
+      quality_production_deployment [
+        label="[H-GATE]\nProduction Deployment",
+        group="column_4",
+        color="#B7791F",
+        fillcolor="#FFF3C4",
+        fontname="Helvetica-Bold",
+        penwidth=2.0
+      ];
+
+      quality_production_verification [
+        label="[AO] Production Verification",
+        group="column_4",
+        fontname="Helvetica-Bold"
+      ];
+
+      quality_output [
+        label="[ART]\nRelease Package · Production Outcome\nProduction Verification Evidence",
+        group="column_4",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      quality_handoff_in [
+        label="trusted test\noutcome",
+        shape=box,
+        style="rounded,filled",
+        color="#2F6DB0",
+        fillcolor="#FFFFFF",
+        fontcolor="#174B80",
+        fontname="Helvetica-Bold",
+        fontsize=7.5,
+        height=0.25,
+        margin="0.04,0.02"
+      ];
+
+      quality_purpose -> quality_owner [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+
+      quality_owner -> quality_qa_executor [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      quality_owner -> quality_analyst [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      quality_qa_executor -> quality_production_deployment [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      quality_analyst -> quality_production_deployment [
+        dir=none,
+        color="#94A3B8",
+        penwidth=1.0
+      ];
+
+      quality_production_deployment -> quality_production_verification ->
+        quality_output [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+
+      {
+        rank=same;
+        quality_qa_executor;
+        quality_analyst;
+      }
+    }
+
+    subgraph cluster_outcome {
+      label="05 OUTCOME";
+      labelloc=t;
+      labeljust=l;
+      color="#2F6DB0";
+      fillcolor="#F8FBFF";
+      fontname="Helvetica-Bold";
+      fontcolor="#174B80";
+      fontsize=17;
+      penwidth=1.7;
+      style="rounded,filled";
+      margin=14;
+
+      outcome_purpose [
+        label="Judge the real business result and close honestly.",
+        group="column_5",
+        color="#132A44",
+        fillcolor="#132A44",
+        fontcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=10
+      ];
+
+      outcome_business_acceptance [
+        label="[H] Business Acceptance",
+        group="column_5",
+        color="#B7791F",
+        fillcolor="#FFF3C4",
+        fontname="Helvetica-Bold",
+        penwidth=2.0
+      ];
+
+      outcome_closeout_recommendation [
+        label="[AO] Product Director\nCloseout Recommendation",
+        group="column_5",
+        fontname="Helvetica-Bold"
+      ];
+
+      outcome_disposition [
+        label="[H] Phase & Demand Disposition",
+        group="column_5",
+        color="#B7791F",
+        fillcolor="#FFF3C4",
+        fontname="Helvetica-Bold",
+        penwidth=2.0
+      ];
+
+      outcome_phase_authority_guard [
+        label="[AUTHORITY GUARD]\nF16 new Phase XOR F17 same-Phase resume\nterminal identities never revive",
+        shape=note,
+        style=filled,
+        color="#B7791F",
+        fillcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=8.5,
+        penwidth=1.3
+      ];
+
+      outcome_terminal_guard [
+        label="[TERMINAL]\nRT = NON-SUCCESS · R10 = ONLY SUCCESS ROUTE",
+        shape=note,
+        style=filled,
+        color="#B23A48",
+        fillcolor="#FFFFFF",
+        fontname="Helvetica-Bold",
+        fontsize=8.5,
+        penwidth=1.3
+      ];
+
+      outcome_output [
+        label="[ART]\nBusiness Acceptance Record · Closeout Recommendation\nPhase Outcome · Demand Outcome",
+        group="column_5",
+        shape=note,
+        style=filled,
+        color="#177E89",
+        fillcolor="#E7F7F6",
+        fontname="Helvetica-Bold",
+        fontsize=9,
+        penwidth=1.5
+      ];
+
+      outcome_handoff_in [
+        label="trusted production\nevidence",
+        shape=box,
+        style="rounded,filled",
+        color="#2F6DB0",
+        fillcolor="#FFFFFF",
+        fontcolor="#174B80",
+        fontname="Helvetica-Bold",
+        fontsize=7.5,
+        height=0.25,
+        margin="0.04,0.02"
+      ];
+
+      outcome_purpose -> outcome_business_acceptance ->
+        outcome_closeout_recommendation -> outcome_disposition ->
+        outcome_phase_authority_guard -> outcome_terminal_guard ->
+        outcome_output [
+          dir=none,
+          color="#94A3B8",
+          penwidth=1.0
+        ];
+    }
+
+    {
+      rank=same;
+      product_purpose;
+      proof_purpose;
+      build_purpose;
+      quality_purpose;
+      outcome_purpose;
+    }
+
+    {
+      rank=same;
+      product_output;
+      proof_handoff_in;
+      proof_output;
+      build_handoff_in;
+      build_output;
+      quality_handoff_in;
+      quality_output;
+      outcome_handoff_in;
+      outcome_output;
+    }
+
+    product_output -> proof_handoff_in [
+      color="#2F6DB0",
+      penwidth=2.0,
+      arrowhead=none,
+      weight=30
+    ];
+
+    proof_handoff_in -> proof_output [
+      color="#2F6DB0",
+      penwidth=2.0,
+      arrowsize=0.8,
+      weight=30
+    ];
+
+    proof_output -> build_handoff_in [
+      color="#2F6DB0",
+      penwidth=2.0,
+      arrowhead=none,
+      weight=30
+    ];
+
+    build_handoff_in -> build_output [
+      color="#2F6DB0",
+      penwidth=2.0,
+      arrowsize=0.8,
+      weight=30
+    ];
+
+    build_output -> quality_handoff_in [
+      color="#2F6DB0",
+      penwidth=2.0,
+      arrowhead=none,
+      weight=30
+    ];
+
+    quality_handoff_in -> quality_output [
+      color="#2F6DB0",
+      penwidth=2.0,
+      arrowsize=0.8,
+      weight=30
+    ];
+
+    quality_output -> outcome_handoff_in [
+      color="#2F6DB0",
+      penwidth=2.0,
+      arrowhead=none,
+      weight=30
+    ];
+
+    outcome_handoff_in -> outcome_output [
+      color="#2F6DB0",
+      penwidth=2.0,
+      arrowsize=0.8,
+      weight=30
+    ];
+  }
+
+  subgraph cluster_state {
+    label="SHARED STATE & EVIDENCE BACKBONE";
+    labelloc=t;
+    labeljust=l;
+    color="#177E89";
+    fillcolor="#EAF8F7";
+    fontname="Helvetica-Bold";
+    fontcolor="#0F6269";
+    fontsize=15;
+    penwidth=1.6;
+    style="rounded,filled";
+    margin=16;
+
+    state_baseline [
+      label="[STATE]\nPhase Success Baseline",
+      group="column_1",
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    state_candidate [
+      label="[ART][IMMUTABLE]\nCandidate",
+      group="column_2",
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      peripheries=2,
+      penwidth=1.6
+    ];
+
+    state_manifest [
+      label="[ART]\nDeployment Manifest",
+      group="column_3",
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    state_environment [
+      label="[STATE]\nEnvironment State",
+      group="column_4",
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    state_finding_route [
+      label="[ART]\nFinding Route",
+      group="column_5",
+      shape=note,
+      style=filled,
+      color="#177E89",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    {
+      rank=same;
+      state_baseline;
+      state_candidate;
+      state_manifest;
+      state_environment;
+      state_finding_route;
+    }
+
+    state_baseline -> state_candidate -> state_manifest ->
+      state_environment -> state_finding_route [
+        style=invis,
+        weight=20
+      ];
+  }
+
+  subgraph cluster_failure {
+    label="FAILURE & INCIDENT LANE";
+    labelloc=t;
+    labeljust=l;
+    color="#B23A48";
+    fillcolor="#FFF1F2";
+    fontname="Helvetica-Bold";
+    fontcolor="#8F2635";
+    fontsize=15;
+    penwidth=1.7;
+    style="rounded,filled";
+    margin=16;
+
+    failure_gap [
+      label="failure/gap",
+      shape=diamond,
+      color="#B23A48",
+      fillcolor="#FFE0E4",
+      fontname="Helvetica-Bold",
+      penwidth=1.8
+    ];
+
+    failure_diagnose [
+      label="diagnose domain",
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    failure_owner [
+      label="earliest wrong Owner",
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    failure_invalidate [
+      label="invalidate affected evidence",
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    failure_reenter [
+      label="re-enter every affected gate",
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold"
+    ];
+
+    failure_guard [
+      label="UNKNOWN cause remains DIAGNOSTIC\nfailed/indeterminate environment action ≠ success",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontsize=9
+    ];
+
+    failure_incident [
+      label="[INCIDENT]\nIncident Case closes independently\nProduct closeout does not close it",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontsize=9
+    ];
+
+    failure_return_rule [
+      label="[RETURN ROUTER]\nR00–R09 selects exactly one route-named Owner\nall affected gates rerun",
+      shape=note,
+      style=filled,
+      color="#B23A48",
+      fillcolor="#FFFFFF",
+      fontname="Helvetica-Bold",
+      fontsize=9
+    ];
+
+    {
+      rank=same;
+      failure_gap;
+      failure_diagnose;
+      failure_owner;
+      failure_invalidate;
+      failure_reenter;
+    }
+
+    {
+      rank=same;
+      failure_guard;
+      failure_incident;
+      failure_return_rule;
+    }
+
+    failure_gap -> failure_diagnose -> failure_owner ->
+      failure_invalidate -> failure_reenter [
+        color="#B23A48",
+        fontcolor="#8F2635",
+        penwidth=1.9,
+        arrowsize=0.8
+      ];
+
+    failure_diagnose -> failure_guard [
+      style=dashed,
+      color="#B23A48",
+      arrowhead=none
+    ];
+
+    failure_reenter -> failure_incident [
+      xlabel="independent authority",
+      style=dashed,
+      color="#B23A48",
+      fontcolor="#8F2635",
+      arrowhead=none
+    ];
+
+    failure_reenter -> failure_return_rule [
+      style=dashed,
+      color="#B23A48",
+      arrowhead=none
+    ];
+
+    failure_guard -> failure_return_rule -> failure_incident [
+      style=invis,
+      weight=20
+    ];
+
+  }
+
+  human_co_create -> product_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_invoke_owner -> proof_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_test_deployment -> build_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_production_deployment -> quality_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_business_disposition -> outcome_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_action_law -> product_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  human_safety_authority -> outcome_purpose [
+    style=invis,
+    weight=100
+  ];
+
+  product_output -> state_baseline [
+    style=invis,
+    weight=100
+  ];
+
+  proof_output -> state_candidate [
+    style=invis,
+    weight=100
+  ];
+
+  build_output -> state_manifest [
+    style=invis,
+    weight=100
+  ];
+
+  quality_output -> state_environment [
+    style=invis,
+    weight=100
+  ];
+
+  outcome_output -> state_finding_route [
+    style=invis,
+    weight=100
+  ];
+
+  state_baseline -> failure_guard [
+    style=invis,
+    weight=100
+  ];
+
+  state_manifest -> failure_return_rule [
+    style=invis,
+    weight=100
+  ];
+
+  state_finding_route -> failure_incident [
+    style=invis,
+    weight=100
+  ];
+
+  human_test_deployment -> build_test_deployment [
+    style=dashed,
+    color="#B7791F",
+    penwidth=1.7,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  human_production_deployment -> quality_production_deployment [
+    style=dashed,
+    color="#B7791F",
+    penwidth=1.7,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  human_business_disposition -> outcome_business_acceptance [
+    style=dashed,
+    color="#B7791F",
+    penwidth=1.7,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  human_business_disposition -> outcome_disposition [
+    style=dashed,
+    color="#B7791F",
+    penwidth=1.7,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  state_finding_route -> failure_gap [
+    style=dashed,
+    color="#B23A48",
+    penwidth=1.4,
+    arrowsize=0.7
+  ];
+
+  product_impact_owner -> failure_owner [
+    dir=back,
+    style=dashed,
+    color="#B23A48",
+    penwidth=1.3,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  build_development_owner -> failure_owner [
+    dir=back,
+    style=dashed,
+    color="#B23A48",
+    penwidth=1.3,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  build_test_deployment -> failure_reenter [
+    dir=back,
+    style=dashed,
+    color="#B23A48",
+    penwidth=1.3,
+    arrowsize=0.7,
+    constraint=false
+  ];
+
+  quality_production_deployment -> failure_reenter [
+    dir=back,
+    style=dashed,
+    color="#B23A48",
+    penwidth=1.3,
+    arrowsize=0.7,
+    constraint=false
+  ];
+}

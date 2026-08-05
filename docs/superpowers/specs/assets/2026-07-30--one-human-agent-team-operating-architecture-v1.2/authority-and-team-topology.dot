@@ -1,0 +1,121 @@
+digraph AuthorityAndTeamTopology {
+  graph [
+    bgcolor="#F8FAFD",
+    pad="0.24",
+    labelloc=t,
+    label="AUTHORITY AND TEAM TOPOLOGY · TARGET V1.2\nONE HUMAN CONTROL PLANE · ACCOUNTABLE OWNERS · ISOLATED EXECUTION DOMAINS\nM0 MANUAL CONTROL · NOT RUNTIME-ACTIVE",
+    fontname="PingFang SC",
+    fontsize=22,
+    fontcolor="#172033"
+  ];
+
+  node [shape=plain, fontname="PingFang SC", fontcolor="#172033"];
+
+  topology [
+    label=<
+      <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="11"
+             COLOR="#8FA6C2" BGCOLOR="#FFFFFF">
+        <TR>
+          <TD COLSPAN="6" BGCOLOR="#FFF3C7" COLOR="#A66A00" ALIGN="LEFT">
+            <FONT POINT-SIZE="15"><B>[H] HUMAN CONTROL PLANE · CROSS-CUTTING, NOT A SERIAL STAGE</B></FONT><BR ALIGN="LEFT"/>
+            人独占：顶层包 ACCEPT、跨 Owner INVOKE、环境动作、停止/回滚/containment、incident authority、
+            风险接受、业务验收、Phase / Demand disposition。<BR ALIGN="LEFT"/>
+            ACCEPT ≠ INVOKE ≠ actual start ≠ action outcome；启动时 authority 必须 current；
+            人的确认不能把 unknown、assumption、conflict 或 failed obligation 变成 fact / PASS。
+          </TD>
+        </TR>
+
+        <TR>
+          <TD COLSPAN="2" WIDTH="430" BGCOLOR="#DDE9F8"><B>VALUE &amp; PRODUCT · 深度共创</B></TD>
+          <TD COLSPAN="2" WIDTH="430" BGCOLOR="#DDE9F8"><B>SCOPE &amp; DESIGN · 条件共创 + 证据验收</B></TD>
+          <TD COLSPAN="2" WIDTH="430" BGCOLOR="#DDE9F8"><B>PROOF &amp; PLAN · 证据验收</B></TD>
+        </TR>
+        <TR>
+          <TD COLSPAN="2" ALIGN="LEFT" BGCOLOR="#EAF2FF">
+            <B>[AO] Product Director</B><BR ALIGN="LEFT"/>
+            WHY · 真实场景 · 价值 · Active Phase · Closeout Recommendation（不拥有最终 outcome）<BR ALIGN="LEFT"/><BR ALIGN="LEFT"/>
+            <B>[AO] Product Manager</B><BR ALIGN="LEFT"/>
+            WHAT · 对象 · 状态 · 规则 · 权限 · Product Unit · AC
+          </TD>
+          <TD COLSPAN="2" ALIGN="LEFT" BGCOLOR="#EAF2FF">
+            <B>[AO] Impact Owner · ONE OWNER / ONE PACKAGE LINEAGE</B><BR ALIGN="LEFT"/>
+            discovery checkpoint → freeze checkpoint；freeze 引用全部 activation / skip evidence<BR ALIGN="LEFT"/><BR ALIGN="LEFT"/>
+            <FONT COLOR="#5D6D80"><B>[AO · OPTIONAL] UX Owner</B> · 体验与交互</FONT><BR ALIGN="LEFT"/>
+            <FONT COLOR="#5D6D80"><B>[AO · OPTIONAL] Architecture Owner</B> · 技术方案与回滚</FONT><BR ALIGN="LEFT"/>
+            <FONT POINT-SIZE="10">两者独立条件化；触发或跳过都必须留证据</FONT>
+          </TD>
+          <TD COLSPAN="2" ALIGN="LEFT" BGCOLOR="#EAF2FF">
+            <B>[AO] Test Design Owner</B><BR ALIGN="LEFT"/>
+            开发前定义接受面、回归义务、失败路径与 QA 合同<BR ALIGN="LEFT"/><BR ALIGN="LEFT"/>
+            <B>[AO] Tech Lead</B><BR ALIGN="LEFT"/>
+            实现路径 · 依赖 · 批次 · bounded Task；不在计划阶段重发明范围
+          </TD>
+        </TR>
+
+        <TR>
+          <TD COLSPAN="3" BGCOLOR="#DDE9F8"><B>DEVELOPMENT EXECUTION DOMAIN</B></TD>
+          <TD COLSPAN="3" BGCOLOR="#DDE9F8"><B>INDEPENDENT QUALITY DOMAIN</B></TD>
+        </TR>
+        <TR>
+          <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#EAF2FF">
+            <FONT POINT-SIZE="14"><B>[AO] Development Owner</B></FONT><BR ALIGN="LEFT"/>
+            唯一代码修改域 · TDD / 集成 / 验证 / 评审 · Candidate + environment-specific Manifest
+          </TD>
+          <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#EAF2FF">
+            <FONT POINT-SIZE="14"><B>[AO] Quality Owner · NO CODE CHANGE</B></FONT><BR ALIGN="LEFT"/>
+            上线前 QA / Finding route / 复测 / Release recommendation · 部署后独立生产验证
+          </TD>
+        </TR>
+        <TR>
+          <TD COLSPAN="3" BGCOLOR="#EAF2FF">
+            <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="7" COLOR="#A8B7C8">
+              <TR>
+                <TD BGCOLOR="#F5F7FA"><B>[AE] Developer</B><BR/>实现与自测</TD>
+                <TD BGCOLOR="#F5F7FA"><B>[AE] Code Fixer</B><BR/>根因修复</TD>
+                <TD BGCOLOR="#F5F7FA"><B>[AE] Verifier</B><BR/>独立判定证据</TD>
+                <TD BGCOLOR="#F5F7FA"><B>[AE] Code Reviewer</B><BR/>质量与风险评审</TD>
+              </TR>
+            </TABLE>
+          </TD>
+          <TD COLSPAN="3" BGCOLOR="#EAF2FF">
+            <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="7" COLOR="#A8B7C8">
+              <TR>
+                <TD BGCOLOR="#F5F7FA"><B>[AE] QA Executor</B><BR/>执行、观察、取证、复测</TD>
+                <TD BGCOLOR="#F5F7FA"><B>[AE] Quality Analyst</B><BR/>复现、只读诊断、分类支持</TD>
+              </TR>
+            </TABLE>
+          </TD>
+        </TR>
+        <TR>
+          <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#F4EEFC" COLOR="#6F4BA5">
+            <B>[ART]</B> Phase Success Baseline · immutable Candidate · Deployment Manifest · Test Admission
+          </TD>
+          <TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#F4EEFC" COLOR="#6F4BA5">
+            <B>[ART]</B> Finding Route · Release Package · Production / Incident Verification Evidence
+          </TD>
+        </TR>
+
+        <TR>
+          <TD COLSPAN="2" BGCOLOR="#FFF9E8" ALIGN="LEFT">
+            <B>Human authority</B><BR ALIGN="LEFT"/>
+            决定方向、接受证据、调用 Owner、授权并执行环境动作、接受风险、裁决结果
+          </TD>
+          <TD COLSPAN="2" BGCOLOR="#EAF2FF" ALIGN="LEFT">
+            <B>Owner accountability</B><BR ALIGN="LEFT"/>
+            完成阶段判断、组织执行、冻结输出、提出 handoff / route；不越权调用下一 Owner
+          </TD>
+          <TD COLSPAN="2" BGCOLOR="#F5F7FA" ALIGN="LEFT">
+            <B>Execution Agent boundary</B><BR ALIGN="LEFT"/>
+            只消费 bounded input，在父 Owner 内执行；不拥有跨阶段或最终裁决权
+          </TD>
+        </TR>
+        <TR>
+          <TD COLSPAN="6" BGCOLOR="#FDECEC" COLOR="#B43A3A" ALIGN="LEFT">
+            <B>隔离原则</B>：Development Owner 无独立 QA / 部署权；Quality Owner 无代码修改权；
+            PRODUCT 与 INCIDENT_REMEDIATION authority / evidence 不互换；撤权后的输出只能留历史。
+          </TD>
+        </TR>
+      </TABLE>
+    >
+  ];
+}
