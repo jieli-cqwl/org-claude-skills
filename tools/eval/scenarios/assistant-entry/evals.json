@@ -87,6 +87,7 @@
       ],
       "expected_scene_contracts": [
         "code-changes",
+        "authentication-and-authorization",
         "code-structure-reuse",
         "testing"
       ]
@@ -284,6 +285,7 @@
       ],
       "expected_scene_contracts": [
         "system-debugging",
+        "authentication-and-authorization",
         "impact-analysis"
       ]
     },
@@ -454,6 +456,207 @@
         "code-structure-reuse",
         "testing"
       ]
+    },
+    {
+      "id": "opaque-service-token-contract",
+      "category": "authentication_domain_transfer",
+      "prompt": "请评审这个实现方案：服务 A 调用服务 B 时将接入供应商签发的 opaque access token，开发准备复用现有 JWT 的本地验签和 claims 校验代码。指出能否复用以及下一步。",
+      "expected_behaviors": [
+        "Rejects treating an opaque token as a locally verifiable JWT.",
+        "Identifies the provider-owned lookup or introspection contract and its availability behavior.",
+        "Separates authentication from applicable audience, tenant, scope, and protected-resource authorization.",
+        "Requires mechanism-derived positive, negative, dependency-failure, and legacy regression evidence."
+      ],
+      "anti_patterns": [
+        "Requires a JWT signature or claims checklist for the opaque token.",
+        "Copies the existing validator without confirming mechanism compatibility.",
+        "Treats token validity as sufficient resource authorization."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-2",
+        "AE-4",
+        "AE-5",
+        "AE-8"
+      ],
+      "expected_scene_contracts": [
+        "code-changes",
+        "authentication-and-authorization",
+        "code-structure-reuse",
+        "testing"
+      ],
+      "forbidden_scene_contracts": [
+        "system-debugging",
+        "fullstack"
+      ],
+      "max_successful_scene_reads": 4
+    },
+    {
+      "id": "mobile-oauth-401-boundary",
+      "category": "debugging_domain_transfer",
+      "prompt": "iOS 客户端完成 OAuth 回调后偶发 401，API 团队认为是客户端没有保存登录态。现在应如何判断根因和安排下一步？",
+      "expected_behaviors": [
+        "Does not accept the API team's diagnosis as fact.",
+        "First identifies the actual OAuth credential, callback, exchange, storage, transport, and server-validation boundaries.",
+        "Builds competing hypotheses and names confirming and refuting evidence before assigning an owner.",
+        "Does not inject browser Cookie, SameSite, or CORS checks unless a browser boundary is actually present."
+      ],
+      "anti_patterns": [
+        "Assigns the fix to the mobile client from authority alone.",
+        "Uses a browser-cookie checklist for a native-client flow without evidence.",
+        "Changes code before reproducing or distinguishing hypotheses."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-2",
+        "AE-5",
+        "AE-6",
+        "AE-8"
+      ],
+      "expected_scene_contracts": [
+        "system-debugging",
+        "authentication-and-authorization"
+      ],
+      "forbidden_scene_contracts": [
+        "fullstack",
+        "code-structure-reuse",
+        "constants-and-configuration"
+      ],
+      "max_successful_scene_reads": 2
+    },
+    {
+      "id": "worker-entitlement-dual-source",
+      "category": "cross_layer_rule_transfer",
+      "prompt": "API 和异步 worker 目前各自计算一次账户权益，新需求只改 API 里的公式，worker 下个月再同步。请评估这个发布方案及最低验收条件。",
+      "expected_behaviors": [
+        "Identifies the dual source of truth and rejects an unbounded period of divergent business semantics.",
+        "Names the authoritative owner and contract for the entitlement rule across both execution layers.",
+        "Requires applicable legacy-data and permission semantics rather than inventing a frontend-specific checklist.",
+        "Allows a temporary secondary path only with an equivalent contract, bounded exit, and same-rule integration evidence."
+      ],
+      "anti_patterns": [
+        "Approves API-only release because the worker can be fixed later.",
+        "Frames the issue as frontend versus backend.",
+        "Requires a data migration when no persisted representation is involved."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-3",
+        "AE-4",
+        "AE-5",
+        "AE-6",
+        "AE-8"
+      ],
+      "expected_scene_contracts": [
+        "code-changes",
+        "code-structure-reuse",
+        "impact-analysis",
+        "fullstack",
+        "testing"
+      ],
+      "forbidden_scene_contracts": [
+        "authentication-and-authorization",
+        "constants-and-configuration"
+      ],
+      "max_successful_scene_reads": 5
+    },
+    {
+      "id": "bounded-temporary-compatibility",
+      "category": "acceptable_shortcut_boundary",
+      "prompt": "一个内部调用方还不能切到新版响应。团队提议保留两周兼容适配器：owner 已确定，只服务该调用方，受 feature flag 控制，有删除日期、回滚命令以及新旧契约集成测试。这个临时方案能否放行？",
+      "expected_behaviors": [
+        "Allows or conditionally allows the bounded compatibility path instead of rejecting every shortcut.",
+        "Checks that ownership, preserved behavior, failure boundary, removal condition, rollback, and integration proof are credible.",
+        "Keeps the decision scoped to the named caller and does not turn the adapter into a permanent second source.",
+        "Names only unresolved evidence that can still block release."
+      ],
+      "anti_patterns": [
+        "Rejects the proposal solely because it is temporary.",
+        "Repeats a generic checklist without deciding whether the supplied boundaries are sufficient.",
+        "Expands the adapter to unspecified future callers."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-3",
+        "AE-4",
+        "AE-5",
+        "AE-7",
+        "AE-8"
+      ],
+      "expected_scene_contracts": [
+        "code-changes",
+        "code-structure-reuse",
+        "impact-analysis",
+        "testing"
+      ],
+      "forbidden_scene_contracts": [
+        "authentication-and-authorization",
+        "error-handling"
+      ],
+      "max_successful_scene_reads": 4
+    },
+    {
+      "id": "readme-copy-near-miss",
+      "category": "negative_route_lightness",
+      "prompt": "README 中一段介绍需要改写，链接、命令和产品行为都不变。请给出完成这次文案修改所需的最小验证。",
+      "expected_behaviors": [
+        "Keeps verification proportional to the documentation-only change.",
+        "Checks the scoped diff and rendered text, using an existing documentation checker only when available.",
+        "Does not invent code, architecture, authentication, or end-to-end regression work."
+      ],
+      "anti_patterns": [
+        "Requires a full test suite by default.",
+        "Loads unrelated implementation contracts.",
+        "Claims application behavior was verified by reviewing prose."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-7",
+        "AE-8",
+        "AE-9"
+      ],
+      "expected_scene_contracts": [
+        "testing"
+      ],
+      "forbidden_scene_contracts": [
+        "code-changes",
+        "authentication-and-authorization",
+        "fullstack",
+        "technical-design",
+        "system-debugging"
+      ],
+      "max_successful_scene_reads": 1
+    },
+    {
+      "id": "auth-concept-near-miss",
+      "category": "negative_route_concept",
+      "prompt": "解释一下服务返回 401 和 403 分别代表什么。这里只问概念，不涉及现有项目或发布判断。",
+      "expected_behaviors": [
+        "Explains the authentication versus authorization distinction directly.",
+        "Notes that concrete API semantics still depend on the protocol contract without inventing project facts.",
+        "Keeps the answer concise and avoids implementation or release ceremony."
+      ],
+      "anti_patterns": [
+        "Turns a conceptual question into a code-change plan.",
+        "Requires project tests or rollout evidence.",
+        "Assumes a specific JWT, session, or browser mechanism."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-2",
+        "AE-8",
+        "AE-9"
+      ],
+      "expected_scene_contracts": [
+        "authentication-and-authorization"
+      ],
+      "forbidden_scene_contracts": [
+        "code-changes",
+        "testing",
+        "fullstack",
+        "impact-analysis"
+      ],
+      "max_successful_scene_reads": 1
     }
   ]
 }

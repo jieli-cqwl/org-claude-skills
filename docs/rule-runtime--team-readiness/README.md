@@ -2,7 +2,7 @@
 
 This folder is the rollout acceptance pack for the shared runtime rules. It does not decide whether the rule text looks good. It decides whether installed agents behave differently in the scenarios the rules were written to control.
 
-The machine-readable rollout source is `docs/rule-runtime--team-readiness/acceptance-pack.json`.
+The machine-readable rollout source is `docs/rule-runtime--team-readiness/acceptance-pack.json`. The evaluator execution contract is owned separately by `tools/eval/contracts/rule-runtime-eval.json`; this rollout pack consumes evaluator evidence but does not redefine runtime sources, scene routes, case packs, or diagnostic profiles.
 
 Two additional artifacts keep the rollout independent from slow, subjective team feedback:
 

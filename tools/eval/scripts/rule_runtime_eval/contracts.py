@@ -37,6 +37,8 @@ class EvalCase:
     expected_anchors: tuple[str, ...]
     anchor_definitions: Mapping[str, object]
     expected_scene_contracts: tuple[str, ...]
+    forbidden_scene_contracts: tuple[str, ...]
+    max_successful_scene_reads: int | None
 
     @property
     def expected_behavior_ids(self) -> tuple[str, ...]:
@@ -247,10 +249,10 @@ def _load_profiles(payload: Mapping[str, object]) -> tuple[DiagnosticProfile, ..
         )
         runs = entry.get("runs_per_configuration")
         threshold = entry.get("anchor_threshold")
-        if not isinstance(runs, int) or isinstance(runs, bool) or runs != 1:
+        if not isinstance(runs, int) or isinstance(runs, bool) or runs < 2:
             raise ContractError(
-                "profile_runs_unsupported",
-                "this evaluator supports exactly one run per configuration",
+                "profile_runs_invalid",
+                "effectiveness profiles require at least two runs per configuration",
             )
         if not isinstance(threshold, (int, float)):
             raise ContractError("profile_anchor_threshold_invalid", "profile anchor threshold must be numeric")
@@ -298,9 +300,28 @@ def _load_case_pack(
         expected_scenes = _string_list(
             entry.get("expected_scene_contracts"), "case_expected_scenes_missing"
         )
+        forbidden_scenes = _optional_string_list(
+            entry.get("forbidden_scene_contracts", []), "case_forbidden_scenes_invalid"
+        )
         unknown_scenes = set(expected_scenes) - set(scene_by_id)
-        if unknown_scenes:
+        unknown_forbidden_scenes = set(forbidden_scenes) - set(scene_by_id)
+        if unknown_scenes or unknown_forbidden_scenes:
             raise ContractError("case_scene_unknown", "case references an unknown scene")
+        if set(expected_scenes) & set(forbidden_scenes):
+            raise ContractError(
+                "case_scene_overlap",
+                "required and forbidden scene contracts must not overlap",
+            )
+        max_successful_scene_reads = entry.get("max_successful_scene_reads")
+        if max_successful_scene_reads is not None and (
+            not isinstance(max_successful_scene_reads, int)
+            or isinstance(max_successful_scene_reads, bool)
+            or max_successful_scene_reads < len(expected_scenes)
+        ):
+            raise ContractError(
+                "case_max_scene_reads_invalid",
+                "maximum successful scene reads must cover every required scene",
+            )
         definitions = {
             anchor_id: _freeze(anchor_by_id[anchor_id])
             for anchor_id in expected_anchors
@@ -317,6 +338,8 @@ def _load_case_pack(
             expected_anchors=expected_anchors,
             anchor_definitions=MappingProxyType(definitions),
             expected_scene_contracts=expected_scenes,
+            forbidden_scene_contracts=forbidden_scenes,
+            max_successful_scene_reads=max_successful_scene_reads,
         )
     return MappingProxyType(cases)
 
@@ -369,6 +392,15 @@ def _string_list(value: object, code: str) -> tuple[str, ...]:
         raise ContractError(code, "contract list must be non-empty")
     if not all(isinstance(item, str) and item.strip() for item in value):
         raise ContractError(code, "contract list entries must be non-empty strings")
+    return tuple(value)
+
+
+def _optional_string_list(value: object, code: str) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        raise ContractError(code, "contract value must be a list")
+    if not all(isinstance(item, str) and item.strip() for item in value):
+        raise ContractError(code, "contract list entries must be non-empty strings")
+    _require_unique(value, code)
     return tuple(value)
 
 

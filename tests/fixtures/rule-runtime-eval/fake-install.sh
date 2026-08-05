@@ -36,6 +36,7 @@ install_runtime_file() {
 }
 
 if [[ -z "${FAKE_INSTALL_SKIP_RUNTIME_TARGETS:-}" ]]; then
+  install_runtime_file shared/assistant.md AGENTS.md
   install_runtime_file shared/rules/code-changes.md rules/code-changes.md
   install_runtime_file shared/rules/completion-claims.md rules/completion-claims.md
   install_runtime_file shared/reference/协作判断.md reference/协作判断.md
@@ -44,6 +45,9 @@ if [[ -z "${FAKE_INSTALL_SKIP_RUNTIME_TARGETS:-}" ]]; then
   install_runtime_file shared/reference/code-comments.md reference/code-comments.md
   install_runtime_file shared/reference/error-handling.md reference/error-handling.md
   install_runtime_file shared/reference/constants-and-configuration.md reference/constants-and-configuration.md
+  if [[ -f shared/reference/authentication-and-authorization.md ]]; then
+    install_runtime_file shared/reference/authentication-and-authorization.md reference/authentication-and-authorization.md
+  fi
   install_runtime_file shared/reference/performance-and-efficiency.md reference/performance-and-efficiency.md
   install_runtime_file shared/reference/技术方案设计.md reference/技术方案设计.md
   install_runtime_file shared/reference/impact-analysis.md reference/impact-analysis.md

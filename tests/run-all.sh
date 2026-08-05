@@ -49,6 +49,7 @@ SYNTAX_SHELL_FILES=(
   "tests/test-install-runtime-quick-canary.sh"
   "tests/test-install-runtime-smoke.sh"
   "tests/test-rule-runtime-team-readiness-pack.sh"
+  "tests/test-rule-runtime-eval-contracts.sh"
   "tests/test-standard-chain-validator-stack.sh"
   "tests/test-standard-chain-field-consumption-contract.sh"
   "tests/test-context-contract-validator.sh"

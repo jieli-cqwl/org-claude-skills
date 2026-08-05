@@ -12,6 +12,7 @@ from rule_runtime_eval.contracts import SceneContract
 
 
 _READERS = frozenset({"cat", "sed", "head", "tail", "nl"})
+_NON_PROVING_DIRECT_COMMANDS = frozenset({"echo", "printf", "rg", "grep"})
 _SHELLS = frozenset({"sh", "bash", "zsh"})
 _KNOWN_EVENT_TYPES = frozenset(
     {
@@ -38,6 +39,8 @@ class RouteEvidence:
     parser_uncertain: bool
     expected_contract_ids: tuple[str, ...]
     read_contract_ids: tuple[str, ...]
+    forbidden_read_contract_ids: tuple[str, ...]
+    exceeded_max_successful_scene_reads: bool
     observed_event_ids: tuple[str, ...]
     observed_command_ids: tuple[str, ...]
 
@@ -67,12 +70,17 @@ def classify_route_reads(
     events: list[dict],
     expected_contracts: tuple[SceneContract, ...],
     runtime_codex_home: Path,
+    *,
+    observed_contracts: tuple[SceneContract, ...] | None = None,
+    forbidden_contract_ids: tuple[str, ...] = (),
+    max_successful_scene_reads: int | None = None,
 ) -> RouteEvidence:
     """Accept only completed successful reader commands with an exact installed target."""
 
-    expected_targets = {
+    contracts = observed_contracts or expected_contracts
+    observed_targets = {
         _installed_target(runtime_codex_home, contract.installed_path): contract.id
-        for contract in expected_contracts
+        for contract in contracts
     }
     event_ids: list[str] = []
     command_ids: list[str] = []
@@ -100,19 +108,41 @@ def classify_route_reads(
             uncertain = True
             continue
         if not _completed_success(item):
+            uncertain = uncertain or _failed_compound_command_may_have_read(
+                command, set(observed_targets), runtime_codex_home
+            )
             continue
-        targets, command_uncertain = _read_targets(command, set(expected_targets), runtime_codex_home)
-        uncertain = uncertain or command_uncertain
-        read_ids.update(expected_targets[target] for target in targets)
+        targets, command_uncertain = _read_targets(command, set(observed_targets), runtime_codex_home)
+        read_ids.update(observed_targets[target] for target in targets)
+        if command_uncertain:
+            mentioned_ids = {
+                contract_id
+                for target, contract_id in observed_targets.items()
+                if _mentions_target(command, {target}, runtime_codex_home)
+            }
+            uncertain = uncertain or not mentioned_ids or not mentioned_ids.issubset(read_ids)
 
     available = not uncertain
     expected_ids = tuple(contract.id for contract in expected_contracts)
+    forbidden_read_ids = tuple(sorted(set(forbidden_contract_ids) & read_ids))
+    scene_ids = {contract.id for contract in contracts if contract.activation == "scene"}
+    exceeded_max = (
+        max_successful_scene_reads is not None
+        and len(read_ids & scene_ids) > max_successful_scene_reads
+    )
     return RouteEvidence(
         route_evidence_available=available,
-        route_pass=available and set(expected_ids) <= read_ids,
+        route_pass=(
+            available
+            and set(expected_ids) <= read_ids
+            and not forbidden_read_ids
+            and not exceeded_max
+        ),
         parser_uncertain=uncertain,
         expected_contract_ids=expected_ids,
         read_contract_ids=tuple(sorted(read_ids)),
+        forbidden_read_contract_ids=forbidden_read_ids,
+        exceeded_max_successful_scene_reads=exceeded_max,
         observed_event_ids=tuple(event_ids),
         observed_command_ids=tuple(command_ids),
     )
@@ -137,6 +167,23 @@ def _completed_success(item: dict) -> bool:
     )
 
 
+def _failed_compound_command_may_have_read(
+    command: str, expected_targets: set[Path], runtime_codex_home: Path
+) -> bool:
+    """A shell's final failure cannot disprove successful earlier reads."""
+
+    if not _mentions_target(command, expected_targets, runtime_codex_home):
+        return False
+    try:
+        tokens = _shell_tokens(command)
+    except ValueError:
+        return True
+    if len(tokens) != 3 or Path(tokens[0]).name not in _SHELLS or tokens[1] not in {"-lc", "-c"}:
+        return False
+    script = tokens[2]
+    return "\n" in script or any(operator in script for operator in ("&&", ";", "||", "|"))
+
+
 def _installed_target(runtime_codex_home: Path, installed_path: Path) -> Path:
     target = (runtime_codex_home / installed_path).resolve()
     try:
@@ -158,6 +205,14 @@ def _read_targets(
     executable = Path(tokens[0]).name
     if executable in _SHELLS:
         return _shell_read_targets(tokens, expected_targets, runtime_codex_home)
+    if executable in _NON_PROVING_DIRECT_COMMANDS:
+        return set(), False
+    if executable == "awk":
+        unresolved_target_alias = any(
+            "$" in token or token.startswith((".codex/", "./.codex/", "../.codex/"))
+            for token in tokens[1:]
+        )
+        return set(), unresolved_target_alias
     if executable not in _READERS:
         return set(), _mentions_target_alias(command, expected_targets, runtime_codex_home)
     return _direct_read_targets(tokens, expected_targets, runtime_codex_home)
@@ -456,6 +511,7 @@ def _mentions_target_alias(
     value: str, expected_targets: set[Path], runtime_codex_home: Path
 ) -> bool:
     codex_home = runtime_codex_home.resolve()
+    unexpanded_codex_home = runtime_codex_home.absolute()
     aliases: set[str] = set()
     for target in expected_targets:
         try:
@@ -472,6 +528,7 @@ def _mentions_target_alias(
                 f".codex/{suffix}",
                 f"./.codex/{suffix}",
                 f"../.codex/{suffix}",
+                str(unexpanded_codex_home / relative),
             }
         )
     return any(_alias_mentioned(value, alias) for alias in aliases)

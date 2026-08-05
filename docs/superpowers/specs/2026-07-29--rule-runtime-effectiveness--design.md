@@ -1,5 +1,7 @@
 # Rule Runtime Effectiveness Design
 
+> Superseded for evaluator ownership and execution semantics by the 2026-08-05 systemic-correction plans. This document remains historical design provenance; the active machine contract is `tools/eval/contracts/rule-runtime-eval.json`.
+
 ## Objective
 
 Build one repeatable evaluation path that proves whether the installed runtime entry, rules, and references change agent behavior in the scenarios they are intended to control.

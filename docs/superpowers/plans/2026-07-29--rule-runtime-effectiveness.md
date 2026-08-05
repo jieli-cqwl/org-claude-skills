@@ -1,5 +1,7 @@
 # Rule Runtime Effectiveness Implementation Plan
 
+> Superseded for evaluator ownership, route bounds, repeated runs, and comparison semantics by `2026-08-05--rule-runtime-eval-credibility.md` and `2026-08-05--rule-runtime-document-governance.md`. Retained as historical implementation provenance.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 建立一条可重复的 Codex runtime 评估链，证明当前 worktree 中的入口、Rules 和 References 是否被真实路由、是否改变目标场景行为、相对显式 baseline 是否产生可解释增益，以及是否引入流程负担或行为回归。

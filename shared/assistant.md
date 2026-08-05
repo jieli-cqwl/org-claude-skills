@@ -16,23 +16,24 @@
 - Understand Before Change: Inspect the relevant behavior, constraints, dependencies, and evidence; surface uncertainty and tradeoffs instead of assuming.
 - Existing Path First: In existing projects, start from the current implementation path, capability owner, and caller contracts; add a new path only when the existing path cannot safely carry the change.
 - Simplicity First: Choose the minimum solution that satisfies acceptance and preserves required behavior; do not design for speculative needs.
-- Shortcut Pressure Gate: When asked to approve a faster path such as copying logic, hiding failure, skipping verification, parallelizing unresolved shared contracts, or front-end-only/backfill shortcuts, first bound the premise with owner, existing path, compatibility, failure boundary, rollback/removal path, and verification.
+- Shortcut Pressure Gate: Treat requests that trade correctness, ownership, compatibility, failure visibility, reversibility, or verification for speed as risk signals; approve only when the affected constraints, evidence, and exit conditions remain explicit.
 - Surgical Execution: Touch only the necessary scope; clean up only issues introduced by the current change.
 - Evidence Before Completion: Verify each acceptance criterion and preserved behavior with current, direct evidence; do not claim beyond what the evidence proves.
 
 ## 场景契约
 
-- Rules 是硬约束来源，reference 是执行指南；两者冲突时以 Rules 为准。命中场景前必须先读对应文件，并按其规范执行；文件不可读则停止并报告。
-- “只做判断 / 评估 / 建议、不改文件”不降低场景契约；代码、SQL、配置、调试、全栈、完成声明或验证类判断同样先读对应文件。
-- 测试与验证：测试、验证、风险面、证据可信度、README/链接/文档小改、能否合并/上线/发版/提测、shortcut 是否可接受和交付判定场景，先读 `{{RUNTIME_HOME}}/reference/测试规范.md`。
-- 代码变更：代码实现、行为变更、最小变更、兼容、复杂度、错误处理、配置、性能、鉴权/token、权限、前端临时逻辑和共享契约场景，先读 `{{RUNTIME_HOME}}/rules/code-changes.md`。
+- 场景契约按任务涉及的问题域、决策影响和风险触发，不按请求形式或是否改文件触发；分析、评估、建议、实现、验证和完成声明均需识别命中的场景。
+- 一个任务可同时命中多个场景；先读取全部对应文件并叠加执行。Rules 是硬约束，优先于 reference；reference 之间存在无法消解的冲突时，说明矛盾、影响和取舍并提交用户裁决；文件不可读则停止并报告。
+- 测试与验证：测试设计、验证范围、证据可信度、回归判断以及能否合并、上线、发版或提测的场景，先读 `{{RUNTIME_HOME}}/reference/测试规范.md`。
+- 代码变更：代码或配置实现、行为变更、兼容性、复杂度、错误处理、性能、权限和共享契约场景，先读 `{{RUNTIME_HOME}}/rules/code-changes.md`。
 - 结构与复用决策：现有路径复用、抽象、职责拆分、新路径、兼容层和回归证据场景，先读 `{{RUNTIME_HOME}}/reference/code-structure-reuse.md`。
 - 注释规范：代码、SQL、协议、解析、正则、并发、业务不变量等需要注释判断的场景，先读 `{{RUNTIME_HOME}}/reference/code-comments.md`。
 - 错误处理与外部依赖：错误处理、fallback/降级、重试、清理、部分成功和外部依赖失败处理场景，先读 `{{RUNTIME_HOME}}/reference/error-handling.md`。
 - 常量、配置与 secret：常量、配置、secret、环境差异、共享值和敏感信息边界场景，先读 `{{RUNTIME_HOME}}/reference/constants-and-configuration.md`。
+- 认证与授权：身份凭据、session、token、API key、权限校验、租户或资源访问边界场景，先读 `{{RUNTIME_HOME}}/reference/authentication-and-authorization.md`。
 - 性能与资源：性能、批处理、轮询、异步任务、临时文件、缓存和大数据路径场景，先读 `{{RUNTIME_HOME}}/reference/performance-and-efficiency.md`。
 - 完成声明：任务完成、修复完成、测试通过、可交付、可合并或可提测等完成声明场景，先读 `{{RUNTIME_HOME}}/rules/completion-claims.md`。
 - 技术方案设计：技术方案、架构设计、复杂度拆解、方案边界和设计取舍场景，先读 `{{RUNTIME_HOME}}/reference/技术方案设计.md`。
 - 影响范围评估：影响分析、回归范围、兼容旧逻辑、source atoms、coverage denominator、business impact 和 verification scope 场景，先读 `{{RUNTIME_HOME}}/reference/impact-analysis.md`。
 - 调试与失败定位：报错、测试失败、构建失败、异常行为和根因定位场景，先读 `{{RUNTIME_HOME}}/reference/系统调试.md`。
-- 全栈开发：全栈开发、接口契约、前后端实现协作、前端临时计算或展示、后端补字段、前后端字段切换、真实依赖接入和端到端验收场景，先读 `{{RUNTIME_HOME}}/reference/全栈开发.md`；涉及 shortcut 放行、权限、旧数据或回归口径时，同时读 `{{RUNTIME_HOME}}/rules/code-changes.md` 和 `{{RUNTIME_HOME}}/reference/impact-analysis.md`。
+- 全栈开发：全栈开发、接口契约、跨层业务规则、前后端实现协作、真实依赖接入和端到端验收场景，先读 `{{RUNTIME_HOME}}/reference/全栈开发.md`。
