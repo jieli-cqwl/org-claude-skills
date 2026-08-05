@@ -11,6 +11,7 @@ Code structure should preserve existing behavior first, and introduce abstractio
 - Add a new path only as an exception when the existing path cannot carry the required behavior or would break an existing contract.
 - When adding a path, name the boundary, retained legacy behavior, affected callers, migration or removal condition, and regression evidence.
 - Completion needs regression evidence for affected legacy behavior, not just proof that the new behavior works.
+- Shortcut requests in existing projects, such as copying old endpoint logic, changing shared state contracts, or adding a temporary compatibility path, must name the owner, old callers, retained behavior, valid and invalid paths, integration proof, and removal or rollback condition before approval.
 
 ## Complexity Signals
 
@@ -34,3 +35,4 @@ Code structure should preserve existing behavior first, and introduce abstractio
 
 - Compatibility layers must name the retained callers, reason, removal condition, and deletion path.
 - Compatibility logic must not swallow new errors, change business semantics, or hide migration failure.
+- Shared contract changes must freeze the single source of truth, migration order, compatibility strategy, and integration evidence before dependent callers change behavior.
