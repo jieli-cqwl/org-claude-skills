@@ -273,7 +273,7 @@
         "tests/test-render-runtime-placeholders.py"
       ],
       "area": "install-runtime",
-      "tier": "quick",
+      "tier": "full",
       "tags": [
         "canary",
         "python"
@@ -605,7 +605,7 @@
         "tests/test-rule-runtime-eval-contracts.sh"
       ],
       "area": "install-runtime",
-      "tier": "quick",
+      "tier": "full",
       "tags": [
         "runtime-surface",
         "eval-contract"
@@ -696,7 +696,7 @@
         "tests/test-codex-subagent-dispatch-guard.sh"
       ],
       "area": "codex-runtime",
-      "tier": "quick",
+      "tier": "full",
       "tags": [
         "canary",
         "codex-runtime"
@@ -1534,7 +1534,7 @@
         "tests/test-context-contract-hook.sh"
       ],
       "area": "context",
-      "tier": "quick",
+      "tier": "full",
       "tags": [
         "canary",
         "context"
@@ -1875,7 +1875,7 @@
         "tests/test-standard-chain-content-readiness-contract.sh"
       ],
       "area": "standard-chain",
-      "tier": "quick",
+      "tier": "full",
       "tags": [
         "contract",
         "content-readiness",

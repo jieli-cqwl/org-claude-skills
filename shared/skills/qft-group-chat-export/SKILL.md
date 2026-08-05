@@ -1,17 +1,28 @@
 ---
 name: qft-group-chat-export
-description: Use when a product manager, operator, or internal user asks to export QFT customer-service robot group chat conversation data, message details, chat logs, robot conversation records, bot_id data, or time-windowed客服机器人群对话数据 for analysis, iteration, QA review, or system-notice counting.
+description: Use when asked to export QFT customer-service robot group chat logs, message details, bot_id data, or time-windowed 客服机器人群对话数据 for analysis, QA, or system-notice counting.
 ---
 
 # QFT Group Chat Export
 
-## Purpose
+## Goal
 
-Export QFT customer-service robot group chat message details to one Excel file. This skill is for product analysis, robot iteration, QA review, and system-notice counting. It should make the PM describe the data need in normal language while the agent runs the bundled export script.
+Export QFT customer-service robot group chat message details to one Excel file for product analysis, robot iteration, QA review, or system-notice counting. Completion requires a readable `.xlsx` artifact plus the output path, row count, time range, robot IDs, and any limit or dependency warning. This path is read-only and does not cover database writes or ad hoc SQL analysis.
 
-## Use This Path
+## HARD-GATE
 
-Use the bundled script. Do not hand-write SQL for the user unless the script cannot run and the user explicitly asks for SQL.
+- Use only the bundled read-only export script; never run write SQL or expose credentials, query text, or stack traces.
+- Stop when local database configuration is missing, the robot cannot be resolved, the time range is invalid, or the database connection fails.
+- Stop without claiming completion when the command exits non-zero or the output file cannot be opened.
+- Do not bypass the 100000-row ceiling; narrow the time range or filter group IDs instead.
+
+## Workflow
+
+1. Read the request and resolve robot, time range, optional group IDs, output path, and row limit from the rules below.
+2. Ask one concise question only when a required robot name or `bot_id` cannot be resolved.
+3. Run the bundled script. Do not hand-write SQL unless the script cannot run and the user explicitly asks for SQL.
+4. Verify exit status, output file, and the command's path, row-count, time-range, and robot-ID evidence.
+5. Report the artifact and evidence fields from the Output Contract; stop on any Failure Handling state.
 
 ```bash
 SKILL_DIR="/Users/lijieli/.agents/skills/qft-group-chat-export"
@@ -78,7 +89,7 @@ The package vendors PyMySQL and openpyxl. The script can still auto-install miss
 
 The Excel has one sheet: `消息明细`.
 
-Columns are documented in `references/export-fields.md`. Before summarizing a completed export, report:
+When column semantics are needed, read `references/export-fields.md` and extract only the requested column definitions for the summary; routine exports do not need this reference. Before summarizing a completed export, report:
 
 - Output file path
 - Message row count
@@ -95,6 +106,13 @@ If the export fails, do not expose stack traces, SQL, or credentials. Give the P
 - Too many rows: ask for shorter time range or group IDs.
 - Dependency install failure: say Python dependency installation failed and needs technical help.
 - Database connection failure: say the database connection failed and needs network/account verification.
+
+## Completion Check
+
+- [ ] The export command exited with status 0 and printed the artifact path, row count, time range, and robot IDs as evidence.
+- [ ] The reported `.xlsx` artifact exists, opens successfully, and contains the `消息明细` sheet.
+- [ ] The row count is below the configured maximum; a limit hit is reported as blocked, not complete.
+- [ ] The response contains no credential, SQL, or stack-trace content.
 
 ## Examples
 

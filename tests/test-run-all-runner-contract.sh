@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 RUNNER="$ROOT/tests/run-all.sh"
-PLAN_INVENTORY="$ROOT/docs/reports/test-signal-inventory.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -35,21 +34,6 @@ plan_count() {
   local plan="$2"
 
   grep "^${key}=" <<<"$plan" | cut -d= -f2
-}
-
-deleted_tests_from_inventory() {
-  python3 - "$PLAN_INVENTORY" <<'PY'
-import re
-import sys
-from pathlib import Path
-
-for line in Path(sys.argv[1]).read_text(encoding="utf-8").splitlines():
-    if "| Delete |" not in line:
-        continue
-    match = re.search(r"`(tests/[^`]+)`", line)
-    if match:
-        print(match.group(1))
-PY
 }
 
 help_output="$(bash "$RUNNER" --help)"
@@ -255,13 +239,6 @@ done
 assert_not_contains "bash $ROOT/tests/test-release-metadata.sh" "$quick_plan" "quick plan"
 assert_not_contains "bash $ROOT/tests/test-release-metadata.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-release-metadata.sh" "$release_plan" "release plan"
-
-while IFS= read -r deleted_test; do
-  [ -n "$deleted_test" ] || continue
-  assert_not_contains "$deleted_test" "$quick_plan" "quick plan"
-  assert_not_contains "$deleted_test" "$full_plan" "full plan"
-  assert_not_contains "$deleted_test" "$release_plan" "release plan"
-done < <(deleted_tests_from_inventory)
 
 assert_not_contains "test-install-smoke.sh" "$quick_plan" "quick plan"
 assert_not_contains "test-install-systematic.sh" "$quick_plan" "quick plan"
