@@ -83,6 +83,7 @@ run_bash_syntax_checks() {
   python3 -m py_compile "$ROOT/tests/test-skill-pull-scripts.py"
   python3 -m py_compile "$ROOT/tests/test-install-script-contract.py"
   python3 -m py_compile "$ROOT/tests/test-github-workflow-contract.py"
+  python3 -m py_compile "$ROOT/tests/test-github-branch-protection-contract.py"
   python3 -m py_compile "$ROOT/tools/community/audit_codex_hook_trust.py"
   python3 -m py_compile "$ROOT/tools/community/render_runtime_placeholders.py"
   python3 -m py_compile "$ROOT/tests/test-render-runtime-placeholders.py"

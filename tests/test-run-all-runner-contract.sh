@@ -158,6 +158,7 @@ assert_contains "bash $ROOT/tests/test-standard-chain-runtime-layering-contract.
 assert_contains "bash $ROOT/tests/test-standard-chain-episode-package.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-standard-chain-harness-capability-eval.sh" "$full_plan" "full plan"
 assert_contains "python3 $ROOT/tests/test-github-workflow-contract.py" "$full_plan" "full plan"
+assert_contains "python3 $ROOT/tests/test-github-branch-protection-contract.py" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-skill-quality-standard.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-shared-skill-package-quality-baseline.sh" "$full_plan" "full plan"
 assert_contains "bash $ROOT/tests/test-skill-body-quality-static-audit.sh" "$full_plan" "full plan"
