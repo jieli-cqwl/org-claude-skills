@@ -63,7 +63,7 @@ Path(os.environ["GH_CAPTURE_PATH"]).write_text(
         payload = json.loads(capture["stdin"])
         status_checks = payload["required_status_checks"]
         self.assertTrue(status_checks["strict"])
-        self.assertEqual(status_checks["contexts"], [])
+        self.assertNotIn("contexts", status_checks)
         self.assertEqual(
             status_checks["checks"],
             [{"context": "validate", "app_id": 15368}],

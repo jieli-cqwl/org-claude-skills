@@ -14,7 +14,6 @@ gh api -X PUT \
 {
   "required_status_checks": {
     "strict": true,
-    "contexts": [],
     "checks": [
       {
         "context": "validate",
