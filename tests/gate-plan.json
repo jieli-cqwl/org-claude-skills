@@ -744,6 +744,22 @@
       "timeout_sec": 30
     },
     {
+      "id": "github-branch-protection-contract",
+      "command": [
+        "python3",
+        "tests/test-github-branch-protection-contract.py"
+      ],
+      "area": "preflight",
+      "tier": "full",
+      "tags": [
+        "ci",
+        "github",
+        "merge-gate"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 30
+    },
+    {
       "id": "entry-doc-source-contract",
       "command": [
         "bash",
