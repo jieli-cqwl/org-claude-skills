@@ -6,8 +6,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 . "$ROOT/tests/lib/test-env.sh"
 ensure_test_rg
 CASES="$ROOT/tests/fixtures/standard-chain-harness/capability-eval/cases.json"
-SPEC="$ROOT/docs/reports/standard-chain-harness-p2-capability-eval-2026-05-25.md"
-MATRIX="$ROOT/docs/reports/standard-chain-harness-capability-matrix-2026-05-24.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -15,9 +13,6 @@ fail() {
 }
 
 [ -f "$CASES" ] || fail "missing harness capability eval cases fixture"
-[ -f "$SPEC" ] || fail "missing P2 capability eval spec"
-[ -f "$MATRIX" ] || fail "missing harness capability matrix"
-
 jq -e '
   def required_ids:
     [
@@ -53,7 +48,7 @@ jq -e '
 
   .schema_version == "0.1.0"
   and .chain_version == "standard-chain/v1"
-  and .source_report_ref == "docs/reports/standard-chain-harness-p2-capability-eval-2026-05-25.md"
+  and (has("source_report_ref") | not)
   and (.cases | type == "array" and length == 6)
   and ([.cases[].id] | sort == (required_ids | sort))
   and (([.cases[].id] | unique | length) == (.cases | length))
@@ -82,10 +77,5 @@ done < <(
     | select(startswith("tests/") or startswith("tools/") or startswith("docs/") or startswith("contracts/") or startswith("shared/"))
   ' "$CASES" | sort -u
 )
-
-for case_id in HC-GATE-001 HC-GATE-002 HC-HANDOFF-001 HC-HANDOFF-002 HC-EVIDENCE-001 HC-CORRECTION-001; do
-  rg -n "$case_id" "$SPEC" >/dev/null || fail "P2 spec should document $case_id"
-  rg -n "$case_id" "$MATRIX" >/dev/null || fail "capability matrix should list $case_id"
-done
 
 printf '[PASS] standard-chain harness capability eval\n'

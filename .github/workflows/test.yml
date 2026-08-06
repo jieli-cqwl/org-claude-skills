@@ -2,7 +2,16 @@ name: test
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -22,7 +31,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ripgrep
           python -m pip install --upgrade pip
-          pip install pyyaml jsonschema
+          python -m pip install pyyaml jsonschema defusedxml
 
       - name: Run tests
         run: |

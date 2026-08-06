@@ -1,7 +1,6 @@
 {
   "schema_version": "0.1.0",
   "chain_version": "standard-chain/v1",
-  "source_report_ref": "docs/reports/standard-chain-systemic-evaluation-plan-2026-06-10.md",
   "cases": [
     {
       "id": "SC-INT-PD-001",

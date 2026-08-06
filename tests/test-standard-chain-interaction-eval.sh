@@ -7,7 +7,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ensure_test_rg
 
 CASES="$ROOT/tests/fixtures/standard-chain-harness/interaction-eval/cases.json"
-REPORT="$ROOT/docs/reports/standard-chain-systemic-evaluation-plan-2026-06-10.md"
 
 fail() {
   printf '[FAIL] %s\n' "$*" >&2
@@ -15,8 +14,6 @@ fail() {
 }
 
 [ -f "$CASES" ] || fail "missing standard-chain interaction eval cases fixture"
-[ -f "$REPORT" ] || fail "missing standard-chain systemic evaluation plan"
-
 jq -e '
   def required_ids:
     [
@@ -60,7 +57,7 @@ jq -e '
   . as $root
   | .schema_version == "0.1.0"
   and .chain_version == "standard-chain/v1"
-  and .source_report_ref == "docs/reports/standard-chain-systemic-evaluation-plan-2026-06-10.md"
+  and (has("source_report_ref") | not)
   and (.cases | type == "array" and length == 15)
   and ([.cases[].id] | sort == (required_ids | sort))
   and (([.cases[].id] | unique | length) == (.cases | length))
@@ -167,9 +164,5 @@ for case in data["cases"]:
             f"covered interaction case {case['id']} must reference a passing summary.json with eval ids: {joined}"
         )
 PY
-
-for case_id in SC-INT-PD-001 SC-INT-PD-002 SC-INT-PD-003 SC-INT-PD-004 SC-INT-PD-005 SC-INT-PD-006 SC-INT-PM-001 SC-INT-DES-001 SC-INT-TD-001 SC-INT-TL-001 SC-INT-DO-001 SC-INT-DEV-001 SC-INT-REV-001 SC-INT-VER-001 SC-INT-QA-001; do
-  rg -n "$case_id" "$REPORT" >/dev/null || fail "systemic evaluation plan should document $case_id"
-done
 
 printf '[PASS] standard-chain interaction eval\n'

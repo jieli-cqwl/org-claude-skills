@@ -1,7 +1,6 @@
 {
   "schema_version": "0.1.0",
   "chain_version": "standard-chain/v1",
-  "source_report_ref": "docs/reports/standard-chain-harness-p2-capability-eval-2026-05-25.md",
   "cases": [
     {
       "id": "HC-GATE-001",
@@ -137,7 +136,8 @@
         "verification"
       ],
       "input_refs": [
-        "docs/reports/standard-chain-harness-p2-capability-eval-2026-05-25.md"
+        "shared/skills/delivery-owner/contracts/target-change.schema.json",
+        "shared/skills/developer/contracts/developer-report.schema.json"
       ],
       "pass_signals": [
         "human intervention that changes acceptance criteria requires a new task spec or fresh proof",
