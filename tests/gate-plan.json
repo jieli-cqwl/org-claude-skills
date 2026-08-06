@@ -729,6 +729,21 @@
       "timeout_sec": 180
     },
     {
+      "id": "github-workflow-contract",
+      "command": [
+        "python3",
+        "tests/test-github-workflow-contract.py"
+      ],
+      "area": "preflight",
+      "tier": "full",
+      "tags": [
+        "ci",
+        "workflow"
+      ],
+      "parallel_safe": true,
+      "timeout_sec": 30
+    },
+    {
       "id": "entry-doc-source-contract",
       "command": [
         "bash",
