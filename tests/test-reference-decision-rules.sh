@@ -20,8 +20,6 @@ required_references=(
   "测试规范.md"
   "constants-and-configuration.md"
   "技术方案设计.md"
-  "全栈开发.md"
-  "系统调试.md"
 )
 
 retired_references=(
@@ -38,6 +36,8 @@ retired_references=(
   "agent-team-patterns.md"
   "mcp-server开发.md"
   "影响文件格式.md"
+  "全栈开发.md"
+  "系统调试.md"
 )
 
 for reference in "${required_references[@]}"; do

@@ -302,7 +302,6 @@
         "AE-8"
       ],
       "expected_scene_contracts": [
-        "system-debugging",
         "authentication-and-authorization",
         "impact-analysis"
       ]
@@ -363,8 +362,8 @@
       ]
     },
     {
-      "id": "fullstack-contract-shortcut",
-      "category": "fullstack_contract",
+      "id": "interface-contract-temporary-client-derivation",
+      "category": "interface_contract_cross_layer",
       "prompt": "只做判断，不要改文件。前端要展示用户等级，我准备让前端先自己按积分算，后端以后再补字段。这样能先发吗？回答控制在 260 字以内。",
       "expected_behaviors": [
         "Challenges dual source of truth between frontend calculation and backend eventual field.",
@@ -386,7 +385,7 @@
         "AE-8"
       ],
       "expected_scene_contracts": [
-        "fullstack",
+        "code-structure-reuse",
         "code-changes",
         "impact-analysis",
         "testing"
@@ -729,10 +728,6 @@
         "code-structure-reuse",
         "testing"
       ],
-      "forbidden_scene_contracts": [
-        "system-debugging",
-        "fullstack"
-      ],
       "max_successful_scene_reads": 4
     },
     {
@@ -758,11 +753,9 @@
         "AE-8"
       ],
       "expected_scene_contracts": [
-        "system-debugging",
         "authentication-and-authorization"
       ],
       "forbidden_scene_contracts": [
-        "fullstack",
         "code-structure-reuse",
         "constants-and-configuration"
       ],
@@ -795,7 +788,6 @@
         "code-changes",
         "code-structure-reuse",
         "impact-analysis",
-        "fullstack",
         "testing"
       ],
       "forbidden_scene_contracts": [
@@ -865,9 +857,7 @@
       "forbidden_scene_contracts": [
         "code-changes",
         "authentication-and-authorization",
-        "fullstack",
-        "technical-design",
-        "system-debugging"
+        "technical-design"
       ],
       "max_successful_scene_reads": 1
     },
@@ -897,7 +887,6 @@
       "forbidden_scene_contracts": [
         "code-changes",
         "testing",
-        "fullstack",
         "impact-analysis"
       ],
       "max_successful_scene_reads": 1

@@ -1347,6 +1347,8 @@ retired_runtime_reference_names() {
 完成前验证.md
 性能效率.md
 硬编码治理规范.md
+系统调试.md
+全栈开发.md
 EOF
 }
 

@@ -51,8 +51,6 @@ if [[ -z "${FAKE_INSTALL_SKIP_RUNTIME_TARGETS:-}" ]]; then
   install_runtime_file shared/reference/performance-and-efficiency.md reference/performance-and-efficiency.md
   install_runtime_file shared/reference/技术方案设计.md reference/技术方案设计.md
   install_runtime_file shared/reference/impact-analysis.md reference/impact-analysis.md
-  install_runtime_file shared/reference/系统调试.md reference/系统调试.md
-  install_runtime_file shared/reference/全栈开发.md reference/全栈开发.md
 fi
 
 if [[ -n "${FAKE_INSTALL_REQUIRED_PYTHON_USER_SITE:-}" ]]; then
