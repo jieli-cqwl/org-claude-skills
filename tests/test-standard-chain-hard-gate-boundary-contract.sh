@@ -139,12 +139,37 @@ import json
 import sys
 from pathlib import Path
 
+from jsonschema import Draft202012Validator
+
 schema = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 issue_schema = schema["allOf"][1]["properties"]["issues"]["items"]
 if "failure_class" not in issue_schema["required"]:
     raise SystemExit("fix-result issues must require failure_class")
 if "FIXABLE" not in issue_schema["properties"]["failure_class"]["enum"]:
     raise SystemExit("fix-result failure_class must define FIXABLE")
+
+base_issue = {
+    "issue_id": "FIX-1",
+    "failure_class": "REQUIREMENT_AMBIGUITY",
+    "diagnosis_evidence": ["Observed conflicting acceptance statements", "Decision owner has not resolved them"],
+    "fix_summary": "No code change while the requirement remains unresolved",
+    "impact_files": [],
+}
+validator = Draft202012Validator(issue_schema)
+
+unresolved = {**base_issue, "diagnosis_status": "UNRESOLVED"}
+validator.validate(unresolved)
+
+unresolved_with_fake_root = {**unresolved, "root_cause_ref": "src/example.py:1"}
+if not list(validator.iter_errors(unresolved_with_fake_root)):
+    raise SystemExit("UNRESOLVED issue must not fabricate root_cause_ref")
+
+confirmed_without_root = {**base_issue, "diagnosis_status": "CONFIRMED"}
+if not list(validator.iter_errors(confirmed_without_root)):
+    raise SystemExit("CONFIRMED issue must require root_cause_ref")
+
+confirmed = {**confirmed_without_root, "root_cause_ref": "requirements/checkout.md#AC-2"}
+validator.validate(confirmed)
 PY
 
 assert_present 'python3 tools/community/validate_co_creation_ledger.py --artifact "docs/{feature}/product-director-ledger.json" --producer product-director --require-finalized' "$DIRECTOR_SKILL"

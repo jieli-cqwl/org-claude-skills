@@ -11,27 +11,17 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 
 ## HARD-GATE
 
-1. NO code changes before completing diagnosis evidence for each issue.
-   Why: 未诊断就改代码是猜测式修复，命中率低且容易掩盖真正根因，导致问题反复出现。
-2. NO root cause conclusion without `file_path:line_number` evidence.
-   Why: 缺少精确定位的结论容易停留在症状层面，修复只压制表象而根因继续存在。
-3. NO reuse of a previously failed hypothesis branch.
-   Why: 已排除的假设方向重复尝试浪费诊断轮次，且说明 LLM 陷入了训练分布中的高频解释而非遵循证据。
-4. NO "works on my machine" as resolution; REQUIRED to reproduce in current environment or provide environment-difference evidence.
-   Why: 环境差异是真实故障源，无法在当前环境复现的"修复"在部署后极可能再次失败。
-5. NO continuation past 3 excluded hypotheses without escalation to a higher analysis layer.
-   Why: 连续排除说明当前分析层级不足以覆盖根因，继续同层猜测只会耗尽轮次而无进展。
-6. NO single-hypothesis verification over 3 tool rounds; unresolved branch must be marked pending.
-   Why: 单一假设消耗过多轮次是过度拟合的信号，及时挂起才能把资源分配给更有可能的候选。
-7. NO root cause confirmation without semantic relation evidence (`goToDefinition` / `findReferences` or equivalent static trace).
-   Why: 仅靠代码文本搜索易产生同名误判，静态语义追踪才能证明调用/数据流上的真实因果关系。
-8. NO `/fix` completion without canonical `fix-result.json` written to work_dir or hotfix fallback directory.
+1. REQUIRED: invoke `systematic-debugging` before classification or code changes; it is the sole owner of the diagnostic method.
+   Why: `fix` consumes diagnosis results. Forking the investigation method here creates competing root-cause standards.
+2. NO `/fix` completion without canonical `fix-result.json` written to work_dir or hotfix fallback directory.
    Why: 无落盘报告的修复过程不可追溯，后续轮次和 code-review 缺少诊断上下文会重复劳动。
-9. NO `fix-result.json` output until each issue has a valid `failure_class` and owner-level disposition.
+3. NO `fix-result.json` output until each issue has a valid `failure_class` and owner-level disposition.
    Why: 缺少分类标签会导致非代码问题被当作代码缺陷修复，在错误层级投入资源而无法解决根因。
-10. NO completion when any issue is `FIXABLE` without RED/GREEN evidence and full-suite regression check.
+4. For `FIXABLE`, root-cause evidence must anchor the causal code or runtime boundary and prove the relevant call, data, state, or protocol relationship. Non-code classes use evidence appropriate to their boundary; they do not fabricate `file_path:line_number` or LSP traces.
+   Why: 证据必须匹配故障机制，不能把代码定位模板硬套到环境、设计或需求问题。
+5. NO completion when any issue is `FIXABLE` without RED/GREEN evidence and full-suite regression check.
     Why: 没有 RED/GREEN 证据的修复无法证明缺陷已被测试捕获并消除，缺少回归检查则可能修一个破一片。
-11. NO N>1 attempt without reading all historical `fix-result.json` revisions and referencing prior findings.
+6. NO N>1 attempt without reading all historical `fix-result.json` revisions and referencing prior findings.
     Why: 忽略历史报告会重复已排除的假设和已失败的方案，LLM 跨会话无记忆只能依赖落盘工件延续上下文。
 
 
@@ -39,8 +29,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 
 你是故障修复工程师。目标是先定位根因，再执行最小必要处置。你处理两类输入：交付阶段 FAIL 与线上故障。
 
-当进入诊断阶段时：
-→ 读取 `{{RUNTIME_HOME}}/reference/系统调试.md` 获取四阶段根因分析流程（Observe/Hypothesize/Test/Fix）及 HARD-GATE：完成 Observe 前禁止改代码
+诊断阶段调用 `systematic-debugging`，本 Skill 不复制或改写其阶段、假设和实验规则。`fix` 只负责把诊断结果映射为 failure classification、处置、规范工件和验证证据。
 
 ## 流程
 
@@ -49,10 +38,10 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 | 状态 | 动作 | 停止/转移 |
 | --- | --- | --- |
 | Input Discovery | 读取失败报告、日志、命令和历史 `fix-result.json` | 输入不足则补采；N>1 必须引用历史发现 |
-| Diagnosis | Observe → Hypothesize → Test，记录假设确认/排除/未决 | 3 个假设排除后升级到调用链/数据流/架构层 |
+| Diagnosis | 调用 `systematic-debugging` 并记录其诊断结果与证据 | 根因未确认则保持 unresolved，不进入代码修复 |
 | Classification | 为每个 issue 写 `failure_class` 与 owner | 非 `FIXABLE` 停止代码修改并输出阻断动作 |
 | Minimal Fix | 仅对 `FIXABLE` 做 RED → GREEN → regression | RED/GREEN 或全量回归缺失则不得完成 |
-| Report | 写 `fix-result.json` 与证据摘要 | 缺 file:line、语义关系或 proof command 则回到 Diagnosis |
+| Report | 写 `fix-result.json` 与证据摘要 | 缺 `diagnosis_status`、failure_class、CONFIRMED 对应的 `root_cause_ref` 或 proof command 则回到 Diagnosis |
 
 ### 1. 输入发现与落盘目录解析
 
@@ -67,18 +56,20 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, LSP
 
 ### 2. 诊断阶段（每个问题必做）
 
-1. 环境快照：分支、工作树状态、最近 5 条提交、最近改动文件。
-2. 现象收集：错误消息、复现步骤、触发输入、影响范围。
-3. 假设生成：至少 2 个候选根因，按优先级排序。
-4. 假设验证：每个问题至少完成 2 个假设验证，给出验证方法和结果（确认/排除/未决）。
-5. 升级规则：连续 3 次排除后，分析层级从报错点升级到调用链/数据流/架构层。
-6. 根因确认：记录 `file_path:line_number` + 因果链 + 语义关系确认证据（`goToDefinition` / `findReferences` 或等效静态追踪）。
+1. 调用 `systematic-debugging` 完成根因调查；不得在本 Skill 中另起一套调试流程。
+2. 把诊断结果写入报告：观察事实、复现或直接发生证据、实验结果、确认或 unresolved 状态、环境差异和剩余 blocker。
+3. 为已确认根因记录与 failure class 匹配的 `root_cause_ref`：
+   - `FIXABLE`：代码或 runtime boundary 锚点，以及调用、数据、状态或协议关系证据；
+   - `DESIGN_ISSUE`：接口、架构或设计决策锚点；
+   - `ENV_ISSUE`：配置、依赖、权限、命令或环境探针证据；
+   - `REQUIREMENT_AMBIGUITY`：需求、AC、业务语义或决策缺口锚点。
+4. 根因未确认时，不伪造 `root_cause_ref`；记录 unresolved 状态、现有证据、阻断项和下一步 owner。
 
 ### 3. 修复四问（每个问题必答）
 
 | # | 问题 | 目的 |
 |---|------|------|
-| 1 | 根因是什么？ | 定位到 file_path:line_number + 根本原因（不是症状） |
+| 1 | 根因是什么？ | failure class 对应的 evidence anchor + 因果机制；未确认则明确 unresolved |
 | 2 | 修复是否完整？ | 覆盖所有受影响路径，不只修报错的那条 |
 | 3 | 是否引入新问题？ | 修改影响范围 + 回归测试需求 |
 | 4 | 是否需要补充测试覆盖？ | 修复涉及的代码路径是否有测试覆盖？无覆盖则补充 |
@@ -120,20 +111,20 @@ REQUIRED: 修复轮次 > 1 时必须执行：
 输出到 `fix-result.json`，报告必须包含：
 - 报告模板：`projections/fix-report-template.md`（输入分析、环境快照、假设验证表、根因结论表、failure_class 分类、RED/GREEN 证据）
 - 输入来源与路径解析结果（work_dir 或 hotfix 目录）
-- 诊断阶段证据（现象、假设、验证、根因 file:line）
+- `systematic-debugging` 产出的诊断证据和确认/unresolved 状态
 - 当前环境复现结论（可复现/不可复现）与环境差异证据（若不可复现）
-- 每个问题的四问记录与 `failure_class`
+- 每个问题的四问记录、`diagnosis_status`、`failure_class`；仅 CONFIRMED 写匹配故障边界的 `root_cause_ref`
 - `FIXABLE` 问题的 RED/GREEN 证据与全量测试结果
 - 非 `FIXABLE` 问题的阻断原因、下一步动作、责任归属
 - N>1 差异说明与历史引用
 
 ## 完成校验
 
-- [ ] 每个问题有诊断证据（现象 + 假设 + 验证 + 根因 file:line）
-- [ ] 每个问题至少 2 个假设已完成验证（含排除）
-- [ ] 根因结论包含语义关系确认证据（`goToDefinition` / `findReferences` 或等效静态追踪）
+- [ ] 每个问题已调用 `systematic-debugging`，并记录诊断证据与确认/unresolved 状态
 - [ ] 每个问题有修复四问记录
+- [ ] 每个问题有 `diagnosis_status`（CONFIRMED/UNRESOLVED）；UNRESOLVED 不伪造 `root_cause_ref`
 - [ ] 每个问题有 failure_class 标签（FIXABLE/DESIGN_ISSUE/ENV_ISSUE/REQUIREMENT_AMBIGUITY）
+- [ ] `FIXABLE` 的 `root_cause_ref` 和关系证据指向实际代码或 runtime boundary；非代码分类使用对应边界证据
 - [ ] 任一 `FIXABLE` 存在时，RED/GREEN 证据完整且全量测试 PASS
 - [ ] 全部为非 `FIXABLE` 时，阻断原因与下一步动作完整
 - [ ] N > 1 时有差异说明

@@ -20,6 +20,7 @@ Build the denominator from actual code and runtime entry evidence before writing
 - Include old-logic protection paths that must keep existing behavior.
 - Include real user entries when the system can be accessed.
 - Include every discovered call site or runtime entry as its own trace record; repeat the same `source_atom_id` when one source atom fans out.
+- For interface or shared-contract changes, include the contract owner, provider, every known consumer, error shape, tests, fixtures, and contract references.
 - Include rejected candidates with the reason they are out of scope.
 - Use LSP, IDE navigation, and type-aware search first; if they timeout or miss dynamic paths, continue with `rg`, file references, SQL/XML/route/API search, and manual call-chain tracing.
 - Dynamic calls, generated code, config fields, table fields, async jobs, and external system entries are not safe just because code intelligence cannot see them.
@@ -54,6 +55,7 @@ Trace in this order: source_atom -> call_chain -> interface_task_or_page -> term
 - If a trace reaches only part of the chain, mark `trace_status=TRACE_PARTIAL`; if a dependency blocks tracing, mark `trace_status=TRACE_BLOCKED`.
 - If a runtime entry is known but not executable, keep the atom and mark the runtime blocker.
 - A broad function, shared helper, enum, config, SQL fragment, or generated route may fan out into multiple business entries; create separate trace records instead of hiding fan-out.
+- A contract change that reaches clients, services, jobs, exports, permissions, or user-visible states needs a separate trace record for each provider or consumer path.
 - A file-level diff is not a trace. A passing test is not a trace unless it exercises the same atom, entry, and assertion.
 
 ## Decision States

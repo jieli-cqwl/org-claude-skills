@@ -29,6 +29,10 @@ Mark the run `BLOCKED` if any of these occur:
 - The answer recommends retry, cache, fallback, duplication, or a new path without naming failure boundaries.
 - The answer ignores compatibility or old behavior when existing code is implied.
 - The answer is mostly ceremony and lacks a concrete next action.
+- The answer chooses the wrong collaboration mode when collaboration routing is the explicit decision under test.
+- The answer transfers integration, verification, or final delivery responsibility to delegated workers.
+- The answer presents unperformed or recommended validation as already executed.
+- The answer continues a materially invalid path, invents a different decision owner, or silently changes user intent after evidence exposes a blocking contradiction, infeasible path, or outcome deviation.
 
 Blocking failures override a high numeric score.
 
@@ -39,7 +43,9 @@ When a transcript is available, inspect whether relevant scene contracts were re
 - testing and completion claims
 - code changes and existing path reuse
 - debugging, impact analysis, error handling, and performance
-- fullstack contract or technical design when applicable
+- interface contracts, cross-layer ownership, or technical design when applicable
+- collaboration routing when the prompt asks whether work should stay in the main conversation, use independent Sub Agents, or use an Agent Team
+- in-flight execution judgment when new evidence invalidates an implementation path or requires direct user clarification
 
 Do not require every expected scene file to be read for tiny prompts, but penalize missing specialist reasoning when it affects the judgment.
 
@@ -87,4 +93,4 @@ Use this threshold for a smoke run:
 - `WARN`: no blocking failures but average anchor score < 1.6, or one repeated weak anchor
 - `FAIL`: any blocking failure, or the same anchor scores 0 in two or more scenarios
 
-Only change `assistant.md` when failures repeat or a blocking failure exposes a real contract gap.
+Only change `assistant.md` or the corresponding routed reference when failures repeat or a blocking failure exposes a real contract gap.

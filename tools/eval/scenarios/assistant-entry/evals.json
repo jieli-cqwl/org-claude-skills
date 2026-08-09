@@ -1,6 +1,6 @@
 {
   "eval_suite": "assistant-entry",
-  "target": "shared/assistant.md",
+  "target": "shared/assistant.md and routed runtime references",
   "eval_type": "behavior_replay",
   "purpose": "Check whether the installed assistant entry produces conclusion-first, evidence-aware, risk-aware, executable answers without overfitting exact prose.",
   "score_scale": {
@@ -13,7 +13,11 @@
     "accepts a risky user premise as fact without inspection or caveat",
     "recommends retry, cache, fallback, or new path without bounding failure modes",
     "ignores compatibility or old behavior when the prompt implies existing code",
-    "answers with ceremony but no executable next step"
+    "answers with ceremony but no executable next step",
+    "chooses the wrong collaboration mode when collaboration routing is the explicit decision under test",
+    "transfers integration, verification, or final delivery responsibility to delegated workers",
+    "presents unperformed or recommended validation as already executed",
+    "continues a materially invalid path, invents a different decision owner, or silently changes user intent after evidence exposes a blocking contradiction, infeasible path, or outcome deviation"
   ],
   "preference_anchors": [
     {
@@ -59,6 +63,21 @@
     {
       "id": "AE-9",
       "anchor": "Stays as light as the prompt allows and avoids framework theater",
+      "weight": 1
+    },
+    {
+      "id": "AE-10",
+      "anchor": "Chooses the main conversation, independent Sub Agents, or an Agent Team from net benefit and intermediate-result dependency rather than superficial communication or file boundaries",
+      "weight": 1
+    },
+    {
+      "id": "AE-11",
+      "anchor": "Keeps integration, evidence verification, and final delivery with the main Agent and separates executed validation from unverified or recommended validation",
+      "weight": 1
+    },
+    {
+      "id": "AE-12",
+      "anchor": "Revalidates confirmed goals, critical assumptions, feasibility, and intermediate outputs during execution; stops materially invalid paths and chooses safe self-correction or user clarification without blind continuation or unilateral intent changes",
       "weight": 1
     }
   ],
@@ -142,7 +161,6 @@
         "AE-8"
       ],
       "expected_scene_contracts": [
-        "system-debugging",
         "error-handling",
         "performance",
         "impact-analysis",
@@ -372,6 +390,232 @@
         "code-changes",
         "impact-analysis",
         "testing"
+      ]
+    },
+    {
+      "id": "interface-contract-consumer-fanout",
+      "category": "interface_contract_cross_layer",
+      "prompt": "只做判断，不要改文件。会员等级字段由账户服务提供，Web、iOS、结算 worker 和邮件任务都消费。现在要改等级语义，团队只准备同步 Web 和账户服务，其余以后再跟。这样可以发吗？给出最低发布条件。回答控制在 320 字以内。",
+      "expected_behaviors": [
+        "Identifies the authoritative contract owner and every affected provider and consumer instead of reducing the change to frontend versus backend.",
+        "Requires the contract change to propagate to affected implementations, error handling, tests, and contract references for Web, iOS, the settlement worker, and the email job.",
+        "Blocks an unbounded staggered release or makes any temporary divergence explicit, bounded, reversible, and independently verified for preserved consumers."
+      ],
+      "anti_patterns": [
+        "Frames the problem only as synchronizing the Web frontend with the account-service backend.",
+        "Accepts deferring the named consumers without an owner, preserved-behavior boundary, exit condition, or evidence.",
+        "Lists generic impact-analysis steps without deciding whether the proposed release is safe."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-3",
+        "AE-4",
+        "AE-5",
+        "AE-6",
+        "AE-8"
+      ],
+      "expected_scene_contracts": [
+        "code-structure-reuse",
+        "code-changes",
+        "impact-analysis",
+        "testing"
+      ]
+    },
+    {
+      "id": "cross-layer-bounded-nonauthoritative-derivation",
+      "category": "interface_contract_cross_layer",
+      "prompt": "只做判断，不要改文件。接口返回权威的 renewalAt 时间戳，移动端离线时派生“剩余天数”用于展示；它不参与权限、计费或状态决策，最多缓存 24 小时，契约版本变化会失效，并可用 feature flag 关闭。是否因为单一真源就必须禁止这个派生？给出最低放行与验收条件。回答控制在 320 字以内。",
+      "expected_behaviors": [
+        "Rejects the blanket ban and distinguishes an authoritative business value from a bounded nonauthoritative presentation derivation.",
+        "Conditionally allows the derivation only with explicit scope, ownership, consistency or freshness semantics, invalidation behavior, and no promotion into a decision source.",
+        "Requires a rollback or exit path plus contract and user-path evidence for online, offline, stale, and contract-version-change behavior."
+      ],
+      "anti_patterns": [
+        "Bans every client-side derivation merely because a single source of truth exists.",
+        "Treats the displayed remaining-days value as an independent authoritative rule or silently expands it into permission, billing, or state decisions.",
+        "Approves the path based only on the feature flag without checking bounded failure and verification semantics."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-3",
+        "AE-4",
+        "AE-5",
+        "AE-6",
+        "AE-8",
+        "AE-9"
+      ],
+      "expected_scene_contracts": [
+        "technical-design",
+        "code-structure-reuse",
+        "impact-analysis",
+        "testing"
+      ]
+    },
+    {
+      "id": "collaboration-independent-review-routing",
+      "category": "collaboration_routing",
+      "prompt": "只做判断，不要改文件。我要让两个 reviewer 并行评估同一份方案。他们需要沟通材料位置和完成进度，但不得交换或消费彼此的分析与中间结论；最后由主 Agent 按证据比较。严格按协作规则判断，应该用 Agent Team 还是 Sub Agent？回答控制在 220 字以内。",
+      "expected_behaviors": [
+        "Chooses independent Sub Agents for the first-round reviews rather than an Agent Team.",
+        "Explains that logistical communication does not create an intermediate-result dependency and that the reviewers must avoid early anchoring.",
+        "Keeps comparison, evidence judgment, integration, and final responsibility with the main Agent."
+      ],
+      "anti_patterns": [
+        "Chooses an Agent Team merely because the reviewers exchange material locations or progress updates.",
+        "Defines independence only by whether the runtime technically permits communication.",
+        "Treats reviewer self-reports as final completion evidence."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-3",
+        "AE-5",
+        "AE-8",
+        "AE-9",
+        "AE-10",
+        "AE-11"
+      ],
+      "expected_scene_contracts": [
+        "collaboration"
+      ]
+    },
+    {
+      "id": "collaboration-delegation-cost-gate",
+      "category": "collaboration_routing",
+      "prompt": "只做判断，不要改文件。任务只是改 README 里一个明显错别字并检查 diff，执行不到一分钟；拆给两个 Agent 虽然可以并行，但派发和汇总更慢。应该下放还是留在主对话？回答控制在 180 字以内。",
+      "expected_behaviors": [
+        "Keeps the task in the main conversation because delegation overhead exceeds the expected benefit.",
+        "Does not treat theoretical parallelism or the ability to split work as sufficient reason to delegate.",
+        "Recommends only the minimal edit and diff or link verification needed for the tiny task."
+      ],
+      "anti_patterns": [
+        "Delegates merely because two workers could act in parallel.",
+        "Ignores dispatch and integration overhead.",
+        "Introduces a heavyweight collaboration workflow for a trivial edit."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-3",
+        "AE-5",
+        "AE-8",
+        "AE-9",
+        "AE-10"
+      ],
+      "expected_scene_contracts": [
+        "collaboration"
+      ]
+    },
+    {
+      "id": "collaboration-verification-evidence-boundary",
+      "category": "collaboration_evidence",
+      "prompt": "只做判断，不要改文件。Sub Agent 回报“代码已改完，建议之后运行测试”，但没有提供命令或结果。主 Agent 能否据此宣布根任务已验证、已完成？应该怎么汇报？回答控制在 220 字以内。",
+      "expected_behaviors": [
+        "Refuses to treat the delegated worker's self-report as root-task completion evidence.",
+        "Separates checks actually executed with observed results from unverified items and recommended verification.",
+        "Keeps verification, integration, and the final completion decision with the main Agent."
+      ],
+      "anti_patterns": [
+        "Claims the root task is verified or complete from the worker's self-report.",
+        "Rephrases recommended testing as testing already executed.",
+        "Transfers the final completion decision to the delegated worker."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-3",
+        "AE-7",
+        "AE-8",
+        "AE-9",
+        "AE-11"
+      ],
+      "expected_scene_contracts": [
+        "collaboration",
+        "testing",
+        "completion-claims"
+      ]
+    },
+    {
+      "id": "collaboration-interdependent-work-routing",
+      "category": "collaboration_routing",
+      "prompt": "只做判断，不要改文件。前端和后端分别改不同文件，但双方必须持续对齐同一个接口契约，并根据对方的中间结果调整实现。这里应该用 Agent Team 还是两个互不依赖的 Sub Agent？回答控制在 220 字以内。",
+      "expected_behaviors": [
+        "Chooses an Agent Team or equivalent coordinated execution because each side consumes the other's intermediate results.",
+        "Identifies the shared interface contract as a coordination dependency despite the files being different.",
+        "Requires a shared contract or coordination point before treating downstream work as independently executable."
+      ],
+      "anti_patterns": [
+        "Chooses independent Sub Agents only because the frontend and backend edit different files.",
+        "Ignores the shared interface contract and intermediate-result dependency.",
+        "Claims that separate write locations alone make the work safe to parallelize."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-3",
+        "AE-4",
+        "AE-5",
+        "AE-8",
+        "AE-10"
+      ],
+      "expected_scene_contracts": [
+        "collaboration",
+        "technical-design"
+      ]
+    },
+    {
+      "id": "execution-correctable-path-deviation",
+      "category": "execution_judgment_self_correction",
+      "prompt": "只做判断，不要改文件。目标和验收已经明确：沿用项目现有导出契约生成 CSV。执行中发现原计划采用的新库会错误处理字段转义，而项目现有 exporter 能满足同一目标、范围和验收，不需要用户做任何取舍。现在应该继续原计划、暂停询问用户，还是自行纠正？回答控制在 260 字以内。",
+      "expected_behaviors": [
+        "Stops the invalid new-library path instead of continuing because work has already started.",
+        "Reuses the existing exporter, verifies escaping and preserved export behavior, and then continues within the confirmed scope.",
+        "Does not interrupt the user for a decision when the correction is safe, evidence-backed, and changes no user intent, goal, scope, or acceptance criterion."
+      ],
+      "anti_patterns": [
+        "Continues the known-bad library path to avoid rework.",
+        "Asks the user to choose between implementation details that require no user tradeoff.",
+        "Switches paths and claims success without verifying the corrected and preserved behavior."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-3",
+        "AE-4",
+        "AE-7",
+        "AE-8",
+        "AE-9",
+        "AE-12"
+      ],
+      "expected_scene_contracts": [
+        "code-changes",
+        "code-structure-reuse",
+        "testing"
+      ]
+    },
+    {
+      "id": "execution-blocking-requirement-contradiction",
+      "category": "execution_judgment_user_clarification",
+      "prompt": "只做判断，不要改文件。批量导入开发到一半时发现两条已确认要求互相冲突：一条要求遇到任意错误立即回滚全部写入，另一条要求保留同批次已经成功的记录。继续实现必须擅自选择业务语义。现在怎么处理？回答控制在 280 字以内。",
+      "expected_behaviors": [
+        "Stops only the work that depends on the contradictory transaction semantics instead of blindly selecting one requirement or halting unrelated evidence gathering.",
+        "Explains the contradiction, evidence, affected behavior, concrete options, and a recommendation to the user, then waits for clarification before dependent implementation continues.",
+        "Does not silently rewrite the user's intent, scope, or acceptance criteria and does not claim the task can meet both incompatible requirements."
+      ],
+      "anti_patterns": [
+        "Chooses rollback-all or partial-success semantics without user clarification.",
+        "Invents a product manager, business owner, or other decision owner instead of asking the user.",
+        "Keeps implementing both incompatible requirements and defers the conflict to final testing.",
+        "Reports only that the requirements are unclear without impact, options, recommendation, or a concrete resume condition."
+      ],
+      "expected_anchors": [
+        "AE-1",
+        "AE-2",
+        "AE-3",
+        "AE-5",
+        "AE-7",
+        "AE-8",
+        "AE-9",
+        "AE-12"
+      ],
+      "expected_scene_contracts": [
+        "testing",
+        "impact-analysis"
       ]
     },
     {

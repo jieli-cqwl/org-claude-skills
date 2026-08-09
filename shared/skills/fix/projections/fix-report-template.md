@@ -28,15 +28,15 @@
 - 不可复现时环境差异证据:
 
 ### 假设验证过程
-每个问题至少 2 个已验证假设（结果为排除/确认/未决）。
+记录 `systematic-debugging` 实际验证的 material hypotheses；不要为满足固定数量编造候选。
 | # | 问题 | 假设 | 验证方法 | 结果 |
 |---|------|------|---------|------|
 | 1 | ... | ... | ... | 排除/确认/未决 |
 
 ### 根因结论
-| # | 问题 | 根因定位 | 因果链摘要 | 语义关系确认证据 |
-|---|------|---------|-----------|------------------|
-| 1 | ... | file_path:line_number | ... | goToDefinition/findReferences 或等效静态追踪 |
+| # | 问题 | diagnosis_status | failure_class | root_cause_ref | 因果链摘要 | 证据 |
+|---|------|------------------|---------------|----------------|-----------|------|
+| 1 | ... | CONFIRMED/UNRESOLVED | FIXABLE/DESIGN_ISSUE/ENV_ISSUE/REQUIREMENT_AMBIGUITY | 仅 CONFIRMED 填写与分类匹配的代码、runtime、设计、环境或需求锚点 | ... | ... |
 
 ## 处置阶段
 
@@ -52,7 +52,7 @@
 
 | # | 问题 | 回答 |
 |---|------|------|
-| 1 | 根因是什么？ | file_path:line_number + 根本原因 |
+| 1 | 根因是什么？ | failure class 对应的 evidence anchor + 因果机制；未确认则写 unresolved |
 | 2 | 修复是否完整？ | 受影响路径列表 + 覆盖确认 |
 | 3 | 是否引入新问题？ | 影响范围 + 回归测试需求 |
 | 4 | 是否需要补充测试覆盖？ | 覆盖状态 + 补充计划 |
@@ -76,6 +76,6 @@ TEST_CMD: <命令，仅 FIXABLE 必填>
 | 1 | ... | ... | ... | ... |
 
 ### 交接项清单
-- 根因分析结论与定位文件:行号
+- 根因分析结论、failure class 与对应 evidence anchor
 - 修复范围与回归测试清单
 - 非 FIXABLE 问题的后续处理动作
