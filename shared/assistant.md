@@ -36,5 +36,3 @@
 - 完成声明：任务完成、修复完成、测试通过、可交付、可合并或可提测等完成声明场景，先读 `{{RUNTIME_HOME}}/rules/completion-claims.md`。
 - 技术方案设计：技术方案、架构设计、复杂度拆解、方案边界和设计取舍场景，先读 `{{RUNTIME_HOME}}/reference/技术方案设计.md`。
 - 影响范围评估：影响分析、回归范围、兼容旧逻辑、source atoms、coverage denominator、business impact 和 verification scope 场景，先读 `{{RUNTIME_HOME}}/reference/impact-analysis.md`。
-- 调试与失败定位：报错、测试失败、构建失败、异常行为和根因定位场景，先读 `{{RUNTIME_HOME}}/reference/系统调试.md`。
-- 全栈开发：全栈开发、接口契约、跨层业务规则、前后端实现协作、真实依赖接入和端到端验收场景，先读 `{{RUNTIME_HOME}}/reference/全栈开发.md`。

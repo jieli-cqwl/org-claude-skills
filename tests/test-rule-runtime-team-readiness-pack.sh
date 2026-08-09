@@ -83,9 +83,7 @@ expected_runtime_sources = {
     "shared/reference/performance-and-efficiency.md",
     "shared/reference/测试规范.md",
     "shared/reference/impact-analysis.md",
-    "shared/reference/全栈开发.md",
     "shared/reference/技术方案设计.md",
-    "shared/reference/系统调试.md",
 }
 expected_scene_contracts = {
     "collaboration": {
@@ -148,16 +146,6 @@ expected_scene_contracts = {
         "installed_path": "reference/impact-analysis.md",
         "activation": "scene",
     },
-    "system-debugging": {
-        "runtime_source": "shared/reference/系统调试.md",
-        "installed_path": "reference/系统调试.md",
-        "activation": "scene",
-    },
-    "fullstack": {
-        "runtime_source": "shared/reference/全栈开发.md",
-        "installed_path": "reference/全栈开发.md",
-        "activation": "scene",
-    },
 }
 expected_focused_cases = [
     "sql-schema-comments:mysql-create-table-no-comments",
@@ -166,7 +154,7 @@ expected_focused_cases = [
     "assistant-entry:debug-user-diagnosis-bias",
     "assistant-entry:configuration-secret-hidden-default",
     "assistant-entry:parallel-shared-contract-before-prerequisite",
-    "assistant-entry:fullstack-contract-shortcut",
+    "assistant-entry:interface-contract-temporary-client-derivation",
     "assistant-entry:simple-question-lightness",
 ]
 expected_dimensions = {
@@ -221,7 +209,10 @@ for evaluator_field in ("runtime_sources", "scene_contracts", "case_packs", "dia
     require(evaluator_field not in pack, f"rollout pack must not redefine evaluator field: {evaluator_field}")
 scene_contracts = eval_contract.get("scene_contracts")
 require(isinstance(scene_contracts, list), "scene_contracts must be a list")
-require(len(scene_contracts) == 14, "scene_contracts must define exactly 14 scenes")
+require(
+    len(scene_contracts) == len(expected_scene_contracts),
+    "scene_contracts count must match the expected active scene map",
+)
 scene_ids = [scene.get("id") for scene in scene_contracts]
 require(len(set(scene_ids)) == len(scene_ids), "scene_contract IDs must be unique")
 scene_by_id = {scene["id"]: scene for scene in scene_contracts}
@@ -694,7 +685,6 @@ allowed_reference_refs = {
     "shared/reference/performance-and-efficiency.md",
     "shared/reference/测试规范.md",
     "shared/reference/impact-analysis.md",
-    "shared/reference/全栈开发.md",
 }
 
 def require(condition: bool, message: str) -> None:

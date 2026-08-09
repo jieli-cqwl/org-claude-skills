@@ -95,7 +95,7 @@ expected_cases = [
     "assistant-entry:debug-user-diagnosis-bias",
     "assistant-entry:configuration-secret-hidden-default",
     "assistant-entry:parallel-shared-contract-before-prerequisite",
-    "assistant-entry:fullstack-contract-shortcut",
+    "assistant-entry:interface-contract-temporary-client-derivation",
     "assistant-entry:simple-question-lightness",
 ]
 selected = [f"{case['pack_id']}:{case['id']}" for case in payload["selected_cases"]]
@@ -119,7 +119,7 @@ PY
 
 run_dry \
   --case assistant-entry:configuration-secret-hidden-default \
-  --case assistant-entry:fullstack-contract-shortcut \
+  --case assistant-entry:interface-contract-temporary-client-derivation \
   >"$TMP_ROOT/case-filter-resolution.json"
 python3 - "$TMP_ROOT/case-filter-resolution.json" <<'PY' || fail "case-filter dry-run resolution is invalid"
 import json
@@ -130,7 +130,7 @@ payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 selected = [f"{case['pack_id']}:{case['id']}" for case in payload["selected_cases"]]
 if selected != [
     "assistant-entry:configuration-secret-hidden-default",
-    "assistant-entry:fullstack-contract-shortcut",
+    "assistant-entry:interface-contract-temporary-client-derivation",
 ]:
     raise SystemExit(f"filtered selected cases mismatch: {selected}")
 baseline_packs = [item["pack_id"] for item in payload["baseline_commits"]]
@@ -430,7 +430,7 @@ if "shared/assistant.md" not in candidate["configuration"]["dirty_paths"]:
 if not candidate["runtime_source_hashes"]:
     raise SystemExit("candidate runtime hashes are missing")
 installed_hashes = candidate.get("installed_runtime_target_hashes")
-if not isinstance(installed_hashes, list) or len(installed_hashes) != 15:
+if not isinstance(installed_hashes, list) or len(installed_hashes) != 13:
     raise SystemExit("candidate installed runtime target hashes are missing")
 source_by_target = {
     "AGENTS.md": "shared/assistant.md",
@@ -446,8 +446,6 @@ source_by_target = {
     "reference/performance-and-efficiency.md": "shared/reference/performance-and-efficiency.md",
     "reference/技术方案设计.md": "shared/reference/技术方案设计.md",
     "reference/impact-analysis.md": "shared/reference/impact-analysis.md",
-    "reference/系统调试.md": "shared/reference/系统调试.md",
-    "reference/全栈开发.md": "shared/reference/全栈开发.md",
 }
 import hashlib
 actual_by_target = {item["path"]: item["sha256"] for item in installed_hashes}

@@ -125,8 +125,6 @@ def main() -> int:
         "reference/performance-and-efficiency.md",
         "reference/技术方案设计.md",
         "reference/impact-analysis.md",
-        "reference/系统调试.md",
-        "reference/全栈开发.md",
     )
     events = []
     for relative_path in installed_paths:

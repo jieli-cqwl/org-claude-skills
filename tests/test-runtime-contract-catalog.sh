@@ -18,8 +18,8 @@ test -f "$ROOT/shared/rules/completion-claims.md" || fail "missing completion ve
 test -f "$ROOT/shared/rules/code-changes.md" || fail "missing code changes rule"
 test -f "$ROOT/shared/rules/execution-control.md" || fail "missing execution control rule"
 test -f "$ROOT/shared/rules/document-governance.md" || fail "missing document governance rule"
-test -f "$ROOT/shared/reference/全栈开发.md" || fail "missing fullstack reference"
-test -f "$ROOT/shared/reference/系统调试.md" || fail "missing system debugging reference"
+test ! -f "$ROOT/shared/reference/全栈开发.md" || fail "fullstack reference should be retired; keep cross-layer obligations in specific references"
+test ! -f "$ROOT/shared/reference/系统调试.md" || fail "system debugging reference should be retired; use the maintained systematic-debugging skill"
 test ! -f "$ROOT/shared/rules/执行纪律.md" || fail "legacy Chinese execution rule filename should be retired"
 test ! -f "$ROOT/shared/rules/文档管理.md" || fail "legacy Chinese document governance rule filename should be retired"
 test ! -f "$ROOT/shared/rules/交付验收底线.md" || fail "legacy delivery acceptance rule should be retired"
@@ -245,7 +245,6 @@ expected_refs = {
     "{{RUNTIME_HOME}}/reference/constants-and-configuration.md",
     "{{RUNTIME_HOME}}/reference/authentication-and-authorization.md",
     "{{RUNTIME_HOME}}/reference/performance-and-efficiency.md",
-    "{{RUNTIME_HOME}}/reference/全栈开发.md",
 }
 if refs != expected_refs:
     raise SystemExit(f"unexpected reference set: {sorted(refs)}")
@@ -918,6 +917,20 @@ for path in \
   rg -n "\{\{RUNTIME_HOME\}\}/$path" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \
     || fail "missing assistant runtime reference: $path"
 done
+
+python3 - "$ROOT" "$ROOT/shared/assistant.md" <<'PY' || fail "assistant contains a dangling runtime route"
+import re
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+assistant = Path(sys.argv[2]).read_text(encoding="utf-8")
+routes = set(re.findall(r"\{\{RUNTIME_HOME\}\}/((?:reference|rules)/[^`]+\.md)", assistant))
+for route in sorted(routes):
+    source = root / "shared" / route
+    if not source.is_file():
+        raise SystemExit(f"assistant route has no active source: {route}")
+PY
 
 python3 - "$ROOT/shared/reference/技术方案设计.md" <<'PY' || fail "technical design reference contract violated"
 import sys

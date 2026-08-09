@@ -16,9 +16,7 @@
     "shared/reference/performance-and-efficiency.md",
     "shared/reference/测试规范.md",
     "shared/reference/impact-analysis.md",
-    "shared/reference/全栈开发.md",
-    "shared/reference/技术方案设计.md",
-    "shared/reference/系统调试.md"
+    "shared/reference/技术方案设计.md"
   ],
   "scene_contracts": [
     {
@@ -92,18 +90,6 @@
       "runtime_source": "shared/reference/impact-analysis.md",
       "installed_path": "reference/impact-analysis.md",
       "activation": "scene"
-    },
-    {
-      "id": "system-debugging",
-      "runtime_source": "shared/reference/系统调试.md",
-      "installed_path": "reference/系统调试.md",
-      "activation": "scene"
-    },
-    {
-      "id": "fullstack",
-      "runtime_source": "shared/reference/全栈开发.md",
-      "installed_path": "reference/全栈开发.md",
-      "activation": "scene"
     }
   ],
   "case_packs": [
@@ -137,7 +123,7 @@
         {"pack": "assistant-entry", "id": "debug-user-diagnosis-bias"},
         {"pack": "assistant-entry", "id": "configuration-secret-hidden-default"},
         {"pack": "assistant-entry", "id": "parallel-shared-contract-before-prerequisite"},
-        {"pack": "assistant-entry", "id": "fullstack-contract-shortcut"},
+        {"pack": "assistant-entry", "id": "interface-contract-temporary-client-derivation"},
         {"pack": "assistant-entry", "id": "simple-question-lightness"}
       ]
     },
