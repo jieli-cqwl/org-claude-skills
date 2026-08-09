@@ -128,18 +128,6 @@
       "runtime_source": "shared/reference/impact-analysis.md",
       "installed_path": "reference/impact-analysis.md",
       "activation": "scene"
-    },
-    {
-      "id": "system-debugging",
-      "runtime_source": "shared/reference/系统调试.md",
-      "installed_path": "reference/系统调试.md",
-      "activation": "scene"
-    },
-    {
-      "id": "fullstack",
-      "runtime_source": "shared/reference/全栈开发.md",
-      "installed_path": "reference/全栈开发.md",
-      "activation": "scene"
     }
   ],
   "case_packs": [
@@ -173,7 +161,7 @@
         {"pack": "assistant-entry", "id": "debug-user-diagnosis-bias"},
         {"pack": "assistant-entry", "id": "configuration-secret-hidden-default"},
         {"pack": "assistant-entry", "id": "parallel-shared-contract-before-prerequisite"},
-        {"pack": "assistant-entry", "id": "fullstack-contract-shortcut"},
+        {"pack": "assistant-entry", "id": "interface-contract-temporary-client-derivation"},
         {"pack": "assistant-entry", "id": "simple-question-lightness"}
       ]
     }
@@ -181,7 +169,7 @@
 }
 ```
 
-`runtime_sources` 必须同步补入 `shared/reference/技术方案设计.md` 和 `shared/reference/系统调试.md`。现有 `shared/rules/execution-control.md` 与 `shared/rules/document-governance.md` 继续保留为安装面 source，但本次 active entry 没有对应 scene route，不得为了凑 focused coverage 发明场景。`shared/assistant.md` 由 Codex 自动加载，不要求 command-read evidence；其 source hash 仍进入 runtime manifest。
+`runtime_sources` 必须同步补入 `shared/reference/技术方案设计.md`。现有 `shared/rules/execution-control.md` 与 `shared/rules/document-governance.md` 继续保留为安装面 source，但本次 active entry 没有对应 scene route，不得为了凑 focused coverage 发明场景。`shared/assistant.md` 由 Codex 自动加载，不要求 command-read evidence；其 source hash 仍进入 runtime manifest。调试方法由锁 ref 的自动 `systematic-debugging` Skill 负责，不再建立本地 Reference scene contract。
 
 ### Required Case Metadata
 

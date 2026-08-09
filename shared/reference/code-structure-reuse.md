@@ -12,6 +12,7 @@ Code structure should preserve existing behavior first, and introduce abstractio
 - When adding a path, name the boundary, retained legacy behavior, affected callers, migration or removal condition, and regression evidence.
 - Completion needs regression evidence for affected legacy behavior, not just proof that the new behavior works.
 - A proposed shortcut, compatibility path, or shared-contract change must make the owner, consumers, preserved behavior, failure boundary, and required integration evidence explicit; include migration, removal, and rollback conditions when they apply.
+- Shared business rules, derived values, statuses, permissions, and data semantics need a source-of-truth owner; secondary derivations must define their non-authoritative scope, freshness or consistency semantics, invalidation, verification, and removal or rollback condition.
 
 ## Complexity Signals
 
@@ -35,4 +36,4 @@ Code structure should preserve existing behavior first, and introduce abstractio
 
 - Compatibility layers must name the retained callers, reason, removal condition, and deletion path.
 - Compatibility logic must not swallow new errors, change business semantics, or hide migration failure.
-- Shared contract changes must identify the single source of truth, dependent callers, compatible sequencing, and integration evidence before callers diverge; define migration or removal only when persisted data or temporary compatibility is involved.
+- Shared contract changes must identify the owner, single source of truth, dependent consumers, preserved behavior, compatible rollout sequence, and integration evidence before providers and consumers diverge; define migration or removal when persisted data or temporary compatibility is involved.

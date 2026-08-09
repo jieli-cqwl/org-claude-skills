@@ -30,8 +30,6 @@ global_docs = {
     "reference/测试规范.md",
     "reference/技术方案设计.md",
     "reference/impact-analysis.md",
-    "reference/系统调试.md",
-    "reference/全栈开发.md",
     "reference/performance-and-efficiency.md",
     "reference/constants-and-configuration.md",
 }
@@ -98,7 +96,7 @@ def referenced_global_docs(paragraph: str) -> set[str]:
 
 def assert_self_checks() -> None:
     valid_samples = [
-        "当进入诊断阶段时：\n→ 读取 `{{RUNTIME_HOME}}/reference/系统调试.md` 获取四阶段根因分析流程",
+        "当进入错误处理阶段时：\n→ 读取 `{{RUNTIME_HOME}}/reference/error-handling.md` 获取失败处理边界",
         "- [ ] Code Changes rule satisfied: `{{RUNTIME_HOME}}/rules/code-changes.md`",
     ]
     invalid_samples = [

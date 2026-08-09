@@ -35,7 +35,7 @@
             "required": [
               "issue_id",
               "failure_class",
-              "root_cause_ref",
+              "diagnosis_status",
               "diagnosis_evidence",
               "fix_summary",
               "impact_files"
@@ -52,6 +52,13 @@
                   "DESIGN_ISSUE",
                   "ENV_ISSUE",
                   "REQUIREMENT_AMBIGUITY"
+                ]
+              },
+              "diagnosis_status": {
+                "type": "string",
+                "enum": [
+                  "CONFIRMED",
+                  "UNRESOLVED"
                 ]
               },
               "root_cause_ref": {
@@ -77,6 +84,44 @@
                 }
               }
             },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "diagnosis_status": {
+                      "const": "CONFIRMED"
+                    }
+                  },
+                  "required": [
+                    "diagnosis_status"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "root_cause_ref"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "diagnosis_status": {
+                      "const": "UNRESOLVED"
+                    }
+                  },
+                  "required": [
+                    "diagnosis_status"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "root_cause_ref"
+                    ]
+                  }
+                }
+              }
+            ],
             "additionalProperties": true
           }
         },

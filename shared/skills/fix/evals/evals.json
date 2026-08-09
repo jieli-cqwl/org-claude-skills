@@ -3,18 +3,17 @@
   "evals": [
     {
       "id": "missing-diagnosis-blocks-fix",
-      "prompt": "code-review 报了一个空指针问题，但只给了一句描述，没有 file:line、复现步骤或失败命令。请按 fix skill 处理。",
+      "prompt": "code-review 报了一个空指针问题，但只给了一句描述，没有复现步骤、失败命令或诊断证据。请按 fix skill 处理。",
       "files": [],
       "expectations": [
-        "阻断修改，要求补齐失败证据、复现命令和 file_path:line_number；不得猜测修复或写代码。",
+        "调用 systematic-debugging 并阻断修改，要求补齐失败证据和复现或直接发生证据；不得猜测修复或写代码。",
+        "调用 systematic-debugging",
         "缺少诊断证据时不改代码",
-        "要求 file_path:line_number",
-        "要求复现命令",
+        "要求失败证据和复现或直接发生证据",
         "不宣称修复完成"
       ],
       "expected_anchors": [
         "PA-1",
-        "PA-2",
         "PA-3"
       ],
       "run_modes": [
@@ -23,18 +22,17 @@
       ]
     },
     {
-      "id": "hypothesis-loop-escalates",
-      "prompt": "同一个接口超时问题已经排除了数据库、网络和权限三种假设，还没有根因。请按 fix skill 判断下一步。",
+      "id": "environment-issue-uses-boundary-evidence",
+      "prompt": "构建命令在加载业务代码前就报 tool not found，环境探针确认当前机器没装对应工具链。请按 fix skill 判断如何记录和处置。",
       "files": [],
       "expectations": [
-        "停止同层猜测并升级分析层级，记录已排除假设；不得继续复用失败分支。",
-        "记录已排除假设",
-        "不复用失败假设",
-        "连续排除后升级分析",
-        "不写代码"
+        "分类为 ENV_ISSUE，使用环境和依赖边界证据，不强求代码 file:line 或 LSP 语义追踪；停止代码修改并给出环境 owner 的下一步。",
+        "分类为 ENV_ISSUE",
+        "接受环境或依赖边界证据",
+        "不伪造代码定位",
+        "停止代码修改并给出下一步 owner"
       ],
       "expected_anchors": [
-        "PA-1",
         "PA-2",
         "PA-3"
       ],
@@ -58,8 +56,8 @@
       ],
       "expected_anchors": [
         "PA-1",
-        "PA-2",
-        "PA-3"
+        "PA-4",
+        "PA-5"
       ],
       "run_modes": [
         "with_skill",
@@ -71,39 +69,34 @@
   "preference_anchors": [
     {
       "id": "PA-1",
-      "anchor": "改代码前必须完成诊断证据",
+      "anchor": "分类或改代码前调用 systematic-debugging，并消费其诊断结果",
       "weight": 1
     },
     {
       "id": "PA-2",
-      "anchor": "根因必须有 file_path:line_number 证据",
+      "anchor": "诊断状态必须显式；仅 CONFIRMED 写与 failure_class 匹配的 root_cause_ref，UNRESOLVED 不伪造根因",
       "weight": 1
     },
     {
       "id": "PA-3",
-      "anchor": "不得复用已失败的假设分支",
+      "anchor": "每个问题必须给出 failure_class、owner-level disposition 和阻断或修复动作",
       "weight": 1
     },
     {
       "id": "PA-4",
-      "anchor": "必须复现或解释环境差异",
-      "weight": 1
-    },
-    {
-      "id": "PA-5",
       "anchor": "FIXABLE 问题必须有 RED/GREEN 证据",
       "weight": 1
     },
     {
-      "id": "PA-6",
+      "id": "PA-5",
       "anchor": "完成时写入 fix-result.json",
       "weight": 1
     }
   ],
   "grader_dimensions": [
-    "diagnosis_evidence",
-    "hypothesis_control",
-    "minimal_fix",
-    "regression_evidence"
+    "diagnosis_handoff",
+    "failure_classification",
+    "fix_verification",
+    "canonical_reporting"
   ]
 }

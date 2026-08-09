@@ -603,6 +603,108 @@ prepare_manager_unit_placeholder_workspace() {
   mv "$workspace/docs/sample-feature/phase-1/units/UNIT-1.tmp.json" "$workspace/docs/sample-feature/phase-1/units/UNIT-1.json"
 }
 
+prepare_fix_environment_issue_workspace() {
+  local workspace="$1"
+  local report_dir="$workspace/docs/hotfix--environment"
+
+  mkdir -p "$report_dir"
+  cat > "$report_dir/fix-1.md" <<'EOF'
+# fix-result projection
+
+## 诊断阶段
+
+### 现象与复现
+| # | 问题 | 复现步骤 | 现象 |
+|---|------|---------|------|
+| 1 | 构建环境缺少工具链 | 在当前环境执行构建命令 | 命令在业务代码加载前失败 |
+
+复现结论: 不可复现
+环境差异证据: 目标环境安装了工具链，当前环境未安装对应可执行文件。
+
+### 假设验证过程
+| # | 问题 | 假设 | 验证方法 | 结果 |
+|---|------|------|---------|------|
+| 1 | 构建环境缺少工具链 | 当前环境依赖缺失 | 检查可执行文件与版本 | 确认 |
+
+### 根因结论
+| # | 问题 | 根因定位 | 因果链摘要 | 证据 |
+|---|------|---------|-----------|------|
+| 1 | 构建环境缺少工具链 | 当前环境依赖边界 | 可执行文件缺失导致构建未进入代码路径 | 环境探针确认依赖不存在 |
+
+## 处置阶段
+
+失败分类:
+| # | 问题 | failure_class | 后续动作 |
+|---|------|---------------|---------|
+| 1 | 构建环境缺少工具链 | ENV_ISSUE | 阻断代码修改，由环境 owner 补齐工具链后重跑 |
+
+### FAIL-1: 构建环境缺少工具链
+
+| # | 问题 | 回答 |
+|---|------|------|
+| 1 | 根因是什么？ | 当前环境缺少目标工具链 |
+| 2 | 修复是否完整？ | 不做代码修改，环境恢复后重跑 |
+| 3 | 是否引入新问题？ | 未修改代码 |
+| 4 | 是否需要补充测试覆盖？ | 环境恢复后执行原失败命令 |
+
+### 阻断清单
+| # | 问题 | 阻断原因 | 下一步动作 | 责任归属 |
+|---|------|---------|-----------|---------|
+| 1 | 构建环境缺少工具链 | 当前环境依赖缺失 | 安装工具链并重跑 | 环境 owner |
+EOF
+}
+
+prepare_fix_runtime_relationship_workspace() {
+  local workspace="$1"
+  local report_dir="$workspace/docs/hotfix--runtime-trace"
+
+  mkdir -p "$report_dir"
+  cat > "$report_dir/fix-1.md" <<'EOF'
+# fix-result projection
+
+## 诊断阶段
+
+### 现象与复现
+| # | 问题 | 复现步骤 | 现象 |
+|---|------|---------|------|
+| 1 | 请求状态错误 | 执行失败请求 | 服务返回错误状态 |
+
+复现结论: 可复现
+
+### 假设验证过程
+| # | 问题 | 假设 | 验证方法 | 结果 |
+|---|------|------|---------|------|
+| 1 | 请求状态错误 | 状态转换遗漏 | 对比 runtime trace | 确认 |
+
+### 根因结论
+| # | 问题 | 根因定位 | 因果链摘要 | 关系证据 |
+|---|------|---------|-----------|---------|
+| 1 | 请求状态错误 | src/request_state.py:42 | runtime trace 证明错误输入经过该状态转换后产生错误输出 | 请求链 trace |
+
+## 处置阶段
+
+失败分类:
+| # | 问题 | failure_class | 后续动作 |
+|---|------|---------------|---------|
+| 1 | 请求状态错误 | FIXABLE | 最小代码修复并回归 |
+
+### FAIL-1: 请求状态错误
+
+| # | 问题 | 回答 |
+|---|------|------|
+| 1 | 根因是什么？ | src/request_state.py:42 的状态转换遗漏 |
+| 2 | 修复是否完整？ | 覆盖受影响请求路径 |
+| 3 | 是否引入新问题？ | 已检查相邻状态转换 |
+| 4 | 是否需要补充测试覆盖？ | 已增加回归测试 |
+
+RED: 修复前测试失败
+GREEN: 修复后测试通过
+
+### 全量测试结果
+全量测试全部通过
+EOF
+}
+
 assert_refactor_gate_ignores_non_refactor_context() {
   local workspace
   workspace="$(mktemp -d "${TMPDIR:-/tmp}/refactor-gate-non-refactor.XXXXXX")"
@@ -1173,6 +1275,26 @@ assert_canonical_hooks_pass() {
     cat "$SKILL_OUTPUT_TMP_ROOT/qa-ambiguous/hook.stderr" >&2
     fail "qa canonical gate did not explain ambiguous candidates"
   }
+
+  prepare_fix_environment_issue_workspace "$SKILL_OUTPUT_TMP_ROOT/fix-environment"
+  run_hook "$ROOT/shared/skills/fix/scripts/completion_check.sh" \
+    "$SKILL_OUTPUT_TMP_ROOT/fix-environment" "fix-environment" \
+    "docs/hotfix--environment/fix-1.md\n"
+  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/fix-environment/hook.status")" != "0" ]; then
+    cat "$SKILL_OUTPUT_TMP_ROOT/fix-environment/hook.stdout" >&2
+    cat "$SKILL_OUTPUT_TMP_ROOT/fix-environment/hook.stderr" >&2
+    fail "fix gate should accept boundary evidence for ENV_ISSUE without code-only root-cause evidence"
+  fi
+
+  prepare_fix_runtime_relationship_workspace "$SKILL_OUTPUT_TMP_ROOT/fix-runtime-trace"
+  run_hook "$ROOT/shared/skills/fix/scripts/completion_check.sh" \
+    "$SKILL_OUTPUT_TMP_ROOT/fix-runtime-trace" "fix-runtime-trace" \
+    "docs/hotfix--runtime-trace/fix-1.md\n"
+  if [ "$(cat "$SKILL_OUTPUT_TMP_ROOT/fix-runtime-trace/hook.status")" != "0" ]; then
+    cat "$SKILL_OUTPUT_TMP_ROOT/fix-runtime-trace/hook.stdout" >&2
+    cat "$SKILL_OUTPUT_TMP_ROOT/fix-runtime-trace/hook.stderr" >&2
+    fail "fix gate should accept runtime relationship evidence for FIXABLE"
+  fi
 }
 
 if should_run_scope static; then

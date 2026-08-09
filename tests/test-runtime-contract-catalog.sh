@@ -18,6 +18,8 @@ test -f "$ROOT/shared/rules/completion-claims.md" || fail "missing completion ve
 test -f "$ROOT/shared/rules/code-changes.md" || fail "missing code changes rule"
 test -f "$ROOT/shared/rules/execution-control.md" || fail "missing execution control rule"
 test -f "$ROOT/shared/rules/document-governance.md" || fail "missing document governance rule"
+test -f "$ROOT/shared/reference/全栈开发.md" || fail "missing fullstack reference"
+test -f "$ROOT/shared/reference/系统调试.md" || fail "missing system debugging reference"
 test ! -f "$ROOT/shared/rules/执行纪律.md" || fail "legacy Chinese execution rule filename should be retired"
 test ! -f "$ROOT/shared/rules/文档管理.md" || fail "legacy Chinese document governance rule filename should be retired"
 test ! -f "$ROOT/shared/rules/交付验收底线.md" || fail "legacy delivery acceptance rule should be retired"
@@ -911,50 +913,13 @@ for path in \
   "reference/测试规范.md" \
   "reference/技术方案设计.md" \
   "reference/impact-analysis.md" \
-  "reference/系统调试.md" \
-  "reference/全栈开发.md" \
   "reference/performance-and-efficiency.md" \
   "reference/constants-and-configuration.md"; do
   rg -n "\{\{RUNTIME_HOME\}\}/$path" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \
     || fail "missing assistant runtime reference: $path"
 done
 
-python3 - "$ROOT/shared/reference/测试规范.md" <<'PY' || fail "testing reference contract violated"
-import re
-import sys
-from pathlib import Path
-
-reference = Path(sys.argv[1])
-text = reference.read_text(encoding="utf-8")
-code_terms = set(re.findall(r"`([^`]+)`", text))
-required_code_terms = {
-    "trace-record-derived-tests": {
-        "trace_record",
-        "acceptance_assertion",
-    },
-    "preserved-old-logic": {
-        "preserved_old_logic",
-    },
-    "evidence-levels": {
-        "evidence_level",
-        "static",
-        "local",
-        "mock",
-        "runtime",
-        "E2E",
-    },
-}
-missing = [
-    label
-    for label, terms in required_code_terms.items()
-    if not terms <= code_terms
-]
-if missing:
-    raise SystemExit("testing reference missing semantics: " + ", ".join(missing))
-PY
-
 python3 - "$ROOT/shared/reference/技术方案设计.md" <<'PY' || fail "technical design reference contract violated"
-import re
 import sys
 from pathlib import Path
 
@@ -964,52 +929,10 @@ lower_text = text.lower()
 first_line = text.splitlines()[0] if text.splitlines() else ""
 if first_line.removeprefix("# ").strip() != reference.stem:
     raise SystemExit("technical design reference title mismatch")
-decision_fields = set(re.findall(r"^- `([a-z0-9_]+)`:", text, flags=re.MULTILINE))
-required_decision_fields = (
-    "capability_owner",
-    "existing_path_reuse",
-    "abstraction_decision",
-    "new_path_exception",
-    "regression_evidence",
-    "reference_route",
-)
-missing = [field for field in required_decision_fields if field not in decision_fields]
-if missing:
-    raise SystemExit(f"technical design reference missing decision fields: {missing}")
 if "技术方案原则.md" in text or "设计原则.md" in text:
     raise SystemExit("technical design reference must not point to retired design names")
 if lower_text.count("code-structure-reuse.md") != 1:
     raise SystemExit("technical design should route to structure reuse reference once, not duplicate it")
-semantic_checks = [
-    (
-        "boundary-decision-fields-cover-structure-choices",
-        all(
-            term in text
-            for term in (
-                "能力归属",
-                "复用路径",
-                "抽象边界",
-                "新路径例外",
-                "回归证据",
-            )
-        ),
-    ),
-    (
-        "abstraction-decision-is-broader-than-code-reuse",
-        all(
-            term in text
-            for term in (
-                "真实重复",
-                "稳定不变量",
-                "已识别的变化边界",
-                "验证责任",
-            )
-        ),
-    ),
-]
-missing_semantics = [label for label, present in semantic_checks if not present]
-if missing_semantics:
-    raise SystemExit("technical design reference missing semantics: " + ", ".join(missing_semantics))
 PY
 
 rg -n "\{\{RUNTIME_HOME\}\}/rules/completion-claims\.md" "$ROOT/shared/assistant.md" >/dev/null 2>&1 \

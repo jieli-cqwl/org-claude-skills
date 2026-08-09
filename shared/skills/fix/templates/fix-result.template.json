@@ -26,6 +26,7 @@
     {
       "issue_id": "FIX-1",
       "failure_class": "FIXABLE",
+      "diagnosis_status": "CONFIRMED",
       "root_cause_ref": "shared/skills/example/SKILL.md:1",
       "diagnosis_evidence": [
         "Observed failing review gate",

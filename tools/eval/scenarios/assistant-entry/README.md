@@ -1,16 +1,17 @@
 # Assistant Entry Eval
 
-Purpose: replay realistic user prompts against the installed runtime entry (`shared/assistant.md` rendered as `AGENTS.md` / `CLAUDE.md`) and judge whether the assistant's behavior matches the intended operating contract.
+Purpose: replay realistic user prompts against the installed runtime entry (`shared/assistant.md` rendered as `AGENTS.md` / `CLAUDE.md`) and the references it routes to, then judge whether the assistant's behavior matches the intended operating contract.
 
-This suite is a behavior smoke and dogfood tool. It is not a quick/full gate and must not assert exact natural-language wording from `assistant.md`.
+This suite is a behavior smoke and dogfood tool. It is not a quick/full gate and must not assert exact natural-language wording from runtime instruction Markdown.
 
 ## What It Proves
 
 - The entry prompt pushes answers toward conclusion-first, evidence-aware, risk-aware output.
 - Completion claims stay bounded by current evidence.
 - User premises are treated as hypotheses, not facts.
+- Execution continuously revalidates confirmed goals, critical assumptions, feasibility, and intermediate outputs; material deviations trigger safe self-correction or direct user clarification instead of blind continuation or invented decision owners.
 - Code, debugging, retry, cache, fallback, architecture, and testing scenarios route to the right kind of thinking.
-- Changes to `assistant.md` improve repeated failure patterns instead of overfitting one example.
+- Changes to `assistant.md` or its routed references improve repeated failure patterns instead of overfitting one example.
 
 It does not prove long-term model stability. Use it as a regression lens before and after entry-prompt edits.
 
@@ -21,11 +22,11 @@ It does not prove long-term model stability. Use it as a regression lens before 
 
 ## Recommended Flow
 
-1. Pick 3-5 scenarios for a smoke run, or all scenarios before a major `assistant.md` rewrite.
+1. Pick 3-5 scenarios for a smoke run, or all scenarios before a major runtime-instruction rewrite.
 2. Run each prompt in a fresh non-interactive session with the installed runtime entry.
 3. Save final output and, when available, transcript/tool logs under `tools/eval/results/assistant-entry-<date>/`.
 4. Grade each run with `grader.md`.
-5. Change `assistant.md` only for repeated failures, not one-off taste differences.
+5. Change `assistant.md` or a routed reference only for repeated failures or a blocking contract violation, not one-off taste differences.
 
 ## Example Command
 
@@ -46,7 +47,7 @@ codex exec \
 Treat a failure as actionable only when one of these is true:
 
 - The same anchor fails in two or more scenarios.
-- A blocking failure appears: false completion claim, unsafe recommendation, user-premise echo, or hidden evidence gap.
+- A blocking failure appears: false completion claim, unsafe recommendation, user-premise echo, hidden evidence gap, explicit collaboration misrouting, known-bad execution, or an invented decision owner.
 - The output becomes consistently too heavy for simple prompts.
 
 If a scenario fails because it is unclear or unrealistic, fix the scenario first.

@@ -11,6 +11,7 @@ Completion means the requested outcome is proven at its acceptance scope, not th
 - Completion evidence must distinguish the claimed outcome from in-scope failure modes; a check that would pass for the wrong behavior is not evidence.
 - The strength of a claim must match the strength of evidence; partial, sampled, local, mock, stub, fake, or indirect evidence supports only the scope it proves.
 - Claims about user paths, boundaries, runtimes, dependencies, contracts, integrations, environments, E2E behavior, or substituted paths require evidence at that same level.
+- Interface, integration, or user-path completion cannot be claimed from isolated provider or consumer changes, mocks, planned validation, or unverified downstream work.
 - If a change touches shared contracts, entrypoints, data formats, install/runtime paths, or consumers, verify representative real consumers or prove why they are outside scope.
 - Evidence must be current to this task/run, reproducible, and tied to the requested outcome; manual evidence must record input, path, environment, expected result, and observed result.
 - Historical output, cached impressions, report self-reference, log summaries, tool success, green checks outside scope, and substituted paths are not completion evidence.

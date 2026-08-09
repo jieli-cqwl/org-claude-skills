@@ -164,38 +164,7 @@ count_failure_class_entries() {
     printf '%s' "$count"
 }
 
-count_verified_hypotheses() {
-    local file="$1"
-    local count
-
-    count=$(awk '
-        BEGIN { in_section=0; count=0 }
-        /^### [[:space:]]*假设验证过程/ { in_section=1; next }
-        in_section && /^### / { in_section=0 }
-        in_section && /^\|/ {
-            line=$0
-            if (line ~ /^\|[[:space:]]*#/) next
-            if (line ~ /^\|[-[:space:]|]+\|?$/) next
-            if (line ~ /\.\.\./) next
-            if (line ~ /(排除|确认|未决)/) count++
-        }
-        END { print count }
-    ' "$file" 2>/dev/null || echo 0)
-
-    if ! printf '%s' "$count" | grep -qE '^[0-9]+$'; then
-        count=0
-    fi
-    if [ "$count" -eq 0 ]; then
-        count=$(grep -ciE '(假设[^[:cntrl:]]*(排除|确认|未决)|(排除|确认|未决)[^[:cntrl:]]*假设)' "$file" 2>/dev/null || true)
-        if ! printf '%s' "$count" | grep -qE '^[0-9]+$'; then
-            count=0
-        fi
-    fi
-
-    printf '%s' "$count"
-}
-
-has_semantic_confirmation() {
+has_relationship_confirmation() {
     local file="$1"
     awk '
         BEGIN { found=0 }
@@ -204,7 +173,7 @@ has_semantic_confirmation() {
             if (line ~ /语义关系确认证据[[:space:]]*\|/) next
             if (line ~ /goToDefinition\/findReferences 或等效静态追踪/) next
             if (line ~ /\.\.\./) next
-            if (line ~ /(goToDefinition|findReferences|定义跳转|引用追踪|静态追踪|语义关系证据|LSP)/) {
+            if (line ~ /(goToDefinition|findReferences|定义跳转|引用追踪|静态追踪|语义关系证据|LSP|runtime trace|调用链|数据流|状态转换|状态变更|协议边界|请求链|依赖链)/) {
                 found=1
             }
         }
@@ -224,7 +193,7 @@ is_unreproducible_conclusion() {
 
 check_fix_report() {
     local fix_file="$1"
-    local label n has_fixable has_nonfixable q_count hypothesis_count issue_count failure_class_count
+    local label n has_fixable has_nonfixable q_count issue_count failure_class_count
 
     label=$(basename "$fix_file" .md)
 
@@ -249,19 +218,23 @@ check_fix_report() {
         add_failure "F2: [${label}] failure_class 数量不足（问题数=${issue_count}，分类条目=${failure_class_count}）"
     fi
 
-    # F3: 诊断证据必填（现象 + 假设 + 验证 + 根因定位）
+    has_fixable=false
+    has_nonfixable=false
+    # 忽略模板中的 "FIXABLE/DESIGN_ISSUE/..." 选项串，仅识别真实分类值
+    grep -qE '(^|[^/A-Z_])FIXABLE([^/A-Z_]|$)' "$fix_file" 2>/dev/null && has_fixable=true
+    grep -qE '(^|[^/A-Z_])(DESIGN_ISSUE|ENV_ISSUE|REQUIREMENT_AMBIGUITY)([^/A-Z_]|$)' "$fix_file" 2>/dev/null && has_nonfixable=true
+
+    # F3: 诊断证据必填；代码专属定位证据仅约束 FIXABLE
     if ! has_diagnosis_trace "$fix_file"; then
         add_failure "F3: [${label}] 缺少诊断过程记录（现象/假设/验证）"
     fi
-    if ! has_root_cause_evidence "$fix_file"; then
-        add_failure "F3: [${label}] 缺少根因定位证据（file_path:line_number）"
-    fi
-    hypothesis_count=$(count_verified_hypotheses "$fix_file")
-    if [ "$hypothesis_count" -lt 2 ]; then
-        add_failure "F3: [${label}] 假设验证不足（至少 2 个，当前 ${hypothesis_count}）"
-    fi
-    if ! has_semantic_confirmation "$fix_file"; then
-        add_failure "F3: [${label}] 缺少语义关系确认证据（goToDefinition/findReferences 或等效静态追踪）"
+    if $has_fixable; then
+        if ! has_root_cause_evidence "$fix_file"; then
+            add_failure "F3: [${label}] FIXABLE 缺少代码或 runtime boundary 定位证据（file_path:line_number）"
+        fi
+        if ! has_relationship_confirmation "$fix_file"; then
+            add_failure "F3: [${label}] FIXABLE 缺少调用、数据、状态或协议关系证据"
+        fi
     fi
     if ! has_repro_conclusion "$fix_file"; then
         add_failure "F3: [${label}] 缺少当前环境复现结论（可复现/不可复现）"
@@ -277,12 +250,6 @@ check_fix_report() {
     if [ "$q_count" -eq 0 ]; then
         add_failure "F4: [${label}] 缺少修复四问记录"
     fi
-
-    has_fixable=false
-    has_nonfixable=false
-    # 忽略模板中的 "FIXABLE/DESIGN_ISSUE/..." 选项串，仅识别真实分类值
-    grep -qE '(^|[^/A-Z_])FIXABLE([^/A-Z_]|$)' "$fix_file" 2>/dev/null && has_fixable=true
-    grep -qE '(^|[^/A-Z_])(DESIGN_ISSUE|ENV_ISSUE|REQUIREMENT_AMBIGUITY)([^/A-Z_]|$)' "$fix_file" 2>/dev/null && has_nonfixable=true
 
     # F5: 条件化证据校验
     if $has_fixable; then
